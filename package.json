@@ -4,7 +4,8 @@
   "scripts": {
     "build": "pnpm --filter web build",
     "lint": "pnpm --filter web lint",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "gen:codex": "node scripts/generate-codex-agents.mjs"
   },
   "packageManager": "pnpm@10.12.1"
 }
