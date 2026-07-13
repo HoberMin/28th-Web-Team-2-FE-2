@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Looky 컴포넌트 미리보기</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --white: #ffffff;
+        --gray-50: #f5f6fb;
+        --gray-100: #e9ebf2;
+        --gray-200: #c2c6d1;
+        --gray-400: #626670;
+        --gray-800: #272e3f;
+        --gray-900: #0f172a;
+        --blue-400: #659bff;
+        --red-300: #ff5858;
+        --kakao-500: #fee500;
+        --page: #f1f3f8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--gray-900);
+        font-family:
+          Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+
+      .hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+        padding: 8px 4px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--blue-400);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(28px, 5vw, 42px);
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+      }
+
+      .hero-note {
+        max-width: 430px;
+        margin: 10px 0 0;
+        color: var(--gray-400);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .badge {
+        flex: none;
+        border: 1px solid var(--gray-200);
+        border-radius: 999px;
+        background: var(--white);
+        padding: 8px 12px;
+        color: var(--gray-400);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        align-self: start;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--gray-100);
+        border-radius: 20px;
+        background: var(--white);
+        box-shadow: 0 10px 32px rgb(15 23 42 / 6%);
+      }
+
+      .card-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--gray-50);
+        padding: 18px 20px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 17px;
+        letter-spacing: -0.02em;
+      }
+
+      .size {
+        color: var(--gray-400);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .canvas {
+        padding: 22px 20px 26px;
+      }
+
+      .canvas.indicator-canvas {
+        border-radius: 0 0 20px 20px;
+        background: var(--gray-400);
+      }
+
+      .spec-350 {
+        width: 100%;
+        max-width: 350px;
+      }
+
+      .spec-171 {
+        width: 100%;
+        max-width: 171px;
+      }
+
+      .state + .state {
+        margin-top: 18px;
+      }
+
+      .state-name {
+        margin: 0 0 7px;
+        color: var(--gray-400);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .indicator-canvas .state-name {
+        color: var(--white);
+      }
+
+      .visual-button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.5;
+        letter-spacing: -0.02em;
+        user-select: none;
+      }
+
+      .cta {
+        height: 56px;
+        padding: 8px;
+        color: var(--white);
+      }
+
+      .cta-default {
+        background: var(--gray-900);
+      }
+
+      .cta-disabled {
+        background: var(--gray-200);
+      }
+
+      .cta-pressed {
+        background: var(--gray-800);
+      }
+
+      .cta-small {
+        height: 56px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-900);
+        font-size: 16px;
+      }
+
+      .cta-small-icon {
+        justify-content: flex-start;
+        gap: 2px;
+        padding: 8px 16px 8px 12px;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      .cta-small-fill {
+        border-color: var(--kakao-500);
+        background: var(--kakao-500);
+      }
+
+      .link-icon {
+        width: 24px;
+        height: 24px;
+        flex: none;
+        color: var(--gray-400);
+      }
+
+      .text-field {
+        display: flex;
+        width: 100%;
+        height: 60px;
+        align-items: center;
+        border: 1px solid;
+        border-radius: 12px;
+        background: var(--white);
+        padding: 8px 16px;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.5;
+        letter-spacing: -0.03em;
+      }
+
+      .text-field-focused {
+        border-color: var(--blue-400);
+        color: var(--gray-900);
+      }
+
+      .text-field-entered {
+        border-color: var(--gray-200);
+        color: var(--gray-900);
+      }
+
+      .text-field-placeholder {
+        border-color: var(--gray-200);
+        color: var(--gray-200);
+      }
+
+      .text-field-error {
+        border-color: var(--red-300);
+        color: var(--gray-900);
+      }
+
+      .description {
+        margin: 4px 0 0;
+        color: var(--red-300);
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.5;
+        letter-spacing: -0.03em;
+      }
+
+      .survey-stage {
+        border-radius: 14px;
+        background: var(--gray-50);
+        padding: 10px;
+      }
+
+      .survey-button {
+        display: flex;
+        width: 100%;
+        min-height: 64px;
+        align-items: center;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.5;
+        letter-spacing: -0.03em;
+      }
+
+      .survey-default {
+        background: var(--white);
+        color: var(--gray-400);
+      }
+
+      .survey-activated {
+        background: var(--gray-800);
+        color: var(--white);
+      }
+
+      .indicator {
+        display: flex;
+        width: 40px;
+        height: 6px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .indicator span {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--gray-50);
+      }
+
+      .indicator .active {
+        width: 14px;
+        background: var(--gray-900);
+      }
+
+      .footer-note {
+        margin: 20px 4px 0;
+        color: var(--gray-400);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 22px 14px 44px;
+        }
+
+        .hero {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Looky Design System</p>
+          <h1>컴포넌트 미리보기</h1>
+          <p class="hero-note">
+            프로젝트를 실행하지 않고 형태와 상태를 확인하기 위한 정적 화면입니다.
+            실제 React 렌더링과 동작 검수는 나중에 Playground에서 진행합니다.
+          </p>
+        </div>
+        <div class="badge">7 components · 18 states</div>
+      </header>
+
+      <div class="grid">
+        <section class="card" data-component="cta">
+          <div class="card-head">
+            <h2>CTA</h2>
+            <span class="size">350 × 56</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-350">
+              <div class="state" data-state="default">
+                <p class="state-name">default</p>
+                <div class="visual-button cta cta-default">확인</div>
+              </div>
+              <div class="state" data-state="disabled">
+                <p class="state-name">disabled</p>
+                <div class="visual-button cta cta-disabled">확인</div>
+              </div>
+              <div class="state" data-state="pressed">
+                <p class="state-name">pressed</p>
+                <div class="visual-button cta cta-pressed">확인</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="cta-small">
+          <div class="card-head">
+            <h2>CTA Small</h2>
+            <span class="size">171 × 56</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-171">
+              <div class="state" data-state="stroke">
+                <p class="state-name">stroke</p>
+                <div class="visual-button cta-small">인스타 스토리 공유</div>
+              </div>
+              <div class="state" data-state="stroke_icn">
+                <p class="state-name">stroke_icn</p>
+                <div class="visual-button cta-small cta-small-icon">
+                  <svg
+                    class="link-icon"
+                    aria-hidden="true"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12.0008 4.92885L9.87943 7.05017C9.48891 7.44069 9.48891 8.07386 9.87943 8.46438C10.27 8.85491 10.9031 8.85491 11.2936 8.46438L13.415 6.34306C14.5817 5.17634 16.4909 5.17634 17.6576 6.34306C18.8243 7.50979 18.8243 9.41898 17.6576 10.5857L15.5363 12.707C15.1458 13.0975 15.1458 13.7307 15.5363 14.1212C15.9268 14.5118 16.56 14.5118 16.9505 14.1212L19.0718 11.9999C21.0234 10.0483 21.0234 6.88046 19.0718 4.92885C17.1202 2.97723 13.9524 2.97723 12.0008 4.92885ZM14.1221 15.5354C13.7315 15.1449 13.0984 15.1449 12.7079 15.5354L10.5865 17.6568C9.41981 18.8235 7.51063 18.8235 6.3439 17.6568C5.17717 16.49 5.17717 14.5809 6.3439 13.4141L8.46522 11.2928C8.85574 10.9023 8.85574 10.2691 8.46522 9.8786C8.0747 9.48807 7.44153 9.48807 7.05101 9.8786L4.92969 11.9999C2.97807 13.9515 2.97807 17.1194 4.92969 19.071C6.8813 21.0226 10.0491 21.0226 12.0008 19.071L14.1221 16.9497C14.5126 16.5591 14.5126 15.926 14.1221 15.5354ZM9.17233 14.8283C8.7818 14.4378 8.7818 13.8047 9.17233 13.4141L13.415 9.17149C13.8055 8.78096 14.4387 8.78096 14.8292 9.17149C15.2197 9.56201 15.2197 10.1952 14.8292 10.5857L10.5865 14.8283C10.196 15.2189 9.56285 15.2189 9.17233 14.8283Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <span>인스타 스토리 공유</span>
+                </div>
+              </div>
+              <div class="state" data-state="fill">
+                <p class="state-name">fill</p>
+                <div class="visual-button cta-small cta-small-fill">
+                  카카오톡 공유
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="cta-insta">
+          <div class="card-head">
+            <h2>CTA Insta</h2>
+            <span class="size">171 × 56</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-171">
+              <div class="state" data-state="default">
+                <p class="state-name">default</p>
+                <div class="visual-button cta-small">인스타 스토리 공유</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="text-field">
+          <div class="card-head">
+            <h2>Text Field</h2>
+            <span class="size">350 × 60</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-350">
+              <div class="state" data-state="focused">
+                <p class="state-name">focused</p>
+                <div class="text-field text-field-focused">김루키</div>
+              </div>
+              <div class="state" data-state="entered">
+                <p class="state-name">entered</p>
+                <div class="text-field text-field-entered">김루키</div>
+              </div>
+              <div class="state" data-state="placeholder">
+                <p class="state-name">placeholder</p>
+                <div class="text-field text-field-placeholder">
+                  플레이스 홀더
+                </div>
+              </div>
+              <div class="state" data-state="error">
+                <p class="state-name">error</p>
+                <div class="text-field text-field-error">김루키</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="text-field-set">
+          <div class="card-head">
+            <h2>Text Field Set</h2>
+            <span class="size">350px</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-350">
+              <div class="state" data-state="default">
+                <p class="state-name">default</p>
+                <div class="text-field text-field-error">김루키</div>
+              </div>
+              <div class="state" data-state="description">
+                <p class="state-name">description</p>
+                <div class="text-field text-field-error">김루키</div>
+                <p class="description">description</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="survey-button">
+          <div class="card-head">
+            <h2>Survey Button</h2>
+            <span class="size">350 × 64</span>
+          </div>
+          <div class="canvas">
+            <div class="spec-350">
+              <div class="state" data-state="default">
+                <p class="state-name">default</p>
+                <div class="survey-stage">
+                  <div class="survey-button survey-default">
+                    안 가. 계획 없는 여행은 상상만 해도 멀미나
+                  </div>
+                </div>
+              </div>
+              <div class="state" data-state="activated">
+                <p class="state-name">activated</p>
+                <div class="survey-stage">
+                  <div class="survey-button survey-activated">
+                    숙소랑 일정부터 짜오면 그때 생각해볼게
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" data-component="indicator-bar">
+          <div class="card-head">
+            <h2>Indicator Bar</h2>
+            <span class="size">40 × 6</span>
+          </div>
+          <div class="canvas indicator-canvas">
+            <div class="state" data-state="step1">
+              <p class="state-name">step1</p>
+              <div class="indicator" aria-hidden="true">
+                <span class="active"></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="state" data-state="step2">
+              <p class="state-name">step2</p>
+              <div class="indicator" aria-hidden="true">
+                <span></span><span class="active"></span><span></span>
+              </div>
+            </div>
+            <div class="state" data-state="step3">
+              <p class="state-name">step3</p>
+              <div class="indicator" aria-hidden="true">
+                <span></span><span></span><span class="active"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <p class="footer-note">
+        이 파일은 디자인 확인을 위한 독립 미리보기입니다. 폰트는 컴퓨터에 설치된
+        한글 시스템 폰트로 표시될 수 있습니다.
+      </p>
+    </main>
+  </body>
+</html>
