@@ -13,9 +13,19 @@
 
 1. Figma에서 컴포넌트·토큰 작업
 2. **design-system-builder** 로 바이브코딩 → `packages/design-system` 에 구현 (Radix/shadcn 기반 — a11y 기본 내장)
-3. 컴포넌트마다 **`/playground` 스토리 추가** (variant·상태 나열 + Figma 스크린샷 나란히)
+3. 컴포넌트마다 **`/playground` 스토리 추가** — §1-1 규약대로 (규격 1개=파일 1개, Figma 출처 명시, 흰 배경)
 4. design-reviewer(시각·토큰·a11y) → 푸시 전 code-reviewer 1회 → **main 푸시** (full git 권한)
 5. Figma를 고치면 **재-sync는 자동이 아니다** — "고쳤어요"를 알리고 figma-implementer 재실행 (stale 방지 생명선)
+
+## 1-1. 플레이그라운드 스토리 규약 (필수)
+
+`apps/web/app/playground` = 디자이너가 결과를 확인하는 갤러리. 스토리북 대신 쓰는 우리 규격:
+
+- **Figma에 있는 규격만 등록한다.** Figma에 없는 임의 시드·shadcn 기본 컴포넌트 금지. 모든 스토리는 `figma` 필드(node id)로 출처를 명시.
+- **규격 1개 = 스토리 파일 1개** — `_stories/<규격이름>.tsx`에 만들고 `_stories/registry.ts`에 한 줄 등록. **디자이너가 커밋 하나 = 파일 하나**로 자기 작업을 알아볼 수 있게 분리 유지(여러 규격을 한 파일에 합치지 않는다).
+- **배경은 흰색 고정** — 페이지가 `bg-white`로 강제한다. 다크모드·전역 테마가 대조 기준을 흔들면 안 됨. 스토리 안에서 배경색을 바꾸지 말 것(어두운 배경 검증이 필요한 규격은 스토리 내부에 명시적 대비 블록으로).
+- **좌측 목차** — registry에 등록하면 자동으로 좌측(모바일은 상단) 목차에 잡힌다.
+- 스토리 내용 = 그 규격의 **모든 variant·state 나열** (타이포는 전 스케일, 컴포넌트는 variant × hover/disabled/loading 등).
 
 ## 2. 디자인 원칙
 
