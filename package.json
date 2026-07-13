@@ -1,0 +1,10 @@
+{
+  "name": "web-2-fe-2",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "test": "pnpm -r test"
+  },
+  "packageManager": "pnpm@10.12.1"
+}
