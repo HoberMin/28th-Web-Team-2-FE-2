@@ -41,6 +41,16 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 
 ## 서브에이전트
 
-- `.codex/agents/*.toml` — 역할 진실 소스는 `shared/agent-roles.md` (총 16, design-system-builder 신설)
-- 판단 밀도 티어: 높음=fable(high) / 중간=sonnet(medium) / 낮음=haiku(low)
-- **agent 커스텀은 전원 개방** — 수정 시 `shared/agent-roles.md` 같이 갱신
+- `.codex/agents/*.toml` (총 16) — **생성 파일, 직접 편집 금지.** 상세 SSOT는 `.claude/agents/*.md`, 재생성은 `pnpm gen:codex`, 요약 카탈로그는 `shared/agent-roles.md`
+- 판단 밀도 티어: `model_reasoning_effort` high/medium/low (Claude 쪽 fable/sonnet/haiku와 매핑)
+- 오케스트레이션(동시성)은 `.codex/config.toml [agents]`
+- **agent 커스텀은 전원 개방** — `.claude/agents` 수정 → `pnpm gen:codex` → `agent-roles.md` 표 갱신을 한 커밋에
+
+## 스킬 (작업 방법 문서)
+
+- 위치: **`shared/skills/<이름>/SKILL.md`** (도구 중립 SSOT — `.claude/skills`는 여기로의 심링크)
+- 각 agent toml의 instructions에 참조 스킬 경로가 명시돼 있음 — **해당 파일을 실제로 읽고 따를 것**
+
+## 판단 렌즈
+
+product-challenger(가치 도전)·ux·qa·security 렌즈를 기획/리뷰 단계에 얹는다 — L급 작업은 product-challenger·security 필수. 상세는 `CLAUDE.md` 판단 렌즈 절(동일 규격).
