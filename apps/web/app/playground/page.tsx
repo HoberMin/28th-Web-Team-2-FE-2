@@ -1,77 +1,64 @@
-import { Button } from "@web2/design-system";
 import { notFound } from "next/navigation";
+import { stories } from "./_stories/registry";
 
-// 내부 검증용 갤러리 — 런칭 전까지 배포에서도 공개(팀 검증용 Vercel).
+// 디자인 시스템 검증 갤러리 — 런칭 전까지 배포에서도 공개(팀 검증용 Vercel).
 // 실사용자 릴리즈 시 Vercel env에 PLAYGROUND_DISABLED=1 설정으로 숨긴다 (conventions 참조)
+// 배경은 디자이너 대조 기준인 흰색으로 고정 — 다크모드·전역 테마의 영향을 받지 않는다
 export default function PlaygroundPage() {
   if (process.env.PLAYGROUND_DISABLED === "1") {
     notFound();
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-4 md:p-8">
-      <h1 className="text-xl font-bold md:text-2xl">Playground</h1>
-      <p className="mt-1 text-sm text-muted">
-        디자인 시스템 컴포넌트를 variant × 상태별로 나열해 Figma와 대조하는
-        갤러리. 새 공통 컴포넌트를 만들면 여기에 스토리를 추가한다(필수).
-      </p>
+    <div className="min-h-screen bg-white text-neutral-900">
+      <div className="mx-auto flex max-w-5xl flex-col md:flex-row">
+        {/* 좌측 목차 — 모바일에선 상단 가로 스크롤 */}
+        <nav
+          aria-label="스토리 목차"
+          className="shrink-0 border-b border-neutral-200 bg-white px-4 py-3 md:sticky md:top-0 md:h-screen md:w-52 md:border-r md:border-b-0 md:px-5 md:py-8"
+        >
+          <p className="text-sm font-bold">Playground</p>
+          <p className="mt-1 hidden text-xs text-neutral-400 md:block">
+            규격 1개 = 스토리 1개. Figma에 있는 것만.
+          </p>
+          <ul className="mt-3 flex gap-2 overflow-x-auto md:flex-col md:gap-1">
+            {stories.map((s) => (
+              <li key={s.id} className="shrink-0">
+                <a
+                  href={`#${s.id}`}
+                  className="block rounded px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  {s.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-      <section className="mt-8" aria-labelledby="type-story">
-        <h2 id="type-story" className="text-lg font-semibold">
-          Typography
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Figma node 369-4075 sync. head 2종은 커스텀 폰트 파일 확보 전이라
-          Pretendard로 fallback 렌더된다(자간·크기·굵기는 확정).
-        </p>
-        <div className="mt-4 flex flex-col gap-5">
-          <div>
-            <p className="text-xs text-muted">head1 · Y SpotlightOTF (fallback)</p>
-            <p className="font-head1 text-head1-26">head1-26 · 다시 봄 Looky</p>
-            <p className="font-head1 text-head1-20">head1-20 · 다시 봄 Looky</p>
-            <p className="font-head1 text-head1-16">head1-16 · 다시 봄 Looky</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted">head2 · YPairingFont OTF Bold (fallback)</p>
-            <p className="font-head2 text-head2-26">head2-26 · 다시 봄 Looky</p>
-            <p className="font-head2 text-head2-20">head2-20 · 다시 봄 Looky</p>
-            <p className="font-head2 text-head2-14">head2-14 · 다시 봄 Looky</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted">body · Pretendard</p>
-            <p className="font-body text-body-18-semibold">body-18-semibold · 가나다 ABC 123</p>
-            <p className="font-body text-body-16-regular">body-16-regular · 가나다 ABC 123</p>
-            <p className="font-body text-body-14-regular">body-14-regular · 가나다 ABC 123</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted">caption · Pretendard</p>
-            <p className="font-body text-caption-12-medium">caption-12-medium · 가나다 ABC 123</p>
-            <p className="font-body text-caption-12-regular">caption-12-regular · 가나다 ABC 123</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-8" aria-labelledby="button-story">
-        <h2 id="button-story" className="text-lg font-semibold">
-          Button
-        </h2>
-        {/* TODO(✍️): Figma 스크린샷을 옆에 나란히 배치 (figma-implementer로 추출) */}
-        <div className="mt-4 flex flex-col gap-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="primary">Primary</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="destructive">Destructive</Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button size="sm">Small</Button>
-            <Button size="md">Medium</Button>
-            <Button size="lg">Large (모바일 full)</Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button disabled>Disabled</Button>
-          </div>
-        </div>
-      </section>
-    </main>
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+          {stories.map((s) => (
+            <section
+              key={s.id}
+              id={s.id}
+              aria-labelledby={`${s.id}-title`}
+              className="mb-12 scroll-mt-4"
+            >
+              <div className="border-b border-neutral-200 pb-2">
+                <h2 id={`${s.id}-title`} className="text-lg font-semibold">
+                  {s.title}
+                </h2>
+                <p className="mt-0.5 text-xs text-neutral-400">
+                  Figma: {s.figma}
+                </p>
+                <p className="mt-1 text-sm text-neutral-500">{s.description}</p>
+              </div>
+              <div className="pt-5">
+                <s.Component />
+              </div>
+            </section>
+          ))}
+        </main>
+      </div>
+    </div>
   );
 }
