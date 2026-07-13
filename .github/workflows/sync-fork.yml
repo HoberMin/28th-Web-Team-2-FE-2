@@ -1,0 +1,22 @@
+# 원본(main) push → HoberMin fork로 미러 push → fork에 붙은 Vercel이 자동 배포
+# 필요 시크릿: FORK_SYNC_TOKEN — HoberMin 계정 fine-grained PAT (fork 레포 Contents: Read and write)
+name: Sync fork (Vercel deploy trigger)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 원본 main이 진실 소스 — fork main은 미러라서 --force로 정확히 일치시킨다
+      - name: Mirror push to fork
+        run: |
+          git push --force \
+            "https://x-access-token:${{ secrets.FORK_SYNC_TOKEN }}@github.com/HoberMin/28th-Web-Team-2-FE-2.git" \
+            main:main
