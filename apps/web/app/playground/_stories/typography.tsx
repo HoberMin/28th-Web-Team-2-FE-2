@@ -46,6 +46,7 @@ function TypographyStory() {
 export const typographyStory: Story = {
   id: "typography",
   title: "Typography",
+  group: "파운데이션",
   figma: "node 369-4075",
   description:
     "타이포 스케일 전량. head1/head2는 커스텀 폰트 파일 확보 전 Pretendard fallback(자간·크기·굵기는 Figma 확정값).",
