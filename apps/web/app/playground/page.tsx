@@ -15,6 +15,41 @@ export default function PlaygroundPage() {
         갤러리. 새 공통 컴포넌트를 만들면 여기에 스토리를 추가한다(필수).
       </p>
 
+      <section className="mt-8" aria-labelledby="type-story">
+        <h2 id="type-story" className="text-lg font-semibold">
+          Typography
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          Figma node 369-4075 sync. head 2종은 커스텀 폰트 파일 확보 전이라
+          Pretendard로 fallback 렌더된다(자간·크기·굵기는 확정).
+        </p>
+        <div className="mt-4 flex flex-col gap-5">
+          <div>
+            <p className="text-xs text-muted">head1 · Y SpotlightOTF (fallback)</p>
+            <p className="font-head1 text-head1-26">head1-26 · 다시 봄 Looky</p>
+            <p className="font-head1 text-head1-20">head1-20 · 다시 봄 Looky</p>
+            <p className="font-head1 text-head1-16">head1-16 · 다시 봄 Looky</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted">head2 · YPairingFont OTF Bold (fallback)</p>
+            <p className="font-head2 text-head2-26">head2-26 · 다시 봄 Looky</p>
+            <p className="font-head2 text-head2-20">head2-20 · 다시 봄 Looky</p>
+            <p className="font-head2 text-head2-14">head2-14 · 다시 봄 Looky</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted">body · Pretendard</p>
+            <p className="font-body text-body-18-semibold">body-18-semibold · 가나다 ABC 123</p>
+            <p className="font-body text-body-16-regular">body-16-regular · 가나다 ABC 123</p>
+            <p className="font-body text-body-14-regular">body-14-regular · 가나다 ABC 123</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted">caption · Pretendard</p>
+            <p className="font-body text-caption-12-medium">caption-12-medium · 가나다 ABC 123</p>
+            <p className="font-body text-caption-12-regular">caption-12-regular · 가나다 ABC 123</p>
+          </div>
+        </div>
+      </section>
+
       <section className="mt-8" aria-labelledby="button-story">
         <h2 id="button-story" className="text-lg font-semibold">
           Button

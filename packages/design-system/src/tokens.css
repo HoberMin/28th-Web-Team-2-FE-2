@@ -13,4 +13,109 @@
 
   --radius-ds-sm: 0.375rem;
   --radius-ds-md: 0.625rem;
+
+  /*
+   * 타이포그래피 스케일 — Figma Variables (node 369-4075) sync 2026-07-13
+   *   매핑 규칙: Figma `head-point1/26` → `--text-head1-26`,
+   *             `body/16-regular` → `--text-body-16-regular` (슬래시→하이픈, point 축약)
+   *   letterSpacing: Figma % → em (head/caption -2% = -0.02em, body -3% = -0.03em)
+   *   line-height: Figma 배수 그대로(단위 없음). font-family는 globals.css @theme inline이 소유.
+   * 폰트 패밀리: head1=Y SpotlightOTF, head2=YPairingFont OTF(Bold), body/caption=Pretendard
+   */
+
+  /* head-point1 (Y SpotlightOTF, Regular) */
+  --text-head1-26: 1.625rem;
+  --text-head1-26--line-height: 1.4;
+  --text-head1-26--letter-spacing: -0.02em;
+  --text-head1-26--font-weight: 400;
+  --text-head1-24: 1.5rem;
+  --text-head1-24--line-height: 1.45;
+  --text-head1-24--letter-spacing: -0.02em;
+  --text-head1-24--font-weight: 400;
+  --text-head1-20: 1.25rem;
+  --text-head1-20--line-height: 1.5;
+  --text-head1-20--letter-spacing: -0.02em;
+  --text-head1-20--font-weight: 400;
+  --text-head1-18: 1.125rem;
+  --text-head1-18--line-height: 1.5;
+  --text-head1-18--letter-spacing: -0.02em;
+  --text-head1-18--font-weight: 400;
+  --text-head1-16: 1rem;
+  --text-head1-16--line-height: 1.5;
+  --text-head1-16--letter-spacing: -0.02em;
+  --text-head1-16--font-weight: 400;
+
+  /* head-point2 (YPairingFont OTF, Bold) — Figma style=Bold이므로 weight 700 (변수 weight 필드는 400로 stale) */
+  --text-head2-26: 1.625rem;
+  --text-head2-26--line-height: 1.4;
+  --text-head2-26--letter-spacing: -0.02em;
+  --text-head2-26--font-weight: 700;
+  --text-head2-24: 1.5rem;
+  --text-head2-24--line-height: 1.4;
+  --text-head2-24--letter-spacing: -0.02em;
+  --text-head2-24--font-weight: 700;
+  --text-head2-20: 1.25rem;
+  --text-head2-20--line-height: 1.5;
+  --text-head2-20--letter-spacing: -0.02em;
+  --text-head2-20--font-weight: 700;
+  --text-head2-18: 1.125rem;
+  --text-head2-18--line-height: 1.5;
+  --text-head2-18--letter-spacing: -0.02em;
+  --text-head2-18--font-weight: 700;
+  --text-head2-16: 1rem;
+  --text-head2-16--line-height: 1.5;
+  --text-head2-16--letter-spacing: -0.02em;
+  --text-head2-16--font-weight: 700;
+  --text-head2-14: 0.875rem;
+  --text-head2-14--line-height: 1.75;
+  --text-head2-14--letter-spacing: -0.02em;
+  --text-head2-14--font-weight: 700;
+
+  /* body (Pretendard) */
+  --text-body-18-semibold: 1.125rem;
+  --text-body-18-semibold--line-height: 1.45;
+  --text-body-18-semibold--letter-spacing: -0.03em;
+  --text-body-18-semibold--font-weight: 600;
+  --text-body-18-medium: 1.125rem;
+  --text-body-18-medium--line-height: 1.5;
+  --text-body-18-medium--letter-spacing: -0.03em;
+  --text-body-18-medium--font-weight: 500;
+  --text-body-18-regular: 1.125rem;
+  --text-body-18-regular--line-height: 1.55;
+  --text-body-18-regular--letter-spacing: -0.03em;
+  --text-body-18-regular--font-weight: 400;
+  --text-body-16-bold: 1rem;
+  --text-body-16-bold--line-height: 1.55;
+  --text-body-16-bold--letter-spacing: -0.03em;
+  --text-body-16-bold--font-weight: 700;
+  --text-body-16-semibold: 1rem;
+  --text-body-16-semibold--line-height: 1.5;
+  --text-body-16-semibold--letter-spacing: -0.03em;
+  --text-body-16-semibold--font-weight: 600;
+  --text-body-16-medium: 1rem;
+  --text-body-16-medium--line-height: 1.5;
+  --text-body-16-medium--letter-spacing: -0.03em;
+  --text-body-16-medium--font-weight: 500;
+  --text-body-16-regular: 1rem;
+  --text-body-16-regular--line-height: 1.55;
+  --text-body-16-regular--letter-spacing: -0.03em;
+  --text-body-16-regular--font-weight: 400;
+  --text-body-14-medium: 0.875rem;
+  --text-body-14-medium--line-height: 1.55;
+  --text-body-14-medium--letter-spacing: -0.03em;
+  --text-body-14-medium--font-weight: 500;
+  --text-body-14-regular: 0.875rem;
+  --text-body-14-regular--line-height: 1.55;
+  --text-body-14-regular--letter-spacing: -0.03em;
+  --text-body-14-regular--font-weight: 400;
+
+  /* caption (Pretendard) */
+  --text-caption-12-medium: 0.75rem;
+  --text-caption-12-medium--line-height: 1.45;
+  --text-caption-12-medium--letter-spacing: -0.02em;
+  --text-caption-12-medium--font-weight: 500;
+  --text-caption-12-regular: 0.75rem;
+  --text-caption-12-regular--line-height: 1.45;
+  --text-caption-12-regular--letter-spacing: -0.02em;
+  --text-caption-12-regular--font-weight: 400;
 }

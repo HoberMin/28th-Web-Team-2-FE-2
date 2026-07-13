@@ -10,8 +10,14 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* 폰트 패밀리 — Pretendard는 next/font(layout.tsx)가 --font-pretendard로 주입.
+     head1/head2 커스텀 폰트는 아직 파일 없음 → Pretendard로 fallback.
+     TODO(✍️): Y SpotlightOTF / YPairingFont OTF 파일 확보 시 @font-face 추가하면 자동 적용 */
+  --font-sans: var(--font-pretendard), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-pretendard), ui-sans-serif, system-ui, sans-serif;
+  --font-head1: "Y SpotlightOTF", var(--font-pretendard), ui-sans-serif, sans-serif;
+  --font-head2: "YPairingFont OTF", var(--font-pretendard), ui-sans-serif, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,5 +30,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
 }
