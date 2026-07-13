@@ -1,0 +1,10 @@
+# Codex 세션 설정 — 규격 진실 소스는 shared/ (AGENTS.md 참조)
+# model = "TODO(✍️): 팀이 쓰는 codex 모델 id"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[agents]
+# 서브에이전트 정의 = .codex/agents/*.toml (생성 파일 — pnpm gen:codex)
+# 병렬 규약은 CLAUDE.md·AGENTS.md 오케스트레이션 절과 동일하게 따른다:
+# 독립 조사만 병렬 / 쓰기는 소유 영역 비겹침만 / 공유 파일은 단일 agent
+max_concurrency = 4
