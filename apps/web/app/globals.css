@@ -32,3 +32,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-body);
 }
+
+/* 커스텀 인터랙션 요소(링크·카드·details 등)의 포커스 링을 SEED 토큰으로 통일 —
+   기본값이면 브라우저 UA 아웃라인(검정)이 떠서 SEED 컴포넌트와 어긋난다.
+   base 레이어 + :where(0 specificity)라 SEED 컴포넌트 자체 포커스 규칙은 그대로 이긴다. */
+@layer base {
+  :where(a, summary, [role="button"], [tabindex]):focus-visible {
+    outline: var(--seed-dimension-x0_5, 2px) solid
+      var(--seed-color-stroke-focus-ring, #1e82eb);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
