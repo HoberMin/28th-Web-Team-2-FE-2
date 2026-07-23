@@ -109,13 +109,15 @@
 
 ```
 진실 소스(SSOT)                          어댑터(생성물/참조)
-shared/skills/*   ── 심링크 ──▶ .claude/skills/*
+shared/skills/*   ── 심링크 ──▶ .claude/skills/*        (손으로 쓰는 우리 스킬)
+.agents/skills/*  ── 심링크 ──▶ .claude/skills/*        (skills CLI로 설치한 외부 스킬 · skills-lock.json 추적)
 .claude/agents/*.md ── pnpm gen:codex ──▶ .codex/agents/*.toml
 shared/*.md (규격) ── 참조 ──▶ CLAUDE.md(Claude) · AGENTS.md(Codex)
 ```
 
 - **agent를 수정한 커밋에는 `pnpm gen:codex` 재생성 결과가 같이 들어가야 한다** — 이게 어댑터 drift를 막는 유일한 규칙 (리뷰 체크 항목).
 - `.codex/agents/*.toml`은 직접 편집 금지 (생성 파일).
+- **스킬은 두 트랙**: 우리가 손으로 쓰는 규격 스킬은 `shared/skills/`(SSOT), `npx skills add`로 설치한 외부 스킬은 `.agents/skills/`에 두고 `skills-lock.json`이 버전을 고정한다. 둘 다 `.claude/skills/`로 심링크되어 동일하게 로드됨. **외부 스킬은 직접 편집 금지 — `skills update`로 갱신** (직접 고치면 lock 해시와 어긋남).
 
 ## 미정 (TODO)
 

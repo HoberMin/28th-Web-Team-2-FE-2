@@ -50,6 +50,7 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 ## 스킬 (작업 방법 문서)
 
 - 위치: **`shared/skills/<이름>/SKILL.md`** (도구 중립 SSOT — `.claude/skills`는 여기로의 심링크)
+- **외부 스킬은 별도 트랙**: `npx skills add`로 설치한 스킬은 `.agents/skills/`에 있고 `skills-lock.json`이 버전 고정. 직접 편집 금지 — `skills update`로 갱신
 - 각 agent toml의 instructions에 참조 스킬 경로가 명시돼 있음 — **해당 파일을 실제로 읽고 따를 것**
 
 ## 판단 렌즈
