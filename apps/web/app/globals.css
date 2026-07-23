@@ -8,6 +8,8 @@
 @source "../../../packages/design-system/src";
 
 :root {
+  /* UT 프로토타입은 흰 배경 고정 — OS 다크모드에도 라이트로 강제 (design-guide 원칙). */
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -23,13 +25,6 @@
   --font-body: var(--font-pretendard), ui-sans-serif, system-ui, sans-serif;
   --font-head1: "Y SpotlightOTF", var(--font-pretendard), ui-sans-serif, sans-serif;
   --font-head2: "YPairingFont OTF", var(--font-pretendard), ui-sans-serif, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

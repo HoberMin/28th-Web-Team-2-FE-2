@@ -55,8 +55,12 @@ export function Shell({
   children,
   footer,
 }: ShellProps) {
+  // 프레임 폭 = iPhone 12 Pro 논리 해상도 390pt (UT 기준 기기).
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-white">
+    <main
+      className="mx-auto flex min-h-screen w-full flex-col bg-white"
+      style={{ maxWidth: 390 }}
+    >
       <div className="flex flex-1 flex-col gap-6 px-5 pt-6 pb-28">
         {step !== undefined && totalSteps !== undefined && (
           <>
