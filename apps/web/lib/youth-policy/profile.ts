@@ -14,6 +14,7 @@ export type EmploymentChoice =
 export type EducationChoice = "고졸 이하" | "대학 재학" | "대학 졸업";
 export type IncomeBand = "무관" | "2400이하" | "2400_3600" | "3600초과";
 
+// 카테고리(관심 테마)는 프로필이 아니다 — 자격과 무관한 "결과 필터"라 여기서 뺀다.
 export interface UserProfile {
   nickname: string;
   age: number;
@@ -21,7 +22,6 @@ export interface UserProfile {
   employment: EmploymentChoice;
   incomeBand: IncomeBand;
   education: EducationChoice;
-  interests: PolicyTheme[];
 }
 
 export const REGION_OPTIONS: readonly RegionChoice[] = [
@@ -93,7 +93,6 @@ export function isCompleteProfile(
     !!data.region &&
     !!data.employment &&
     !!data.incomeBand &&
-    !!data.education &&
-    Array.isArray(data.interests)
+    !!data.education
   );
 }

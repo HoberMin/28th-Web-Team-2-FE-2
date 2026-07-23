@@ -14,9 +14,9 @@ import { usePrototypeSession } from "../../_lib/session";
 import { Shell, VerdictBadge, VERDICT_STYLE } from "../../_lib/ui";
 
 const RESULT_META: Record<VerdictKind, { dot: string; label: string }> = {
-  해당: { dot: "bg-green-500", label: "해당" },
-  조건부: { dot: "bg-amber-500", label: "확인 필요" },
-  비해당: { dot: "bg-gray-400", label: "비해당" },
+  해당: { dot: "bg-fg-positive", label: "해당" },
+  조건부: { dot: "bg-fg-warning", label: "확인 필요" },
+  비해당: { dot: "bg-fg-neutral-muted", label: "비해당" },
 };
 
 const RESULT_ORDER: Record<VerdictKind, number> = { 비해당: 0, 조건부: 1, 해당: 2 };
@@ -24,8 +24,8 @@ const RESULT_ORDER: Record<VerdictKind, number> = { 비해당: 0, 조건부: 1, 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-xs font-medium text-gray-400">{label}</dt>
-      <dd className="text-sm text-gray-800">{value}</dd>
+      <dt className="t2-medium text-fg-neutral-muted">{label}</dt>
+      <dd className="t4-regular text-fg-neutral">{value}</dd>
     </div>
   );
 }
@@ -89,12 +89,10 @@ export default function PolicyDetailPage() {
     >
       <div className="flex flex-col gap-7">
         {/* 판정 결과 */}
-        <section className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
+        <section className="flex flex-col gap-3 rounded-2xl border border-stroke-neutral-weak p-4">
           <div className="flex items-center gap-2">
             <VerdictBadge verdict={verdict.verdict} />
-            <span className="text-sm font-medium text-gray-800">
-              {data.nickname}님 기준
-            </span>
+            <span className="t4-medium text-fg-neutral">{data.nickname}님 기준</span>
           </div>
           <Callout
             title={VERDICT_STYLE[verdict.verdict].label}
@@ -104,7 +102,7 @@ export default function PolicyDetailPage() {
 
         {/* 판정 근거 (추적가능) */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold text-gray-800">판정 근거</h2>
+          <h2 className="t5-bold text-fg-neutral">판정 근거</h2>
           <ul className="flex flex-col gap-3">
             {sortedReasons.map((r, i) => (
               <li key={`${r.axis}-${i}`} className="flex gap-3">
@@ -113,10 +111,10 @@ export default function PolicyDetailPage() {
                   aria-hidden="true"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-gray-400">
+                  <span className="t2-bold text-fg-neutral-muted">
                     {r.axis} · {RESULT_META[r.result].label}
                   </span>
-                  <span className="text-sm text-gray-800">{r.detail}</span>
+                  <span className="t4-regular text-fg-neutral">{r.detail}</span>
                 </div>
               </li>
             ))}
@@ -125,9 +123,9 @@ export default function PolicyDetailPage() {
 
         {/* 정책 정보 */}
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-bold text-gray-800">정책 내용</h2>
-          <p className="text-sm text-gray-800">{policy.summary}</p>
-          <dl className="flex flex-col gap-4 rounded-2xl bg-gray-50 p-4">
+          <h2 className="t5-bold text-fg-neutral">정책 내용</h2>
+          <p className="t4-regular text-fg-neutral">{policy.summary}</p>
+          <dl className="flex flex-col gap-4 rounded-2xl bg-bg-layer-fill p-4">
             <InfoRow label="지원 내용" value={policy.support} />
             <InfoRow label="신청 기간" value={policy.applyPeriod} />
             <InfoRow label="신청 방법" value={policy.applyMethod} />

@@ -1,5 +1,4 @@
-// UT 프로토타입 공용 프레젠테이션 요소 (훅 없음).
-// 색은 표준 Tailwind 팔레트 사용 — 이 라우트는 UT 실험용이라 Figma 토큰 화이트리스트 밖.
+// UT 프로토타입 공용 프레젠테이션 요소 (훅 없음). SEED 시맨틱 색·타이포 토큰 사용.
 
 import type { ReactNode } from "react";
 import type { VerdictKind } from "@/lib/youth-policy/types";
@@ -10,17 +9,17 @@ export const VERDICT_STYLE: Record<
 > = {
   해당: {
     label: "받을 수 있어요",
-    badge: "bg-green-100 text-green-800",
+    badge: "bg-bg-positive-weak text-fg-positive",
     summary: "입력한 조건으로는 대상에 해당해요.",
   },
   조건부: {
     label: "조건 확인 필요",
-    badge: "bg-amber-100 text-amber-800",
+    badge: "bg-bg-warning-weak text-fg-warning",
     summary: "자동으로 확정할 수 없는 조건이 있어요. 근거를 보고 직접 판단하세요.",
   },
   비해당: {
     label: "대상이 아니에요",
-    badge: "bg-gray-200 text-gray-800",
+    badge: "bg-bg-neutral-weak text-fg-neutral-subtle",
     summary: "입력한 조건으로는 대상에서 벗어나요.",
   },
 };
@@ -29,7 +28,7 @@ export function VerdictBadge({ verdict }: { verdict: VerdictKind }) {
   const s = VERDICT_STYLE[verdict];
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.badge}`}
+      className={`t2-bold inline-flex shrink-0 items-center rounded-full px-2.5 py-1 ${s.badge}`}
     >
       {s.label}
     </span>
@@ -58,7 +57,7 @@ export function Shell({
   // 프레임 폭 = iPhone 12 Pro 논리 해상도 390pt (UT 기준 기기).
   return (
     <main
-      className="mx-auto flex min-h-screen w-full flex-col bg-white"
+      className="mx-auto flex min-h-screen w-full flex-col bg-bg-layer-default"
       style={{ maxWidth: 390 }}
     >
       <div className="flex flex-1 flex-col gap-6 px-5 pt-6 pb-28">
@@ -72,22 +71,22 @@ export function Shell({
               {Array.from({ length: totalSteps }, (_, i) => (
                 <span
                   key={i}
-                  className={`h-1 flex-1 rounded-full ${i < step ? "bg-gray-900" : "bg-gray-200"}`}
+                  className={`h-1 flex-1 rounded-full ${i < step ? "bg-bg-neutral-solid" : "bg-bg-neutral-weak"}`}
                 />
               ))}
             </div>
           </>
         )}
         <header className="flex flex-col gap-2">
-          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
+          <h1 className="t8-bold text-fg-neutral">{title}</h1>
           {description && (
-            <p className="text-sm text-gray-400">{description}</p>
+            <p className="t4-regular text-fg-neutral-subtle">{description}</p>
           )}
         </header>
         {children}
       </div>
       {footer && (
-        <div className="sticky bottom-0 border-t border-gray-200 bg-white px-5 py-4">
+        <div className="sticky bottom-0 border-t border-stroke-neutral-weak bg-bg-layer-default px-5 py-4">
           {footer}
         </div>
       )}

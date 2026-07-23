@@ -133,21 +133,18 @@ export interface Recommendation {
 }
 
 /**
- * 관심 테마로 1차 필터 후 각 공고를 판정해 3분기.
+ * 전체 공고를 판정해 3분기.
  * - matched(해당): 자신 있게 추천
  * - conditional(조건부): 노이즈 판별 대상 — 근거를 보여주고 유저가 스스로 거른다
  * - excluded(비해당): 기본 숨김 (원하면 펼쳐 봄)
+ *
+ * 카테고리(관심 테마) 필터는 자격과 무관한 표시 필터라 여기서 하지 않는다 — 결과 화면에서 적용.
  */
 export function recommendPolicies(
   policies: readonly YouthPolicy[],
   profile: UserProfile,
 ): Recommendation {
-  const scoped =
-    profile.interests.length > 0
-      ? policies.filter((p) => profile.interests.includes(p.theme))
-      : [...policies];
-
-  const ranked: RankedPolicy[] = scoped.map((policy) => ({
+  const ranked: RankedPolicy[] = policies.map((policy) => ({
     policy,
     verdict: judgePolicy(policy, profile),
   }));

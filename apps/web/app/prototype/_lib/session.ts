@@ -1,7 +1,8 @@
 "use client";
 
-// 로그인 없는 UT 프로토타입 세션 — 닉네임+프로필+관심테마를 localStorage에 보관해
+// 로그인 없는 UT 프로토타입 세션 — 닉네임+프로필을 localStorage에 보관해
 // 화면을 넘나들어도 유지한다. (백엔드/인증 없음 — design-guide §1-2)
+// 카테고리(관심 테마)는 세션에 저장하지 않는다 — 결과 화면의 로컬 표시 필터.
 
 import { useCallback, useEffect, useState } from "react";
 import type { UserProfile } from "@/lib/youth-policy/profile";
