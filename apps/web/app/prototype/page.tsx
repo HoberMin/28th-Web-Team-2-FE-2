@@ -20,7 +20,7 @@ export default function HomePage() {
               aria-label="마이페이지"
               className="flex size-11 items-center justify-center rounded-full hover:bg-bg-neutral-weak"
             >
-              <Image src="/veg/mypage.svg" alt="" width={28} height={28} className="size-7" />
+              <Image src="/veg/User.svg" alt="" width={28} height={28} className="size-7" />
             </Link>
           </div>
           <HomeVegetables />
