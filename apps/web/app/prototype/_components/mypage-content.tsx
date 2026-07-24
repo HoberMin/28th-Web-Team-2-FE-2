@@ -8,7 +8,7 @@ import { useFavorites } from "../_lib/favorites-store";
 import { useMyReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { useOnboarding } from "../_lib/onboarding-store";
-import { summarizeSpending, toSpendingItem, type SpendingSummary } from "../_lib/spending";
+import { summarizeSpending, toSpendingItem } from "../_lib/spending";
 import { formatDateDot, formatNumber, formatWon } from "../_lib/format";
 import type { Report } from "../_lib/types";
 import { FavoriteButton } from "./favorite-button";
@@ -49,6 +49,9 @@ export function MyPageContent() {
         </div>
       </div>
 
+      {/* 소비 요약 — 시세 대비 절약(핵심 가치: 눈으로 보는 변화). 탭과 무관하게 상단 고정 */}
+      <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
+
       {/* 탭 */}
       <div role="group" aria-label="마이페이지 목록" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
         {TABS.map((t) => {
@@ -72,7 +75,7 @@ export function MyPageContent() {
       {/* 탭 내용 */}
       {tab === "favorites" && <FavoritesTab favorites={favorites} />}
       {tab === "reports" && <ReportsTab reports={myReports} />}
-      {tab === "purchases" && <PurchasesTab reports={purchases} summary={summary} />}
+      {tab === "purchases" && <PurchasesTab reports={purchases} />}
     </div>
   );
 }
@@ -214,46 +217,52 @@ function ReportsTab({ reports }: { reports: Report[] }) {
   );
 }
 
-// 구매 내역 = 실제로 산 제보(purchased)만. "얼마나 아꼈다" 요약을 이 탭 전용으로 분리한다.
-function PurchasesTab({ reports, summary }: { reports: Report[]; summary: SpendingSummary }) {
+// 구매 내역 = 제보 시 구매 체크한 것(purchased)만 모아보는 목록. 절약 총합은 상단 요약카드가 담당.
+function PurchasesTab({ reports }: { reports: Report[] }) {
+  if (reports.length === 0) {
+    return (
+      <EmptyState>
+        아직 구매한 내역이 없어요.
+        <br />
+        가격을 제보할 때 &quot;샀어요&quot;를 선택하면 여기에 쌓여요.
+      </EmptyState>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-4">
-      {/* 시세 대비 절약 요약(핵심 가치: 눈으로 보는 변화) — count===0이면 안내 문구로 폴백 */}
-      <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
-      {reports.length > 0 && (
-        <ul className="flex flex-col gap-2">
-          {reports.map((r) => {
-            const veg = getVegetable(r.vegetableId);
-            // 산 가격(전체 무게)과 같은 품목 현재 시세의 차이 → 절약/초과.
-            const { saved } = toSpendingItem(r);
-            const savedPositive = saved >= 0;
-            return (
-              <li
-                key={r.id}
-                className="flex items-center justify-between rounded-2xl bg-bg-neutral-weak px-4 py-3"
-              >
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-body-16-semibold text-fg-neutral">
-                    {veg?.name ?? r.vegetableId}{" "}
-                    <span className="text-body-14-regular text-fg-neutral-subtle">{r.weightKg}kg</span>
-                  </span>
-                  <span className="text-caption-12-regular text-fg-neutral-subtle">
-                    {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
-                  </span>
+    <ul className="flex flex-col gap-2">
+      {reports.map((r) => {
+        const veg = getVegetable(r.vegetableId);
+        // 산 가격(전체 무게)과 같은 품목 현재 시세의 차이 → 절약/초과.
+        const { saved } = toSpendingItem(r);
+        const savedPositive = saved >= 0;
+        return (
+          <li
+            key={r.id}
+            className="flex items-center justify-between rounded-2xl bg-bg-neutral-weak px-4 py-3"
+          >
+            <span className="flex min-w-0 flex-col">
+              <span className="text-body-16-semibold text-fg-neutral">
+                {veg?.name ?? r.vegetableId}{" "}
+                <span className="text-body-14-regular text-fg-neutral-subtle">{r.weightKg}kg</span>
+              </span>
+              <span className="text-caption-12-regular text-fg-neutral-subtle">
+                {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
+              </span>
+            </span>
+            <span className="flex flex-col items-end">
+              <span className="text-body-16-semibold text-fg-neutral">{formatWon(r.price)}</span>
+              {saved !== 0 && (
+                <span
+                  className={`text-caption-12-regular ${savedPositive ? "text-fg-positive" : "text-fg-warning"}`}
+                >
+                  시세보다 {formatNumber(Math.abs(saved))}원 {savedPositive ? "절약" : "초과"}
                 </span>
-                <span className="flex flex-col items-end">
-                  <span className="text-body-16-semibold text-fg-neutral">{formatWon(r.price)}</span>
-                  <span
-                    className={`text-caption-12-regular ${savedPositive ? "text-fg-positive" : "text-fg-warning"}`}
-                  >
-                    시세보다 {formatNumber(Math.abs(saved))}원 {savedPositive ? "절약" : "초과"}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
