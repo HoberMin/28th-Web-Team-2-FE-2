@@ -64,12 +64,12 @@ export function PriceChart({
 
   return (
     <section className="flex flex-col gap-4" aria-label={`${vegetableName} 시세`}>
-      <h2 className="flex items-center gap-1.5 text-head2-16 text-fg-neutral">
-        {vegetableName} 시세
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-head2-16 text-fg-neutral">{vegetableName} 시세</h2>
         <InfoTooltip label={`${vegetableName} 시세`}>
           한국농수산식품유통공사에서 제공한 소매 가격 데이터예요
         </InfoTooltip>
-      </h2>
+      </div>
 
       {/* 기간 세그먼트 */}
       <div role="group" aria-label="조회 기간" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">

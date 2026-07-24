@@ -64,7 +64,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           {/* 시세 그래프 + 기간 평균가 */}
           <PriceChart vegetableName={veg.name} series={baseline.series} />
 
-          {/* 사용자 제보 실제가 */}
+          {/* 동네 제보가 */}
           <section className="flex flex-col gap-4" aria-label="동네 제보가">
             <div className="flex items-center justify-between">
               <h2 className="text-head2-16 text-fg-neutral">동네 제보가</h2>
