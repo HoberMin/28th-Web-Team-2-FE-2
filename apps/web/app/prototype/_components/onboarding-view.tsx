@@ -5,6 +5,7 @@
 // 완료 전엔 홈(F01)이 이리로 리다이렉트한다(onboarding-gate.tsx).
 
 import { type PointerEvent, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ActionButton } from "seed-design/ui/action-button";
@@ -13,8 +14,12 @@ import { BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { setOnboarding } from "../_lib/onboarding-store";
 import { setDistrict } from "../_lib/location";
 import { searchRegions } from "../_lib/regions";
+import { VEGETABLES } from "../_lib/vegetables";
 
 type Step = "nickname" | "region" | "welcome";
+
+// 환영 화면에서 뱅글뱅글 도는 야채들(6종). 원 위에 균등 배치 → 링 전체가 천천히 회전.
+const ORBIT = VEGETABLES.slice(0, 6);
 
 // 여백 탭 시 키보드 내리기 — input/button 밖을 눌렀을 때만 포커스 해제.
 function handleBackgroundPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -116,13 +121,30 @@ export function OnboardingView() {
   const displayName = nickname.trim();
   return (
     <PhoneFrame>
-      <div className="flex flex-1 flex-col items-center justify-center gap-7 px-8 text-center">
-        <span
-          className="flex size-24 items-center justify-center rounded-3xl bg-bg-brand-solid text-5xl leading-none"
-          aria-hidden="true"
-        >
-          🥬
-        </span>
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-8 text-center">
+        {/* 뱅글뱅글 도는 야채 링 (reduced-motion이면 정지) */}
+        <div className="relative flex size-56 items-center justify-center" aria-hidden="true">
+          <div className="absolute inset-3 rounded-full bg-bg-brand-weak" />
+          <div className="absolute inset-0 animate-spin [animation-duration:20s] motion-reduce:animate-none">
+            {ORBIT.map((v, i) => {
+              const angle = (2 * Math.PI * i) / ORBIT.length - Math.PI / 2;
+              const radius = 36; // 컨테이너 대비 %
+              const left = 50 + radius * Math.cos(angle);
+              const top = 50 + radius * Math.sin(angle);
+              return (
+                <Image
+                  key={v.id}
+                  src={v.image}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="absolute size-12 -translate-x-1/2 -translate-y-1/2 object-contain drop-shadow-sm"
+                  style={{ left: `${left}%`, top: `${top}%` }}
+                />
+              );
+            })}
+          </div>
+        </div>
         <div className="flex flex-col gap-3">
           <h1 className="text-head1-24 font-bold leading-tight text-fg-neutral">
             {displayName && (
