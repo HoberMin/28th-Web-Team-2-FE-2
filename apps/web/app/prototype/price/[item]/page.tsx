@@ -7,6 +7,7 @@ import { formatWon } from "../../_lib/format";
 import { PriceChart } from "../../_components/price-chart";
 import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components/report-list";
 import { ReportSheet } from "../../_components/report-sheet";
+import { FavoriteButton } from "../../_components/favorite-button";
 
 // F03 야채 시세 — 데이터 fetch는 서버(RSC). 그래프·제보·위치만 클라 leaf.
 export default async function PricePage({ params }: { params: Promise<{ item: string }> }) {
@@ -19,7 +20,10 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
 
   return (
     <PhoneFrame>
-      <AppBar backHref="/prototype" />
+      <AppBar
+        backHref="/prototype"
+        right={<FavoriteButton vegetableId={veg.id} vegetableName={veg.name} size="md" />}
+      />
       <Scroll className="pb-4">
         <div className="flex flex-col gap-7 px-4 pb-6">
           {/* 헤더 카드 */}

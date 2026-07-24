@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import IconMagnifyingglassLine from "@karrotmarket/react-monochrome-icon/IconMagnifyingglassLine";
 import { VEGETABLES } from "../_lib/vegetables";
+import { FavoriteButton } from "./favorite-button";
 
 // 검색 + 인기 야채 그리드 (검색이 그리드를 필터하므로 한 클라이언트 컴포넌트).
 export function HomeVegetables() {
@@ -38,7 +39,7 @@ export function HomeVegetables() {
         ) : (
           <ul className="grid grid-cols-3 gap-3">
             {list.map((v) => (
-              <li key={v.id}>
+              <li key={v.id} className="relative">
                 <Link
                   href={`/prototype/price/${v.id}`}
                   className="flex flex-col items-center gap-1.5 rounded-2xl bg-bg-neutral-weak py-4 active:bg-bg-neutral-weak-pressed"
@@ -54,6 +55,9 @@ export function HomeVegetables() {
                   </span>
                   <span className="text-body-14-medium text-fg-neutral">{v.name}</span>
                 </Link>
+                <span className="absolute right-1 top-1">
+                  <FavoriteButton vegetableId={v.id} vegetableName={v.name} size="sm" />
+                </span>
               </li>
             ))}
           </ul>

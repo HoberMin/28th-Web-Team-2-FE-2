@@ -140,13 +140,28 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
 }
 
 /**
- * 시드 제보 데이터 — 크라우드소싱 루프가 처음부터 비지 않게.
- * potato/광진구 3건은 Figma "사용자 제보 실제가"와 정합(2000·2380·2290원).
+ * 시드 제보 데이터 — 크라우드소싱 루프가 처음부터 비지 않게(= 동네 이웃 제보, mine=false).
+ * potato/강남구 3건은 Figma "사용자 제보 실제가"와 정합(2000·2380·2290원).
  */
 export const SEED_REPORTS: Report[] = [
-  { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo" },
-  { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual" },
-  { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo" },
-  { id: "seed-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual" },
-  { id: "seed-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo" },
+  { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false },
+  { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false },
+  { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false },
+  { id: "seed-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false },
+  { id: "seed-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false },
 ];
+
+/**
+ * 내가 올린 제보 시드(mine=true) — 마이페이지 "제보/구매 내역"이 첫 방문에도 비지 않게.
+ * 제보=구매 통합 모델이라 이 데이터가 곧 내 구매 기록(시세 대비 소비금액 계산 대상)이다.
+ * 동네 크라우드소싱 목록에도 함께 섞여 노출된다(내 제보도 동네 제보의 일부).
+ */
+export const MY_SEED_REPORTS: Report[] = [
+  { id: "mine-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true },
+  { id: "mine-tomato-1", vegetableId: "tomato", district: "강남구", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true },
+  { id: "mine-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true },
+  { id: "mine-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true },
+];
+
+/** 찜 시드 — 첫 방문에도 마이페이지 "찜한 야채"가 비지 않게(vegetableId). */
+export const SEED_FAVORITES: string[] = ["potato", "onion"];

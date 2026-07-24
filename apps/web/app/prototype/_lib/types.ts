@@ -77,4 +77,10 @@ export interface Report {
   createdAt: string;
   /** 입력 경로 */
   method: "photo" | "manual";
+  /**
+   * 내가 올린 제보인지 여부.
+   * 프로토는 "제보 = 내가 산 가격"이라 mine=true 제보가 곧 내 구매 기록이 된다(마이페이지).
+   * 시드된 동네 이웃 제보는 mine=false.
+   */
+  mine: boolean;
 }
