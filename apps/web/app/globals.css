@@ -63,6 +63,16 @@ body {
   0%, 100% { opacity: 0.2; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
 }
+/* 3D 오빗 — 야채들이 원 궤도를 깊이감 있게 돌며(앞으로 커지고 뒤로 작아짐).
+   ring은 Y축으로 회전, 각 야채는 counter로 상쇄해 항상 정면(빌보드)을 본다. */
+@keyframes veg-orbit-spin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+@keyframes veg-orbit-counter {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(-360deg); }
+}
 /* 모션 최소화 선호 시 모든 온보딩 모션 정지 + 최종 상태로 고정. */
 @media (prefers-reduced-motion: reduce) {
   [data-veg-motion] {
