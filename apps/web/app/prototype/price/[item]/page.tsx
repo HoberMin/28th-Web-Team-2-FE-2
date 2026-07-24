@@ -25,9 +25,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
         right={<FavoriteButton vegetableId={veg.id} vegetableName={veg.name} size="md" />}
       />
       <Scroll className="pb-4">
-        <div className="flex flex-col gap-7 px-4 pb-6">
+        <div className="flex flex-col pb-6">
           {/* 헤더 카드 */}
-          <div className="flex gap-4 pt-1">
+          <div className="flex gap-4 px-4 pt-1 pb-7">
             <Image
               src={veg.image}
               alt=""
@@ -44,7 +44,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
                   <span className="text-body-16-semibold text-fg-brand">오늘 시세</span>
                   <span className="text-head2-20 text-fg-neutral">{formatWon(baseline.current)}</span>
                 </div>
-                <hr className="border-bg-neutral-weak" />
+                <hr className="border-stroke-neutral-weak" />
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between text-body-14-medium">
                     <span className="text-fg-neutral-subtle">최근 동네 제보가</span>
@@ -53,7 +53,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
                   {mart && (
                     <div className="flex items-baseline justify-between text-body-14-medium">
                       <span className="text-fg-neutral-subtle">컬리 온라인가</span>
-                      <span className="text-fg-neutral-subtle">{formatWon(mart.price)}</span>
+                      <span className="text-fg-neutral-muted">{formatWon(mart.price)}</span>
                     </div>
                   )}
                 </div>
@@ -61,16 +61,24 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
           </div>
 
+          {/* 섹션 구분 band */}
+          <div className="h-1.5 shrink-0 bg-bg-layer-fill" aria-hidden="true" />
+
           {/* 시세 그래프 + 기간 평균가 */}
-          <PriceChart vegetableName={veg.name} series={baseline.series} />
+          <div className="px-4 pt-7 pb-7">
+            <PriceChart vegetableName={veg.name} series={baseline.series} />
+          </div>
+
+          {/* 섹션 구분 band */}
+          <div className="h-1.5 shrink-0 bg-bg-layer-fill" aria-hidden="true" />
 
           {/* 동네 제보가 */}
-          <section className="flex flex-col gap-4" aria-label="동네 제보가">
+          <section className="flex flex-col gap-4 px-4 pt-7" aria-label="동네 제보가">
             <div className="flex items-center justify-between">
-              <h2 className="text-head2-16 text-fg-neutral">동네 제보가</h2>
+              <h2 className="text-head2-18 text-fg-neutral">동네 제보가</h2>
               <DistrictBadge />
             </div>
-            <ReportsList vegetableId={veg.id} />
+            <ReportsList vegetableId={veg.id} basePrice={baseline.current} />
           </section>
         </div>
       </Scroll>

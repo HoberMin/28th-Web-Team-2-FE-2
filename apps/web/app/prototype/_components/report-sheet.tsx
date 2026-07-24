@@ -14,7 +14,7 @@ export function ReportSheet({ vegetableId }: { vegetableId: string }) {
   return (
     <BottomSheetRoot>
       <BottomSheetTrigger asChild>
-        <ActionButton variant="neutralSolid" size="large" className="w-full">
+        <ActionButton variant="neutralSolid" size="large" className="h-14 w-full">
           오프라인 가격 제보하기
         </ActionButton>
       </BottomSheetTrigger>

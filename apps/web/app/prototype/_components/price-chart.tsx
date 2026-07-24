@@ -61,11 +61,23 @@ export function PriceChart({
 
   const xPct = (active.x / VIEW_W) * 100;
   const yPct = (active.y / VIEW_H) * 100;
+  // 툴팁 수평 앵커: 실제 x% 위치로 판정(인덱스 아님) — 가장자리에선 안쪽으로 정렬해
+  // 잘림을 막고, 오늘(맨 오른쪽, xPct≈100)은 오른쪽 정렬로 패딩 끝에 붙는다.
+  // 중앙 점은 -50%로 점 위에 오되, 가장자리 근처 중간 점도 임계 안에서 보정된다.
+  const anchor = xPct <= 12 ? "start" : xPct >= 88 ? "end" : "center";
+  const tooltipTransform =
+    anchor === "start"
+      ? "translate(0, -100%)"
+      : anchor === "end"
+        ? "translate(-100%, -100%)"
+        : "translate(-50%, -100%)";
+  const arrowPos =
+    anchor === "start" ? "left-3" : anchor === "end" ? "right-3" : "left-1/2 -translate-x-1/2";
 
   return (
     <section className="flex flex-col gap-4" aria-label={`${vegetableName} 시세`}>
       <div className="flex items-center gap-1.5">
-        <h2 className="text-head2-16 text-fg-neutral">{vegetableName} 시세</h2>
+        <h2 className="text-head2-18 text-fg-neutral">{vegetableName} 시세</h2>
         <InfoTooltip label={`${vegetableName} 시세`}>
           한국농수산식품유통공사에서 제공한 소매 가격 데이터예요
         </InfoTooltip>
@@ -131,8 +143,8 @@ export function PriceChart({
 
         {/* 툴팁 말풍선 */}
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg px-2.5 py-1.5 text-center"
-          style={{ left: `${Math.min(86, Math.max(14, xPct))}%`, top: `calc(${yPct}% - 12px)`, backgroundColor: DARK }}
+          className="pointer-events-none absolute z-10 rounded-lg px-2.5 py-1.5 text-center"
+          style={{ left: `${xPct}%`, top: `calc(${yPct}% - 12px)`, transform: tooltipTransform, backgroundColor: DARK }}
         >
           <p className="text-caption-12-regular whitespace-nowrap text-fg-neutral-inverted">
             {formatShortDate(activePoint.date)}
@@ -141,7 +153,7 @@ export function PriceChart({
             {formatWon(activePoint.price)}
           </p>
           <span
-            className="absolute top-full left-1/2 h-0 w-0 -translate-x-1/2 border-x-4 border-t-4 border-x-transparent"
+            className={`absolute top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent ${arrowPos}`}
             style={{ borderTopColor: DARK }}
           />
         </div>
@@ -155,8 +167,8 @@ export function PriceChart({
       </div>
 
       {/* 선택 기간 평균가 */}
-      <div className="flex items-center justify-between rounded-xl border border-bg-neutral-weak px-4 py-4">
-        <span className="text-body-14-medium text-fg-neutral-subtle">평균가</span>
+      <div className="flex items-center justify-between rounded-xl border border-stroke-neutral-weak px-4 py-4">
+        <span className="text-body-14-medium text-fg-neutral">평균가</span>
         <span className="text-body-16-semibold text-fg-neutral">{formatWon(avg)}</span>
       </div>
     </section>
