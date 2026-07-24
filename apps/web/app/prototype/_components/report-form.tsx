@@ -21,12 +21,14 @@ const PURCHASE_OPTIONS = [
 // 확인 버튼은 유효할 때만 활성(Figma) → 별도 에러 문구 없이 비활성으로 안내.
 export function ReportForm({ item, method }: { item: string; method: Report["method"] }) {
   const router = useRouter();
-  const presetVeg = getVegetable(item);
+  // UT 데모: 사진 촬영은 항상 감자로 인식된다 → 품목을 감자로 고정(읽기 전용).
+  const presetVeg = method === "photo" ? getVegetable("potato") : getVegetable(item);
   const { district, loading } = useCurrentDistrict();
 
+  // 사진 촬영 데모: 이미지가 1kg·3000원 감자라 인식 결과를 그대로 미리 채운다.
   const [itemName, setItemName] = useState(presetVeg?.name ?? "");
-  const [weight, setWeight] = useState("");
-  const [price, setPrice] = useState("");
+  const [weight, setWeight] = useState(method === "photo" ? "1" : "");
+  const [price, setPrice] = useState(method === "photo" ? "3000" : "");
   const [purchased, setPurchased] = useState(true);
 
   const veg = presetVeg ?? VEGETABLES.find((v) => v.name === itemName.trim());
