@@ -12,9 +12,10 @@ const VIEW_W = 350;
 const VIEW_H = 130;
 const PAD_Y = 18;
 
-const BRAND = "var(--seed-color-bg-brand-solid, #ff6f0f)";
-const DARK = "var(--seed-color-bg-neutral-inverted, #262f3c)";
-const GRID = "var(--seed-color-stroke-neutral, #d0d5dd)";
+// Figma 원본 정합 — 인라인 값(디자인 토큰 미대응 색).
+const BRAND = "#ff6f00"; // 시세 라인·현재 지점
+const TOOLTIP_BG = "rgba(38,47,60,0.9)"; // 그래프 호버 툴팁(Figma gray/900 90%)
+const GRID = "#d0d5dd"; // 평균선(점선)
 
 function scaleY(price: number, min: number, range: number): number {
   return PAD_Y + (1 - (price - min) / range) * (VIEW_H - 2 * PAD_Y);
@@ -77,14 +78,14 @@ export function PriceChart({
   return (
     <section className="flex flex-col gap-4" aria-label={`${vegetableName} 시세`}>
       <div className="flex items-center gap-1.5">
-        <h2 className="text-head2-18 text-fg-neutral">{vegetableName} 시세</h2>
+        <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#141a24]">{vegetableName} 시세</h2>
         <InfoTooltip label={`${vegetableName} 시세`}>
           한국농수산식품유통공사에서 제공한 소매 가격 데이터예요
         </InfoTooltip>
       </div>
 
       {/* 기간 세그먼트 */}
-      <div role="group" aria-label="조회 기간" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
+      <div role="group" aria-label="조회 기간" className="flex rounded-lg bg-[#f2f3f8] p-1">
         {PERIODS.map((p) => {
           const selected = p === period;
           return (
@@ -96,8 +97,10 @@ export function PriceChart({
                 setPeriod(p);
                 setActiveIdx(null);
               }}
-              className={`min-h-9 flex-1 rounded-lg py-1.5 text-body-14-medium transition-colors ${
-                selected ? "bg-bg-layer-default text-fg-neutral shadow-sm" : "text-fg-neutral-subtle"
+              className={`min-h-9 flex-1 rounded-md py-2 text-[14px] font-bold tracking-[-0.02em] transition-colors ${
+                selected
+                  ? "bg-white text-[#262f3c] shadow-[0px_2px_4px_rgba(0,0,0,0.12)]"
+                  : "text-[#99a1b1]"
               }`}
             >
               {PERIOD_LABEL[p]}
@@ -143,33 +146,33 @@ export function PriceChart({
 
         {/* 툴팁 말풍선 */}
         <div
-          className="pointer-events-none absolute z-10 rounded-lg px-2.5 py-1.5 text-center"
-          style={{ left: `${xPct}%`, top: `calc(${yPct}% - 12px)`, transform: tooltipTransform, backgroundColor: DARK }}
+          className="pointer-events-none absolute z-10 flex flex-col items-center gap-1 rounded px-3 py-1.5"
+          style={{ left: `${xPct}%`, top: `calc(${yPct}% - 12px)`, transform: tooltipTransform, backgroundColor: TOOLTIP_BG }}
         >
-          <p className="text-caption-12-regular whitespace-nowrap text-fg-neutral-inverted">
+          <p className="text-[14px] font-normal tracking-[-0.02em] whitespace-nowrap text-white">
             {formatShortDate(activePoint.date)}
           </p>
-          <p className="text-body-14-medium whitespace-nowrap text-fg-neutral-inverted">
+          <p className="text-[14px] font-medium tracking-[-0.02em] whitespace-nowrap text-white">
             {formatWon(activePoint.price)}
           </p>
           <span
             className={`absolute top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent ${arrowPos}`}
-            style={{ borderTopColor: DARK }}
+            style={{ borderTopColor: TOOLTIP_BG }}
           />
         </div>
       </div>
 
       {/* x축 라벨 */}
-      <div className="flex justify-between px-1 text-caption-12-regular text-fg-neutral-subtle">
+      <div className="flex justify-between px-1 text-[14px] font-medium tracking-[-0.02em] text-[#4a5667]">
         {labelIdx.map((li, i) => (
           <span key={i}>{formatShortDate(points[li].date)}</span>
         ))}
       </div>
 
       {/* 선택 기간 평균가 */}
-      <div className="flex items-center justify-between rounded-xl border border-stroke-neutral-weak px-4 py-4">
-        <span className="text-body-14-medium text-fg-neutral">평균가</span>
-        <span className="text-body-16-semibold text-fg-neutral">{formatWon(avg)}</span>
+      <div className="flex items-center justify-between rounded-lg border border-[#e5e8ef] px-4 py-3.5">
+        <span className="text-[14px] font-medium tracking-[-0.02em] text-[#262f3c]">평균가</span>
+        <span className="text-[16px] font-semibold tracking-[-0.02em] text-[#141a24]">{formatWon(avg)}</span>
       </div>
     </section>
   );

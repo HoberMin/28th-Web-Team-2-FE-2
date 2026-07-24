@@ -33,27 +33,37 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
               alt=""
               width={104}
               height={104}
-              className="size-26 shrink-0 rounded-2xl object-contain"
+              className="size-26 shrink-0 rounded-[14.328px] object-contain"
             />
             <div className="flex min-w-0 flex-1 flex-col justify-center">
-              <h1 className="text-head2-20 text-fg-neutral">
+              <h1 className="text-[22px] font-bold leading-normal tracking-[-0.02em] text-[#141a24]">
                 {veg.name} {veg.unit}
               </h1>
-              <div className="mt-3 flex flex-col gap-2.5">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-body-16-semibold text-fg-brand">오늘 시세</span>
-                  <span className="text-head2-20 text-fg-neutral">{formatWon(baseline.current)}</span>
+              <div className="mt-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] font-semibold tracking-[-0.02em] text-[#ff6f00]">
+                    오늘 시세
+                  </span>
+                  <span className="text-[20px] font-semibold tracking-[-0.02em] text-[#141a24]">
+                    {formatWon(baseline.current)}
+                  </span>
                 </div>
-                <hr className="border-stroke-neutral-weak" />
+                <hr className="border-[#e5e8ef]" />
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-baseline justify-between text-body-14-medium">
-                    <span className="text-fg-neutral-subtle">최근 동네 제보가</span>
+                  <div className="flex items-end justify-between">
+                    <span className="text-[14px] font-medium tracking-[-0.02em] text-[#99a1b1]">
+                      최근 동네 제보가
+                    </span>
                     <LatestReportPrice vegetableId={veg.id} />
                   </div>
                   {mart && (
-                    <div className="flex items-baseline justify-between text-body-14-medium">
-                      <span className="text-fg-neutral-subtle">컬리 온라인가</span>
-                      <span className="text-fg-neutral-muted">{formatWon(mart.price)}</span>
+                    <div className="flex items-end justify-between">
+                      <span className="text-[14px] font-medium tracking-[-0.02em] text-[#99a1b1]">
+                        컬리 온라인가
+                      </span>
+                      <span className="text-[14px] font-medium tracking-[-0.02em] text-[#697383]">
+                        {formatWon(mart.price)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -62,7 +72,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           </div>
 
           {/* 섹션 구분 band */}
-          <div className="h-1.5 shrink-0 bg-bg-layer-fill" aria-hidden="true" />
+          <div className="h-1.5 shrink-0 bg-[#f2f3f8]" aria-hidden="true" />
 
           {/* 시세 그래프 + 기간 평균가 */}
           <div className="px-4 pt-7 pb-7">
@@ -70,12 +80,12 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           </div>
 
           {/* 섹션 구분 band */}
-          <div className="h-1.5 shrink-0 bg-bg-layer-fill" aria-hidden="true" />
+          <div className="h-1.5 shrink-0 bg-[#f2f3f8]" aria-hidden="true" />
 
           {/* 동네 제보가 */}
           <section className="flex flex-col gap-4 px-4 pt-7" aria-label="동네 제보가">
             <div className="flex items-center justify-between">
-              <h2 className="text-head2-18 text-fg-neutral">동네 제보가</h2>
+              <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#141a24]">동네 제보가</h2>
               <DistrictBadge />
             </div>
             <ReportsList vegetableId={veg.id} basePrice={baseline.current} />
