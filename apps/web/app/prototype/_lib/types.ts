@@ -84,8 +84,13 @@ export interface Report {
   method: "photo" | "manual";
   /**
    * 내가 올린 제보인지 여부.
-   * 프로토는 "제보 = 내가 산 가격"이라 mine=true 제보가 곧 내 구매 기록이 된다(마이페이지).
-   * 시드된 동네 이웃 제보는 mine=false.
+   * mine=true 제보가 곧 내 마이페이지 "제보 내역"이 된다. 시드된 동네 이웃 제보는 mine=false.
    */
   mine: boolean;
+  /**
+   * 이 가격에 실제로 구매했는지 여부(제보 시 "샀어요/안 샀어요"로 입력).
+   * 샀든 안 샀든 관찰한 실제가라 **동네 시세(크라우드소싱)에는 모두 기여**하지만,
+   * 내 **구매 내역·시세 대비 절약** 계산에는 purchased=true 인 것만 포함된다.
+   */
+  purchased: boolean;
 }

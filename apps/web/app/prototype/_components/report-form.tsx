@@ -11,6 +11,12 @@ import { useCurrentDistrict } from "../_lib/location";
 import { addReport } from "../_lib/reports-store";
 import type { Report } from "../_lib/types";
 
+// 구매 여부 선택지 — "샀어요"만 구매 내역·시세 대비 절약에 잡히고, 둘 다 동네 시세엔 기여.
+const PURCHASE_OPTIONS = [
+  { value: true, label: "네, 샀어요" },
+  { value: false, label: "시세만 봤어요" },
+] as const;
+
 // F04 야채 제보 — 위치는 GPS 자동, 나머지 직접 입력 → localStorage 저장 → 시세 화면 복귀.
 // 확인 버튼은 유효할 때만 활성(Figma) → 별도 에러 문구 없이 비활성으로 안내.
 export function ReportForm({ item, method }: { item: string; method: Report["method"] }) {
@@ -21,6 +27,7 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
   const [itemName, setItemName] = useState(presetVeg?.name ?? "");
   const [weight, setWeight] = useState("");
   const [price, setPrice] = useState("");
+  const [purchased, setPurchased] = useState(true);
 
   const veg = presetVeg ?? VEGETABLES.find((v) => v.name === itemName.trim());
   const weightNum = Number(weight.replace(/[^0-9.]/g, ""));
@@ -31,8 +38,8 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
     if (!formValid || !veg) return;
-    addReport({ vegetableId: veg.id, district, weightKg: weightNum, price: priceNum, method });
-    router.push(`/prototype/price/${veg.id}`);
+    addReport({ vegetableId: veg.id, district, weightKg: weightNum, price: priceNum, method, purchased });
+    router.push(`/prototype/report/success?item=${veg.id}`);
   }
 
   return (
@@ -46,7 +53,7 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
               <br />
               알려주세요
             </h1>
-            <Image src="/ui/cart.svg" alt="" width={99} height={97} className="mt-1 h-16 w-auto shrink-0 object-contain" />
+            <Image src="/veg/cart.svg" alt="" width={99} height={97} className="mt-1 h-16 w-auto shrink-0 object-contain" />
           </div>
 
           <div className="mt-8 flex flex-col gap-6">
@@ -71,6 +78,29 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
             <TextField label="가격" value={price} onValueChange={(v) => setPrice(v.value)} suffix="원">
               <TextFieldInput placeholder="0" inputMode="numeric" />
             </TextField>
+
+            {/* 구매 여부 — 샀는지 / 시세만 봤는지. 샀을 때만 마이페이지 구매 내역·절약에 잡힘 */}
+            <fieldset className="flex flex-col gap-2 border-0 p-0">
+              <legend className="mb-2 text-body-14-medium text-fg-neutral">이 가격에 구매하셨나요?</legend>
+              <div role="group" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
+                {PURCHASE_OPTIONS.map((opt) => {
+                  const selected = purchased === opt.value;
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setPurchased(opt.value)}
+                      className={`min-h-11 flex-1 rounded-lg py-2 text-body-14-medium transition-colors ${
+                        selected ? "bg-bg-layer-default text-fg-neutral shadow-sm" : "text-fg-neutral-subtle"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
           </div>
         </Scroll>
 

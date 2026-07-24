@@ -19,7 +19,10 @@ function readLocal(): Report[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Report[]) : [];
+    if (!raw) return [];
+    // purchased 도입 전(v1 초기) 레코드엔 필드가 없다 — 당시 모델은 "제보 = 내가 산 가격"이라 true로 정규화.
+    const parsed = JSON.parse(raw) as (Omit<Report, "purchased"> & { purchased?: boolean })[];
+    return parsed.map((r) => ({ ...r, purchased: r.purchased ?? true }));
   } catch {
     return [];
   }
@@ -47,6 +50,8 @@ export interface NewReportInput {
   weightKg: number;
   price: number;
   method: Report["method"];
+  /** 이 가격에 실제로 구매했는지("샀어요/안 샀어요"). 구매 내역·절약 계산은 true만 포함. */
+  purchased: boolean;
 }
 
 export function addReport(input: NewReportInput): Report {
@@ -60,6 +65,7 @@ export function addReport(input: NewReportInput): Report {
     createdAt: new Date().toISOString(),
     method: input.method,
     mine: true,
+    purchased: input.purchased,
   };
   const next = [report, ...readLocal()];
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));

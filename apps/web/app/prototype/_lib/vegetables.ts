@@ -145,23 +145,24 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
  * potato/강남구 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원) — 자동 생성이 덮지 않게 별도 보존.
  */
 const HAND_SEED_REPORTS: Report[] = [
-  { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false },
-  { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false },
-  { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false },
-  { id: "seed-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false },
-  { id: "seed-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false },
+  { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false, purchased: true },
+  { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false, purchased: true },
+  { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false, purchased: true },
+  { id: "seed-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false, purchased: true },
+  { id: "seed-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false, purchased: true },
 ];
 
 /**
  * 내가 올린 제보 시드(mine=true) — 마이페이지 "제보/구매 내역"이 첫 방문에도 비지 않게.
- * 제보=구매 통합 모델이라 이 데이터가 곧 내 구매 기록(시세 대비 소비금액 계산 대상)이다.
+ * "제보 = 관찰한 실제가"이며, purchased=true 인 것만 구매 내역·절약 계산 대상이다.
+ * (tomato는 봤지만 비싸서 안 산 케이스 — 제보 내역엔 뜨지만 구매 내역엔 안 잡힘)
  * 동네 크라우드소싱 목록에도 함께 섞여 노출된다(내 제보도 동네 제보의 일부).
  */
 export const MY_SEED_REPORTS: Report[] = [
-  { id: "mine-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true },
-  { id: "mine-tomato-1", vegetableId: "tomato", district: "강남구", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true },
-  { id: "mine-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true },
-  { id: "mine-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true },
+  { id: "mine-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true, purchased: true },
+  { id: "mine-tomato-1", vegetableId: "tomato", district: "강남구", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true, purchased: false },
+  { id: "mine-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true, purchased: true },
+  { id: "mine-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true, purchased: true },
 ];
 
 /**
@@ -194,6 +195,7 @@ function generateNeighborhoodReports(): Report[] {
           createdAt: `${shiftDays(ANCHOR_DATE, -daysAgo)}T09:00:00+09:00`,
           method: i % 2 === 0 ? "photo" : "manual",
           mine: false,
+          purchased: true,
         });
       }
     }

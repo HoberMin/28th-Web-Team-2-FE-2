@@ -8,15 +8,16 @@ import { useFavorites } from "../_lib/favorites-store";
 import { useMyReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { useOnboarding } from "../_lib/onboarding-store";
-import { summarizeSpending } from "../_lib/spending";
+import { summarizeSpending, toSpendingItem, type SpendingSummary } from "../_lib/spending";
 import { formatDateDot, formatNumber, formatWon } from "../_lib/format";
 import type { Report } from "../_lib/types";
 import { FavoriteButton } from "./favorite-button";
 
-type Tab = "favorites" | "reports";
+type Tab = "favorites" | "reports" | "purchases";
 const TABS: { key: Tab; label: string }[] = [
   { key: "favorites", label: "찜한 야채" },
   { key: "reports", label: "제보 내역" },
+  { key: "purchases", label: "구매 내역" },
 ];
 
 // 마이페이지 본문 — 프로필·소비 요약·탭(찜/제보/구매). 데이터가 모두 localStorage라 클라 leaf.
@@ -27,7 +28,9 @@ export function MyPageContent() {
   const favorites = useFavorites();
   const myReports = useMyReports();
 
-  const summary = summarizeSpending(myReports);
+  // 제보 내역 = 내 제보 전체(샀든 안 샀든), 구매 내역 = 실제로 산 것(purchased)만.
+  const purchases = myReports.filter((r) => r.purchased);
+  const summary = summarizeSpending(purchases);
   // 온보딩에서 설정한 닉네임 우선, 없으면 동네 이웃으로 폴백.
   const displayName = nickname || (loading ? "우리 동네 이웃" : `${district} 이웃`);
 
@@ -41,13 +44,10 @@ export function MyPageContent() {
         <div className="flex min-w-0 flex-col">
           <p className="text-head2-18 text-fg-neutral">{displayName}</p>
           <p className="text-body-14-regular text-fg-neutral-subtle">
-            찜 {favorites.length} · 제보 {myReports.length}
+            찜 {favorites.length} · 제보 {myReports.length} · 구매 {purchases.length}
           </p>
         </div>
       </div>
-
-      {/* 소비 요약 — 시세 대비 절약(핵심 가치: 눈으로 보는 변화) */}
-      <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
 
       {/* 탭 */}
       <div role="group" aria-label="마이페이지 목록" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
@@ -72,6 +72,7 @@ export function MyPageContent() {
       {/* 탭 내용 */}
       {tab === "favorites" && <FavoritesTab favorites={favorites} />}
       {tab === "reports" && <ReportsTab reports={myReports} />}
+      {tab === "purchases" && <PurchasesTab reports={purchases} summary={summary} />}
     </div>
   );
 }
@@ -179,7 +180,14 @@ function ReportsTab({ reports }: { reports: Report[] }) {
             className="flex items-center justify-between rounded-2xl bg-bg-neutral-weak px-4 py-3"
           >
             <span className="flex min-w-0 flex-col">
-              <span className="text-body-16-semibold text-fg-neutral">{veg?.name ?? r.vegetableId}</span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-body-16-semibold text-fg-neutral">{veg?.name ?? r.vegetableId}</span>
+                {!r.purchased && (
+                  <span className="rounded-md bg-bg-neutral-weak-pressed px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-subtle">
+                    시세만 봄
+                  </span>
+                )}
+              </span>
               <span className="text-caption-12-regular text-fg-neutral-subtle">
                 {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
               </span>
@@ -203,5 +211,49 @@ function ReportsTab({ reports }: { reports: Report[] }) {
         );
       })}
     </ul>
+  );
+}
+
+// 구매 내역 = 실제로 산 제보(purchased)만. "얼마나 아꼈다" 요약을 이 탭 전용으로 분리한다.
+function PurchasesTab({ reports, summary }: { reports: Report[]; summary: SpendingSummary }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* 시세 대비 절약 요약(핵심 가치: 눈으로 보는 변화) — count===0이면 안내 문구로 폴백 */}
+      <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
+      {reports.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {reports.map((r) => {
+            const veg = getVegetable(r.vegetableId);
+            // 산 가격(전체 무게)과 같은 품목 현재 시세의 차이 → 절약/초과.
+            const { saved } = toSpendingItem(r);
+            const savedPositive = saved >= 0;
+            return (
+              <li
+                key={r.id}
+                className="flex items-center justify-between rounded-2xl bg-bg-neutral-weak px-4 py-3"
+              >
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-body-16-semibold text-fg-neutral">
+                    {veg?.name ?? r.vegetableId}{" "}
+                    <span className="text-body-14-regular text-fg-neutral-subtle">{r.weightKg}kg</span>
+                  </span>
+                  <span className="text-caption-12-regular text-fg-neutral-subtle">
+                    {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
+                  </span>
+                </span>
+                <span className="flex flex-col items-end">
+                  <span className="text-body-16-semibold text-fg-neutral">{formatWon(r.price)}</span>
+                  <span
+                    className={`text-caption-12-regular ${savedPositive ? "text-fg-positive" : "text-fg-warning"}`}
+                  >
+                    시세보다 {formatNumber(Math.abs(saved))}원 {savedPositive ? "절약" : "초과"}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
