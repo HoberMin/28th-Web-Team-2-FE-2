@@ -5,6 +5,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { DEFAULT_DISTRICT } from "./vegetables";
+import { readOnboarding } from "./onboarding-store";
 
 type Status = "idle" | "loading" | "done";
 
@@ -35,8 +36,24 @@ function finish(next: string) {
   emit();
 }
 
+/** 온보딩에서 선택한 지역을 즉시 채택(GPS 측위 생략) — 홈 게이트 리다이렉트 전에도 값이 있도록. */
+export function setDistrict(next: string): void {
+  district = next;
+  status = "done";
+  emit();
+}
+
 function ensureLocated() {
   if (status !== "idle") return;
+
+  // 온보딩이 필수 플로우라 완료 시 항상 district가 있음 — 그 값을 진실 소스로 채택하고
+  // GPS 측위는 생략한다(안 그러면 GPS가 온보딩에서 고른 지역을 되돌려버리는 회귀가 생김).
+  const onboardingDistrict = readOnboarding().district;
+  if (onboardingDistrict) {
+    finish(onboardingDistrict);
+    return;
+  }
+
   status = "loading";
   emit();
 
