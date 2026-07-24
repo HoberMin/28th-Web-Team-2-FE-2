@@ -37,27 +37,27 @@ const BASE_PRICE: Record<string, number> = {
 };
 
 /**
- * 컬리 온라인가 더미(원, 1kg 환산 · 크롤링 대용 근사값 — 2026-07 컬리 판매 수준에 맞춤).
- * 컬리는 프리미엄 온라인 그로서리라 시장/제보가보다 대체로 높게 잡힌다(의도된 포지셔닝 차이).
- * 실 연결 시 이 표를 크롤링·API 결과로 대체.
+ * 실제 컬리 판매가(원, 1kg 환산) — api.kurly.com 조회 결과, 2026-07-24 기준.
+ * price = 실제 컬리 판매가를 1kg로 환산한 값(baseline과 단위 정합). productName = 환산 근거 SKU.
+ * 컬리는 프리미엄 온라인 그로서리라 시장/제보가보다 대체로 높다(의도된 포지셔닝 차이).
+ * ⚠️ 옥수수·피망·오이는 컬리가 개수(입) 단위로만 팔아 1kg 환산이 불가 → 비교 제외(엔트리 없음).
+ * 실 API 연동 시 이 표를 정기 조회 결과로 대체.
  */
 const MART_PRICE: Record<string, { price: number; productName: string }> = {
-  potato: { price: 2990, productName: "[KF365] 노지 감자 1kg" },
-  garlic: { price: 13900, productName: "[Kurly] 깐마늘 1kg" },
-  onion: { price: 2690, productName: "[KF365] 양파 1kg" },
-  "sweet-potato": { price: 4990, productName: "[KF365] 밤고구마 1kg" },
-  carrot: { price: 3490, productName: "[KF365] 흙당근 1kg" },
-  tomato: { price: 6900, productName: "[Kurly] 완숙 토마토 1kg" },
-  corn: { price: 3900, productName: "[Kurly] 초당옥수수 1kg" },
-  "bell-pepper": { price: 7900, productName: "[Kurly] 피망 1kg" },
-  cucumber: { price: 4900, productName: "[KF365] 오이 1kg" },
+  potato: { price: 4990, productName: "[팜송] 왕감자 1kg" },
+  garlic: { price: 12900, productName: "깐마늘 1kg (26년 햇)" },
+  // 양파 1.5kg 3,990원 → 1kg 환산 2,660원
+  onion: { price: 2660, productName: "양파 1.5kg (1kg 환산)" },
+  "sweet-potato": { price: 4990, productName: "한입 꿀고구마 1kg" },
+  carrot: { price: 4290, productName: "흙당근 1kg" },
+  tomato: { price: 7990, productName: "완숙토마토 1kg" },
 };
 
 export function getVegetable(id: string): Vegetable | undefined {
   return VEGETABLES.find((v) => v.id === id);
 }
 
-/** 컬리 온라인가 더미(크롤링 대용). 실 연결 시 대체. 없으면 undefined. */
+/** 실제 컬리 판매가(1kg 환산). 개수 단위 품목 등 엔트리 없으면 undefined → "컬리 가격" 행 미노출. */
 export function getMartPrice(vegetableId: string): MartPrice | undefined {
   const veg = getVegetable(vegetableId);
   const entry = MART_PRICE[vegetableId];
@@ -68,7 +68,7 @@ export function getMartPrice(vegetableId: string): MartPrice | undefined {
     productName: entry.productName,
     unit: veg.unit,
     price: entry.price,
-    source: "dummy-kurly",
+    source: "kurly",
     asOf: ANCHOR_DATE,
   };
 }

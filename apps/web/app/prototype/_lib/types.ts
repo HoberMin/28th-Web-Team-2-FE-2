@@ -45,18 +45,23 @@ export interface BaselinePrice {
   asOf: string;
 }
 
-/** 온라인 마트(컬리) 판매가 — 프로토 더미(크롤링 대용 근사값). 특정 SKU 1건 기준. */
+/**
+ * 온라인 마트(컬리) 판매가 — 실제 컬리 판매가 기준(api.kurly.com 조회, 2026-07-24).
+ * 비교 기준을 baseline(1kg)과 맞추려고 가격은 1kg 환산가로 저장한다.
+ * 컬리가 1kg 단위로 팔지 않는 품목(옥수수·피망·오이 등 개수 단위)은 비교에서 제외.
+ */
 export interface MartPrice {
   vegetableId: string;
   /** 판매몰. 프로토는 컬리 고정. */
   mall: "컬리";
-  /** 비교 대상 상품명 — 어떤 SKU를 비교하는지 명시(단위·등급 왜곡 방지). */
+  /** 환산 근거가 된 실제 컬리 SKU 상품명 — 단위·등급 왜곡 방지용 출처 표기. */
   productName: string;
+  /** 비교 단위(1kg 고정 — baseline과 정합). */
   unit: string;
-  /** 판매가(원) */
+  /** 1kg 환산 판매가(원) */
   price: number;
-  /** 데이터 출처 — 프로토 더미(실 크롤링 대용) */
-  source: "dummy-kurly";
+  /** 데이터 출처 — 실제 컬리 판매가 */
+  source: "kurly";
   /** 기준일 "YYYY-MM-DD" */
   asOf: string;
 }
