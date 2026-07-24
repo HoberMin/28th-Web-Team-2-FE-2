@@ -1,7 +1,7 @@
 // 야채 catalog + 더미 시세/제보 데이터 (순수 데이터, 서버·클라 공용).
 // 실 API 연결 전까지 화면을 채우는 저충실도 더미. KAMIS 매핑값은 실연결 대비 보관.
 
-import type { BaselinePrice, PricePeriod, PricePoint, Report, Vegetable } from "./types";
+import type { BaselinePrice, MartPrice, PricePeriod, PricePoint, Report, Vegetable } from "./types";
 
 export const DEFAULT_REGION = "서울";
 /** GPS 미허용/키 미수령 시 폴백 자치구 (UT 테스트 장소 = 강남구 선릉). */
@@ -36,8 +36,41 @@ const BASE_PRICE: Record<string, number> = {
   cucumber: 4300,
 };
 
+/**
+ * 컬리 온라인가 더미(원, 1kg 환산 · 크롤링 대용 근사값 — 2026-07 컬리 판매 수준에 맞춤).
+ * 컬리는 프리미엄 온라인 그로서리라 시장/제보가보다 대체로 높게 잡힌다(의도된 포지셔닝 차이).
+ * 실 연결 시 이 표를 크롤링·API 결과로 대체.
+ */
+const MART_PRICE: Record<string, { price: number; productName: string }> = {
+  potato: { price: 2990, productName: "[KF365] 노지 감자 1kg" },
+  garlic: { price: 13900, productName: "[Kurly] 깐마늘 1kg" },
+  onion: { price: 2690, productName: "[KF365] 양파 1kg" },
+  "sweet-potato": { price: 4990, productName: "[KF365] 밤고구마 1kg" },
+  carrot: { price: 3490, productName: "[KF365] 흙당근 1kg" },
+  tomato: { price: 6900, productName: "[Kurly] 완숙 토마토 1kg" },
+  corn: { price: 3900, productName: "[Kurly] 초당옥수수 1kg" },
+  "bell-pepper": { price: 7900, productName: "[Kurly] 피망 1kg" },
+  cucumber: { price: 4900, productName: "[KF365] 오이 1kg" },
+};
+
 export function getVegetable(id: string): Vegetable | undefined {
   return VEGETABLES.find((v) => v.id === id);
+}
+
+/** 컬리 온라인가 더미(크롤링 대용). 실 연결 시 대체. 없으면 undefined. */
+export function getMartPrice(vegetableId: string): MartPrice | undefined {
+  const veg = getVegetable(vegetableId);
+  const entry = MART_PRICE[vegetableId];
+  if (!veg || !entry) return undefined;
+  return {
+    vegetableId: veg.id,
+    mall: "컬리",
+    productName: entry.productName,
+    unit: veg.unit,
+    price: entry.price,
+    source: "dummy-kurly",
+    asOf: ANCHOR_DATE,
+  };
 }
 
 function round10(n: number): number {

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { AppBar, BottomBar, PhoneFrame, Scroll } from "../../_lib/shell";
-import { getVegetable } from "../../_lib/vegetables";
+import { getMartPrice, getVegetable } from "../../_lib/vegetables";
 import { getBaselinePrice } from "../../_lib/kamis";
 import { formatWon } from "../../_lib/format";
 import { PriceChart } from "../../_components/price-chart";
@@ -15,6 +15,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
   if (!veg) notFound();
 
   const baseline = await getBaselinePrice(veg.id);
+  const mart = getMartPrice(veg.id);
 
   return (
     <PhoneFrame>
@@ -46,11 +47,25 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
                   </span>
                   <LatestReportPrice vegetableId={veg.id} />
                 </div>
+                {mart && (
+                  <>
+                    <hr className="border-bg-neutral-weak" />
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-body-14-regular text-fg-neutral-subtle">
+                        컬리 온라인가
+                      </span>
+                      <span className="text-body-16-semibold text-fg-neutral">
+                        {formatWon(mart.price)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
           <p className="-mt-4 text-caption-12-regular text-fg-neutral-subtle">
             현재 시세는 {baseline.region} 소매 평균 기준이에요.
+            {mart ? ` 컬리 온라인가는 ‘${mart.productName}’ 기준이에요.` : ""}
           </p>
 
           {/* 시세 그래프 + 기간 평균가 */}

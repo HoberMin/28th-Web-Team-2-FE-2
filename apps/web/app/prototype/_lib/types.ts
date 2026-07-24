@@ -45,6 +45,22 @@ export interface BaselinePrice {
   asOf: string;
 }
 
+/** 온라인 마트(컬리) 판매가 — 프로토 더미(크롤링 대용 근사값). 특정 SKU 1건 기준. */
+export interface MartPrice {
+  vegetableId: string;
+  /** 판매몰. 프로토는 컬리 고정. */
+  mall: "컬리";
+  /** 비교 대상 상품명 — 어떤 SKU를 비교하는지 명시(단위·등급 왜곡 방지). */
+  productName: string;
+  unit: string;
+  /** 판매가(원) */
+  price: number;
+  /** 데이터 출처 — 프로토 더미(실 크롤링 대용) */
+  source: "dummy-kurly";
+  /** 기준일 "YYYY-MM-DD" */
+  asOf: string;
+}
+
 /** 사용자 제보 실제가 — 동네(자치구) 정밀도를 메우는 크라우드소싱 데이터. */
 export interface Report {
   id: string;
