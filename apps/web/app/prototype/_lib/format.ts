@@ -16,8 +16,14 @@ export function formatDateDot(iso: string): string {
   return `${y.slice(2)}.${m}.${d}`;
 }
 
-/** "2026-07-24" → "7/24" (그래프 축) */
+/** "2026-07-24" → "7/24" (그래프 축 — 일주일·1개월) */
 export function formatShortDate(iso: string): string {
   const [, m, d] = iso.split("-");
   return `${Number(m)}/${Number(d)}`;
+}
+
+/** "2026-07-24" → "7월" (그래프 축 — 1년, 월별 시리즈) */
+export function formatMonthLabel(iso: string): string {
+  const [, m] = iso.split("-");
+  return `${Number(m)}월`;
 }

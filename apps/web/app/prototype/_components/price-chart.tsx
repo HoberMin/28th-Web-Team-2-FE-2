@@ -2,7 +2,7 @@
 
 import { type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
 import type { PricePeriod, PricePoint } from "../_lib/types";
-import { formatShortDate, formatWon } from "../_lib/format";
+import { formatMonthLabel, formatShortDate, formatWon } from "../_lib/format";
 import { InfoTooltip } from "./info-tooltip";
 
 const PERIOD_LABEL: Record<PricePeriod, string> = { week: "일주일", month: "1개월", year: "1년" };
@@ -11,6 +11,9 @@ const PERIODS: PricePeriod[] = ["week", "month", "year"];
 const VIEW_W = 350;
 const VIEW_H = 130;
 const PAD_Y = 18;
+// 오른쪽 여백 — 최신 점을 가장자리에 붙이지 않아 툴팁이 점 기준 중앙에 뜬다 (Figma 84:2377, 약 10%).
+const PAD_RIGHT = 38;
+const PLOT_W = VIEW_W - PAD_RIGHT;
 
 // Figma 원본 정합 — 인라인 값(디자인 토큰 미대응 색).
 const BRAND = "#ff6f00"; // 시세 라인·현재 지점
@@ -41,7 +44,7 @@ export function PriceChart({
   const avg = Math.round(prices.reduce((s, p) => s + p, 0) / n / 10) * 10;
 
   const coords = points.map((p, i) => ({
-    x: n > 1 ? (i / (n - 1)) * VIEW_W : VIEW_W / 2,
+    x: n > 1 ? (i / (n - 1)) * PLOT_W : PLOT_W / 2,
     y: scaleY(p.price, min, range),
   }));
   const line = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x.toFixed(1)} ${c.y.toFixed(1)}`).join(" ");
@@ -51,6 +54,8 @@ export function PriceChart({
   const active = coords[idx];
   const activePoint = points[idx];
   const labelIdx = [0, Math.floor((n - 1) / 2), n - 1];
+  // 1년 축은 월별 시리즈라 "7월"로, 나머지는 "7/24"로 표기.
+  const axisLabel = period === "year" ? formatMonthLabel : formatShortDate;
 
   function handlePointer(e: ReactPointerEvent<HTMLDivElement>) {
     const el = containerRef.current;
@@ -62,10 +67,9 @@ export function PriceChart({
 
   const xPct = (active.x / VIEW_W) * 100;
   const yPct = (active.y / VIEW_H) * 100;
-  // 툴팁 수평 앵커: 실제 x% 위치로 판정(인덱스 아님) — 가장자리에선 안쪽으로 정렬해
-  // 잘림을 막고, 오늘(맨 오른쪽, xPct≈100)은 오른쪽 정렬로 패딩 끝에 붙는다.
-  // 중앙 점은 -50%로 점 위에 오되, 가장자리 근처 중간 점도 임계 안에서 보정된다.
-  const anchor = xPct <= 12 ? "start" : xPct >= 88 ? "end" : "center";
+  // 툴팁 수평 앵커: 실제 x% 위치로 판정(인덱스 아님) — 가장자리에선 안쪽으로 정렬해 잘림을 막는다.
+  // 최신 점은 PAD_RIGHT 여백 덕에 xPct≈89%라 "center"로 잡혀 점 기준 중앙에 뜬다 (Figma 84:2377).
+  const anchor = xPct <= 5 ? "start" : xPct >= 95 ? "end" : "center";
   const tooltipTransform =
     anchor === "start"
       ? "translate(0, -100%)"
@@ -162,11 +166,23 @@ export function PriceChart({
         </div>
       </div>
 
-      {/* x축 라벨 */}
-      <div className="flex justify-between px-1 text-[14px] font-medium tracking-[-0.02em] text-[#4a5667]">
-        {labelIdx.map((li, i) => (
-          <span key={i}>{formatShortDate(points[li].date)}</span>
-        ))}
+      {/* x축 라벨 — 점 x좌표를 따라 배치(첫 점은 좌측 정렬, 이후는 점 중앙). */}
+      <div className="relative h-[17px] text-[14px] font-medium tracking-[-0.02em] text-[#4a5667]">
+        {labelIdx.map((li, i) => {
+          const leftPct = (coords[li].x / VIEW_W) * 100;
+          return (
+            <span
+              key={i}
+              className="absolute whitespace-nowrap"
+              style={{
+                left: `${leftPct}%`,
+                transform: i === 0 ? undefined : "translateX(-50%)",
+              }}
+            >
+              {axisLabel(points[li].date)}
+            </span>
+          );
+        })}
       </div>
 
       {/* 선택 기간 평균가 */}
