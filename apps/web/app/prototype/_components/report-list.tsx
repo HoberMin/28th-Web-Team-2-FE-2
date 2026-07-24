@@ -89,7 +89,7 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-4 min-h-11 rounded-lg py-2 text-center text-body-14-medium text-fg-neutral-subtle hover:bg-bg-neutral-weak"
+          className="mt-4 min-h-11 rounded-lg border border-stroke-neutral-weak py-2 text-center text-body-14-medium text-fg-neutral-subtle hover:bg-bg-neutral-weak"
         >
           {expanded ? "접기" : "제보 내역 더보기"}
         </button>
