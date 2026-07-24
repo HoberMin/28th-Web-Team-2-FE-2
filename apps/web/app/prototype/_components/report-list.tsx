@@ -13,8 +13,8 @@ const PREVIEW_COUNT = 3;
 export function DistrictBadge() {
   const { district } = useCurrentDistrict();
   return (
-    <span className="flex items-center gap-0.5 text-body-14-regular text-fg-neutral-subtle">
-      <span className="text-fg-brand [&_svg]:size-4" aria-hidden="true">
+    <span className="flex items-center gap-0.5 text-[14px] font-normal tracking-[-0.02em] text-[#4a5667]">
+      <span className="text-[#4a5667] [&_svg]:size-4" aria-hidden="true">
         <IconLocationpinFill />
       </span>
       {district}
@@ -28,9 +28,13 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   const reports = useReports({ vegetableId, district });
   const latest = reports[0];
   if (!latest) {
-    return <span className="text-fg-neutral-subtle">아직 없어요</span>;
+    return <span className="text-[14px] font-medium tracking-[-0.02em] text-[#99a1b1]">아직 없어요</span>;
   }
-  return <span className="text-fg-neutral-muted">{formatNumber(latest.pricePerKg)}원</span>;
+  return (
+    <span className="text-[14px] font-medium tracking-[-0.02em] text-[#697383]">
+      {formatNumber(latest.pricePerKg)}원
+    </span>
+  );
 }
 
 /**
@@ -63,13 +67,13 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
           const diff = isToday ? basePrice - r.pricePerKg : 0;
           return (
             <li key={r.id} className="flex items-center justify-between gap-2">
-              <span className="shrink-0 text-body-16-regular text-fg-neutral-muted">
+              <span className="shrink-0 text-[16px] font-normal tracking-[-0.02em] text-[#697383]">
                 {formatDateDot(r.createdAt.slice(0, 10))}
               </span>
               {diff !== 0 && (
                 <span
-                  className={`flex items-center gap-0.5 text-caption-12-regular ${
-                    diff > 0 ? "text-fg-positive" : "text-fg-critical"
+                  className={`flex items-center gap-0.5 text-[12px] font-normal tracking-[-0.02em] ${
+                    diff > 0 ? "text-[#05a163]" : "text-[#fa342c]"
                   }`}
                 >
                   <span aria-hidden="true">{diff > 0 ? "▼" : "▲"}</span>
@@ -77,8 +81,9 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
                   오늘 기준 {formatNumber(Math.abs(diff))}원
                 </span>
               )}
-              <span className="shrink-0 text-body-16-medium text-fg-neutral">
-                {formatNumber(r.pricePerKg)}원 <span className="text-fg-neutral-subtle">/1kg</span>
+              <span className="shrink-0 text-[16px] font-medium tracking-[-0.02em] text-[#141a24]">
+                {formatNumber(r.pricePerKg)}원{" "}
+                <span className="font-normal text-[#99a1b1]">/1kg</span>
               </span>
             </li>
           );
@@ -89,7 +94,7 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-4 min-h-11 rounded-lg border border-stroke-neutral-weak py-2 text-center text-body-14-medium text-fg-neutral-subtle hover:bg-bg-neutral-weak"
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-lg border border-[#e5e8ef] bg-[#f2f3f8] py-3.5 text-center text-[14px] font-medium tracking-[-0.02em] text-[#697383]"
         >
           {expanded ? "접기" : "제보 내역 더보기"}
         </button>
