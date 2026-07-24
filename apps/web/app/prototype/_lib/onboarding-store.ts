@@ -48,7 +48,11 @@ function getServerSnapshot(): OnboardingState {
 /** 온보딩 상태 갱신(부분 patch) — nickname/district 입력 진행 중에도 사용 가능. */
 export function setOnboarding(patch: Partial<OnboardingState>): void {
   const next = { ...readLocal(), ...patch };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // 프라이빗 모드 등 저장 실패 — 인메모리 캐시는 진행시켜 게이트 무한 리다이렉트를 막는다.
+  }
   cache = next;
   listeners.forEach((l) => l());
 }
@@ -63,5 +67,6 @@ export function useOnboarding(): OnboardingState {
  * SSR/서버 환경에서도 안전(window 가드).
  */
 export function readOnboarding(): OnboardingState {
-  return readLocal();
+  // 캐시 우선 — 저장 실패(프라이빗 모드) 시에도 세션 내 완료 상태를 게이트가 인식해 루프를 막는다.
+  return cache ?? readLocal();
 }
