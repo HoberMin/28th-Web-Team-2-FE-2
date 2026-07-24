@@ -9,8 +9,8 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen justify-center bg-bg-neutral-weak md:items-center md:py-8">
       <div
-        className="relative flex w-full flex-col overflow-hidden bg-bg-layer-default md:rounded-[2rem] md:shadow-xl"
-        style={{ maxWidth: 390, height: 844 }}
+        className="relative flex h-dvh w-full flex-col overflow-hidden bg-bg-layer-default md:h-[844px] md:rounded-[2rem] md:shadow-xl"
+        style={{ maxWidth: 390 }}
       >
         {children}
       </div>

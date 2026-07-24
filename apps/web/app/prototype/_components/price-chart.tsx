@@ -78,7 +78,7 @@ export function PriceChart({
                 setPeriod(p);
                 setActiveIdx(null);
               }}
-              className={`min-h-11 flex-1 rounded-lg py-2 text-body-14-medium transition-colors ${
+              className={`min-h-9 flex-1 rounded-lg py-1.5 text-body-14-medium transition-colors ${
                 selected ? "bg-bg-layer-default text-fg-neutral shadow-sm" : "text-fg-neutral-subtle"
               }`}
             >
