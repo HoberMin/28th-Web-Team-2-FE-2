@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import IconXmarkLine from "@karrotmarket/react-monochrome-icon/IconXmarkLine";
 import IconCameraFill from "@karrotmarket/react-monochrome-icon/IconCameraFill";
-import { PhoneFrame, StatusBar } from "../_lib/shell";
+import { PhoneFrame } from "../_lib/shell";
 
-// F02 야채 촬영 — 프로토타입이라 실제 카메라 대신 샘플 사진 목업. 셔터 → 제보 폼(촬영 경로).
+// F02 야채 촬영 — 프로토타입이라 실제 카메라 대신 샘플 사진 목업.
+// 홈(item 없음)에서 온 촬영은 UT 데모상 항상 감자 시세로 보낸다.
+// 특정 야채 제보 흐름(item 있음)은 촬영 → 제보 폼 유지.
 export function CaptureView({ item }: { item: string }) {
   const router = useRouter();
   const closeHref = item ? `/prototype/price/${item}` : "/prototype";
   const query = new URLSearchParams({ method: "photo", ...(item ? { item } : {}) });
+  const shutterHref = item ? `/prototype/report?${query.toString()}` : "/prototype/price/potato";
 
   return (
     <PhoneFrame>
@@ -29,7 +32,6 @@ export function CaptureView({ item }: { item: string }) {
         <div className="relative z-10 flex h-full flex-col text-white">
           {/* 상단 바 */}
           <div className="shrink-0 bg-neutral-900/95">
-            <StatusBar dark />
             <div className="relative flex h-14 items-center justify-center">
               <Link
                 href={closeHref}
@@ -50,7 +52,7 @@ export function CaptureView({ item }: { item: string }) {
               <button
                 type="button"
                 aria-label="촬영"
-                onClick={() => router.push(`/prototype/report?${query.toString()}`)}
+                onClick={() => router.push(shutterHref)}
                 className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white [&_svg]:size-8"
               >
                 <IconCameraFill />

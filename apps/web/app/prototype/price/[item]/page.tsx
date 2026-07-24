@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { AppBar, BottomBar, PhoneFrame, Scroll, StatusBar } from "../../_lib/shell";
+import { AppBar, BottomBar, PhoneFrame, Scroll } from "../../_lib/shell";
 import { getVegetable } from "../../_lib/vegetables";
 import { getBaselinePrice } from "../../_lib/kamis";
 import { formatWon } from "../../_lib/format";
@@ -18,7 +18,6 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
 
   return (
     <PhoneFrame>
-      <StatusBar />
       <AppBar backHref="/prototype" />
       <Scroll className="pb-4">
         <div className="flex flex-col gap-7 px-4 pb-6">

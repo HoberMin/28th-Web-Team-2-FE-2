@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ActionButton } from "seed-design/ui/action-button";
-import { AppBar, BottomBar, PhoneFrame, Scroll, StatusBar } from "../_lib/shell";
+import { AppBar, BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { getVegetable, VEGETABLES } from "../_lib/vegetables";
 import { useCurrentDistrict } from "../_lib/location";
 import { addReport } from "../_lib/reports-store";
@@ -37,7 +37,6 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
 
   return (
     <PhoneFrame>
-      <StatusBar />
       <AppBar backHref={closeHref} />
       <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
         <Scroll className="px-4 pb-6">

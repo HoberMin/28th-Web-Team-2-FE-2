@@ -18,21 +18,6 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
   );
 }
 
-/** 저충실도 상태바 목업 (장식 — 스크린리더 제외). */
-export function StatusBar({ dark = false }: { dark?: boolean }) {
-  return (
-    <div
-      className={`flex h-11 shrink-0 items-center justify-between px-6 pt-1 text-body-14-medium ${
-        dark ? "text-fg-neutral-inverted" : "text-fg-neutral"
-      }`}
-      aria-hidden="true"
-    >
-      <span>9:41</span>
-      <span className="tracking-widest">▪▪▪ ▮</span>
-    </div>
-  );
-}
-
 interface AppBarProps {
   title?: ReactNode;
   /** 뒤로가기 목적지. 없으면 뒤로 버튼 숨김. */
