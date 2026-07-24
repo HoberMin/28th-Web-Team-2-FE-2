@@ -8,7 +8,7 @@ import { formatDateDot, formatNumber } from "../_lib/format";
 
 const PREVIEW_COUNT = 3;
 
-/** 현재 자치구 배지 (사용자 제보 실제가 헤더). */
+/** 현재 자치구 배지 (동네 제보가 헤더). */
 export function DistrictBadge() {
   const { district } = useCurrentDistrict();
   return (
@@ -21,7 +21,7 @@ export function DistrictBadge() {
   );
 }
 
-/** 헤더의 "최근 오프라인 가격" — 최신 제보값. 없으면 시세로 위장하지 않고 명시. */
+/** 헤더의 "최근 동네 제보가" — 최신 제보값. 없으면 시세로 위장하지 않고 명시. */
 export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   const { district } = useCurrentDistrict();
   const reports = useReports({ vegetableId, district });
@@ -32,7 +32,7 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   return <span className="text-fg-neutral-subtle">{formatNumber(latest.pricePerKg)}원</span>;
 }
 
-/** 사용자 제보 실제가 리스트 (크라우드소싱 결과, 현재 자치구 기준). */
+/** 동네 제보가 리스트 (크라우드소싱 결과, 현재 자치구 기준). */
 export function ReportsList({ vegetableId }: { vegetableId: string }) {
   const { district } = useCurrentDistrict();
   const reports = useReports({ vegetableId, district });
@@ -71,7 +71,7 @@ export function ReportsList({ vegetableId }: { vegetableId: string }) {
           onClick={() => setExpanded((v) => !v)}
           className="mt-4 min-h-11 rounded-lg py-2 text-center text-body-14-medium text-fg-neutral-subtle hover:bg-bg-neutral-weak"
         >
-          {expanded ? "접기" : `제보 내역 더보기 (${reports.length})`}
+          {expanded ? "접기" : "제보 내역 더보기"}
         </button>
       )}
     </div>

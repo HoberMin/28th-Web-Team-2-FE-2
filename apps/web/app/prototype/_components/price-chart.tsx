@@ -3,6 +3,7 @@
 import { type PointerEvent as ReactPointerEvent, useRef, useState } from "react";
 import type { PricePeriod, PricePoint } from "../_lib/types";
 import { formatShortDate, formatWon } from "../_lib/format";
+import { InfoTooltip } from "./info-tooltip";
 
 const PERIOD_LABEL: Record<PricePeriod, string> = { week: "일주일", month: "1개월", year: "1년" };
 const PERIODS: PricePeriod[] = ["week", "month", "year"];
@@ -62,8 +63,13 @@ export function PriceChart({
   const yPct = (active.y / VIEW_H) * 100;
 
   return (
-    <section className="flex flex-col gap-4" aria-label={`${vegetableName} 시세 그래프`}>
-      <h2 className="text-head2-16 text-fg-neutral">{vegetableName} 시세 그래프</h2>
+    <section className="flex flex-col gap-4" aria-label={`${vegetableName} 시세`}>
+      <h2 className="flex items-center gap-1.5 text-head2-16 text-fg-neutral">
+        {vegetableName} 시세
+        <InfoTooltip label={`${vegetableName} 시세`}>
+          한국농수산식품유통공사에서 제공한 소매 가격 데이터예요
+        </InfoTooltip>
+      </h2>
 
       {/* 기간 세그먼트 */}
       <div role="group" aria-label="조회 기간" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
@@ -150,7 +156,7 @@ export function PriceChart({
 
       {/* 선택 기간 평균가 */}
       <div className="flex items-center justify-between rounded-xl border border-bg-neutral-weak px-4 py-4">
-        <span className="text-body-14-medium text-fg-neutral-subtle">{PERIOD_LABEL[period]} 평균가</span>
+        <span className="text-body-14-medium text-fg-neutral-subtle">평균가</span>
         <span className="text-body-16-semibold text-fg-neutral">{formatWon(avg)}</span>
       </div>
     </section>

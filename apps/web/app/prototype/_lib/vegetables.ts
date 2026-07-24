@@ -2,6 +2,7 @@
 // 실 API 연결 전까지 화면을 채우는 저충실도 더미. KAMIS 매핑값은 실연결 대비 보관.
 
 import type { BaselinePrice, MartPrice, PricePeriod, PricePoint, Report, Vegetable } from "./types";
+import { REGIONS } from "./regions";
 
 export const DEFAULT_REGION = "서울";
 /** GPS 미허용/키 미수령 시 폴백 자치구 (UT 테스트 장소 = 강남구 선릉). */
@@ -140,10 +141,10 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
 }
 
 /**
- * 시드 제보 데이터 — 크라우드소싱 루프가 처음부터 비지 않게(= 동네 이웃 제보, mine=false).
- * potato/강남구 3건은 Figma "사용자 제보 실제가"와 정합(2000·2380·2290원).
+ * 손으로 작성한 동네 이웃 제보 시드(mine=false).
+ * potato/강남구 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원) — 자동 생성이 덮지 않게 별도 보존.
  */
-export const SEED_REPORTS: Report[] = [
+const HAND_SEED_REPORTS: Report[] = [
   { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false },
   { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false },
   { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false },
@@ -162,6 +163,46 @@ export const MY_SEED_REPORTS: Report[] = [
   { id: "mine-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true },
   { id: "mine-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true },
 ];
+
+/**
+ * 동네별 이웃 제보 자동 생성 — 어느 동네를 골라도 "동네 제보가"가 비지 않도록
+ * 전 자치구 × 전 품목을 결정적(seed 기반) 더미로 채운다. mine=false(이웃 제보).
+ * 이미 수기 시드가 있는 (동네×품목)은 건너뛴다 — 강남구 감자 등 Figma 정합값 보존.
+ */
+function generateNeighborhoodReports(): Report[] {
+  const authored = new Set(
+    [...HAND_SEED_REPORTS, ...MY_SEED_REPORTS].map((r) => `${r.district}|${r.vegetableId}`),
+  );
+  const reports: Report[] = [];
+  for (const region of REGIONS) {
+    for (const veg of VEGETABLES) {
+      if (authored.has(`${region.label}|${veg.id}`)) continue;
+      const base = BASE_PRICE[veg.id] ?? 3000;
+      const seed = hashSeed(`${region.id}-${veg.id}`);
+      const count = 2 + (seed % 2); // 동네·품목마다 2~3건
+      for (let i = 0; i < count; i++) {
+        // 기준가 대비 -10~+10% 편차 · 최근 2주 내 날짜 (모두 seed로 결정)
+        const price = round10(base * (1 + (((seed + i * 37) % 21) - 10) / 100));
+        const daysAgo = (seed + i * 5) % 14;
+        reports.push({
+          id: `nb-${region.id}-${veg.id}-${i}`,
+          vegetableId: veg.id,
+          district: region.label,
+          weightKg: 1,
+          price,
+          pricePerKg: price,
+          createdAt: `${shiftDays(ANCHOR_DATE, -daysAgo)}T09:00:00+09:00`,
+          method: i % 2 === 0 ? "photo" : "manual",
+          mine: false,
+        });
+      }
+    }
+  }
+  return reports;
+}
+
+/** 동네 크라우드소싱 시드 = 수기 시드(강남구 Figma 정합) + 전 동네 자동 생성. */
+export const SEED_REPORTS: Report[] = [...HAND_SEED_REPORTS, ...generateNeighborhoodReports()];
 
 /** 찜 시드 — 첫 방문에도 마이페이지 "찜한 야채"가 비지 않게(vegetableId). */
 export const SEED_FAVORITES: string[] = ["potato", "onion"];

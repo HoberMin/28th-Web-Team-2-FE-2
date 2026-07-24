@@ -41,18 +41,18 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
               </h1>
               <div className="mt-3 flex flex-col gap-2.5">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-body-16-semibold text-fg-brand">현재 시세</span>
+                  <span className="text-body-16-semibold text-fg-brand">오늘 시세</span>
                   <span className="text-head2-20 text-fg-neutral">{formatWon(baseline.current)}</span>
                 </div>
                 <hr className="border-bg-neutral-weak" />
                 <div className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between text-body-14-medium">
-                    <span className="text-fg-neutral-subtle">최근 오프라인 가격</span>
+                    <span className="text-fg-neutral-subtle">최근 동네 제보가</span>
                     <LatestReportPrice vegetableId={veg.id} />
                   </div>
                   {mart && (
                     <div className="flex items-baseline justify-between text-body-14-medium">
-                      <span className="text-fg-neutral-subtle">컬리 가격</span>
+                      <span className="text-fg-neutral-subtle">컬리 온라인가</span>
                       <span className="text-fg-neutral-subtle">{formatWon(mart.price)}</span>
                     </div>
                   )}
@@ -65,9 +65,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           <PriceChart vegetableName={veg.name} series={baseline.series} />
 
           {/* 사용자 제보 실제가 */}
-          <section className="flex flex-col gap-4" aria-label="사용자 제보 실제가">
+          <section className="flex flex-col gap-4" aria-label="동네 제보가">
             <div className="flex items-center justify-between">
-              <h2 className="text-head2-16 text-fg-neutral">사용자 제보 실제가</h2>
+              <h2 className="text-head2-16 text-fg-neutral">동네 제보가</h2>
               <DistrictBadge />
             </div>
             <ReportsList vegetableId={veg.id} />
