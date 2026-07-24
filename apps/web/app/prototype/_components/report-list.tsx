@@ -21,17 +21,15 @@ export function DistrictBadge() {
   );
 }
 
-/** 헤더의 "최근 제보된 실제가" — 최신 제보값. 없으면 시세로 위장하지 않고 명시. */
+/** 헤더의 "최근 오프라인 가격" — 최신 제보값. 없으면 시세로 위장하지 않고 명시. */
 export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   const { district } = useCurrentDistrict();
   const reports = useReports({ vegetableId, district });
   const latest = reports[0];
   if (!latest) {
-    return <span className="text-body-14-regular text-fg-neutral-subtle">아직 없어요</span>;
+    return <span className="text-fg-neutral-subtle">아직 없어요</span>;
   }
-  return (
-    <span className="text-body-16-semibold text-fg-neutral">{formatNumber(latest.pricePerKg)}원</span>
-  );
+  return <span className="text-fg-neutral-subtle">{formatNumber(latest.pricePerKg)}원</span>;
 }
 
 /** 사용자 제보 실제가 리스트 (크라우드소싱 결과, 현재 자치구 기준). */

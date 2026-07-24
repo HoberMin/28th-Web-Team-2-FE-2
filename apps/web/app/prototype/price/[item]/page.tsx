@@ -5,7 +5,6 @@ import { getMartPrice, getVegetable } from "../../_lib/vegetables";
 import { getBaselinePrice } from "../../_lib/kamis";
 import { formatWon } from "../../_lib/format";
 import { PriceChart } from "../../_components/price-chart";
-import { InfoTooltip } from "../../_components/info-tooltip";
 import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components/report-list";
 import { ReportSheet } from "../../_components/report-sheet";
 
@@ -28,9 +27,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             <Image
               src={veg.image}
               alt=""
-              width={96}
+              width={104}
               height={104}
-              className="h-26 w-24 shrink-0 object-contain"
+              className="size-26 shrink-0 rounded-2xl object-contain"
             />
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               <h1 className="text-head2-20 text-fg-neutral">
@@ -38,38 +37,22 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
               </h1>
               <div className="mt-3 flex flex-col gap-2.5">
                 <div className="flex items-baseline justify-between">
-                  <span className="flex items-center gap-1 text-body-14-medium text-fg-brand">
-                    현재 시세
-                    <InfoTooltip label="현재 시세">
-                      현재 시세는 {baseline.region} 소매 평균 기준이에요.
-                    </InfoTooltip>
-                  </span>
+                  <span className="text-body-16-semibold text-fg-brand">현재 시세</span>
                   <span className="text-head2-20 text-fg-neutral">{formatWon(baseline.current)}</span>
                 </div>
                 <hr className="border-bg-neutral-weak" />
-                <div className="flex items-baseline justify-between">
-                  <span className="text-body-14-regular text-fg-neutral-subtle">
-                    최근 제보된 실제가
-                  </span>
-                  <LatestReportPrice vegetableId={veg.id} />
-                </div>
-                {mart && (
-                  <>
-                    <hr className="border-bg-neutral-weak" />
-                    <div className="flex items-baseline justify-between">
-                      <span className="flex items-center gap-1 text-body-14-regular text-fg-neutral-subtle">
-                        컬리 온라인가
-                        <InfoTooltip label="컬리 온라인가">
-                          컬리 온라인가는 ‘{mart.productName}’ 기준이에요. 배송·품질이 반영돼
-                          매장가와 다를 수 있어요.
-                        </InfoTooltip>
-                      </span>
-                      <span className="text-body-16-semibold text-fg-neutral">
-                        {formatWon(mart.price)}
-                      </span>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-baseline justify-between text-body-14-medium">
+                    <span className="text-fg-neutral-subtle">최근 오프라인 가격</span>
+                    <LatestReportPrice vegetableId={veg.id} />
+                  </div>
+                  {mart && (
+                    <div className="flex items-baseline justify-between text-body-14-medium">
+                      <span className="text-fg-neutral-subtle">컬리 가격</span>
+                      <span className="text-fg-neutral-subtle">{formatWon(mart.price)}</span>
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
