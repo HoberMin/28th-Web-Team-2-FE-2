@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import IconCameraFill from "@karrotmarket/react-monochrome-icon/IconCameraFill";
 import { PhoneFrame, Scroll } from "./_lib/shell";
 import { HomeVegetables } from "./_components/home-vegetables";
 import { LocationLabel } from "./_components/location-label";
@@ -35,9 +34,9 @@ export default function HomePage() {
         <Link
           href="/prototype/capture"
           aria-label="야채 촬영하기"
-          className="pointer-events-auto flex size-16 items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg [&_svg]:size-7"
+          className="pointer-events-auto flex size-16 items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg"
         >
-          <IconCameraFill />
+          <Image src="/veg/camera.svg" alt="" width={28} height={28} className="size-7" />
         </Link>
       </div>
     </PhoneFrame>
