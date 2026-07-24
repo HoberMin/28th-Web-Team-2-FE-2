@@ -4,22 +4,23 @@
 import type { BaselinePrice, PricePeriod, PricePoint, Report, Vegetable } from "./types";
 
 export const DEFAULT_REGION = "서울";
-export const DEFAULT_DISTRICT = "광진구";
+/** GPS 미허용/키 미수령 시 폴백 자치구 (UT 테스트 장소 = 강남구 선릉). */
+export const DEFAULT_DISTRICT = "강남구";
 
 /** 더미 기준일 — Figma 와이어프레임(2026-07-24)과 정합. 실 API 연결 시 대체. */
 export const ANCHOR_DATE = "2026-07-24";
 
 /** Figma "인기 야채" 그리드 9종. */
 export const VEGETABLES: Vegetable[] = [
-  { id: "potato", name: "감자", emoji: "🥔", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "152" },
-  { id: "garlic", name: "마늘", emoji: "🧄", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "258" },
-  { id: "onion", name: "양파", emoji: "🧅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "245" },
-  { id: "sweet-potato", name: "고구마", emoji: "🍠", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "151" },
-  { id: "carrot", name: "당근", emoji: "🥕", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "246" },
-  { id: "tomato", name: "토마토", emoji: "🍅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "225" },
-  { id: "corn", name: "옥수수", emoji: "🌽", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "292" },
-  { id: "bell-pepper", name: "피망", emoji: "🫑", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "256" },
-  { id: "cucumber", name: "오이", emoji: "🥒", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "223" },
+  { id: "potato", name: "감자", image: "/veg/potato.png", emoji: "🥔", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "152" },
+  { id: "garlic", name: "마늘", image: "/veg/garlic.png", emoji: "🧄", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "258" },
+  { id: "onion", name: "양파", image: "/veg/onion.png", emoji: "🧅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "245" },
+  { id: "sweet-potato", name: "고구마", image: "/veg/sweet-potato.png", emoji: "🍠", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "151" },
+  { id: "carrot", name: "당근", image: "/veg/carrot.png", emoji: "🥕", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "246" },
+  { id: "tomato", name: "토마토", image: "/veg/tomato.png", emoji: "🍅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "225" },
+  { id: "corn", name: "옥수수", image: "/veg/corn.png", emoji: "🌽", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "292" },
+  { id: "bell-pepper", name: "피망", image: "/veg/bell-pepper.png", emoji: "🫑", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "256" },
+  { id: "cucumber", name: "오이", image: "/veg/cucumber.png", emoji: "🥒", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "223" },
 ];
 
 /** 품목별 현재 시세 기준값(원). potato는 Figma(2,490원)와 일치. */
@@ -110,9 +111,9 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
  * potato/광진구 3건은 Figma "사용자 제보 실제가"와 정합(2000·2380·2290원).
  */
 export const SEED_REPORTS: Report[] = [
-  { id: "seed-potato-1", vegetableId: "potato", district: "광진구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo" },
-  { id: "seed-potato-2", vegetableId: "potato", district: "광진구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual" },
-  { id: "seed-potato-3", vegetableId: "potato", district: "광진구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo" },
-  { id: "seed-onion-1", vegetableId: "onion", district: "광진구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual" },
-  { id: "seed-carrot-1", vegetableId: "carrot", district: "광진구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo" },
+  { id: "seed-potato-1", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo" },
+  { id: "seed-potato-2", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual" },
+  { id: "seed-potato-3", vegetableId: "potato", district: "강남구", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo" },
+  { id: "seed-onion-1", vegetableId: "onion", district: "강남구", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual" },
+  { id: "seed-carrot-1", vegetableId: "carrot", district: "강남구", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo" },
 ];

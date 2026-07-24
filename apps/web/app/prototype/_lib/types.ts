@@ -7,7 +7,9 @@ export interface Vegetable {
   id: string;
   /** 표시명. 예: "감자" */
   name: string;
-  /** 이미지 대체용 이모지 (와이어프레임 저충실도) */
+  /** Figma에서 추출한 야채 일러스트 경로 (public). 예: "/veg/potato.png" */
+  image: string;
+  /** 이미지 로드 전/대체용 이모지 */
   emoji: string;
   category: VegetableCategory;
   /** 가격 기준 단위. 예: "1kg" */
