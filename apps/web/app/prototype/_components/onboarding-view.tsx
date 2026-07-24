@@ -18,8 +18,25 @@ import { VEGETABLES } from "../_lib/vegetables";
 
 type Step = "nickname" | "region" | "welcome";
 
-// 환영 화면에서 뱅글뱅글 도는 야채들(6종). 원 위에 균등 배치 → 링 전체가 천천히 회전.
-const ORBIT = VEGETABLES.slice(0, 6);
+// 환영 화면 야채 정원 — 6종을 아기자기하게 흩뿌려 각자 둥실둥실 떠다니게(bob) + 등장 팝(pop).
+// left/top = 씬(정사각) 대비 %, size = px, delay/dur = 애니메이션 초.
+const SCENE_LAYOUT = [
+  { left: 50, top: 24, size: 76, delay: 0.05, dur: 3.0 },
+  { left: 22, top: 44, size: 54, delay: 0.2, dur: 3.5 },
+  { left: 78, top: 42, size: 56, delay: 0.12, dur: 2.7 },
+  { left: 32, top: 71, size: 50, delay: 0.28, dur: 3.3 },
+  { left: 68, top: 73, size: 52, delay: 0.18, dur: 3.7 },
+  { left: 50, top: 56, size: 44, delay: 0.35, dur: 2.9 },
+];
+const SCENE = VEGETABLES.slice(0, SCENE_LAYOUT.length).map((veg, i) => ({ veg, ...SCENE_LAYOUT[i] }));
+
+// 배경 반짝임 좌표(%)와 딜레이.
+const SPARKLES = [
+  { left: 16, top: 26, delay: 0 },
+  { left: 84, top: 22, delay: 0.6 },
+  { left: 88, top: 66, delay: 1.1 },
+  { left: 12, top: 62, delay: 1.6 },
+];
 
 // 여백 탭 시 키보드 내리기 — input/button 밖을 눌렀을 때만 포커스 해제.
 function handleBackgroundPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -122,30 +139,54 @@ export function OnboardingView() {
   return (
     <PhoneFrame>
       <div className="flex flex-1 flex-col items-center justify-center gap-8 px-8 text-center">
-        {/* 뱅글뱅글 도는 야채 링 (reduced-motion이면 정지) */}
-        <div className="relative flex size-56 items-center justify-center" aria-hidden="true">
-          <div className="absolute inset-3 rounded-full bg-bg-brand-weak" />
-          <div className="absolute inset-0 animate-spin [animation-duration:20s] motion-reduce:animate-none">
-            {ORBIT.map((v, i) => {
-              const angle = (2 * Math.PI * i) / ORBIT.length - Math.PI / 2;
-              const radius = 36; // 컨테이너 대비 %
-              const left = 50 + radius * Math.cos(angle);
-              const top = 50 + radius * Math.sin(angle);
-              return (
-                <Image
-                  key={v.id}
-                  src={v.image}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="absolute size-12 -translate-x-1/2 -translate-y-1/2 object-contain drop-shadow-sm"
-                  style={{ left: `${left}%`, top: `${top}%` }}
-                />
-              );
-            })}
-          </div>
+        {/* 아기자기한 야채 정원 — 각자 둥실둥실 떠다니며 등장 (reduced-motion이면 정지) */}
+        <div className="relative size-64" aria-hidden="true">
+          {/* 부드러운 원형 배경 */}
+          <div className="absolute inset-6 rounded-full bg-bg-brand-weak" />
+          <div className="absolute inset-12 rounded-full bg-bg-brand-solid/10" />
+
+          {/* 반짝임 */}
+          {SPARKLES.map((s, i) => (
+            <span
+              key={`sparkle-${i}`}
+              data-veg-motion
+              className="absolute size-2 rounded-full bg-bg-brand-solid"
+              style={{
+                left: `${s.left}%`,
+                top: `${s.top}%`,
+                animation: `veg-twinkle 2.4s ease-in-out ${s.delay}s infinite`,
+              }}
+            />
+          ))}
+
+          {/* 떠다니는 야채들 (팝 등장 → 둥실 부유, 레이어 분리로 transform 충돌 없음) */}
+          {SCENE.map((s, i) => (
+            <div
+              key={s.veg.id}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${s.left}%`, top: `${s.top}%` }}
+            >
+              <div data-veg-motion style={{ animation: `veg-pop 0.5s ease-out ${s.delay}s both` }}>
+                <div data-veg-motion style={{ animation: `veg-bob ${s.dur}s ease-in-out ${s.delay + 0.5}s infinite` }}>
+                  <Image
+                    src={s.veg.image}
+                    alt=""
+                    width={s.size}
+                    height={s.size}
+                    className="object-contain drop-shadow-md"
+                    style={{ width: s.size, height: s.size }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-3">
+
+        <div
+          data-veg-motion
+          className="flex flex-col gap-3"
+          style={{ animation: "veg-rise 0.5s ease-out 0.5s both" }}
+        >
           <h1 className="text-head1-24 font-bold leading-tight text-fg-neutral">
             {displayName && (
               <>

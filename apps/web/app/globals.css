@@ -44,3 +44,30 @@ body {
     border-radius: 4px;
   }
 }
+
+/* 프로토타입 온보딩 환영 화면 모션 — 아기자기한 야채 그래픽(등장 팝 + 둥실 부유 + 텍스트 라이즈). */
+@keyframes veg-pop {
+  0% { opacity: 0; transform: scale(0.3); }
+  70% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes veg-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-10px) rotate(4deg); }
+}
+@keyframes veg-rise {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes veg-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* 모션 최소화 선호 시 모든 온보딩 모션 정지 + 최종 상태로 고정. */
+@media (prefers-reduced-motion: reduce) {
+  [data-veg-motion] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
