@@ -1,32 +1,102 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import IconXmarkLine from "@karrotmarket/react-monochrome-icon/IconXmarkLine";
 import IconCameraFill from "@karrotmarket/react-monochrome-icon/IconCameraFill";
 import { PhoneFrame } from "../_lib/shell";
 
-// F02 야채 촬영 — 프로토타입이라 실제 카메라 대신 샘플 사진 목업.
+// F02 야채 촬영 — 실제 후면 카메라(getUserMedia) 실시간 프리뷰.
+// 셔터 → 현재 프레임을 canvas에 고정 → "인식중" 스피너 → 다음 화면으로.
 // 홈(item 없음)에서 온 촬영은 UT 데모상 항상 감자 시세로 보낸다.
 // 특정 야채 제보 흐름(item 있음)은 촬영 → 제보 폼 유지.
+type Phase = "live" | "analyzing" | "error";
+
 export function CaptureView({ item }: { item: string }) {
   const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [phase, setPhase] = useState<Phase>("live");
+
   const closeHref = item ? `/prototype/price/${item}` : "/prototype";
   const query = new URLSearchParams({ method: "photo", ...(item ? { item } : {}) });
   const shutterHref = item ? `/prototype/report?${query.toString()}` : "/prototype/price/potato";
 
+  // 마운트 시 후면 카메라 열기. 언마운트 시 스트림 정리.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function start() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setPhase("error");
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch {
+        if (!cancelled) setPhase("error");
+      }
+    }
+
+    void start();
+
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, []);
+
+  // 인식중 페이즈에 진입하면 스피너를 잠깐 보여준 뒤 다음 화면으로.
+  useEffect(() => {
+    if (phase !== "analyzing") return;
+    const id = setTimeout(() => router.push(shutterHref), 2000);
+    return () => clearTimeout(id);
+  }, [phase, router, shutterHref]);
+
+  function handleShutter() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (video && canvas && video.videoWidth > 0) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+    // 프레임 고정 후 카메라 정지(프리뷰가 방금 찍은 장면에 멈춘 것처럼 보이게)
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    setPhase("analyzing");
+  }
+
   return (
     <PhoneFrame>
       <div className="absolute inset-0 bg-neutral-900">
-        {/* 촬영 미리보기(샘플) */}
-        <Image
-          src="/ui/capture-sample.jpg"
-          alt="촬영 미리보기"
-          fill
-          sizes="390px"
-          priority
-          className="object-cover"
+        {/* 실시간 카메라 프리뷰 (인식중엔 숨기고 고정 프레임 표시) */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          aria-hidden
+          className={`absolute inset-0 size-full object-cover ${phase === "analyzing" ? "hidden" : ""}`}
+        />
+        {/* 셔터 순간 고정된 프레임 */}
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          className={`absolute inset-0 size-full object-cover ${phase === "analyzing" ? "" : "hidden"}`}
         />
 
         <div className="relative z-10 flex h-full flex-col text-white">
@@ -44,7 +114,24 @@ export function CaptureView({ item }: { item: string }) {
             </div>
           </div>
 
-          <div className="flex-1" />
+          <div className="flex flex-1 items-center justify-center">
+            {phase === "analyzing" && <DotSpinner />}
+            {phase === "error" && (
+              <div className="mx-8 flex flex-col items-center gap-4 text-center">
+                <p className="text-body-14-regular text-white/90">
+                  카메라를 열 수 없어요.
+                  <br />
+                  브라우저 카메라 권한을 확인해 주세요.
+                </p>
+                <Link
+                  href={shutterHref}
+                  className="rounded-full bg-white/15 px-5 py-2 text-body-14-regular text-white hover:bg-white/25"
+                >
+                  촬영 없이 계속하기
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* 안내 + 셔터 (사진 위, 가독성 위해 하단 그라디언트) */}
           <div className="shrink-0 bg-gradient-to-t from-black/60 to-transparent pt-10 pb-10">
@@ -52,16 +139,37 @@ export function CaptureView({ item }: { item: string }) {
               <button
                 type="button"
                 aria-label="촬영"
-                onClick={() => router.push(shutterHref)}
-                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white [&_svg]:size-8"
+                onClick={handleShutter}
+                disabled={phase !== "live"}
+                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:bg-neutral-500 disabled:text-white/70 [&_svg]:size-8"
               >
                 <IconCameraFill />
               </button>
-              <p className="text-body-14-regular text-white/90">가격과 야채가 잘 보이게 촬영해 주세요</p>
+              <p aria-live="polite" className="text-body-14-regular text-white/90">
+                {phase === "analyzing" ? "야채를 인식중입니다" : "가격과 야채가 잘 보이게 촬영해 주세요"}
+              </p>
             </div>
           </div>
         </div>
       </div>
     </PhoneFrame>
+  );
+}
+
+// 8개 점이 원형으로 돌며 꼬리가 옅어지는 로딩 스피너 (Figma 100-5031)
+function DotSpinner() {
+  return (
+    <div className="relative size-12 animate-spin" style={{ animationDuration: "0.9s" }}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <span
+          key={i}
+          className="absolute left-1/2 top-1/2 size-2 rounded-full bg-white"
+          style={{
+            transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateY(-18px)`,
+            opacity: (i + 1) / 8,
+          }}
+        />
+      ))}
+    </div>
   );
 }
