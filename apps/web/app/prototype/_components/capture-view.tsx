@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import IconXmarkLine from "@karrotmarket/react-monochrome-icon/IconXmarkLine";
-import IconCameraFill from "@karrotmarket/react-monochrome-icon/IconCameraFill";
 import { PhoneFrame } from "../_lib/shell";
 
 // F02 야채 촬영 — 실제 후면 카메라(getUserMedia) 실시간 프리뷰.
@@ -141,11 +141,11 @@ export function CaptureView({ item }: { item: string }) {
                 aria-label="촬영"
                 onClick={handleShutter}
                 disabled={phase !== "live"}
-                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:bg-neutral-500 disabled:text-white/70 [&_svg]:size-8"
+                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:bg-neutral-500"
               >
-                <IconCameraFill />
+                <Image src="/veg/camera.svg" alt="" width={32} height={32} className="size-8" />
               </button>
-              <p aria-live="polite" className="text-body-14-regular text-white/90">
+              <p aria-live="polite" className="text-body-16-regular text-white/90">
                 {phase === "analyzing" ? "야채를 인식중입니다" : "가격과 야채가 잘 보이게 촬영해 주세요"}
               </p>
             </div>
