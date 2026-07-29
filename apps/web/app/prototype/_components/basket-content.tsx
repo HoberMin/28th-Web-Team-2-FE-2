@@ -3,25 +3,53 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getBaselineDummy, getVegetable } from "../_lib/vegetables";
-import { useBasket, removeFromBasket, setBasketWeight } from "../_lib/basket-store";
+import { useBasket, removeFromBasket, setBasketWeight, addToBasket } from "../_lib/basket-store";
+import { useFavorites } from "../_lib/favorites-store";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { formatNumber, formatWon } from "../_lib/format";
+import { AddVegetableSheet } from "./add-vegetable-sheet";
 
 // F07 장바구니 — "장보기 전 예산 계획". 담은 품목의 KAMIS 기준 예상액 vs 동네 최저 제보가 기준 예상액을 비교한다.
 // 실 구매 액션은 아님(계획 도구) — 각 행의 "제보하러 가기"가 F03-1 제보 플로우로 연결한다.
 export function BasketContent() {
   const items = useBasket();
+  const favorites = useFavorites();
   const { district } = useCurrentDistrict();
   const districtReports = useReports({ district });
 
   if (items.length === 0) {
+    const favoriteVegs = favorites.map((id) => getVegetable(id)).filter((v) => v !== undefined);
     return (
-      <div className="flex flex-col items-center gap-2 px-4 pt-24 text-center">
-        <p className="text-body-16-semibold text-fg-neutral">아직 담은 야채가 없어요</p>
-        <p className="text-body-14-regular text-fg-neutral-subtle">
-          시세 화면에서 살 야채를 담아보세요
-        </p>
+      <div className="flex flex-col gap-8 px-4 pt-16">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-body-16-semibold text-fg-neutral">아직 담은 야채가 없어요</p>
+          <p className="text-body-14-regular text-fg-neutral-subtle">
+            장 보기 전에 살 야채를 담아 예상 금액을 미리 확인해요
+          </p>
+        </div>
+
+        {favoriteVegs.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <h2 className="text-body-14-medium text-fg-neutral-subtle">찜한 야채로 빠르게 담기</h2>
+            <ul className="grid grid-cols-3 gap-3">
+              {favoriteVegs.map((veg) => (
+                <li key={veg.id}>
+                  <button
+                    type="button"
+                    onClick={() => addToBasket(veg.id, 1)}
+                    className="flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-neutral-weak py-4 active:bg-bg-neutral-weak-pressed"
+                  >
+                    <Image src={veg.image} alt="" width={48} height={56} className="h-14 w-auto object-contain" />
+                    <span className="text-body-14-medium text-fg-neutral">{veg.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <AddVegetableSheet />
       </div>
     );
   }
@@ -51,6 +79,9 @@ export function BasketContent() {
 
   return (
     <div className="flex flex-col gap-6 px-4 pt-3 pb-10">
+      <p aria-live="polite" className="sr-only">
+        장바구니에 {items.length}개 담았어요
+      </p>
       <section aria-label="예상 총액" className="flex flex-col gap-3 rounded-2xl bg-bg-brand-weak px-5 py-5">
         <div className="flex items-center justify-between text-body-14-regular">
           <span className="text-fg-neutral-subtle">오늘 시세 기준 총액</span>
@@ -123,6 +154,8 @@ export function BasketContent() {
           );
         })}
       </ul>
+
+      <AddVegetableSheet excludeIds={items.map((i) => i.vegetableId)} />
     </div>
   );
 }
