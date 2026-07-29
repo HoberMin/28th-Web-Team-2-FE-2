@@ -11,6 +11,7 @@ import { FavoriteButton } from "../../_components/favorite-button";
 import { CommentList } from "../../_components/comment-list";
 import { RecipeList } from "../../_components/recipe-list";
 import { CheapestMonthBadge } from "../../_components/cheapest-month-badge";
+import { AddToBasketButton } from "../../_components/add-to-basket-button";
 
 // F03 야채 시세 — 데이터 fetch는 서버(RSC). 그래프·제보·위치만 클라 leaf.
 export default async function PricePage({ params }: { params: Promise<{ item: string }> }) {
@@ -72,6 +73,10 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="px-4 pb-4">
+            <AddToBasketButton vegetableId={veg.id} />
           </div>
 
           {/* 섹션 구분 band */}

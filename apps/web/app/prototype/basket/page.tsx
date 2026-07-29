@@ -1,20 +1,15 @@
 import { AppBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { GNB } from "../_components/gnb";
+import { BasketContent } from "../_components/basket-content";
 
-// F07 장바구니 — GNB 탭 루트. 정책 미확정(제보 묶음 vs 품목 묶음+KAMIS 기준 등) — 준비중 상태만 노출.
+// F07 장바구니 — GNB 탭 루트. "장보기 전 예산 계획" 컨셉(사용자 확정, 2026-07-30) — 제보를 묶지 않고
+// 품목+수량만 담아 KAMIS 기준 예상 총액 vs 동네 최저 제보가 기준 예상 총액을 비교한다.
 export default function BasketPage() {
   return (
     <PhoneFrame>
       <AppBar title="장바구니" />
       <Scroll>
-        <div className="flex flex-col items-center gap-2 px-4 pt-24 text-center">
-          <p className="text-body-16-semibold text-fg-neutral">장바구니는 준비 중이에요</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
-            여러 야채를 한 번에 담아 시세와 비교하는
-            <br />
-            기능을 정리하고 있어요
-          </p>
-        </div>
+        <BasketContent />
       </Scroll>
       <GNB />
     </PhoneFrame>
