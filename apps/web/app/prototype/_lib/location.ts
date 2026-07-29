@@ -6,6 +6,16 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { DEFAULT_DISTRICT } from "./vegetables";
 import { readOnboarding } from "./onboarding-store";
+import { REGIONS } from "./regions";
+
+/**
+ * REGIONS(동 단위)에 없는 동이 들어오면 채택하지 않는다 — 실 GPS 응답이 REGIONS가 다루지 않는
+ * 동(대표 동 목록 밖)이거나 구 단위로 새면, 그 동네엔 제보·댓글 시드가 전혀 없어 화면이
+ * 빈 채로 남는다(사용자가 실제로 겪은 버그). 매칭 실패 시 UT 앵커(DEFAULT_DISTRICT)로 폴백.
+ */
+function toKnownDistrict(district: string): string {
+  return REGIONS.some((r) => r.label === district) ? district : DEFAULT_DISTRICT;
+}
 
 type Status = "idle" | "loading" | "done";
 
@@ -72,7 +82,7 @@ function ensureLocated() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch(`/api/geocode?lat=${latitude}&lng=${longitude}`);
         const data = (await res.json()) as { district?: string };
-        finish(data.district || DEFAULT_DISTRICT);
+        finish(data.district ? toKnownDistrict(data.district) : DEFAULT_DISTRICT);
       } catch {
         finish(DEFAULT_DISTRICT);
       }
