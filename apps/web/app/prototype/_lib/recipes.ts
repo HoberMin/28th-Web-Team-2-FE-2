@@ -14,6 +14,10 @@ export const RECIPES: Recipe[] = [
   { id: "r-garlic-1", vegetableId: "garlic", title: "마늘종볶음", minutes: 15 },
   { id: "r-tomato-1", vegetableId: "tomato", title: "토마토달걀볶음", minutes: 10 },
   { id: "r-cucumber-1", vegetableId: "cucumber", title: "오이무침", minutes: 10 },
+  { id: "r-sweet-potato-1", vegetableId: "sweet-potato", title: "고구마맛탕", minutes: 20 },
+  { id: "r-carrot-1", vegetableId: "carrot", title: "당근라페", minutes: 15 },
+  { id: "r-corn-1", vegetableId: "corn", title: "옥수수치즈구이", minutes: 15 },
+  { id: "r-bell-pepper-1", vegetableId: "bell-pepper", title: "피망잡채", minutes: 20 },
 ];
 
 export function getRecipesFor(vegetableId: string): Recipe[] {
