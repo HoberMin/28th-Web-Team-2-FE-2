@@ -17,9 +17,17 @@ const PURCHASE_OPTIONS = [
   { value: false, label: "시세만 봤어요" },
 ] as const;
 
-// F04 야채 제보 — 위치는 GPS 자동, 나머지 직접 입력 → localStorage 저장 → 시세 화면 복귀.
+// F04-2 야채 제보 폼 — 위치는 F04-1(가게 위치 선택)에서 넘어옴, 나머지 직접 입력 → localStorage 저장 → 제보 완료(F04-3).
 // 확인 버튼은 유효할 때만 활성(Figma) → 별도 에러 문구 없이 비활성으로 안내.
-export function ReportForm({ item, method }: { item: string; method: Report["method"] }) {
+export function ReportForm({
+  item,
+  method,
+  place,
+}: {
+  item: string;
+  method: Report["method"];
+  place: string;
+}) {
   const router = useRouter();
   // UT 데모: 사진 촬영은 항상 감자로 인식된다 → 품목을 감자로 고정(읽기 전용).
   const presetVeg = method === "photo" ? getVegetable("potato") : getVegetable(item);
@@ -40,7 +48,15 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
     if (!formValid || !veg) return;
-    addReport({ vegetableId: veg.id, district, weightKg: weightNum, price: priceNum, method, purchased });
+    addReport({
+      vegetableId: veg.id,
+      district,
+      place: place || undefined,
+      weightKg: weightNum,
+      price: priceNum,
+      method,
+      purchased,
+    });
     router.push(`/prototype/report/success?item=${veg.id}`);
   }
 
@@ -59,8 +75,13 @@ export function ReportForm({ item, method }: { item: string; method: Report["met
           </div>
 
           <div className="mt-8 flex flex-col gap-6">
-            {/* 위치 — GPS 자동, 잠금 */}
-            <TextField label="위치" value={loading ? "위치 확인 중…" : district} onValueChange={() => {}} readOnly>
+            {/* 위치 — F04-1(가게 위치 선택)에서 확정, 잠금. place 없으면 자치구까지만 */}
+            <TextField
+              label="위치"
+              value={loading ? "위치 확인 중…" : place || district}
+              onValueChange={() => {}}
+              readOnly
+            >
               <TextFieldInput />
             </TextField>
 

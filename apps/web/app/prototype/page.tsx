@@ -5,12 +5,13 @@ import { HomeVegetables } from "./_components/home-vegetables";
 import { LocationLabel } from "./_components/location-label";
 import { OnboardingGate } from "./_components/onboarding-gate";
 
-// F01 홈 — 위치(GPS)·검색·인기 야채. RSC 기본; 위치·검색·온보딩 게이트만 클라 leaf.
+// F01 홈 — 위치(GPS)·검색·인기 야채. 야채 선택 전용(촬영 진입 없음 — 촬영은 F03-1 제보 흐름에서만).
+// RSC 기본; 위치·검색·온보딩 게이트만 클라 leaf.
 export default function HomePage() {
   return (
     <PhoneFrame>
       <OnboardingGate />
-      <Scroll className="pb-28">
+      <Scroll className="pb-6">
         <div className="flex flex-col gap-5 px-4 pt-1">
           <div className="flex items-center justify-between">
             <LocationLabel />
@@ -25,20 +26,6 @@ export default function HomePage() {
           <HomeVegetables />
         </div>
       </Scroll>
-
-      {/* 촬영 진입 — 툴팁 + 중앙 하단 FAB (Figma F01) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-7 flex flex-col items-center gap-2">
-        <p className="rounded-full bg-bg-neutral-inverted px-4 py-2 text-body-14-medium text-fg-neutral-inverted shadow-md">
-          궁금한 야채를 찍어서 검색해 보세요
-        </p>
-        <Link
-          href="/prototype/capture"
-          aria-label="야채 촬영하기"
-          className="pointer-events-auto flex size-16 items-center justify-center rounded-full bg-bg-brand-solid text-fg-brand-contrast shadow-lg"
-        >
-          <Image src="/veg/camera.svg" alt="" width={28} height={28} className="size-7" />
-        </Link>
-      </div>
     </PhoneFrame>
   );
 }

@@ -47,6 +47,8 @@ function getServerSnapshot(): Report[] {
 export interface NewReportInput {
   vegetableId: string;
   district: string;
+  /** 제보 지점(가게명) — 가게 위치 선택(F04-1)에서 넘어옴. 없으면 자치구까지만. */
+  place?: string;
   weightKg: number;
   price: number;
   method: Report["method"];
@@ -59,6 +61,7 @@ export function addReport(input: NewReportInput): Report {
     id: `local-${Date.now()}-${Math.round(Math.random() * 1e6)}`,
     vegetableId: input.vegetableId,
     district: input.district,
+    place: input.place,
     weightKg: input.weightKg,
     price: input.price,
     pricePerKg: input.weightKg > 0 ? Math.round(input.price / input.weightKg) : input.price,

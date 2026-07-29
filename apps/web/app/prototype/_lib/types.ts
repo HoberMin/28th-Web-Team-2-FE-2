@@ -72,6 +72,8 @@ export interface Report {
   vegetableId: string;
   /** 동네(자치구). 예: "광진구" */
   district: string;
+  /** 제보 지점(가게명). GPS+검색으로 특정하거나 직접 입력. 미선택 시 undefined(자치구까지만). */
+  place?: string;
   /** 구매 무게(kg) */
   weightKg: number;
   /** 지불 가격(원) */

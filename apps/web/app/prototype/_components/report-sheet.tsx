@@ -25,10 +25,10 @@ export function ReportSheet({ vegetableId }: { vegetableId: string }) {
       <BottomSheetContent title="어떻게 제보할까요?">
         <BottomSheetBody className="flex flex-col gap-2 pb-2">
           <ActionButton asChild variant="neutralWeak" size="large" className="w-full">
-            <Link href={`/prototype/capture?item=${vegetableId}`}>야채 촬영하기</Link>
+            <Link href={`/prototype/report/location?item=${vegetableId}&method=photo`}>야채 촬영하기</Link>
           </ActionButton>
           <ActionButton asChild variant="neutralWeak" size="large" className="w-full">
-            <Link href={`/prototype/report?item=${vegetableId}`}>직접 입력하기</Link>
+            <Link href={`/prototype/report/location?item=${vegetableId}&method=manual`}>직접 입력하기</Link>
           </ActionButton>
         </BottomSheetBody>
       </BottomSheetContent>

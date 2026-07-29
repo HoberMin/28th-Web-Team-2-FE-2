@@ -8,21 +8,20 @@ import IconXmarkLine from "@karrotmarket/react-monochrome-icon/IconXmarkLine";
 import { PhoneFrame } from "../_lib/shell";
 
 // F02 야채 촬영 — 실제 후면 카메라(getUserMedia) 실시간 프리뷰.
-// 셔터 → 현재 프레임을 canvas에 고정 → "인식중" 스피너 → 다음 화면으로.
-// 홈(item 없음)에서 온 촬영은 UT 데모상 항상 감자 시세로 보낸다.
-// 특정 야채 제보 흐름(item 있음)은 촬영 → 제보 폼 유지.
+// 셔터 → 현재 프레임을 canvas에 고정 → "인식중" 스피너 → 제보 폼(F04-2)으로.
+// 진입 경로는 F03-1(제보 방식 선택)→F04-1(가게 위치 선택)뿐 — 홈에서 직접 진입 없음.
 type Phase = "live" | "analyzing" | "error";
 
-export function CaptureView({ item }: { item: string }) {
+export function CaptureView({ item, place }: { item: string; place: string }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [phase, setPhase] = useState<Phase>("live");
 
-  const closeHref = item ? `/prototype/price/${item}` : "/prototype";
-  const query = new URLSearchParams({ method: "photo", ...(item ? { item } : {}) });
-  const shutterHref = item ? `/prototype/report?${query.toString()}` : "/prototype/price/potato";
+  const closeHref = `/prototype/price/${item}`;
+  const query = new URLSearchParams({ method: "photo", item, ...(place ? { place } : {}) });
+  const shutterHref = `/prototype/report?${query.toString()}`;
 
   // 마운트 시 후면 카메라 열기. 언마운트 시 스트림 정리.
   useEffect(() => {
