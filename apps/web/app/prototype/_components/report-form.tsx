@@ -38,6 +38,8 @@ export function ReportForm({
   const [weight, setWeight] = useState(method === "photo" ? "1" : "");
   const [price, setPrice] = useState(method === "photo" ? "3000" : "");
   const [purchased, setPurchased] = useState(true);
+  // 위치 — F04-1에서 넘어온 값을 기본값으로 채우되, 지금 있는 곳에서 등록하는 게 아닐 수 있어 수정 가능하게 둔다.
+  const [placeValue, setPlaceValue] = useState(place);
 
   const veg = presetVeg ?? VEGETABLES.find((v) => v.name === itemName.trim());
   const weightNum = Number(weight.replace(/[^0-9.]/g, ""));
@@ -51,7 +53,7 @@ export function ReportForm({
     addReport({
       vegetableId: veg.id,
       district,
-      place: place || undefined,
+      place: placeValue.trim() || undefined,
       weightKg: weightNum,
       price: priceNum,
       method,
@@ -75,14 +77,13 @@ export function ReportForm({
           </div>
 
           <div className="mt-8 flex flex-col gap-6">
-            {/* 위치 — F04-1(가게 위치 선택)에서 확정, 잠금. place 없으면 동까지만 */}
+            {/* 위치 — F04-1(가게 위치 선택) 값이 기본값이지만, 지금 있는 곳에서 등록하는 게 아닐 수 있어 다시 눌러 수정 가능 */}
             <TextField
               label="위치"
-              value={loading ? "위치 확인 중…" : place || district}
-              onValueChange={() => {}}
-              readOnly
+              value={loading ? "위치 확인 중…" : placeValue}
+              onValueChange={(v) => setPlaceValue(v.value)}
             >
-              <TextFieldInput />
+              <TextFieldInput placeholder={district} readOnly={loading} />
             </TextField>
 
             <TextField
