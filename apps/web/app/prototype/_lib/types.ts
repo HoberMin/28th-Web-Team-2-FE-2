@@ -32,7 +32,7 @@ export interface PricePoint {
 /** 공공 시세(기준선) — KAMIS 또는 더미. 지역 해상도는 광역(서울)이 한계. */
 export interface BaselinePrice {
   vegetableId: string;
-  /** 광역 단위. 예: "서울" (공공 API가 자치구 미제공 — API 조사 결론) */
+  /** 광역 단위. 예: "서울" (공공 API가 동 단위 미제공 — API 조사 결론) */
   region: string;
   unit: string;
   /** 현재 시세(원) */
@@ -66,13 +66,13 @@ export interface MartPrice {
   asOf: string;
 }
 
-/** 사용자 제보 실제가 — 동네(자치구) 정밀도를 메우는 크라우드소싱 데이터. */
+/** 사용자 제보 실제가 — 동네(동) 정밀도를 메우는 크라우드소싱 데이터. */
 export interface Report {
   id: string;
   vegetableId: string;
-  /** 동네(자치구). 예: "광진구" */
+  /** 동네(동). 예: "봉천동" */
   district: string;
-  /** 제보 지점(가게명). GPS+검색으로 특정하거나 직접 입력. 미선택 시 undefined(자치구까지만). */
+  /** 제보 지점(가게명). GPS+검색으로 특정하거나 직접 입력. 미선택 시 undefined(동까지만). */
   place?: string;
   /** 구매 무게(kg) */
   weightKg: number;

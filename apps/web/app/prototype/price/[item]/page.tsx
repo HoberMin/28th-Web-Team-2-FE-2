@@ -8,6 +8,9 @@ import { PriceChart } from "../../_components/price-chart";
 import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components/report-list";
 import { ReportSheet } from "../../_components/report-sheet";
 import { FavoriteButton } from "../../_components/favorite-button";
+import { CommentList } from "../../_components/comment-list";
+import { RecipeList } from "../../_components/recipe-list";
+import { CheapestMonthBadge } from "../../_components/cheapest-month-badge";
 
 // F03 야채 시세 — 데이터 fetch는 서버(RSC). 그래프·제보·위치만 클라 leaf.
 export default async function PricePage({ params }: { params: Promise<{ item: string }> }) {
@@ -75,8 +78,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           <div className="h-1.5 shrink-0 bg-[#f2f3f8]" aria-hidden="true" />
 
           {/* 시세 그래프 + 기간 평균가 */}
-          <div className="px-4 pt-7 pb-7">
+          <div className="flex flex-col gap-4 px-4 pt-7 pb-7">
             <PriceChart vegetableName={veg.name} series={baseline.series} />
+            <CheapestMonthBadge yearSeries={baseline.series.year} source={baseline.source} />
           </div>
 
           {/* 섹션 구분 band */}
@@ -90,6 +94,18 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
             <ReportsList vegetableId={veg.id} basePrice={baseline.current} />
           </section>
+
+          {/* 섹션 구분 band */}
+          <div className="h-1.5 shrink-0 bg-[#f2f3f8]" aria-hidden="true" />
+
+          {/* 레시피 연계 (예시/더미) */}
+          <RecipeList vegetableId={veg.id} />
+
+          {/* 섹션 구분 band */}
+          <div className="h-1.5 shrink-0 bg-[#f2f3f8]" aria-hidden="true" />
+
+          {/* 동네 댓글 */}
+          <CommentList vegetableId={veg.id} />
         </div>
       </Scroll>
 

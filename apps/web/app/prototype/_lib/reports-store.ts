@@ -47,7 +47,7 @@ function getServerSnapshot(): Report[] {
 export interface NewReportInput {
   vegetableId: string;
   district: string;
-  /** 제보 지점(가게명) — 가게 위치 선택(F04-1)에서 넘어옴. 없으면 자치구까지만. */
+  /** 제보 지점(가게명) — 가게 위치 선택(F04-1)에서 넘어옴. 없으면 동까지만. */
   place?: string;
   weightKg: number;
   price: number;

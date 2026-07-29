@@ -11,7 +11,7 @@ const ROW_GRID = "grid grid-cols-[140px_1fr_auto] items-center";
 
 const PREVIEW_COUNT = 3;
 
-/** 현재 자치구 배지 (동네 제보가 헤더). */
+/** 현재 동 배지 (동네 제보가 헤더). */
 export function DistrictBadge() {
   const { district } = useCurrentDistrict();
   return (
@@ -40,7 +40,7 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
 }
 
 /**
- * 동네 제보가 리스트 (크라우드소싱 결과, 현재 자치구 기준).
+ * 동네 제보가 리스트 (크라우드소싱 결과, 현재 동 기준).
  * basePrice = 오늘 시세 — 오늘 제보한 실제가와의 플마 차이를 행에 표시(핵심 가치: 눈으로 보는 변화).
  */
 export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; basePrice: number }) {
@@ -77,8 +77,16 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
           const pct = basePrice > 0 ? ((r.pricePerKg - basePrice) / basePrice) * 100 : 0;
           return (
             <li key={r.id} className={ROW_GRID}>
-              <span className="text-[16px] font-normal tracking-[-0.02em] text-[#697383]">
-                {formatDateDot(r.createdAt.slice(0, 10))}
+              <span className="flex flex-col">
+                <span className="text-[16px] font-normal tracking-[-0.02em] text-[#697383]">
+                  {formatDateDot(r.createdAt.slice(0, 10))}
+                </span>
+                {/* 구매 장소 공개 — 같은 동 목록이라 별도 라벨 없이 노출(핵심 가치: 이웃 신뢰) */}
+                {r.place && (
+                  <span className="truncate text-[12px] font-normal tracking-[-0.02em] text-[#99a1b1]">
+                    {r.place}
+                  </span>
+                )}
               </span>
               <span
                 className={`flex items-center gap-0.5 text-[12px] font-normal tracking-[-0.02em] ${

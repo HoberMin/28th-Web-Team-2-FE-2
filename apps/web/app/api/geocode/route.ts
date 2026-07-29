@@ -3,7 +3,7 @@
 // 한국 자치구 이름으로 바꾸는 역할만 한다. 3단 폴백으로 "키 없이도" 동작:
 //   1) KAKAO_REST_KEY 있으면 Kakao(가장 정확)
 //   2) 없으면 OpenStreetMap Nominatim(무료·키 불필요)
-//   3) 둘 다 실패하면 강남구 선릉 폴백
+//   3) 둘 다 실패하면 삼성동(UT 테스트 장소) 폴백
 
 interface KakaoRegionDoc {
   region_type: string;
@@ -24,7 +24,7 @@ interface NominatimAddress {
   state?: string;
 }
 
-const FALLBACK = { sido: "서울특별시", district: "강남구", dong: "선릉동" } as const;
+const FALLBACK = { sido: "서울특별시", district: "삼성동", dong: "삼성동" } as const;
 
 function pickDistrict(addr: NominatimAddress): string | null {
   const vals = [

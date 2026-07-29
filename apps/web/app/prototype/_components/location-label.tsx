@@ -3,7 +3,7 @@
 import IconLocationpinFill from "@karrotmarket/react-monochrome-icon/IconLocationpinFill";
 import { useCurrentDistrict } from "../_lib/location";
 
-// GPS 기반 현재 자치구 표시 (홈·시세 상단). 측위 중엔 안내.
+// GPS 기반 현재 동 표시 (홈·시세 상단). 측위 중엔 안내.
 export function LocationLabel() {
   const { district, loading } = useCurrentDistrict();
   return (

@@ -75,7 +75,7 @@ export function ReportForm({
           </div>
 
           <div className="mt-8 flex flex-col gap-6">
-            {/* 위치 — F04-1(가게 위치 선택)에서 확정, 잠금. place 없으면 자치구까지만 */}
+            {/* 위치 — F04-1(가게 위치 선택)에서 확정, 잠금. place 없으면 동까지만 */}
             <TextField
               label="위치"
               value={loading ? "위치 확인 중…" : place || district}

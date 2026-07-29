@@ -12,6 +12,8 @@ import { summarizeSpending, toSpendingItem } from "../_lib/spending";
 import { formatDateDot, formatNumber, formatWon } from "../_lib/format";
 import type { Report } from "../_lib/types";
 import { FavoriteButton } from "./favorite-button";
+import { BadgeList } from "./badge-list";
+import { PriceAlertSettings } from "./price-alert-settings";
 
 type Tab = "favorites" | "reports" | "purchases";
 const TABS: { key: Tab; label: string }[] = [
@@ -51,6 +53,12 @@ export function MyPageContent() {
 
       {/* 소비 요약 — 시세 대비 절약(핵심 가치: 눈으로 보는 변화). 탭과 무관하게 상단 고정 */}
       <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
+
+      {/* 뱃지 — 구매인증(제보) 원동력 */}
+      <BadgeList reportCount={myReports.length} purchaseCount={purchases.length} />
+
+      {/* 가격 알림 설정 */}
+      <PriceAlertSettings favorites={favorites} />
 
       {/* 탭 */}
       <div role="group" aria-label="마이페이지 목록" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">

@@ -1,6 +1,6 @@
 "use client";
 
-// 현재 위치(자치구) 스토어 — 실제 GPS(navigator.geolocation) → BFF 역지오코딩.
+// 현재 위치(동) 스토어 — 실제 GPS(navigator.geolocation) → BFF 역지오코딩.
 // 한 번만 측위하고 결과를 앱 전체가 공유(홈·시세·제보). 권한 거부/키 미수령 시 폴백.
 
 import { useEffect, useSyncExternalStore } from "react";

@@ -68,7 +68,7 @@ export function OnboardingView() {
   const [district, setPickedDistrict] = useState("");
 
   // 검색어가 있으면 부분일치 필터, 없으면 "지금 있는 동네"(현재 위치 기준 거리순).
-  // UT는 기준 지역이 강남구로 고정이라 GPS 대신 DEFAULT_DISTRICT를 앵커로 쓴다(로딩 깜빡임 방지).
+  // UT는 기준 지역이 삼성동으로 고정이라 GPS 대신 DEFAULT_DISTRICT를 앵커로 쓴다(로딩 깜빡임 방지).
   const searching = regionQuery.trim().length > 0;
   const regions = searching ? searchRegions(regionQuery) : regionsByProximity(DEFAULT_DISTRICT);
 
@@ -132,7 +132,7 @@ export function OnboardingView() {
                 onValueChange={(v) => setRegionQuery(v.value)}
                 suffixIcon={<SearchIcon />}
               >
-                <TextFieldInput placeholder="구 단위로 검색" aria-label="구 단위로 검색" autoFocus />
+                <TextFieldInput placeholder="동 단위로 검색" aria-label="동 단위로 검색" autoFocus />
               </TextField>
             </div>
 

@@ -3,7 +3,7 @@
 //    (server-only 패키지 미설치 → 주석 가드. 리뷰 시 도입 검토 권장.)
 //
 // 데이터 소스 판정(API 조사): KAMIS 소매가의 최소 지역 해상도는 광역(서울=1개)이라
-// 자치구(광진구) 단위 시세는 공공 API로 불가 → region은 광역, 동네 정밀도는 사용자 제보로 메운다.
+// 동(봉천동) 단위 시세는 공공 API로 불가 → region은 광역, 동네 정밀도는 사용자 제보로 메운다.
 
 import "server-only"; // 클라이언트에서 import 시 빌드 실패 — 인증키의 서버 격리 강제.
 import { DEFAULT_REGION, getBaselineDummy, getVegetable } from "./vegetables";
