@@ -2,7 +2,7 @@
 // 프레임 = iPhone 12 Pro 논리 해상도 390×844pt (UT 기준 기기).
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import IconChevronLeftLine from "@karrotmarket/react-monochrome-icon/IconChevronLeftLine";
 
 export function PhoneFrame({ children }: { children: ReactNode }) {
@@ -54,15 +54,44 @@ export function AppBar({ title, backHref, onBack, right }: AppBarProps) {
   );
 }
 
-/** 스크롤 본문 영역. */
-export function Scroll({ children, className }: { children: ReactNode; className?: string }) {
-  return <main className={`min-h-0 flex-1 overflow-y-auto ${className ?? ""}`}>{children}</main>;
+/**
+ * 스크롤 본문 영역.
+ *
+ * overscroll-contain — 본문 끝에서 계속 당겼을 때 스크롤이 바깥(브라우저 문서)으로 번져
+ * 당겨서 새로고침이 걸리거나 데스크탑에서 페이지 전체가 튀는 걸 막는다. 폰 프레임 안에서
+ * 스크롤은 이 영역 하나만 담당한다.
+ *
+ * ref — 단계형 화면(매장 모드·온보딩)이 다음 단계로 넘어갈 때 스크롤을 맨 위로 되돌리는 데 쓴다.
+ * 안 되돌리면 아래쪽을 보던 상태에서 새 단계가 중간부터 보인다.
+ */
+export function Scroll({
+  children,
+  className,
+  ref,
+}: {
+  children: ReactNode;
+  className?: string;
+  ref?: Ref<HTMLElement>;
+}) {
+  return (
+    <main ref={ref} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${className ?? ""}`}>
+      {children}
+    </main>
+  );
 }
 
-/** 하단 고정 CTA 영역. */
+/**
+ * 하단 고정 CTA 영역.
+ *
+ * 아래 여백은 iOS 홈 인디케이터를 피한다 — 고정 pb-6(24px)이면 기기에 따라 CTA가
+ * 인디케이터에 물린다. SEED가 깔아주는 --seed-safe-area-bottom과 24px 중 큰 값을 쓴다.
+ */
 export function BottomBar({ children }: { children: ReactNode }) {
   return (
-    <div className="shrink-0 border-t border-bg-neutral-weak bg-bg-layer-default px-4 pt-3 pb-6">
+    <div
+      className="shrink-0 border-t border-bg-neutral-weak bg-bg-layer-default px-4 pt-3"
+      style={{ paddingBottom: "max(1.5rem, var(--seed-safe-area-bottom, 0px))" }}
+    >
       {children}
     </div>
   );

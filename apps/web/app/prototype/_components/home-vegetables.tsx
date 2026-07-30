@@ -31,18 +31,21 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* label prop을 쓰면 시각 라벨이 함께 생긴다 — aria-label만 두면 placeholder가 사라진 뒤
+          이 칸이 무엇을 받는 칸인지 화면에 남지 않는다(타깃 연령대에서 특히 불리하다) */}
       <TextField
+        label="야채 검색"
         value={query}
         onValueChange={(v) => setQuery(v.value)}
         prefixIcon={<IconMagnifyingglassLine />}
       >
-        <TextFieldInput placeholder="야채 이름 또는 초성으로 검색 (예: ㄱㅈ)" aria-label="야채 검색" />
+        <TextFieldInput placeholder="야채 이름 또는 초성으로 검색 (예: ㄱㅈ)" />
       </TextField>
 
       <div className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
           <h2 className="text-head2-16 text-fg-neutral">{keyword ? "검색 결과" : "야채 시세"}</h2>
-          <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+          <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
             {list.length}종 · 어제 대비
           </span>
         </div>
@@ -53,10 +56,10 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
             value={group}
             onValueChange={(v) => setGroup(v)}
             aria-label="야채 종류 필터"
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
+            className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1"
           >
             {[ALL, ...VEGETABLE_GROUPS].map((g) => (
-              <RadioChipItem key={g} value={g} className="shrink-0">
+              <RadioChipItem key={g} value={g} className="snap-start shrink-0">
                 <ChipLabel>{g}</ChipLabel>
               </RadioChipItem>
             ))}
@@ -64,7 +67,7 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
         )}
 
         {list.length === 0 ? (
-          <p className="py-12 text-center text-body-14-regular text-fg-neutral-subtle">
+          <p className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
             {keyword ? `‘${keyword}’ 검색 결과가 없어요` : "이 종류에 표시할 야채가 없어요"}
           </p>
         ) : (
@@ -80,7 +83,7 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
                     {v.name}
                   </span>
                   {v.price === null ? (
-                    <span className="text-caption-12-regular text-fg-neutral-subtle">
+                    <span className="text-caption-12-regular text-fg-neutral-muted">
                       {v.seasonLabel ?? "지금은 비수기"}
                     </span>
                   ) : (

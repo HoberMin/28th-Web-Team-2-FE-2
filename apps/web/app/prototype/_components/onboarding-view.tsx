@@ -4,7 +4,7 @@
 // 입력을 모두 마친 뒤 홈(목록)으로 넘어가기 직전에 환영 화면을 둔다(사용자 요청).
 // 완료 전엔 홈(F01)이 이리로 리다이렉트한다(onboarding-gate.tsx).
 
-import { type PointerEvent, type SVGProps, useState } from "react";
+import { type PointerEvent, type SVGProps, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
@@ -26,7 +26,7 @@ function SearchIcon(props: SVGProps<SVGSVGElement>) {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
       <path
         d="M21 21L16.657 16.657M16.657 16.657C17.3998 15.9141 17.9891 15.0322 18.3912 14.0615C18.7932 13.0909 19.0002 12.0506 19.0002 11C19.0002 9.9494 18.7932 8.90908 18.3912 7.93845C17.9891 6.96782 17.3998 6.08589 16.657 5.343C15.9141 4.60011 15.0321 4.01082 14.0615 3.60877C13.0909 3.20673 12.0506 2.99979 11 2.99979C9.94936 2.99979 8.90905 3.20673 7.93842 3.60877C6.96779 4.01082 6.08585 4.60011 5.34296 5.343C3.84263 6.84333 2.99976 8.87821 2.99976 11C2.99976 13.1218 3.84263 15.1567 5.34296 16.657C6.84329 18.1573 8.87818 19.0002 11 19.0002C13.1217 19.0002 15.1566 18.1573 16.657 16.657Z"
-        stroke="#747B8F"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -71,6 +71,12 @@ export function OnboardingView() {
   const [nickname, setNickname] = useState("");
   const [regionQuery, setRegionQuery] = useState("");
   const [district, setPickedDistrict] = useState("");
+  const regionScrollRef = useRef<HTMLElement>(null);
+
+  // 검색어를 바꾸면 목록 스크롤을 맨 위로 — 안 되돌리면 새 결과가 중간부터 보인다.
+  useEffect(() => {
+    regionScrollRef.current?.scrollTo({ top: 0 });
+  }, [regionQuery]);
 
   // 검색어가 있으면 부분일치 필터, 없으면 "지금 있는 동네"(현재 위치 기준 거리순).
   // UT는 기준 지역이 삼성동으로 고정이라 GPS 대신 DEFAULT_DISTRICT를 앵커로 쓴다(로딩 깜빡임 방지).
@@ -129,7 +135,7 @@ export function OnboardingView() {
               <IconChevronLeftLine />
             </button>
           </header>
-          <Scroll className="px-4 pt-2">
+          <Scroll ref={regionScrollRef} className="px-4 pt-2">
             <h1 className="text-head1-24 text-fg-neutral">평소 어디에서 야채를 구매하나요?</h1>
             <div className="mt-8">
               <TextField
@@ -142,12 +148,12 @@ export function OnboardingView() {
             </div>
 
             {!searching && (
-              <p className="mt-6 text-body-14-regular text-fg-neutral-subtle">지금 있는 동네</p>
+              <p className="mt-6 text-body-14-regular text-fg-neutral-muted">지금 있는 동네</p>
             )}
 
             <ul className="mt-2 flex flex-col">
               {regions.length === 0 ? (
-                <li className="py-12 text-center text-body-14-regular text-fg-neutral-subtle">
+                <li className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
                   검색 결과가 없어요
                 </li>
               ) : (
@@ -247,7 +253,7 @@ export function OnboardingView() {
             <br />
             야채 시세를 확인해 보세요!
           </h1>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             {district}의 오늘 시세와 이웃 제보가를 모았어요
           </p>
         </div>

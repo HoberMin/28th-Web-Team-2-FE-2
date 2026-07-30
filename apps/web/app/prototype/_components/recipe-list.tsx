@@ -7,14 +7,14 @@ export function RecipeList({ vegetableId }: { vegetableId: string }) {
   if (recipes.length === 0) return null;
 
   return (
-    <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1">
         {recipes.map((r) => (
           <li
             key={r.id}
-            className="flex shrink-0 flex-col gap-1 rounded-2xl bg-bg-neutral-weak px-4 py-3"
+            className="flex snap-start shrink-0 flex-col gap-1 rounded-2xl bg-bg-neutral-weak px-4 py-3"
           >
             <span className="text-body-14-medium text-fg-neutral">{r.title}</span>
-            <span className="text-caption-12-regular text-fg-neutral-subtle">{r.minutes}분</span>
+            <span className="text-caption-12-regular text-fg-neutral-muted">{r.minutes}분</span>
           </li>
         ))}
     </ul>

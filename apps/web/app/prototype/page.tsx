@@ -33,9 +33,11 @@ export default async function HomePage() {
           <FirstReportCard />
           <RepurchaseCard todayIso={todayIso} />
           <FavoriteStoresCard priceMap={priceMap} todayIso={todayIso} />
-          <CardNewsTeaser />
           <SeasonalPicks picks={seasonalPicks} month={month} />
           <HomeVegetables items={items} />
+          {/* 카드뉴스는 "지금 뭘 해야 하나"가 아니라 둘러보기다 → 이 화면의 원칙대로 아래로 내린다.
+              위에 있으면 개인화 카드가 다 뜬 사용자에게 주 콘텐츠(야채 46종)가 첫 화면 밖으로 밀린다. */}
+          <CardNewsTeaser />
         </div>
       </Scroll>
       <GNB />
