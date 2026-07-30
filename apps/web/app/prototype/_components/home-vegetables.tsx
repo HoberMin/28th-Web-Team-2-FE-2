@@ -8,6 +8,7 @@ import { ChipLabel, RadioChipItem, RadioChipRoot } from "seed-design/ui/chip";
 import type { HomeVegetableItem } from "../_lib/home-data";
 import { VEGETABLE_GROUPS } from "../_lib/vegetables";
 import { formatNumber } from "../_lib/format";
+import { matchesVegetableName } from "../_lib/search";
 import { TrendLabel } from "./trend-label";
 import { VegetableThumb } from "./vegetable-thumb";
 
@@ -23,7 +24,7 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
 
   // 검색어가 있으면 그룹 필터를 무시한다 — 이름을 아는 사람은 이미 목적지가 있다.
   const list = keyword
-    ? items.filter((v) => v.name.includes(keyword))
+    ? items.filter((v) => matchesVegetableName(v.name, keyword))
     : group === ALL
       ? items
       : items.filter((v) => v.group === group);
@@ -35,7 +36,7 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
         onValueChange={(v) => setQuery(v.value)}
         prefixIcon={<IconMagnifyingglassLine />}
       >
-        <TextFieldInput placeholder="시세가 궁금한 야채를 검색해 보세요" aria-label="야채 검색" />
+        <TextFieldInput placeholder="야채 이름 또는 초성으로 검색 (예: ㄱㅈ)" aria-label="야채 검색" />
       </TextField>
 
       <div className="flex flex-col gap-3">

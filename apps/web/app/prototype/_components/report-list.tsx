@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import IconLocationpinFill from "@karrotmarket/react-monochrome-icon/IconLocationpinFill";
-import { useReports } from "../_lib/reports-store";
+import { useNearbyDistrictReports, useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { formatDateDot, formatNumber } from "../_lib/format";
 import { countCrossChecks, getFreshness, isOutlier } from "../_lib/stores";
@@ -66,15 +66,64 @@ export function ReportsList({
   const { district } = useCurrentDistrict();
   const all = useReports({ vegetableId, district });
   const districtReports = useReports({ district });
+  // 훅은 early return 앞에 전부 호출한다(conventions #8) — 우리 동네가 비었을 때만 쓰이는 값이지만
+  // 조건부로 호출할 수 없다.
+  const nearbyGroups = useNearbyDistrictReports(vegetableId, district);
   const [expanded, setExpanded] = useState(false);
 
+  // 우리 동네 제보가 0건이면 **근처 동네**를 보여준다(콜드스타트).
+  // 빈 화면만 보여주면 "쓸 데이터가 없는 앱"으로 판단하고 떠난다. 정확도는 낮지만 어느 동네
+  // 값인지 밝히면 오해가 없고, 아무것도 없는 것보다 낫다.
   if (all.length === 0) {
     return (
-      <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-subtle">
-        아직 우리 동네 제보가 없어요.
-        <br />
-        첫 실제가를 제보해 보세요.
-      </p>
+      <div className="flex flex-col gap-3">
+        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-subtle">
+          아직 {district} 제보가 없어요.
+          <br />
+          첫 실제가를 제보해 주시면 이웃이 헛걸음하지 않아요.
+        </p>
+
+        {nearbyGroups.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-caption-12-regular text-fg-neutral-subtle">
+              대신 근처 동네 가격을 참고하세요
+            </p>
+            <ul className="flex flex-col gap-2">
+              {nearbyGroups.map((group) => {
+                const latest = group.reports[0];
+                const diff = basePrice - latest.pricePerKg;
+                return (
+                  <li
+                    key={group.district}
+                    className="flex items-center justify-between gap-2 rounded-xl bg-bg-neutral-weak px-4 py-3"
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-body-14-medium text-fg-neutral">{group.district}</span>
+                      <span className="text-caption-12-regular text-fg-neutral-subtle">
+                        {getFreshness(latest.createdAt, todayIso).label} · 제보 {group.reports.length}건
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end">
+                      <span className="text-body-14-medium tabular-nums text-fg-neutral">
+                        {formatNumber(latest.pricePerKg)}원
+                        <span className="text-fg-neutral-subtle"> /{unit}</span>
+                      </span>
+                      <span
+                        className={`text-caption-12-regular tabular-nums ${
+                          diff > 0 ? "text-fg-positive" : "text-fg-neutral-subtle"
+                        }`}
+                      >
+                        시세 {diff > 0 ? "−" : "+"}
+                        {formatNumber(Math.abs(diff))}원
+                      </span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
     );
   }
 

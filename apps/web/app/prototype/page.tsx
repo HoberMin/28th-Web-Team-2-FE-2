@@ -8,6 +8,7 @@ import { SeasonalPicks } from "./_components/seasonal-picks";
 import { QuickJudgeEntry } from "./_components/quick-judge-entry";
 import { FavoriteStoresCard } from "./_components/favorite-stores-card";
 import { RepurchaseCard } from "./_components/repurchase-card";
+import { FirstReportCard } from "./_components/first-report-card";
 import { getHomeData, getPriceMap, getTodayIso } from "./_lib/home-data";
 
 // 시세는 하루 1회 갱신 → 홈도 1시간 단위 재검증(46종 기준선을 서버에서 한 번에 조립).
@@ -29,6 +30,7 @@ export default async function HomePage() {
         <div className="flex flex-col gap-6 px-4 pt-1">
           <LocationLabel />
           <QuickJudgeEntry />
+          <FirstReportCard />
           <RepurchaseCard todayIso={todayIso} />
           <FavoriteStoresCard priceMap={priceMap} todayIso={todayIso} />
           <CardNewsTeaser />

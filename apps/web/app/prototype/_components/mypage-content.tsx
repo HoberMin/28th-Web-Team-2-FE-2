@@ -16,6 +16,7 @@ import type { Report } from "../_lib/types";
 import { FavoriteButton } from "./favorite-button";
 import { BadgeList } from "./badge-list";
 import { PriceAlertSettings } from "./price-alert-settings";
+import { WeeklyReport } from "./weekly-report";
 
 type Tab = "favorites" | "reports" | "purchases";
 const TABS: { key: Tab; label: string }[] = [
@@ -25,7 +26,7 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 // 마이페이지 본문 — 프로필·소비 요약·탭(찜/제보/구매). 데이터가 모두 localStorage라 클라 leaf.
-export function MyPageContent() {
+export function MyPageContent({ todayIso }: { todayIso: string }) {
   const [tab, setTab] = useState<Tab>("favorites");
   const { district, loading } = useCurrentDistrict();
   const { nickname } = useOnboarding();
@@ -55,6 +56,9 @@ export function MyPageContent() {
 
       {/* 소비 요약 — 시세 대비 절약(핵심 가치: 눈으로 보는 변화). 탭과 무관하게 상단 고정 */}
       <SpendingSummaryCard count={summary.count} spent={summary.spent} saved={summary.saved} />
+
+      {/* 주간 리포트 — 누적 요약(위)은 규모를, 주간(여기)은 변화를 보여준다 */}
+      <WeeklyReport todayIso={todayIso} />
 
       {/* 뱃지 — 구매인증(제보) 원동력 */}
       <BadgeList reportCount={myReports.length} purchaseCount={purchases.length} />

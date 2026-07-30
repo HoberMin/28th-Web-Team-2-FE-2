@@ -14,6 +14,7 @@ import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { judgePrice } from "../_lib/judgement";
 import { formatNumber } from "../_lib/format";
+import { matchesVegetableName } from "../_lib/search";
 import { VerdictCard } from "./verdict-card";
 import { VegetableThumb } from "./vegetable-thumb";
 
@@ -45,7 +46,7 @@ export function QuickJudge({
   // 자주 쓰는 품목을 앞에 — 찜한 야채 → 인기 8종 순. 검색어가 있으면 전체에서 찾는다.
   const candidates = useMemo(() => {
     const keyword = query.trim();
-    if (keyword) return items.filter((i) => i.name.includes(keyword)).slice(0, 12);
+    if (keyword) return items.filter((i) => matchesVegetableName(i.name, keyword)).slice(0, 12);
     const ordered = [...favorites, ...POPULAR_IDS];
     const seen = new Set<string>();
     const picked: HomeVegetableItem[] = [];
@@ -87,7 +88,7 @@ export function QuickJudge({
           <section aria-label="야채 고르기" className="flex flex-col gap-3">
             <h2 className="text-body-16-semibold text-fg-neutral">어떤 야채예요?</h2>
             <TextField label="야채 검색" value={query} onValueChange={(v) => setQuery(v.value)}>
-              <TextFieldInput placeholder="야채 이름으로 찾기" />
+              <TextFieldInput placeholder="이름 또는 초성 (예: ㄱㅈ)" />
             </TextField>
             <RadioChipRoot
               value={itemId}

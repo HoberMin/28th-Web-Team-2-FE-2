@@ -79,6 +79,11 @@ export function removeFromBasket(vegetableId: string): void {
   persist(getSnapshot().filter((i) => i.vegetableId !== vegetableId));
 }
 
+/** 장보기 완료 — 담은 목록을 비운다(매장 모드에서 제보까지 끝낸 뒤 호출). */
+export function clearBasket(): void {
+  persist([]);
+}
+
 export function useBasket(): BasketItem[] {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ActionButton } from "seed-design/ui/action-button";
 import { VegetableThumb } from "./vegetable-thumb";
 import { getVegetable } from "../_lib/vegetables";
 import { useBasket, removeFromBasket, setBasketWeight, addToBasket } from "../_lib/basket-store";
@@ -11,6 +12,7 @@ import { formatNumber, formatQuantity, formatWon } from "../_lib/format";
 import { AddVegetableSheet } from "./add-vegetable-sheet";
 import { CourseCard } from "./course-card";
 import { RepeatShopping } from "./repeat-shopping";
+import { ShareErrandButton } from "./share-errand-button";
 import { QuantityStepper } from "./quantity-stepper";
 import { planCourse } from "../_lib/course";
 import type { PriceMap } from "../_lib/stores";
@@ -117,6 +119,14 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
 
       {/* 장보기 코스 — 한 곳에서 다 사기 vs 두 곳 돌기 */}
       <CourseCard plan={planCourse(items, districtReports, priceMap)} district={district} />
+
+      {/* 계획(장바구니) → 실행. 내가 갈지, 가족에게 부탁할지 두 갈래를 나란히 둔다 */}
+      <div className="flex flex-col gap-2">
+        <ActionButton asChild variant="brandSolid" size="large" className="w-full">
+          <Link href="/prototype/shopping">장보기 시작하기</Link>
+        </ActionButton>
+        <ShareErrandButton items={items} />
+      </div>
 
       <ul className="flex flex-col gap-2">
         {rows.map((row) => {

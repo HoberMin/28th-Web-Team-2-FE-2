@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppBar, BottomBar, PhoneFrame, Scroll } from "../../_lib/shell";
 import { getOnlinePrices, getVegetable } from "../../_lib/vegetables";
@@ -18,6 +17,7 @@ import { VegetableThumb } from "../../_components/vegetable-thumb";
 import { OnlinePrices } from "../../_components/online-prices";
 import { TrendLabel } from "../../_components/trend-label";
 import { CollapsibleSection } from "../../_components/collapsible-section";
+import { CalloutLink } from "../../_components/callout-link";
 import { getRecipesFor } from "../../_lib/recipes";
 
 // F03 야채 시세 — 데이터 fetch는 서버(RSC). 그래프·제보·댓글만 클라 leaf.
@@ -77,12 +77,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
               unitType={veg.unitType}
             />
             {/* 매장에서 바로 판단하고 싶을 때 — 가격만 넣으면 되는 최단 경로로 보낸다 */}
-            <Link
-              href={`/prototype/judge?item=${veg.id}`}
-              className="flex min-h-11 items-center justify-center rounded-xl bg-bg-brand-weak px-4 py-3 text-body-14-medium text-fg-brand active:bg-bg-brand-weak-pressed"
-            >
+            <CalloutLink href={`/prototype/judge?item=${veg.id}`}>
               지금 본 가격이 괜찮은지 확인하기
-            </Link>
+            </CalloutLink>
           </div>
 
           {/* 섹션 구분 band */}

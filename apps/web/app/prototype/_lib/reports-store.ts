@@ -5,6 +5,7 @@
 
 import { useSyncExternalStore } from "react";
 import { getNeighborhoodSeedReports, MY_SEED_REPORTS } from "./vegetables";
+import { regionsByProximity } from "./regions";
 import type { Report } from "./types";
 
 const STORAGE_KEY = "veg-reports-v1";
@@ -88,6 +89,36 @@ export function useReports(filter?: { vegetableId?: string; district?: string })
       (!filter?.district || r.district === filter.district),
   );
   return filtered.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+}
+
+/**
+ * 근처 동네 제보 — 우리 동네에 제보가 0건일 때의 폴백(콜드스타트 대응).
+ *
+ * 왜 필요한가: 제보가 없는 동네는 화면 대부분이 빈 상태가 된다. 크라우드소싱 서비스의
+ * 첫 사용자는 항상 이 상태를 만나고, 빈 화면만 보면 "쓸 데이터가 없는 앱"으로 판단하고 떠난다.
+ * 가까운 동네 가격은 우리 동네만큼 정확하진 않지만 **아무것도 없는 것보다 낫고**,
+ * 어느 동네 값인지 밝히면 오해도 없다.
+ */
+export function useNearbyDistrictReports(
+  vegetableId: string,
+  district: string,
+  limit = 3,
+): Array<{ district: string; reports: Report[] }> {
+  const nearby = regionsByProximity(district)
+    // 첫 항목은 자기 자신 → 제외
+    .filter((r) => r.label !== district)
+    .slice(0, 6);
+
+  const groups: Array<{ district: string; reports: Report[] }> = [];
+  for (const region of nearby) {
+    const reports = getNeighborhoodSeedReports(region.label)
+      .filter((r) => r.vegetableId === vegetableId)
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    if (reports.length === 0) continue;
+    groups.push({ district: region.label, reports });
+    if (groups.length >= limit) break;
+  }
+  return groups;
 }
 
 /**
