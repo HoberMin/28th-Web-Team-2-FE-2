@@ -66,7 +66,9 @@ export function ReportForm({
       method,
       purchased,
     });
-    router.push(`/prototype/report/success?item=${veg.id}`);
+    // 가게명을 완료 화면까지 들고 간다 — 같은 가게의 다음 품목을 이어서 입력할 수 있게 한다.
+    const placeParam = placeValue.trim() ? `&place=${encodeURIComponent(placeValue.trim())}` : "";
+    router.push(`/prototype/report/success?item=${veg.id}${placeParam}`);
   }
 
   return (

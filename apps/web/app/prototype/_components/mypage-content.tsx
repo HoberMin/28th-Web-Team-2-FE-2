@@ -15,7 +15,7 @@ import { formatDateDot, formatNumber, formatWon } from "../_lib/format";
 import type { Report } from "../_lib/types";
 import { FavoriteButton } from "./favorite-button";
 import { BadgeList } from "./badge-list";
-import { PriceAlertSettings } from "./price-alert-settings";
+import { StoreAlertSettings } from "./store-alert-settings";
 import { WeeklyReport } from "./weekly-report";
 
 type Tab = "favorites" | "reports" | "purchases";
@@ -63,8 +63,8 @@ export function MyPageContent({ todayIso }: { todayIso: string }) {
       {/* 뱃지 — 구매인증(제보) 원동력 */}
       <BadgeList reportCount={myReports.length} purchaseCount={purchases.length} />
 
-      {/* 가격 알림 설정 */}
-      <PriceAlertSettings favorites={favorites} />
+      {/* 매장 알림 설정 — 단골 가게 기준(품목별 알림에서 통합) */}
+      <StoreAlertSettings />
 
       {/* 탭 */}
       {/* 세그먼트 컨트롤 — 랭킹 화면과 같은 seed 컴포넌트를 쓴다(이전엔 두 화면에 같은 마크업이 복붙돼 있었다) */}

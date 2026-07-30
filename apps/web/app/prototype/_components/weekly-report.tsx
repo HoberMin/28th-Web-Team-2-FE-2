@@ -37,7 +37,7 @@ export function WeeklyReport({ todayIso }: { todayIso: string }) {
       className="flex flex-col gap-2 rounded-2xl bg-bg-neutral-weak px-5 py-4"
     >
       <div className="flex items-baseline justify-between">
-        <h2 className="text-body-16-semibold text-fg-neutral">이번 주 장보기</h2>
+        <h2 className="text-body-16-semibold text-fg-neutral">이번 주 절약</h2>
         <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
           최근 7일 · {summary.count}건
         </span>
