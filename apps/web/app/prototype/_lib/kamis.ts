@@ -150,6 +150,7 @@ function normalizeKamis(json: unknown, veg: Vegetable, region: string): Baseline
     series: { week, month, year },
     source: "kamis",
     asOf: latest.date,
+    isFallback: false,
   };
 }
 
@@ -229,8 +230,10 @@ function averageBaselines(list: BaselinePrice[]): BaselinePrice {
   const average = Math.round(list.reduce((s, b) => s + b.average, 0) / list.length);
   // 여러 시즌 중 가장 최근 조사일을 대표 기준일로 삼는다.
   const asOf = list.reduce((latest, b) => (b.asOf > latest ? b.asOf : latest), head.asOf);
+  // 하나라도 더미로 폴백된 시즌이 섞였으면 전체를 폴백으로 표시(보수적).
+  const isFallback = list.some((b) => b.isFallback);
 
-  return { ...head, current, average, series, asOf };
+  return { ...head, current, average, series, asOf, isFallback };
 }
 
 /**

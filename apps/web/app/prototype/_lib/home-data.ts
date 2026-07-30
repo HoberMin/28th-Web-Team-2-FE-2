@@ -28,6 +28,10 @@ export interface HomeVegetableItem {
   seasonLabel?: string;
   /** 홈 필터 칩용 그룹 */
   group: VegetableGroup;
+  /** 이 품목 기준선의 조사 기준일 "YYYY-MM-DD" */
+  asOf: string;
+  /** 이 품목 기준선이 KAMIS 더미로 폴백됐는지 */
+  isFallback: boolean;
 }
 
 export interface HomeData {
@@ -62,6 +66,8 @@ export async function getHomeData(): Promise<HomeData> {
       inSeason,
       seasonLabel: veg.season?.label,
       group: getVegetableGroup(veg.id),
+      asOf: baseline.asOf,
+      isFallback: baseline.isFallback,
     };
   });
 
@@ -93,4 +99,22 @@ export async function getPriceMap(): Promise<Record<string, number | null>> {
 /** 화면들이 같은 "오늘"을 쓰도록 서버 기준일을 내려준다(신선도 계산이 기기 시계에 흔들리지 않게). */
 export function getTodayIso(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * 홈 전체의 시세 기준일 + 더미 폴백 여부 요약.
+ * - `isFallback`: 46종 중 **하나라도** 더미로 폴백됐으면 true(다수결 아님 — 화면이 "일부라도 예시가
+ *   섞였을 수 있다"를 보수적으로 알리기 위함).
+ * - `asOf`: 실데이터(KAMIS) 중 가장 최신 기준일. 실데이터가 하나도 없으면(전부 폴백) 첫 품목의
+ *   기준일(=오늘, `getBaselineDummy` 규칙)을 쓴다.
+ */
+export async function getPriceMeta(): Promise<{ asOf: string; isFallback: boolean }> {
+  const { items } = await getHomeData();
+  const isFallback = items.some((item) => item.isFallback);
+  const realDates = items.filter((item) => !item.isFallback).map((item) => item.asOf);
+  const asOf =
+    realDates.length > 0
+      ? realDates.reduce((latest, date) => (date > latest ? date : latest))
+      : (items[0]?.asOf ?? getTodayIso());
+  return { asOf, isFallback };
 }

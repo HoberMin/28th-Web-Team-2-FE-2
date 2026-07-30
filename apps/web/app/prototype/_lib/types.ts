@@ -102,8 +102,10 @@ export interface BaselinePrice {
   average: number;
   series: Record<PricePeriod, PricePoint[]>;
   source: "kamis" | "dummy";
-  /** 조사 기준일 "YYYY-MM-DD" */
+  /** 조사 기준일 "YYYY-MM-DD" — 실데이터는 `series.week` 마지막 포인트 날짜, 더미는 오늘 */
   asOf: string;
+  /** 더미로 폴백됐는지 — true면 화면에 "예시 데이터" 등 구분 표시 근거로 쓴다 */
+  isFallback: boolean;
 }
 
 /** 비교에 쓰는 온라인 판매 채널. */

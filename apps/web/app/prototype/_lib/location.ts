@@ -103,6 +103,53 @@ function ensureLocated() {
   );
 }
 
+/**
+ * 「현재 위치로 찾기」 버튼 전용 측위 — `ensureLocated()`와 달리 "온보딩 값 우선" 분기를 타지
+ * 않는다(온보딩 화면 자체에서도 이 버튼을 눌러야 하므로, 온보딩 완료 여부와 무관하게 항상 GPS를
+ * 시도해야 한다). 공유 스토어(district/coords)는 건드리지 않고 결과만 반환 — 실제 선택 반영은
+ * 호출부가 `onSelect`/`setActiveDistrict` 등으로 명시적으로 한다.
+ *
+ * 권한 거부·타임아웃·미지원·역지오코딩 실패는 전부 null — 호출부가 에러 화면을 띄우지 않고
+ * "조용히 검색 목록으로 남는" 데 쓴다.
+ */
+export function locateCurrentDistrict(): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    let settled = false;
+    const settle = (value: string | null) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    // 권한 프롬프트가 방치되면 geolocation 자체 timeout이 안 걸리는 브라우저가 있어 별도 안전판.
+    const timer = setTimeout(() => settle(null), 8000);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        clearTimeout(timer);
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`/api/geocode?lat=${latitude}&lng=${longitude}`);
+          const data = (await res.json()) as { district?: string };
+          settle(data.district ? toKnownDistrict(data.district) : null);
+        } catch {
+          settle(null);
+        }
+      },
+      () => {
+        clearTimeout(timer);
+        settle(null);
+      },
+      { timeout: 8000, maximumAge: 300000 },
+    );
+  });
+}
+
 export function useCurrentDistrict(): { district: string; loading: boolean } {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   useEffect(() => {
