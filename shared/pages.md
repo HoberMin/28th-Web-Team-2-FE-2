@@ -4,7 +4,7 @@
 
 2026-07-30 기능 다이어팅 — 장보기 실행 계열(F07 장바구니·F11 매장 모드·F12 심부름 목록)을 배제하고
 GNB 3번째 자리를 **F07 매장**으로 교체했다. 배경은 detail-features.md 상단 참조.
-화면별 기능 정의는 → `detail-features.md`
+화면별 기능 정의는 → `detail-features.md` / 46종 데이터 규격은 → `kamis-vegetable-data-spec.md`
 
 | 번호 | 화면 | 비고 |
 |---|---|---|
