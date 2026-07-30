@@ -33,11 +33,13 @@ body {
   font-family: var(--font-body);
 }
 
-/* 커스텀 인터랙션 요소(링크·카드·details 등)의 포커스 링을 SEED 토큰으로 통일 —
+/* 커스텀 인터랙션 요소(버튼·링크·카드·details 등)의 포커스 링을 SEED 토큰으로 통일 —
    기본값이면 브라우저 UA 아웃라인(검정)이 떠서 SEED 컴포넌트와 어긋난다.
+   `button`이 빠져 있으면 손으로 만든 버튼(수량 스테퍼·접기·찜 등)이 UA 기본에 의존하는데,
+   Safari는 button에 아웃라인을 그리지 않아 키보드 포커스가 아예 사라진다(WCAG 2.4.7).
    base 레이어 + :where(0 specificity)라 SEED 컴포넌트 자체 포커스 규칙은 그대로 이긴다. */
 @layer base {
-  :where(a, summary, [role="button"], [tabindex]):focus-visible {
+  :where(button, a, summary, [role="button"], [tabindex]):focus-visible {
     outline: var(--seed-dimension-x0_5, 2px) solid
       var(--seed-color-stroke-focus-ring, #1e82eb);
     outline-offset: 2px;

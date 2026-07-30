@@ -9,19 +9,19 @@ export function BadgeList({ reportCount, purchaseCount }: { reportCount: number;
     <section aria-label="뱃지" className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-body-16-semibold text-fg-neutral">뱃지</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">{earnedCount}/{badges.length}</span>
+        <span className="text-caption-12-regular text-fg-neutral-muted">{earnedCount}/{badges.length}</span>
       </div>
-      <ul className="flex gap-2 overflow-x-auto">
+      <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1">
         {badges.map((b) => (
           <li
             key={b.id}
-            className={`flex shrink-0 flex-col items-center gap-1 rounded-2xl px-4 py-3 text-center ${
+            className={`flex snap-start shrink-0 flex-col items-center gap-1 rounded-2xl px-4 py-3 text-center ${
               b.earned ? "bg-bg-brand-weak" : "bg-bg-neutral-weak opacity-50"
             }`}
           >
             <span
               className={`flex size-10 items-center justify-center rounded-full text-body-16-semibold ${
-                b.earned ? "bg-bg-brand text-fg-neutral-inverted" : "bg-bg-neutral-weak-pressed text-fg-neutral-subtle"
+                b.earned ? "bg-bg-brand-solid text-palette-static-white" : "bg-bg-neutral-weak-pressed text-fg-neutral-muted"
               }`}
               aria-hidden="true"
             >

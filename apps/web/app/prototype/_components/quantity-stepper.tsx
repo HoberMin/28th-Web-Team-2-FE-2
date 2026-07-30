@@ -32,7 +32,7 @@ export function QuantityStepper({
         aria-label={`${prefix}수량 줄이기`}
         disabled={quantity <= min}
         onClick={() => onChange(Math.max(min, quantity - step))}
-        className="flex size-11 items-center justify-center text-body-16-semibold text-fg-neutral-subtle disabled:text-fg-disabled"
+        className="flex size-11 items-center justify-center text-body-16-semibold text-fg-neutral-muted disabled:text-fg-neutral-subtle"
       >
         −
       </button>
@@ -46,7 +46,7 @@ export function QuantityStepper({
         type="button"
         aria-label={`${prefix}수량 늘리기`}
         onClick={() => onChange(quantity + step)}
-        className="flex size-11 items-center justify-center text-body-16-semibold text-fg-neutral-subtle"
+        className="flex size-11 items-center justify-center text-body-16-semibold text-fg-neutral-muted"
       >
         +
       </button>
