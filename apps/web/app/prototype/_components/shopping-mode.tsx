@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import IconCheckmarkLine from "@karrotmarket/react-monochrome-icon/IconCheckmarkLine";
 import { ActionButton } from "seed-design/ui/action-button";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { AppBar, BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
@@ -37,6 +38,7 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
   const [results, setResults] = useState<Record<string, ItemResult>>({});
   const [place, setPlace] = useState("");
   const [done, setDone] = useState(false);
+  const scrollRef = useRef<HTMLElement>(null);
 
   const current = items[index];
   const veg = current ? getVegetable(current.vegetableId) : undefined;
@@ -46,6 +48,12 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
   // 입력은 "담은 수량 전체 가격" → 단가로 환산해 시세와 비교한다.
   const pricePerUnit = current && current.weightKg > 0 ? Math.round(priceNum / current.weightKg) : priceNum;
   const baselinePrice = current ? (priceMap[current.vegetableId] ?? null) : null;
+
+  // 다음 품목으로 넘어가면 스크롤을 맨 위로 — 안 되돌리면 판정 카드를 보던 위치에서
+  // 새 품목이 중간부터 보인다(매장에서 "어디부터 읽어야 하나"가 된다).
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [index]);
 
   const neighborReports = useMemo(
     () => districtReports.filter((r) => r.vegetableId === current?.vegetableId),
@@ -93,7 +101,7 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
         <AppBar title="장보는 중" onBack={() => router.back()} />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
           <p className="text-body-16-semibold text-fg-neutral">담은 야채가 없어요</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             장바구니에 살 야채를 먼저 담으면, 매장에서 하나씩 확인하며 담을 수 있어요.
           </p>
           <ActionButton asChild variant="neutralSolid" size="medium">
@@ -121,7 +129,7 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
             <p className="text-head2-20 text-fg-neutral">
               {bought.length}개 담고 {formatWon(spent)} 썼어요
             </p>
-            <p className="text-body-14-regular text-fg-neutral-subtle">
+            <p className="text-body-14-regular text-fg-neutral-muted">
               입력한 가격은 이웃 제보로 등록했어요. {district} 이웃이 헛걸음하지 않게 도왔어요.
             </p>
           </div>
@@ -165,19 +173,19 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
         </p>
       </div>
 
-      <Scroll className="px-4 pb-6">
+      <Scroll ref={scrollRef} className="px-4 pb-6">
         {current && veg && (
           <div className="flex flex-col gap-5 pt-2">
             <div className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-4">
               <VegetableThumb image={veg.image} emoji={veg.emoji} size="lg" />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-head2-18 text-fg-neutral">{veg.name}</span>
-                <span className="text-body-14-regular text-fg-neutral-subtle">
+                <span className="text-body-14-regular text-fg-neutral-muted">
                   {formatQuantity(current.weightKg, veg.unitType)} 담을 예정
                 </span>
               </span>
               {baselinePrice != null && (
-                <span className="shrink-0 text-right text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                <span className="shrink-0 text-right text-caption-12-regular tabular-nums text-fg-neutral-muted">
                   오늘 시세
                   <br />
                   {formatNumber(baselinePrice)}원/{veg.unit}
@@ -210,30 +218,44 @@ export function ShoppingMode({ priceMap }: { priceMap: PriceMap }) {
             )}
 
             {baselinePrice == null && (
-              <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-subtle">
+              <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-muted">
                 {veg.name}은 지금 시세 데이터가 없어 판정은 못 하지만, 가격을 남기면 이웃에게 도움이 돼요.
               </p>
             )}
 
-            {/* 샀는지 여부 — 판정을 보고 결정한다. 안 샀어도 목격가는 제보에 기여한다 */}
+            {/* 샀는지 여부 — 판정을 보고 결정한다. 안 샀어도 목격가는 제보에 기여한다.
+                선택 상태를 variant(색)만으로 표현하면 스크린리더·색약 사용자에게 전달되지 않는다
+                (WCAG 1.4.1·4.1.2) → aria-pressed + 선택된 쪽에 체크 아이콘을 함께 준다. */}
             {priceNum > 0 && (
-              <div className="flex gap-2">
+              <div role="group" aria-label="구매 여부" className="flex gap-2">
                 <ActionButton
                   type="button"
+                  aria-pressed={result?.bought === true}
                   variant={result?.bought === true ? "brandSolid" : "neutralWeak"}
                   size="large"
                   className="flex-1"
                   onClick={() => update({ bought: true })}
                 >
+                  {result?.bought === true && (
+                    <span className="mr-1 inline-flex align-middle [&_svg]:size-4" aria-hidden="true">
+                      <IconCheckmarkLine />
+                    </span>
+                  )}
                   담았어요
                 </ActionButton>
                 <ActionButton
                   type="button"
+                  aria-pressed={result?.bought === false}
                   variant={result?.bought === false ? "neutralSolid" : "neutralWeak"}
                   size="large"
                   className="flex-1"
                   onClick={() => update({ bought: false })}
                 >
+                  {result?.bought === false && (
+                    <span className="mr-1 inline-flex align-middle [&_svg]:size-4" aria-hidden="true">
+                      <IconCheckmarkLine />
+                    </span>
+                  )}
                   안 살래요
                 </ActionButton>
               </div>
