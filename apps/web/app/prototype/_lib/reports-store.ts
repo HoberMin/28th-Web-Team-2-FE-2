@@ -76,6 +76,37 @@ export function addReport(input: NewReportInput): Report {
 }
 
 /**
+ * 제보 가격·양 수정(마이페이지 「내 제보」 ⋯ 메뉴 → 수정 시트). 위치·품목은 바꾸지 않는다
+ * (오타 정정이 목적이라 가게 축 집계를 깨지 않게 범위를 좁혔다).
+ *
+ * ⚠️ 시드 제보(`mine-*`, `vegetables.ts`의 `MY_SEED_REPORTS`)는 localStorage에 없어 대상이 아니다
+ * — 호출부(reports-view.tsx)가 `id.startsWith("local-")`인 항목에만 수정 메뉴를 보여준다.
+ */
+export function updateReport(id: string, patch: { weightKg: number; price: number }): void {
+  const next = readLocal().map((r) =>
+    r.id === id
+      ? {
+          ...r,
+          weightKg: patch.weightKg,
+          price: patch.price,
+          pricePerKg: patch.weightKg > 0 ? Math.round(patch.price / patch.weightKg) : patch.price,
+        }
+      : r,
+  );
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  cache = next;
+  listeners.forEach((l) => l());
+}
+
+/** 제보 삭제(마이페이지 「내 제보」 ⋯ 메뉴 → 삭제, 확인 후 호출). 시드 제보는 대상 아님(위 설명 참조). */
+export function removeReport(id: string): void {
+  const next = readLocal().filter((r) => r.id !== id);
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  cache = next;
+  listeners.forEach((l) => l());
+}
+
+/**
  * 시드 + 로컬 제보를 합쳐 필터·최신순 정렬해 반환(동네 크라우드소싱 목록).
  * 이웃 시드는 **요청된 동네만** 지연 생성한다(46종 × 전 동네를 미리 만들면 1만 건이 넘음).
  */
@@ -104,7 +135,9 @@ export function useNearbyDistrictReports(
   district: string,
   limit = 3,
 ): Array<{ district: string; reports: Report[] }> {
-  const nearby = regionsByProximity(district)
+  // regionsByProximity 기본 limit(4)은 "지금 있는 동네" 추천용 — 여기는 자기 자신을 제외하고도
+  // 6개 후보가 필요해 더 넉넉히 받는다(self + 6).
+  const nearby = regionsByProximity(district, 7)
     // 첫 항목은 자기 자신 → 제외
     .filter((r) => r.label !== district)
     .slice(0, 6);

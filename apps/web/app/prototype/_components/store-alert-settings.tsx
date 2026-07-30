@@ -1,48 +1,64 @@
 "use client";
 
+import Link from "next/link";
 import { Switch } from "seed-design/ui/switch";
-import { useFavoriteStores } from "../_lib/favorite-stores-store";
+import IconTrashcanLine from "@karrotmarket/react-monochrome-icon/IconTrashcanLine";
+import { toggleFavoriteStore, useFavoriteStores } from "../_lib/favorite-stores-store";
 import { toggleStoreAlert, useStoreAlerts } from "../_lib/store-alerts-store";
+import { EmptyState } from "./empty-state";
 
-// 매장 알림 설정 — 단골 가게마다 켜고 끄는 토글.
-// 알림 하나로 통합했다(이전엔 찜한 야채별 가격 알림). 가격이 싸졌다는 소식에 목적지가 붙어 있어야
-// 다음 행동이 생긴다 — "감자 쌈"보다 "늘 가던 그 집에 싼 게 올라옴"이 움직이게 만든다.
+// F05-5 「단골 가게」 화면 본문 — 목록 + 매장 알림 토글 + 단골 해제를 한 화면에 모은다.
+// 이전엔 알림이 "단골 가게 기준"이라고 말하면서도 정작 목록·해제는 홈·매장 탭에만 있었다
+// (알림을 끄려면 여기, 단골을 끊으려면 저기를 오가야 했다) — 알림의 대상(단골 목록)과
+// 알림 스위치를 같은 화면에 두어 그 모순을 없앤다.
 export function StoreAlertSettings() {
   const favoriteStores = useFavoriteStores();
   const alerts = useStoreAlerts();
 
-  return (
-    <section aria-label="매장 알림 설정" className="flex flex-col gap-3">
-      <h2 className="text-body-16-semibold text-fg-neutral">매장 알림</h2>
+  if (favoriteStores.length === 0) {
+    return (
+      <EmptyState>
+        아직 단골 가게가 없어요.
+        <br />
+        가게 상세에서 단골로 등록하면 여기에 모여요.
+      </EmptyState>
+    );
+  }
 
-      {favoriteStores.length === 0 ? (
-        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-muted">
-          단골 가게를 등록하면
-          <br />더 싼 가격이 올라올 때 알려드려요.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {favoriteStores.map((name) => {
-            const enabled = alerts.includes(name);
-            return (
-              <li key={name} className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3">
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-body-14-medium text-fg-neutral">{name}</span>
-                  <span className="text-caption-12-regular text-fg-neutral-muted">
-                    더 싼 가격이 올라오면 알림
-                  </span>
+  return (
+    <ul className="flex flex-col gap-2">
+      {favoriteStores.map((name) => {
+        const enabled = alerts.includes(name);
+        return (
+          <li key={name} className="flex items-center gap-2 rounded-2xl bg-bg-neutral-weak px-4 py-3">
+            <Link
+              href={`/prototype/store/${encodeURIComponent(name)}`}
+              className="min-w-0 flex-1 rounded-xl active:opacity-70"
+            >
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-body-14-medium text-fg-neutral">{name}</span>
+                <span className="text-caption-12-regular text-fg-neutral-muted">
+                  더 싼 가격이 올라오면 알림
                 </span>
-                {/* seed Switch — 상태 색·포커스 링·키보드 조작이 기본 내장 */}
-                <Switch
-                  checked={enabled}
-                  onCheckedChange={() => toggleStoreAlert(name)}
-                  aria-label={`${name} 알림 ${enabled ? "끄기" : "켜기"}`}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
+              </span>
+            </Link>
+            {/* seed Switch — 상태 색·포커스 링·키보드 조작이 기본 내장 */}
+            <Switch
+              checked={enabled}
+              onCheckedChange={() => toggleStoreAlert(name)}
+              aria-label={`${name} 알림 ${enabled ? "끄기" : "켜기"}`}
+            />
+            <button
+              type="button"
+              onClick={() => toggleFavoriteStore(name)}
+              aria-label={`${name} 단골 해제`}
+              className="flex size-9 shrink-0 items-center justify-center rounded-full text-fg-neutral-muted active:bg-bg-neutral-weak-pressed [&_svg]:size-5"
+            >
+              <IconTrashcanLine />
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
