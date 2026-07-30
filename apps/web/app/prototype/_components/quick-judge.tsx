@@ -75,8 +75,9 @@ export function QuickJudge({
     setQuery("");
   }
 
+  // 가게 위치는 제보 폼 안의 drawer에서 고른다 → 위치 선택 화면을 거치지 않고 폼으로 직행
   const reportHref = veg
-    ? `/prototype/report/location?item=${veg.id}&method=manual&price=${priceNum}&weight=${unit?.ratio ?? 1}`
+    ? `/prototype/report?item=${veg.id}&method=manual&price=${priceNum}&weight=${unit?.ratio ?? 1}`
     : "#";
 
   return (
