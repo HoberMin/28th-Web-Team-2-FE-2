@@ -3,29 +3,26 @@
 import { useState } from "react";
 import { ActionButton } from "seed-design/ui/action-button";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
-import { useCurrentDistrict } from "../_lib/location";
 import { useOnboarding } from "../_lib/onboarding-store";
 import { addComment, useComments } from "../_lib/comments-store";
 import { formatDateDot } from "../_lib/format";
 
-// 동네 댓글 — 같은 동 사용자만(동네 인증). 지금은 동 필터만, 구매인증 게이트는 추후 결정.
-export function CommentList({ vegetableId }: { vegetableId: string }) {
-  const { district } = useCurrentDistrict();
+// 동네 댓글 — 가게 단위(F09 가게 상세). 이전엔 품목×동네였는데, 화제가 원래 가게 단위라
+// 46종×동네로 흩으면 밀도가 안 남아 옮겼다(F03 백로그 #12).
+export function CommentList({ storeName }: { storeName: string }) {
   const { nickname } = useOnboarding();
-  const comments = useComments(vegetableId, district);
+  const comments = useComments(storeName);
   const [body, setBody] = useState("");
 
   function handleSubmit() {
     const trimmed = body.trim();
     if (!trimmed) return;
-    addComment({ vegetableId, district, nickname: nickname || `${district} 이웃`, body: trimmed });
+    addComment({ storeName, nickname: nickname || "이웃", body: trimmed });
     setBody("");
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-caption-12-regular text-fg-neutral-muted">{district} 이웃만 보여요</p>
-
       {comments.length === 0 ? (
         <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-muted">
           아직 댓글이 없어요.

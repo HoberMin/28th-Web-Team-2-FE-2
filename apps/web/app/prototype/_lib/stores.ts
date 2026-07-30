@@ -10,19 +10,22 @@
 import type { Report } from "./types";
 import { getVegetable } from "./vegetables";
 
-/** 제보가 얼마나 최신인지 — 야채 가격은 주 단위로 움직여 낡은 제보는 오히려 해롭다. */
-export type Freshness = "today" | "recent" | "stale";
+/**
+ * 제보가 얼마나 오래됐는지 — 이름을 "신선도"에서 바꿨다. 야채가 신선한지가 아니라
+ * **제보 시점**이 며칠 지났는지를 나타낸다(오해 소지 — 백로그 F03 #13).
+ */
+export type ReportAge = "today" | "recent" | "stale";
 
-export interface FreshnessInfo {
-  level: Freshness;
+export interface ReportAgeInfo {
+  level: ReportAge;
   /** 며칠 전 */
   days: number;
   /** 화면에 그대로 쓰는 문구. 예: "오늘", "3일 전" */
   label: string;
 }
 
-/** 기준일(오늘) 대비 제보 신선도. 기준일을 인자로 받아 서버·클라 결과가 갈리지 않게 한다. */
-export function getFreshness(createdAt: string, todayIso: string): FreshnessInfo {
+/** 기준일(오늘) 대비 제보 시점. 기준일을 인자로 받아 서버·클라 결과가 갈리지 않게 한다. */
+export function getReportAge(createdAt: string, todayIso: string): ReportAgeInfo {
   const created = Date.parse(createdAt.slice(0, 10));
   const today = Date.parse(todayIso);
   const days = Math.max(0, Math.round((today - created) / 86_400_000));
@@ -61,7 +64,8 @@ export interface StoreItemPrice {
   baselinePrice: number | null;
   /** 시세 대비 차이(%). 음수 = 시세보다 쌈 */
   diffPct: number | null;
-  freshness: FreshnessInfo;
+  /** 필드명은 유지(소비처가 여럿) — 타입만 ReportAgeInfo로 갱신. 값 의미: 제보 시점 */
+  freshness: ReportAgeInfo;
   /** 같은 가게·같은 품목 제보 수 (2 이상이면 교차 검증됨) */
   crossChecks: number;
   /** 이상치로 걸러진 제보인지 */
@@ -79,8 +83,8 @@ export interface StoreSummary {
   cheaperCount: number;
   /** 시세 대비 평균 차이(%). 음수 = 대체로 싼 가게 */
   avgDiffPct: number | null;
-  /** 가장 최근 제보의 신선도 */
-  freshness: FreshnessInfo;
+  /** 가장 최근 제보의 제보 시점 */
+  freshness: ReportAgeInfo;
 }
 
 /** 품목별 오늘 시세 맵 — 서버에서 받은 값을 그대로 넘긴다(클라에서 더미로 재계산하지 않도록). */
@@ -123,7 +127,7 @@ export function getStoreItems(
         baselinePrice && baselinePrice > 0
           ? Math.round(((r.pricePerKg - baselinePrice) / baselinePrice) * 1000) / 10
           : null,
-      freshness: getFreshness(r.createdAt, todayIso),
+      freshness: getReportAge(r.createdAt, todayIso),
       crossChecks: countCrossChecks(ofStore, place, vegetableId),
       outlier,
     });
@@ -164,7 +168,7 @@ export function summarizeStores(
       itemCount: items.length,
       cheaperCount: valid.filter((i) => (i.diffPct ?? 0) < 0).length,
       avgDiffPct,
-      freshness: getFreshness(latest.createdAt, todayIso),
+      freshness: getReportAge(latest.createdAt, todayIso),
     });
   }
 

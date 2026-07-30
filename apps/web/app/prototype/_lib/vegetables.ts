@@ -327,6 +327,29 @@ const ONLINE_PRICES: Record<string, MallEntry[]> = {
   ],
 };
 
+/**
+ * `ONLINE_PRICES`에 수기 엔트리가 없는 나머지 품목(30여 종)을 채우는 폴백 —
+ * 온라인 섹션이 "있다 없다" 하면 디자이너가 규격을 하나로 못 잡는다(백로그 F03 #11).
+ * 컬리·쿠팡·G마켓 3개 채널을 `BASE_PRICE` 대비 배율로 합성한다(전부 더미 — measured: false).
+ */
+const FALLBACK_MALL_PROFILE: { mall: OnlineMall; channel: OnlineChannelKind; mult: number; note?: string }[] = [
+  { mall: "컬리", channel: "새벽배송", mult: 1.2 },
+  { mall: "쿠팡", channel: "새벽배송", mult: 1.0, note: "와우회원가" },
+  { mall: "G마켓", channel: "오픈마켓", mult: 0.82, note: "배송비 별도" },
+];
+
+function buildFallbackOnlineEntries(veg: Vegetable): MallEntry[] {
+  const base = BASE_PRICE[veg.id] ?? 3000;
+  return FALLBACK_MALL_PROFILE.map(({ mall, channel, mult, note }) => ({
+    mall,
+    price: round10(base * mult),
+    productName: `${veg.name} ${veg.unit} (예시)`,
+    channel,
+    channelNote: note,
+    measured: false,
+  }));
+}
+
 export function getVegetable(id: string): Vegetable | undefined {
   return VEGETABLES.find((v) => v.id === id);
 }
@@ -386,13 +409,15 @@ export interface OnlinePriceSet {
 }
 
 /**
- * 품목의 온라인 판매가 묶음(기준 단위 환산). 엔트리 없으면 undefined → 온라인 항목 자체 미노출.
- * 최저가 하나만 요약으로 보여주고 상세는 접어둔다 — 온라인은 보조 기준이라 화면 주인이 아니다.
+ * 품목의 온라인 판매가 묶음(기준 단위 환산). 수기 엔트리가 없으면 `buildFallbackOnlineEntries`로
+ * 채워 **전 품목**에 섹션이 뜨게 한다(백로그 F03 #11 — 품목마다 있다 없다 하면 규격이 안 잡힌다).
+ * 온라인은 여전히 보조 기준이라 화면 위계는 올리지 않는다.
  */
 export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined {
   const veg = getVegetable(vegetableId);
-  const entries = ONLINE_PRICES[vegetableId];
-  if (!veg || !entries || entries.length === 0) return undefined;
+  if (!veg) return undefined;
+  const entries = ONLINE_PRICES[vegetableId] ?? buildFallbackOnlineEntries(veg);
+  if (entries.length === 0) return undefined;
 
   const prices: MartPrice[] = entries
     .map((e) => ({
@@ -476,7 +501,10 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
     average: round10(monthAvg),
     series,
     source: "dummy",
-    asOf: ANCHOR_DATE,
+    // 더미 폴백의 기준일은 시리즈 앵커(ANCHOR_DATE)가 아니라 "지금 화면을 보고 있는 오늘" —
+    // 진짜/더미 구분(isFallback)과 짝을 맞춰 "오늘 기준 값처럼 보이되 실데이터가 아님"을 드러낸다.
+    asOf: new Date().toISOString().slice(0, 10),
+    isFallback: true,
   };
 }
 

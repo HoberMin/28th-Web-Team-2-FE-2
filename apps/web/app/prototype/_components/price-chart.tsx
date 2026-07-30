@@ -195,9 +195,9 @@ export function PriceChart({
         })}
       </div>
 
-      {/* 선택 기간 평균가 */}
+      {/* 선택 기간 평균가 — 세그먼트를 바꾸면 값도 바뀌므로 기간을 라벨에 명시한다 */}
       <div className="flex items-center justify-between rounded-lg border border-bg-neutral-weak-pressed px-4 py-3.5">
-        <span className="text-body-14-medium text-fg-neutral">평균가</span>
+        <span className="text-body-14-medium text-fg-neutral">{PERIOD_LABEL[period]} 평균가</span>
         <span className="text-body-16-semibold text-fg-neutral">{formatWon(avg)}</span>
       </div>
     </section>

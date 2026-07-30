@@ -11,6 +11,7 @@ import { VegetableThumb } from "./vegetable-thumb";
 import { FreshnessTag } from "./freshness-tag";
 import { FavoriteStoreButton } from "./favorite-store-button";
 import { StoreMap } from "./store-map";
+import { CommentList } from "./comment-list";
 
 // F09 가게 상세 — "이 가게는 뭐가 싸고 뭐가 비싼가"를 한 화면에서 답한다.
 // 정렬은 시세 대비 싼 품목 순 — 이 가게에 갈 이유가 먼저 읽혀야 한다.
@@ -126,6 +127,13 @@ export function StoreDetail({
             </section>
           </div>
         )}
+
+        {/* 동네 댓글 — F03(시세 화면)에서 이곳으로 옮겨왔다. 화제가 원래 가게 단위라
+            품목×동네로 흩어두면 밀도가 안 남는다(백로그 F03 #12). */}
+        <section aria-label="동네 댓글" className="flex flex-col gap-3 pt-6">
+          <h2 className="text-head2-16 text-fg-neutral">동네 댓글</h2>
+          <CommentList storeName={storeName} />
+        </section>
       </Scroll>
     </PhoneFrame>
   );
