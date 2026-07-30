@@ -24,7 +24,7 @@ export function FavoriteButton({ vegetableId, vegetableName, size = "md" }: Favo
       aria-label={`${vegetableName} 찜${favorite ? " 해제" : ""}`}
       onClick={() => toggleFavorite(vegetableId)}
       className={`flex items-center justify-center rounded-full transition-colors ${box} ${
-        favorite ? "text-fg-brand" : "text-fg-neutral-subtle"
+        favorite ? "text-fg-brand-contrast" : "text-fg-neutral-muted"
       } hover:bg-bg-neutral-weak`}
     >
       {favorite ? <IconHeartFill /> : <IconHeartLine />}

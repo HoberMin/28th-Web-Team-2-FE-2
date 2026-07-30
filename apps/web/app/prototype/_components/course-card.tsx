@@ -13,7 +13,7 @@ export function CourseCard({ plan, district }: { plan: CoursePlan; district: str
         className="flex flex-col gap-2 rounded-2xl bg-bg-neutral-weak px-5 py-4"
       >
         <h2 className="text-body-16-semibold text-fg-neutral">어디서 살지 정하기</h2>
-        <p className="text-body-14-regular text-fg-neutral-subtle">
+        <p className="text-body-14-regular text-fg-neutral-muted">
           {district}에 가게별 제보가 아직 없어 코스를 짤 수 없어요. 제보할 때 가게를 골라주시면
           &ldquo;한 곳에서 다 사기 vs 두 곳 돌기&rdquo;를 금액으로 비교해 드려요.
         </p>
@@ -31,8 +31,8 @@ export function CourseCard({ plan, district }: { plan: CoursePlan; district: str
       {/* 1안 — 한 곳에서 전부. 기본 추천(발걸음 최소) */}
       <div className="flex flex-col gap-2 rounded-2xl bg-bg-brand-weak px-5 py-4">
         <div className="flex items-center justify-between">
-          <span className="text-body-14-medium text-fg-brand">한 곳에서 다 사기</span>
-          <span className="rounded-md bg-bg-layer-default px-2 py-0.5 text-caption-12-regular text-fg-brand">
+          <span className="text-body-14-medium text-fg-neutral">한 곳에서 다 사기</span>
+          <span className="rounded-md bg-bg-layer-default px-2 py-0.5 text-caption-12-regular text-fg-neutral">
             추천
           </span>
         </div>
@@ -43,7 +43,7 @@ export function CourseCard({ plan, district }: { plan: CoursePlan; district: str
           {single.stores[0]}
         </Link>
         <div className="flex items-baseline justify-between">
-          <span className="text-caption-12-regular text-fg-neutral-subtle">
+          <span className="text-caption-12-regular text-fg-neutral-muted">
             {single.coveredCount}개 제보가
             {single.fallbackCount > 0 && ` · ${single.fallbackCount}개는 시세로 계산`}
           </span>
@@ -59,11 +59,11 @@ export function CourseCard({ plan, district }: { plan: CoursePlan; district: str
       {/* 2안 — 두 곳. 더 싸질 때만 나타난다 */}
       {pair && (
         <div className="flex flex-col gap-2 rounded-2xl bg-bg-neutral-weak px-5 py-4">
-          <span className="text-body-14-medium text-fg-neutral-subtle">두 곳 돌기</span>
+          <span className="text-body-14-medium text-fg-neutral-muted">두 곳 돌기</span>
           <p className="flex flex-wrap items-center gap-1 text-body-16-semibold text-fg-neutral">
             {pair.stores.map((name, i) => (
               <span key={name} className="flex items-center gap-1">
-                {i > 0 && <span className="text-fg-neutral-subtle">→</span>}
+                {i > 0 && <span className="text-fg-neutral-muted">→</span>}
                 <Link href={`/prototype/store/${encodeURIComponent(name)}`} className="underline">
                   {name}
                 </Link>
@@ -71,7 +71,7 @@ export function CourseCard({ plan, district }: { plan: CoursePlan; district: str
             ))}
           </p>
           <div className="flex items-baseline justify-between">
-            <span className="text-caption-12-regular text-fg-neutral-subtle">
+            <span className="text-caption-12-regular text-fg-neutral-muted">
               {pair.coveredCount}개 제보가
               {pair.fallbackCount > 0 && ` · ${pair.fallbackCount}개는 시세로 계산`}
             </span>

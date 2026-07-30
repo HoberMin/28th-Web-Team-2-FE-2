@@ -39,14 +39,24 @@ export function GNB() {
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center justify-center gap-0.5 ${
-              active ? "text-fg-neutral" : "text-fg-neutral-subtle"
-            }`}
+            className="flex flex-1 flex-col items-center justify-center gap-0.5"
           >
-            <span className="[&_svg]:size-6" aria-hidden="true">
+            {/* 브랜드색은 아이콘에만 — 12px 라벨에 쓰면 3.99:1로 AA(4.5)를 못 넘긴다.
+                아이콘은 비-텍스트라 3:1 기준이고 3.99로 통과한다.
+                활성 신호는 색 하나가 아니라 셋이다: 채운 아이콘 · 색 · 굵기 (+aria-current) */}
+            <span
+              className={`[&_svg]:size-6 ${active ? "text-fg-brand-contrast" : "text-fg-neutral-muted"}`}
+              aria-hidden="true"
+            >
               <Icon />
             </span>
-            <span className={`text-caption-12-regular ${active ? "font-medium" : ""}`}>{tab.label}</span>
+            <span
+              className={`text-caption-12-regular ${
+                active ? "font-medium text-fg-neutral" : "text-fg-neutral-muted"
+              }`}
+            >
+              {tab.label}
+            </span>
           </Link>
         );
       })}

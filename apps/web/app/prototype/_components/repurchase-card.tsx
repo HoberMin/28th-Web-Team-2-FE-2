@@ -19,7 +19,7 @@ export function RepurchaseCard({ todayIso }: { todayIso: string }) {
     <section aria-label="살 때 된 야채" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-head2-16 text-fg-neutral">살 때 된 야채</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">내 구매 간격 기준</span>
+        <span className="text-caption-12-regular text-fg-neutral-muted">내 구매 간격 기준</span>
       </div>
       <ul className="flex flex-col gap-2">
         {due.map((h) => (
@@ -31,11 +31,11 @@ export function RepurchaseCard({ todayIso }: { todayIso: string }) {
               <VegetableThumb image={h.image} emoji={h.emoji} size="md" />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-body-16-semibold text-fg-neutral">{h.name}</span>
-                <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                   마지막 구매 {h.daysSince}일 전 · 보통 {h.intervalDays}일마다 사셨어요
                 </span>
               </span>
-              <span className="shrink-0 text-caption-12-regular text-fg-brand">시세 보기</span>
+              <span className="shrink-0 text-caption-12-regular text-fg-neutral-muted">시세 보기</span>
             </Link>
           </li>
         ))}

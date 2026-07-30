@@ -16,9 +16,9 @@ export function CheapestMonthBadge({
   return (
     <p className="rounded-xl bg-bg-brand-weak px-4 py-3 text-body-14-regular text-fg-neutral">
       {source !== "kamis" && (
-        <span className="mr-1 text-caption-12-regular text-fg-neutral-subtle">예시 ·</span>
+        <span className="mr-1 text-caption-12-regular text-fg-neutral-muted">예시 ·</span>
       )}
-      <span className="font-semibold text-fg-brand">{cheapest.month}월</span>이 최근 1년 중 가장 쌌어요 (지금보다
+      <span className="font-semibold text-fg-neutral">{cheapest.month}월</span>이 최근 1년 중 가장 쌌어요 (지금보다
       약 {cheapest.cheaperThanLatestPct}% 저렴)
     </p>
   );

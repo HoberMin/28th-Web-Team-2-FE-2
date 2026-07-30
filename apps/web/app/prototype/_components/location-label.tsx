@@ -8,7 +8,7 @@ export function LocationLabel() {
   const { district, loading } = useCurrentDistrict();
   return (
     <div className="flex items-center gap-1 text-fg-neutral">
-      <span className="text-fg-brand [&_svg]:size-6" aria-hidden="true">
+      <span className="text-fg-brand-contrast [&_svg]:size-6" aria-hidden="true">
         <IconLocationpinFill />
       </span>
       <span className="text-head2-16">{loading ? "위치 확인 중…" : district}</span>

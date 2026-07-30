@@ -16,7 +16,7 @@ export function FavoriteStoreButton({ storeName }: { storeName: string }) {
       aria-pressed={isFavorite}
       aria-label={isFavorite ? `${storeName} 단골 해제` : `${storeName} 단골로 등록`}
       className={`flex size-12 items-center justify-center rounded-full [&_svg]:size-6 ${
-        isFavorite ? "text-fg-brand" : "text-fg-neutral-subtle"
+        isFavorite ? "text-fg-brand-contrast" : "text-fg-neutral-muted"
       }`}
     >
       {isFavorite ? <IconBookmarkFill /> : <IconBookmarkLine />}

@@ -48,7 +48,7 @@ export function MyPageContent({ todayIso }: { todayIso: string }) {
         </span>
         <div className="flex min-w-0 flex-col">
           <p className="text-head2-18 text-fg-neutral">{displayName}</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             찜 {favorites.length} · 제보 {myReports.length} · 구매 {purchases.length}
           </p>
         </div>
@@ -92,7 +92,7 @@ function SpendingSummaryCard({ count, spent, saved }: { count: number; spent: nu
   if (count === 0) {
     return (
       <section aria-label="내 소비 요약" className="rounded-2xl bg-bg-neutral-weak px-5 py-6">
-        <p className="text-body-14-regular text-fg-neutral-subtle">
+        <p className="text-body-14-regular text-fg-neutral-muted">
           야채를 사고 가격을 제보하면
           <br />
           시세보다 얼마나 아꼈는지 알려드려요.
@@ -104,7 +104,7 @@ function SpendingSummaryCard({ count, spent, saved }: { count: number; spent: nu
   const savedPositive = saved >= 0;
   return (
     <section aria-label="내 소비 요약" className="flex flex-col gap-3 rounded-2xl bg-bg-brand-weak px-5 py-5">
-      <p className="text-body-14-medium text-fg-brand">지금까지 시세 대비</p>
+      <p className="text-body-14-medium text-fg-neutral-muted">지금까지 시세 대비</p>
       <p className="text-head2-20 text-fg-neutral">
         <span className={savedPositive ? "text-fg-positive" : "text-fg-warning"}>
           {formatNumber(Math.abs(saved))}원
@@ -112,7 +112,7 @@ function SpendingSummaryCard({ count, spent, saved }: { count: number; spent: nu
         {savedPositive ? "아꼈어요" : "더 썼어요"}
       </p>
       <div className="flex items-center justify-between border-t border-bg-brand-weak-pressed pt-3 text-body-14-regular">
-        <span className="text-fg-neutral-subtle">구매 {count}건</span>
+        <span className="text-fg-neutral-muted">구매 {count}건</span>
         <span className="text-fg-neutral">총 지출 {formatWon(spent)}</span>
       </div>
     </section>
@@ -121,7 +121,7 @@ function SpendingSummaryCard({ count, spent, saved }: { count: number; spent: nu
 
 function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-xl bg-bg-neutral-weak px-4 py-10 text-center text-body-14-regular text-fg-neutral-subtle">
+    <p className="rounded-xl bg-bg-neutral-weak px-4 py-10 text-center text-body-14-regular text-fg-neutral-muted">
       {children}
     </p>
   );
@@ -153,8 +153,8 @@ function FavoritesTab({ favorites }: { favorites: string[] }) {
               <VegetableThumb image={veg.image} emoji={veg.emoji} size="lg" />
               <span className="flex min-w-0 flex-col">
                 <span className="text-body-16-semibold text-fg-neutral">{veg.name}</span>
-                <span className="text-body-14-regular text-fg-neutral-subtle">
-                  오늘 시세 {formatWon(price)} <span className="text-fg-neutral-subtle">/{veg.unit}</span>
+                <span className="text-body-14-regular text-fg-neutral-muted">
+                  오늘 시세 {formatWon(price)} <span className="text-fg-neutral-muted">/{veg.unit}</span>
                 </span>
               </span>
             </Link>
@@ -194,18 +194,18 @@ function ReportsTab({ reports }: { reports: Report[] }) {
               <span className="flex items-center gap-1.5">
                 <span className="text-body-16-semibold text-fg-neutral">{veg?.name ?? r.vegetableId}</span>
                 {!r.purchased && (
-                  <span className="rounded-md bg-bg-neutral-weak-pressed px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-subtle">
+                  <span className="rounded-md bg-bg-neutral-weak-pressed px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-muted">
                     시세만 봄
                   </span>
                 )}
               </span>
-              <span className="text-caption-12-regular text-fg-neutral-subtle">
+              <span className="text-caption-12-regular text-fg-neutral-muted">
                 {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
               </span>
             </span>
             <span className="flex flex-col items-end gap-0.5">
               <span className="text-body-14-medium text-fg-neutral">
-                {formatNumber(r.pricePerKg)}원 <span className="text-fg-neutral-subtle">/1kg</span>
+                {formatNumber(r.pricePerKg)}원 <span className="text-fg-neutral-muted">/1kg</span>
               </span>
               {diff !== 0 && (
                 <span
@@ -252,9 +252,9 @@ function PurchasesTab({ reports }: { reports: Report[] }) {
             <span className="flex min-w-0 flex-col">
               <span className="text-body-16-semibold text-fg-neutral">
                 {veg?.name ?? r.vegetableId}{" "}
-                <span className="text-body-14-regular text-fg-neutral-subtle">{r.weightKg}kg</span>
+                <span className="text-body-14-regular text-fg-neutral-muted">{r.weightKg}kg</span>
               </span>
-              <span className="text-caption-12-regular text-fg-neutral-subtle">
+              <span className="text-caption-12-regular text-fg-neutral-muted">
                 {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}
               </span>
             </span>

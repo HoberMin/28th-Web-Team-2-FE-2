@@ -46,23 +46,23 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             <VegetableThumb image={veg.image} emoji={veg.emoji} size="hero" />
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               <h1 className="text-head1-20 text-fg-neutral">
-                {veg.name} <span className="text-fg-neutral-subtle">{veg.unit}</span>
+                {veg.name} <span className="text-fg-neutral-muted">{veg.unit}</span>
               </h1>
               <div className="mt-3 flex flex-col gap-2">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-body-16-semibold text-fg-brand">오늘 시세</span>
+                  <span className="text-body-16-semibold text-fg-neutral">오늘 시세</span>
                   <span className="text-head2-20 tabular-nums text-fg-neutral">
                     {formatWon(baseline.current)}
                   </span>
                 </div>
                 {/* 전일 대비 — 홈 그리드와 같은 기준(어제 대비)을 상세에서도 그대로 보여준다 */}
                 <div className="flex items-center justify-between">
-                  <span className="text-caption-12-regular text-fg-neutral-subtle">어제 대비</span>
+                  <span className="text-caption-12-regular text-fg-neutral-muted">어제 대비</span>
                   <TrendLabel trend={trend} />
                 </div>
                 <hr className="border-bg-neutral-weak-pressed" />
                 <div className="flex items-end justify-between">
-                  <span className="text-body-14-medium text-fg-neutral-subtle">최근 동네 제보가</span>
+                  <span className="text-body-14-medium text-fg-neutral-muted">최근 동네 제보가</span>
                   <LatestReportPrice vegetableId={veg.id} />
                 </div>
               </div>

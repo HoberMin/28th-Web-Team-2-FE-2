@@ -13,13 +13,13 @@ export function SeasonalPicks({ picks, month }: { picks: SeasonalPick[]; month: 
     <section aria-label={`${month}월에 사기 좋은 야채`} className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-head2-16 text-fg-neutral">{month}월에 사기 좋은 야채</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">1년 시세 기준</span>
+        <span className="text-caption-12-regular text-fg-neutral-muted">1년 시세 기준</span>
       </div>
 
       {/* 가로 스크롤 — 목록이 길어져도 홈 세로 길이를 늘리지 않는다 */}
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1">
         {picks.map((p) => (
-          <li key={p.vegetableId} className="shrink-0">
+          <li key={p.vegetableId} className="snap-start shrink-0">
             <Link
               href={`/prototype/price/${p.vegetableId}`}
               className="flex w-[112px] flex-col items-center gap-1 rounded-2xl bg-bg-brand-weak px-3 py-3 active:bg-bg-brand-weak-pressed"
@@ -34,10 +34,10 @@ export function SeasonalPicks({ picks, month }: { picks: SeasonalPick[]; month: 
                 )}
               </span>
               <span className="text-body-14-medium text-fg-neutral">{p.name}</span>
-              <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+              <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                 {formatNumber(p.price)}원
               </span>
-              <span className="text-caption-12-regular tabular-nums text-fg-brand">
+              <span className="text-caption-12-regular tabular-nums text-fg-neutral">
                 연 최고가보다 {p.discountPct}%↓
               </span>
             </Link>
