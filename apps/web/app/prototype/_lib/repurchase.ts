@@ -1,49 +1,12 @@
-// 반복 구매 지원 — "지난 장보기 그대로 담기"와 "그거 살 때 됐어요"를 계산한다.
+// 반복 구매 지원 — "그거 살 때 됐어요"를 계산한다.
 //
-// 왜 필요한가: 타깃(4인 가족 장보기 담당)은 같은 품목을 주기적으로 다시 산다. 매번 장바구니를
-// 새로 채우게 하는 건 "시간·노력 절약"과 반대다. 내 구매 이력에 이미 주기가 들어 있으니 쓴다.
+// 왜 필요한가: 타깃(4인 가족 장보기 담당)은 같은 품목을 주기적으로 다시 산다. 시세를 보려고
+// 매번 앱을 열게 하는 대신, 내 구매 이력에 이미 들어 있는 주기를 써서 먼저 알려준다.
 //
 // 순수 함수(서버·클라 공용). 입력은 내 제보(purchased=true)뿐이다.
 
 import type { Report } from "./types";
 import { getVegetable } from "./vegetables";
-
-export interface ShoppingSession {
-  /** 장본 날짜 "YYYY-MM-DD" */
-  date: string;
-  /** 그날 산 품목 + 수량 */
-  items: Array<{ vegetableId: string; name: string; weightKg: number }>;
-  /** 그날 지출 합계(원) */
-  total: number;
-}
-
-/**
- * 내 구매 이력을 **날짜 단위 장보기 세션**으로 묶는다.
- * 같은 날 여러 품목을 산 건 한 번의 장보기로 본다 — 사용자의 기억 단위가 "그날 장 본 것"이다.
- */
-export function groupShoppingSessions(myReports: Report[], limit = 5): ShoppingSession[] {
-  const purchased = myReports.filter((r) => r.purchased);
-  const byDate = new Map<string, Report[]>();
-  for (const r of purchased) {
-    const date = r.createdAt.slice(0, 10);
-    const bucket = byDate.get(date);
-    if (bucket) bucket.push(r);
-    else byDate.set(date, [r]);
-  }
-
-  return Array.from(byDate.entries())
-    .sort(([a], [b]) => (a < b ? 1 : -1))
-    .slice(0, limit)
-    .map(([date, list]) => ({
-      date,
-      total: list.reduce((s, r) => s + r.price, 0),
-      items: list.map((r) => ({
-        vegetableId: r.vegetableId,
-        name: getVegetable(r.vegetableId)?.name ?? r.vegetableId,
-        weightKg: r.weightKg,
-      })),
-    }));
-}
 
 export interface RepurchaseHint {
   vegetableId: string;
