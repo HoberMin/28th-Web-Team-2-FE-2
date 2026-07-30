@@ -6,7 +6,9 @@ import IconILowercaseSerifCircleLine from "@karrotmarket/react-monochrome-icon/I
 // 인포메이션 호버/탭 툴팁 — 라벨 옆 ⓘ 버튼, 열면 설명 말풍선. (Figma F03_야채 시세_인포메이션 툴팁)
 // hover는 마우스 한정(pointerType 가드) — 터치는 click 토글만 타야 첫 탭에서 바로 열린다.
 // 키보드: 포커스 시 노출 · Esc 닫기. 스크린리더: aria-describedby로 본문 연결.
-const TIP_BG = "#4a5667"; // Figma 인포 툴팁 배경(gray/700)
+//
+// 배경·글자는 토큰이다. 이전엔 #4a5667 / #f9f9fb 를 박아뒀는데, 주석은 "gray/700"이라 했지만
+// Seed의 gray-700은 #868b94 라서 근거가 어긋났다. 어두운 말풍선은 neutral-inverted 한 쌍이 맞다.
 
 export function InfoTooltip({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -30,7 +32,7 @@ export function InfoTooltip({ label, children }: { label: string; children: Reac
         onKeyDown={(e) => {
           if (e.key === "Escape") setOpen(false);
         }}
-        className="-my-1.5 inline-flex items-center justify-center rounded-full p-1.5 text-fg-neutral-subtle hover:text-fg-neutral [&_svg]:size-4"
+        className="-my-1.5 inline-flex items-center justify-center rounded-full p-1.5 text-fg-neutral-muted hover:text-fg-neutral [&_svg]:size-4"
       >
         <IconILowercaseSerifCircleLine />
       </button>
@@ -38,8 +40,7 @@ export function InfoTooltip({ label, children }: { label: string; children: Reac
         <span
           id={tipId}
           role="tooltip"
-          className="absolute top-full left-0 z-20 mt-1.5 w-max max-w-56 rounded px-2 py-1.5 text-[12px] font-medium leading-[1.4] tracking-[-0.02em] whitespace-normal text-[#f9f9fb] shadow-md"
-          style={{ backgroundColor: TIP_BG }}
+          className="absolute top-full left-0 z-20 mt-1.5 w-max max-w-56 rounded bg-bg-neutral-inverted px-2 py-1.5 text-caption-12-regular whitespace-normal text-fg-neutral-inverted shadow-md"
         >
           {children}
         </span>
