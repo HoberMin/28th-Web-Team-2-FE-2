@@ -47,31 +47,37 @@ export interface SeasonalPick {
 }
 
 /**
- * "이번 달 사기 좋은 야채" — 연 월평균 시리즈에서 지금 달이 저점권(상위 3위 이내)인 품목만 고른다.
+ * "이번 달 사기 좋은 야채" — 연 월평균 시리즈에서 지금 달이 저점권인 품목을 고른다.
  * 식물학적 제철이 아니라 **실제 시세 계산값**이다(월별 최저가 시기 기능과 같은 근거).
  * 비수기라 데이터가 없는 품목(수박·딸기 등)은 애초에 제외된다.
+ *
+ * ⚠️ 조건 완화(백로그 F01 "섹션이 안 보임" 대응, 2026-07-30): 원래 조건(제철 + 연중 저가
+ * 3위 이내 + 최고가 대비 5%↓) 3중 AND라 통과 0개면 섹션이 통째로 사라졌다. "일단 화면에
+ * 보이는 것"이 지금 목적이라 순위 조건을 6위까지, 할인 조건을 2%까지 완화했다.
+ * 그래도 `limit`을 못 채우면(완화 조건도 통과 0개) 제철 품목 중 할인폭이 큰 순으로 채워서
+ * 최소 노출을 보장한다 — 정확도보다 "비어 보이지 않는 것"을 우선한 임시 조치.
+ * 조건 재조정(원래 3중 조건 복원 여부·완화 폭)은 추후 논의 대상.
  */
 export function pickSeasonalBargains(
   entries: Array<{ veg: Vegetable; baseline: BaselinePrice }>,
   month: number,
   limit = 6,
 ): SeasonalPick[] {
+  const candidates: SeasonalPick[] = [];
   const picks: SeasonalPick[] = [];
 
   for (const { veg, baseline } of entries) {
     if (!isInSeason(veg, month)) continue;
     const year = baseline.series.year;
     const rank = getMonthRank(year, month);
-    if (rank === null || rank > 3) continue;
+    if (rank === null) continue;
 
     const peak = Math.max(...year.map((p) => p.price));
     const now = baseline.current;
     if (peak <= 0 || now <= 0) continue;
     const discountPct = Math.round(((peak - now) / peak) * 100);
-    // 연 최고가와 5% 이내면 "싸다"고 말할 근거가 약하다.
-    if (discountPct < 5) continue;
 
-    picks.push({
+    const pick: SeasonalPick = {
       vegetableId: veg.id,
       name: veg.name,
       emoji: veg.emoji,
@@ -80,9 +86,25 @@ export function pickSeasonalBargains(
       unit: veg.unit,
       discountPct,
       rank,
-    });
+    };
+    // 완화된 통과 조건: 저가 순위 6위 이내 + 최고가 대비 2%↓
+    if (rank <= 6 && discountPct >= 2) picks.push(pick);
+    candidates.push(pick);
   }
 
-  // 할인폭이 큰 순 → 같으면 순위가 앞선 순
-  return picks.sort((a, b) => b.discountPct - a.discountPct || a.rank - b.rank).slice(0, limit);
+  const sortByDiscount = (a: SeasonalPick, b: SeasonalPick) =>
+    b.discountPct - a.discountPct || a.rank - b.rank;
+
+  if (picks.length >= limit) {
+    return picks.sort(sortByDiscount).slice(0, limit);
+  }
+
+  // 완화 조건도 부족하면 제철 품목 중 할인폭 상위로 채운다(중복 없이).
+  const filled = new Map(picks.map((p) => [p.vegetableId, p]));
+  for (const candidate of [...candidates].sort(sortByDiscount)) {
+    if (filled.size >= limit) break;
+    filled.set(candidate.vegetableId, candidate);
+  }
+
+  return [...filled.values()].sort(sortByDiscount).slice(0, limit);
 }

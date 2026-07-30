@@ -13,21 +13,77 @@ import { TrendLabel } from "./trend-label";
 import { VegetableThumb } from "./vegetable-thumb";
 
 const ALL = "전체";
+/** 기본으로 보여주는 개수 — 「더보기」로 전체(46종)까지 펼친다. */
+const PAGE_SIZE = 12;
 
-// 검색 + 그룹 필터 + 야채 그리드.
-// 46종을 3열에 그대로 쏟으면 16줄이라 홈이 스크롤에 잠긴다 → 그룹 칩으로 한 화면 분량으로 줄인다.
+type SortKey = "name" | "cheap" | "drop";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "name", label: "가나다" },
+  { value: "cheap", label: "싼 순" },
+  { value: "drop", label: "많이 내린 순" },
+];
+
+function sortItems(items: HomeVegetableItem[], sort: SortKey): HomeVegetableItem[] {
+  const copy = [...items];
+  switch (sort) {
+    case "name":
+      return copy.sort((a, b) => a.name.localeCompare(b.name, "ko"));
+    case "cheap":
+      return copy.sort((a, b) => {
+        if (a.price === null && b.price === null) return 0;
+        if (a.price === null) return 1;
+        if (b.price === null) return -1;
+        return a.price - b.price;
+      });
+    case "drop":
+      return copy.sort((a, b) => {
+        const dropA = a.trend?.direction === "down" ? a.trend.pct : -Infinity;
+        const dropB = b.trend?.direction === "down" ? b.trend.pct : -Infinity;
+        return dropB - dropA;
+      });
+  }
+}
+
+/** "2026-07-30" → "7월 30일 기준" — 시세 기준일 표시(백로그 공통 항목). */
+function formatAsOfLabel(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${Number(m)}월 ${Number(d)}일 기준`;
+}
+
+// 검색 + 그룹 필터 + 정렬 + 야채 그리드.
+// 기본 12종만 보여주고 「더보기」로 46종 전체를 편다(정렬을 바꾸면 다시 12종으로 접힌다) —
+// 46종을 한 번에 3열로 쏟으면 16줄이라 홈이 스크롤에 잠긴다.
 // 데이터는 서버(getHomeData)에서 조립해 props로 받는다 — 시세·등락 계산은 클라에서 하지 않는다.
-export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
+export function HomeVegetables({
+  items,
+  priceMeta,
+}: {
+  items: HomeVegetableItem[];
+  priceMeta: { asOf: string; isFallback: boolean };
+}) {
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<string>(ALL);
+  const [sort, setSort] = useState<SortKey>("name");
+  const [expanded, setExpanded] = useState(false);
   const keyword = query.trim();
 
   // 검색어가 있으면 그룹 필터를 무시한다 — 이름을 아는 사람은 이미 목적지가 있다.
-  const list = keyword
+  const filtered = keyword
     ? items.filter((v) => matchesVegetableName(v.name, keyword))
     : group === ALL
       ? items
       : items.filter((v) => v.group === group);
+
+  const sorted = sortItems(filtered, sort);
+  // 검색 중에는 결과를 자르지 않는다 — 찾는 게 목적인 화면에서 페이지네이션은 방해다.
+  const list = !keyword && !expanded ? sorted.slice(0, PAGE_SIZE) : sorted;
+  const canShowMore = !keyword && !expanded && sorted.length > PAGE_SIZE;
+
+  function handleSortChange(next: SortKey) {
+    setSort(next);
+    setExpanded(false); // 정렬이 바뀌면 다시 12종으로 접힌다
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,7 +102,8 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
         <div className="flex items-baseline justify-between">
           <h2 className="text-head2-16 text-fg-neutral">{keyword ? "검색 결과" : "야채 시세"}</h2>
           <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
-            {list.length}종 · 어제 대비
+            {sorted.length}종 · {formatAsOfLabel(priceMeta.asOf)}
+            {priceMeta.isFallback && " · 임시 데이터"}
           </span>
         </div>
 
@@ -66,38 +123,62 @@ export function HomeVegetables({ items }: { items: HomeVegetableItem[] }) {
           </RadioChipRoot>
         )}
 
+        <RadioChipRoot
+          value={sort}
+          onValueChange={(v) => handleSortChange(v as SortKey)}
+          aria-label="야채 정렬"
+          className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1"
+        >
+          {SORT_OPTIONS.map((option) => (
+            <RadioChipItem key={option.value} value={option.value} className="snap-start shrink-0">
+              <ChipLabel>{option.label}</ChipLabel>
+            </RadioChipItem>
+          ))}
+        </RadioChipRoot>
+
         {list.length === 0 ? (
           <p className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
             {keyword ? `‘${keyword}’ 검색 결과가 없어요` : "이 종류에 표시할 야채가 없어요"}
           </p>
         ) : (
-          <ul className="grid grid-cols-3 gap-2.5">
-            {list.map((v) => (
-              <li key={v.id}>
-                <Link
-                  href={`/prototype/price/${v.id}`}
-                  className="flex h-full flex-col items-center gap-1 rounded-2xl bg-bg-neutral-weak px-2 py-3 active:bg-bg-neutral-weak-pressed"
-                >
-                  <VegetableThumb image={v.image} emoji={v.emoji} size="lg" />
-                  <span className="line-clamp-1 text-center text-body-14-medium text-fg-neutral">
-                    {v.name}
-                  </span>
-                  {v.price === null ? (
-                    <span className="text-caption-12-regular text-fg-neutral-muted">
-                      {v.seasonLabel ?? "지금은 비수기"}
+          <>
+            <ul className="grid grid-cols-3 gap-2.5">
+              {list.map((v) => (
+                <li key={v.id}>
+                  <Link
+                    href={`/prototype/price/${v.id}`}
+                    className="flex h-full flex-col items-center gap-1 rounded-2xl bg-bg-neutral-weak px-2 py-3 active:bg-bg-neutral-weak-pressed"
+                  >
+                    <VegetableThumb image={v.image} emoji={v.emoji} size="lg" />
+                    <span className="line-clamp-1 text-center text-body-14-medium text-fg-neutral">
+                      {v.name}
                     </span>
-                  ) : (
-                    <>
-                      <span className="text-body-14-medium tabular-nums text-fg-neutral">
-                        {formatNumber(v.price)}원
+                    {v.price === null ? (
+                      <span className="text-caption-12-regular text-fg-neutral-muted">
+                        {v.seasonLabel ?? "지금은 비수기"}
                       </span>
-                      <TrendLabel trend={v.trend} />
-                    </>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
+                    ) : (
+                      <>
+                        <span className="text-body-14-medium tabular-nums text-fg-neutral">
+                          {formatNumber(v.price)}원
+                        </span>
+                        <TrendLabel trend={v.trend} />
+                      </>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {canShowMore && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-bg-neutral-weak text-body-14-medium text-fg-neutral active:bg-bg-neutral-weak-pressed"
+              >
+                더보기 · {sorted.length - PAGE_SIZE}종 더 보기
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@
 // 입력을 모두 마친 뒤 홈(목록)으로 넘어가기 직전에 환영 화면을 둔다(사용자 요청).
 // 완료 전엔 홈(F01)이 이리로 리다이렉트한다(onboarding-gate.tsx).
 
-import { type PointerEvent, type SVGProps, useEffect, useRef, useState } from "react";
+import { type PointerEvent, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
@@ -13,27 +13,15 @@ import IconChevronLeftLine from "@karrotmarket/react-monochrome-icon/IconChevron
 import { BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { setOnboarding } from "../_lib/onboarding-store";
 import { setDistrict } from "../_lib/location";
-import { searchRegions, regionsByProximity } from "../_lib/regions";
-import { DEFAULT_DISTRICT, VEGETABLES } from "../_lib/vegetables";
+import { VEGETABLES } from "../_lib/vegetables";
 import type { Vegetable } from "../_lib/types";
+import { RegionPicker } from "./region-picker";
 
 type Step = "nickname" | "region" | "welcome";
 
-// 검색 아이콘 — 디자이너 제공 에셋(public/veg/iconamoon_search.svg) 그대로 인라인.
-// seed SuffixIcon(Radix Slot)이 className을 자식에 병합하므로 props를 svg로 전달한다.
-function SearchIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-      <path
-        d="M21 21L16.657 16.657M16.657 16.657C17.3998 15.9141 17.9891 15.0322 18.3912 14.0615C18.7932 13.0909 19.0002 12.0506 19.0002 11C19.0002 9.9494 18.7932 8.90908 18.3912 7.93845C17.9891 6.96782 17.3998 6.08589 16.657 5.343C15.9141 4.60011 15.0321 4.01082 14.0615 3.60877C13.0909 3.20673 12.0506 2.99979 11 2.99979C9.94936 2.99979 8.90905 3.20673 7.93842 3.60877C6.96779 4.01082 6.08585 4.60011 5.34296 5.343C3.84263 6.84333 2.99976 8.87821 2.99976 11C2.99976 13.1218 3.84263 15.1567 5.34296 16.657C6.84329 18.1573 8.87818 19.0002 11 19.0002C13.1217 19.0002 15.1566 18.1573 16.657 16.657Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+// 닉네임 규칙 — 제보자 표시명이라 식별 가능한 최소 길이를 두고, 카드 한 줄을 넘지 않게 상한을 건다.
+const NICKNAME_MIN = 2;
+const NICKNAME_MAX = 10;
 
 // 환영 화면 3D 오빗 — 6종을 원 궤도에 등간격으로 배치해 Y축으로 돌린다.
 // perspective로 앞쪽 야채는 커지고 뒤쪽은 작아지며, 각자는 빌보드로 항상 정면을 본다.
@@ -59,7 +47,7 @@ const SPARKLES = [
 ];
 
 // 여백 탭 시 키보드 내리기 — input/button 밖을 눌렀을 때만 포커스 해제.
-function handleBackgroundPointerDown(event: PointerEvent<HTMLDivElement>) {
+function handleBackgroundPointerDown(event: PointerEvent<HTMLElement>) {
   const target = event.target as HTMLElement;
   if (target.closest("input, button, textarea")) return;
   (document.activeElement as HTMLElement | null)?.blur();
@@ -69,19 +57,14 @@ export function OnboardingView() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("nickname");
   const [nickname, setNickname] = useState("");
-  const [regionQuery, setRegionQuery] = useState("");
   const [district, setPickedDistrict] = useState("");
-  const regionScrollRef = useRef<HTMLElement>(null);
 
-  // 검색어를 바꾸면 목록 스크롤을 맨 위로 — 안 되돌리면 새 결과가 중간부터 보인다.
-  useEffect(() => {
-    regionScrollRef.current?.scrollTo({ top: 0 });
-  }, [regionQuery]);
-
-  // 검색어가 있으면 부분일치 필터, 없으면 "지금 있는 동네"(현재 위치 기준 거리순).
-  // UT는 기준 지역이 삼성동으로 고정이라 GPS 대신 DEFAULT_DISTRICT를 앵커로 쓴다(로딩 깜빡임 방지).
-  const searching = regionQuery.trim().length > 0;
-  const regions = searching ? searchRegions(regionQuery) : regionsByProximity(DEFAULT_DISTRICT);
+  // 검증은 trim 기준 — 공백만 입력한 값은 빈 값과 같게 본다.
+  const trimmedNickname = nickname.trim();
+  const nicknameValid =
+    trimmedNickname.length >= NICKNAME_MIN && trimmedNickname.length <= NICKNAME_MAX;
+  // 입력을 시작하기 전엔 에러를 띄우지 않는다(첫 화면이 빨갛게 뜨는 걸 막는다).
+  const nicknameInvalid = nickname.length > 0 && !nicknameValid;
 
   function start() {
     setOnboarding({ nickname: nickname.trim(), district, completed: true });
@@ -92,30 +75,46 @@ export function OnboardingView() {
   if (step === "nickname") {
     return (
       <PhoneFrame>
-        <div onPointerDown={handleBackgroundPointerDown} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onPointerDown={handleBackgroundPointerDown}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (nicknameValid) setStep("region");
+          }}
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <Scroll className="px-4 pt-10">
             <h1 className="text-head1-24 text-fg-neutral">사용할 닉네임을 알려주세요</h1>
             <div className="mt-8">
-              <TextField value={nickname} onValueChange={(v) => setNickname(v.value)}>
+              <TextField
+                value={nickname}
+                onValueChange={(v) => setNickname(v.value)}
+                maxGraphemeCount={NICKNAME_MAX}
+                invalid={nicknameInvalid}
+                errorMessage={`${NICKNAME_MIN}자 이상 입력해 주세요`}
+              >
                 {/* iOS Safari는 제스처 없는 autoFocus로 키보드가 안 뜰 수 있음(실기기 한계) — 프로토 수용 */}
-                <TextFieldInput placeholder="닉네임" aria-label="닉네임" autoFocus />
+                <TextFieldInput
+                  placeholder="닉네임"
+                  aria-label="닉네임"
+                  autoFocus
+                  enterKeyHint="next"
+                />
               </TextField>
             </div>
           </Scroll>
           <BottomBar>
-            {/* 정식 규칙은 "값이 채워지면 활성화"(disabled={!nickname.trim()})지만,
-                UT에서는 입력 조건 없이 흐름을 태우기로 함(사용자 요청) → 항상 활성. */}
             <ActionButton
-              type="button"
+              type="submit"
               variant="neutralSolid"
               size="large"
               className="w-full"
-              onClick={() => setStep("region")}
+              disabled={!nicknameValid}
             >
               확인
             </ActionButton>
           </BottomBar>
-        </div>
+        </form>
       </PhoneFrame>
     );
   }
@@ -135,44 +134,16 @@ export function OnboardingView() {
               <IconChevronLeftLine />
             </button>
           </header>
-          <Scroll ref={regionScrollRef} className="px-4 pt-2">
+          <Scroll className="px-4 pt-2">
             <h1 className="text-head1-24 text-fg-neutral">평소 어디에서 야채를 구매하나요?</h1>
             <div className="mt-8">
-              <TextField
-                value={regionQuery}
-                onValueChange={(v) => setRegionQuery(v.value)}
-                suffixIcon={<SearchIcon />}
-              >
-                <TextFieldInput placeholder="동 단위로 검색" aria-label="동 단위로 검색" autoFocus />
-              </TextField>
+              <RegionPicker
+                onSelect={(next) => {
+                  setPickedDistrict(next);
+                  setStep("welcome");
+                }}
+              />
             </div>
-
-            {!searching && (
-              <p className="mt-6 text-body-14-regular text-fg-neutral-muted">지금 있는 동네</p>
-            )}
-
-            <ul className="mt-2 flex flex-col">
-              {regions.length === 0 ? (
-                <li className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
-                  검색 결과가 없어요
-                </li>
-              ) : (
-                regions.map((region) => (
-                  <li key={region.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPickedDistrict(region.label);
-                        setStep("welcome");
-                      }}
-                      className="flex h-12 w-full items-center text-left active:bg-bg-neutral-weak"
-                    >
-                      <span className="text-body-16-regular text-fg-neutral">{region.label}</span>
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
           </Scroll>
         </div>
       </PhoneFrame>
