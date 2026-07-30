@@ -12,7 +12,7 @@ export default function PrototypeError({ reset }: { error: Error; reset: () => v
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 text-center">
         <div className="flex flex-col gap-2">
           <p className="text-head2-18 text-fg-neutral">시세를 불러오지 못했어요</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             잠시 후 다시 시도해 주세요. 계속 안 되면 네트워크 연결을 확인해 주세요.
           </p>
         </div>

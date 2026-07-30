@@ -40,7 +40,7 @@ export function StoreDetail({
         {items.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-4 pt-20 text-center">
             <p className="text-body-16-semibold text-fg-neutral">아직 이 가게 제보가 없어요</p>
-            <p className="text-body-14-regular text-fg-neutral-subtle">
+            <p className="text-body-14-regular text-fg-neutral-muted">
               다녀오셨다면 가격을 남겨주세요. 이웃이 헛걸음하지 않아요.
             </p>
           </div>
@@ -62,7 +62,7 @@ export function StoreDetail({
                   </>
                 )}
               </p>
-              <p className="text-caption-12-regular text-fg-neutral-subtle">
+              <p className="text-caption-12-regular text-fg-neutral-muted">
                 {district} · 가장 최근 제보 {items[0].freshness.label}
               </p>
             </section>
@@ -96,12 +96,12 @@ export function StoreDetail({
                       <span className="flex shrink-0 flex-col items-end">
                         <span className="text-body-14-medium tabular-nums text-fg-neutral">
                           {formatNumber(i.price)}원
-                          <span className="text-fg-neutral-subtle"> /{i.unit}</span>
+                          <span className="text-fg-neutral-muted"> /{i.unit}</span>
                         </span>
                         {i.diffPct !== null && (
                           <span
                             className={`text-caption-12-regular tabular-nums ${
-                              i.diffPct < 0 ? "text-fg-positive" : "text-fg-neutral-subtle"
+                              i.diffPct < 0 ? "text-fg-positive" : "text-fg-neutral-muted"
                             }`}
                           >
                             시세 {i.diffPct < 0 ? "" : "+"}

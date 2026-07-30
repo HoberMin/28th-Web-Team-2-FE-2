@@ -10,7 +10,7 @@ export default function PrototypeLoading() {
     <PhoneFrame>
       <div
         role="status"
-        className="flex flex-1 flex-col items-center justify-center gap-3 text-fg-neutral-subtle"
+        className="flex flex-1 flex-col items-center justify-center gap-3 text-fg-neutral-muted"
       >
         <ProgressCircle size="40" tone="brand" />
         <p className="text-body-14-regular">오늘 시세를 불러오고 있어요</p>

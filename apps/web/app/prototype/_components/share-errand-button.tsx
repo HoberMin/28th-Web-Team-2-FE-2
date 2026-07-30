@@ -48,7 +48,7 @@ export function ShareErrandButton({ items }: { items: BasketItem[] }) {
         {copied ? "심부름 링크를 복사했어요" : ""}
       </span>
       {fallbackUrl && (
-        <p className="rounded-xl bg-bg-neutral-weak px-3 py-2 text-caption-12-regular break-all text-fg-neutral-subtle">
+        <p className="rounded-xl bg-bg-neutral-weak px-3 py-2 text-caption-12-regular break-all text-fg-neutral-muted">
           이 링크를 보내주세요: {fallbackUrl}
         </p>
       )}

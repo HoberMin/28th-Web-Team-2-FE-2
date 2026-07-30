@@ -27,7 +27,7 @@ export function FirstReportCard() {
       <p className="text-body-16-semibold text-fg-neutral">
         {isFirst ? `${district} 첫 제보를 남겨보세요` : "아직 제보를 안 하셨어요"}
       </p>
-      <p className="text-body-14-regular text-fg-neutral-subtle">
+      <p className="text-body-14-regular text-fg-neutral-muted">
         {isFirst
           ? "우리 동네 가격 기록이 아직 없어요. 첫 제보가 이웃의 기준이 됩니다."
           : `${district} 이웃이 ${districtReports.length}건 남겼어요. 오늘 본 가격 하나만 알려주시면 내 절약 금액도 계산돼요.`}

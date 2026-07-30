@@ -4,7 +4,7 @@ import type { FreshnessInfo } from "../_lib/stores";
 // 오히려 잘못된 판단을 부른다. 오늘 제보는 진하게, 1주일 넘은 제보는 흐리게 + 명시적으로 경고.
 const STYLE: Record<FreshnessInfo["level"], string> = {
   today: "text-fg-positive",
-  recent: "text-fg-neutral-subtle",
+  recent: "text-fg-neutral-muted",
   stale: "text-fg-warning",
 };
 

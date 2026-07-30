@@ -27,11 +27,11 @@ export function RepeatShopping({ limit = 2 }: { limit?: number }) {
               <span className="text-body-14-medium text-fg-neutral">
                 {formatDateDot(s.date)} 장보기
               </span>
-              <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+              <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                 그날 {formatWon(s.total)}
               </span>
             </div>
-            <p className="text-caption-12-regular text-fg-neutral-subtle">
+            <p className="text-caption-12-regular text-fg-neutral-muted">
               {s.items.map((i) => `${i.name} ${i.weightKg}`).join(" · ")}
             </p>
             <ActionButton

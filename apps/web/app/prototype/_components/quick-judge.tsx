@@ -103,7 +103,7 @@ export function QuickJudge({
               ))}
             </RadioChipRoot>
             {candidates.length === 0 && (
-              <p className="text-body-14-regular text-fg-neutral-subtle">
+              <p className="text-body-14-regular text-fg-neutral-muted">
                 &lsquo;{query.trim()}&rsquo; 이름의 야채가 없어요
               </p>
             )}
@@ -117,7 +117,7 @@ export function QuickJudge({
                 <VegetableThumb image={veg.image} emoji={veg.emoji} size="sm" />
                 <span className="text-body-14-medium text-fg-neutral">{veg.name}</span>
                 {selected?.price != null && (
-                  <span className="ml-auto text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                  <span className="ml-auto text-caption-12-regular tabular-nums text-fg-neutral-muted">
                     오늘 시세 {formatNumber(selected.price)}원/{veg.unit}
                   </span>
                 )}
@@ -165,7 +165,7 @@ export function QuickJudge({
           )}
 
           {veg && selected?.price == null && (
-            <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-subtle">
+            <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-muted">
               {veg.name}은 지금 시세 데이터가 없어요{veg.season ? ` (${veg.season.label})` : ""}.
               <br />
               가격을 제보해두면 이웃에게 도움이 돼요.

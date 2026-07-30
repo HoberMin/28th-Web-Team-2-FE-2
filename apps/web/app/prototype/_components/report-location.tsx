@@ -59,16 +59,16 @@ export function ReportLocation({
     <PhoneFrame>
       <AppBar title="어디서 보셨나요?" backHref={backHref} />
       <Scroll className="px-4 pb-6">
-        <p className="pt-1 text-body-14-regular text-fg-neutral-subtle">
+        <p className="pt-1 text-body-14-regular text-fg-neutral-muted">
           {loading ? "위치 확인 중…" : `${district} 근처 청과·마트`}
         </p>
 
         {!manualMode && (
           <ul className="mt-3 flex flex-col gap-2">
             {stores === null ? (
-              <li className="py-12 text-center text-body-14-regular text-fg-neutral-subtle">불러오는 중…</li>
+              <li className="py-12 text-center text-body-14-regular text-fg-neutral-muted">불러오는 중…</li>
             ) : stores.length === 0 ? (
-              <li className="py-12 text-center text-body-14-regular text-fg-neutral-subtle">
+              <li className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
                 근처에 등록된 가게가 없어요
               </li>
             ) : (
@@ -80,7 +80,7 @@ export function ReportLocation({
                     className="flex w-full flex-col items-start gap-0.5 rounded-2xl bg-bg-neutral-weak px-4 py-3 text-left active:bg-bg-neutral-weak-pressed"
                   >
                     <span className="text-body-16-semibold text-fg-neutral">{store.name}</span>
-                    <span className="text-caption-12-regular text-fg-neutral-subtle">
+                    <span className="text-caption-12-regular text-fg-neutral-muted">
                       {store.category} · {store.distanceM}m
                     </span>
                   </button>
@@ -93,7 +93,7 @@ export function ReportLocation({
         <button
           type="button"
           onClick={() => setManualMode((v) => !v)}
-          className="mt-4 w-full rounded-2xl border border-bg-neutral-weak-pressed px-4 py-3 text-center text-body-14-medium text-fg-neutral-subtle active:bg-bg-neutral-weak"
+          className="mt-4 w-full rounded-2xl border border-bg-neutral-weak-pressed px-4 py-3 text-center text-body-14-medium text-fg-neutral-muted active:bg-bg-neutral-weak"
         >
           목록에 없어요, 직접 입력할게요
         </button>

@@ -38,13 +38,13 @@ export function FavoriteStoresCard({
             >
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-body-16-semibold text-fg-neutral">{s.name}</span>
-                <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                   {s.itemCount}개 품목 · 최근 제보 {s.freshness.label}
                 </span>
               </span>
               {s.avgDiffPct !== null && (
                 <span className="shrink-0 text-body-14-medium tabular-nums">
-                  <span className={s.avgDiffPct < 0 ? "text-fg-positive" : "text-fg-neutral-subtle"}>
+                  <span className={s.avgDiffPct < 0 ? "text-fg-positive" : "text-fg-neutral-muted"}>
                     시세 {s.avgDiffPct < 0 ? "" : "+"}
                     {s.avgDiffPct}%
                   </span>

@@ -22,14 +22,14 @@ export function OnlinePrices({ set, unit }: { set: OnlinePriceSet; unit: string 
         <span className="flex min-w-0 flex-col">
           <span className="text-body-14-medium text-fg-neutral">
             온라인 최저 {formatNumber(cheapest.price)}원
-            <span className="text-fg-neutral-subtle"> /{unit}</span>
+            <span className="text-fg-neutral-muted"> /{unit}</span>
           </span>
-          <span className="text-caption-12-regular text-fg-neutral-subtle">
+          <span className="text-caption-12-regular text-fg-neutral-muted">
             {cheapest.mall} · {prices.length}개 채널 비교
             {hasEstimated && " · 일부 예시"}
           </span>
         </span>
-        <span className="shrink-0 text-caption-12-regular text-fg-neutral-subtle">
+        <span className="shrink-0 text-caption-12-regular text-fg-neutral-muted">
           {open ? "접기" : "펼치기"}
         </span>
       </button>
@@ -44,11 +44,11 @@ export function OnlinePrices({ set, unit }: { set: OnlinePriceSet; unit: string 
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="flex items-center gap-1.5">
                   <span className="text-body-14-medium text-fg-neutral">{p.mall}</span>
-                  <span className="rounded bg-bg-layer-default px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-subtle">
+                  <span className="rounded bg-bg-layer-default px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-muted">
                     {p.channel}
                   </span>
                 </span>
-                <span className="truncate text-caption-12-regular text-fg-neutral-subtle">
+                <span className="truncate text-caption-12-regular text-fg-neutral-muted">
                   {p.productName}
                 </span>
                 {p.channelNote && (
@@ -60,7 +60,7 @@ export function OnlinePrices({ set, unit }: { set: OnlinePriceSet; unit: string 
               </span>
             </li>
           ))}
-          <li className="text-caption-12-regular text-fg-neutral-subtle">
+          <li className="text-caption-12-regular text-fg-neutral-muted">
             채널마다 배송 조건이 달라 단순 최저가 비교로는 판단이 어려워요. 오프라인 동네 가격이 기준이고
             온라인은 참고용입니다.
           </li>

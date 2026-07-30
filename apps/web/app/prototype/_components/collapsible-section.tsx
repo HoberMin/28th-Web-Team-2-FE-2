@@ -33,10 +33,10 @@ export function CollapsibleSection({
         >
           <span className="flex items-baseline gap-2">
             {title}
-            {note && <span className="text-caption-12-regular text-fg-neutral-subtle">{note}</span>}
+            {note && <span className="text-caption-12-regular text-fg-neutral-muted">{note}</span>}
           </span>
           <span
-            className={`shrink-0 text-fg-neutral-subtle transition-transform [&_svg]:size-5 ${
+            className={`shrink-0 text-fg-neutral-muted transition-transform [&_svg]:size-5 ${
               open ? "rotate-180" : ""
             }`}
             aria-hidden="true"

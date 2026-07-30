@@ -34,7 +34,7 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   const reports = useReports({ vegetableId, district });
   const latest = reports[0];
   if (!latest) {
-    return <span className="text-body-14-medium text-fg-neutral-subtle">아직 없어요</span>;
+    return <span className="text-body-14-medium text-fg-neutral-muted">아직 없어요</span>;
   }
   return (
     <span className="text-body-14-medium tabular-nums text-fg-neutral">
@@ -77,7 +77,7 @@ export function ReportsList({
   if (all.length === 0) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-subtle">
+        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-muted">
           아직 {district} 제보가 없어요.
           <br />
           첫 실제가를 제보해 주시면 이웃이 헛걸음하지 않아요.
@@ -85,7 +85,7 @@ export function ReportsList({
 
         {nearbyGroups.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-caption-12-regular text-fg-neutral-subtle">
+            <p className="text-caption-12-regular text-fg-neutral-muted">
               대신 근처 동네 가격을 참고하세요
             </p>
             <ul className="flex flex-col gap-2">
@@ -99,18 +99,18 @@ export function ReportsList({
                   >
                     <span className="flex min-w-0 flex-col">
                       <span className="text-body-14-medium text-fg-neutral">{group.district}</span>
-                      <span className="text-caption-12-regular text-fg-neutral-subtle">
+                      <span className="text-caption-12-regular text-fg-neutral-muted">
                         {getFreshness(latest.createdAt, todayIso).label} · 제보 {group.reports.length}건
                       </span>
                     </span>
                     <span className="flex shrink-0 flex-col items-end">
                       <span className="text-body-14-medium tabular-nums text-fg-neutral">
                         {formatNumber(latest.pricePerKg)}원
-                        <span className="text-fg-neutral-subtle"> /{unit}</span>
+                        <span className="text-fg-neutral-muted"> /{unit}</span>
                       </span>
                       <span
                         className={`text-caption-12-regular tabular-nums ${
-                          diff > 0 ? "text-fg-positive" : "text-fg-neutral-subtle"
+                          diff > 0 ? "text-fg-positive" : "text-fg-neutral-muted"
                         }`}
                       >
                         시세 {diff > 0 ? "−" : "+"}
@@ -140,7 +140,7 @@ export function ReportsList({
   return (
     <div className="flex flex-col">
       {/* 컬럼 헤더 (Figma node 101:1045) */}
-      <div className={`${ROW_GRID} pb-3 text-caption-12-regular text-fg-neutral-subtle`}>
+      <div className={`${ROW_GRID} pb-3 text-caption-12-regular text-fg-neutral-muted`}>
         <span>제보일</span>
         <span>오늘 시세 기준</span>
         <span className="justify-self-end">가격</span>
@@ -160,7 +160,7 @@ export function ReportsList({
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span
                   className={`text-body-16-regular ${
-                    freshness.level === "stale" ? "text-fg-neutral-subtle" : "text-fg-neutral"
+                    freshness.level === "stale" ? "text-fg-neutral-muted" : "text-fg-neutral"
                   }`}
                 >
                   {formatDateDot(r.createdAt.slice(0, 10))}
@@ -169,7 +169,7 @@ export function ReportsList({
                 {r.place && (
                   <Link
                     href={`/prototype/store/${encodeURIComponent(r.place)}`}
-                    className="truncate text-caption-12-regular text-fg-neutral-subtle underline decoration-dotted"
+                    className="truncate text-caption-12-regular text-fg-neutral-muted underline decoration-dotted"
                   >
                     {r.place}
                   </Link>
@@ -180,7 +180,7 @@ export function ReportsList({
                       {freshness.label} · 오래됨
                     </span>
                   ) : (
-                    <span className="text-caption-12-regular text-fg-neutral-subtle">
+                    <span className="text-caption-12-regular text-fg-neutral-muted">
                       {freshness.label}
                     </span>
                   )}
@@ -197,7 +197,7 @@ export function ReportsList({
                   outlier
                     ? "text-fg-warning"
                     : diff === 0
-                      ? "text-fg-neutral-subtle"
+                      ? "text-fg-neutral-muted"
                       : cheaper
                         ? "text-fg-positive"
                         : "text-fg-critical"
@@ -223,7 +223,7 @@ export function ReportsList({
 
               <span className="justify-self-end text-body-16-medium tabular-nums text-fg-neutral">
                 {formatNumber(r.pricePerKg)}원{" "}
-                <span className="text-body-16-regular text-fg-neutral-subtle">/{unit}</span>
+                <span className="text-body-16-regular text-fg-neutral-muted">/{unit}</span>
               </span>
             </li>
           );

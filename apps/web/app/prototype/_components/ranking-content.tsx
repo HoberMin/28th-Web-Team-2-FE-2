@@ -46,7 +46,7 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
 
       {tab === "price" && (
         <>
-          <p className="text-caption-12-regular text-fg-neutral-subtle">예시 데이터입니다 · {district} 기준</p>
+          <p className="text-caption-12-regular text-fg-neutral-muted">예시 데이터입니다 · {district} 기준</p>
           <ul className="flex flex-col gap-2">
             {LOW_PRICE_RANKING.map((item, i) => (
               <li key={item.vegetableId}>
@@ -54,7 +54,7 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
                   href={`/prototype/price/${item.vegetableId}`}
                   className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3 active:bg-bg-neutral-weak-pressed"
                 >
-                  <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-subtle">
+                  <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-muted">
                     {i + 1}
                   </span>
                   <span className="text-[28px] leading-none" aria-hidden="true">
@@ -62,7 +62,7 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="text-body-16-semibold text-fg-neutral">{item.name}</span>
-                    <span className="truncate text-caption-12-regular text-fg-neutral-subtle">{item.place}</span>
+                    <span className="truncate text-caption-12-regular text-fg-neutral-muted">{item.place}</span>
                   </span>
                   <span className="flex flex-col items-end">
                     <span className="text-body-14-medium tabular-nums text-fg-neutral">
@@ -81,15 +81,15 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
 
       {tab === "reporter" && (
         <>
-          <p className="text-caption-12-regular text-fg-neutral-subtle">예시 데이터입니다 · {district} 기준</p>
+          <p className="text-caption-12-regular text-fg-neutral-muted">예시 데이터입니다 · {district} 기준</p>
           <ul className="flex flex-col gap-2">
             {REPORTER_RANKING.map((r) => (
               <li key={r.rank} className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3">
-                <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-subtle">
+                <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-muted">
                   {r.rank}
                 </span>
                 <span className="min-w-0 flex-1 text-body-16-semibold text-fg-neutral">{r.nickname}</span>
-                <span className="text-body-14-medium tabular-nums text-fg-neutral-subtle">
+                <span className="text-body-14-medium tabular-nums text-fg-neutral-muted">
                   제보 {r.reportCount}건
                 </span>
               </li>
@@ -111,7 +111,7 @@ function StoreRanking({
 }) {
   if (stores.length === 0) {
     return (
-      <p className="rounded-xl bg-bg-neutral-weak px-4 py-10 text-center text-body-14-regular text-fg-neutral-subtle">
+      <p className="rounded-xl bg-bg-neutral-weak px-4 py-10 text-center text-body-14-regular text-fg-neutral-muted">
         아직 {district}에 가게별 제보가 없어요.
         <br />
         제보할 때 가게를 골라주시면 여기 순위가 생겨요.
@@ -121,7 +121,7 @@ function StoreRanking({
 
   return (
     <>
-      <p className="text-caption-12-regular text-fg-neutral-subtle">
+      <p className="text-caption-12-regular text-fg-neutral-muted">
         {district} 이웃 제보 기준 · 시세보다 싼 가게 순
       </p>
       <ul className="flex flex-col gap-2">
@@ -131,13 +131,13 @@ function StoreRanking({
               href={`/prototype/store/${encodeURIComponent(s.name)}`}
               className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3 active:bg-bg-neutral-weak-pressed"
             >
-              <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-subtle">
+              <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-muted">
                 {i + 1}
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-body-16-semibold text-fg-neutral">{s.name}</span>
                 <span className="flex items-center gap-1.5">
-                  <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                  <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                     {s.itemCount}개 품목
                   </span>
                   <FreshnessTag freshness={s.freshness} />
@@ -147,14 +147,14 @@ function StoreRanking({
                 {s.avgDiffPct !== null && (
                   <span
                     className={`text-body-14-medium tabular-nums ${
-                      s.avgDiffPct < 0 ? "text-fg-positive" : "text-fg-neutral-subtle"
+                      s.avgDiffPct < 0 ? "text-fg-positive" : "text-fg-neutral-muted"
                     }`}
                   >
                     시세 {s.avgDiffPct < 0 ? "" : "+"}
                     {s.avgDiffPct}%
                   </span>
                 )}
-                <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                   싼 품목 {s.cheaperCount}개
                 </span>
               </span>

@@ -38,7 +38,7 @@ export function WeeklyReport({ todayIso }: { todayIso: string }) {
     >
       <div className="flex items-baseline justify-between">
         <h2 className="text-body-16-semibold text-fg-neutral">이번 주 장보기</h2>
-        <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+        <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
           최근 7일 · {summary.count}건
         </span>
       </div>
@@ -50,7 +50,7 @@ export function WeeklyReport({ todayIso }: { todayIso: string }) {
         {positive ? "아꼈어요" : "더 썼어요"}
       </p>
       {bestName && bestSaved > 0 && (
-        <p className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+        <p className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
           가장 잘 산 건 {bestName} — 시세보다 {formatNumber(bestSaved)}원 저렴하게 사셨어요
           {best.place ? ` (${best.place})` : ""}
         </p>

@@ -24,10 +24,10 @@ export function CommentList({ vegetableId }: { vegetableId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-caption-12-regular text-fg-neutral-subtle">{district} 이웃만 보여요</p>
+      <p className="text-caption-12-regular text-fg-neutral-muted">{district} 이웃만 보여요</p>
 
       {comments.length === 0 ? (
-        <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-subtle">
+        <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-muted">
           아직 댓글이 없어요.
         </p>
       ) : (
@@ -36,7 +36,7 @@ export function CommentList({ vegetableId }: { vegetableId: string }) {
             <li key={c.id} className="rounded-2xl bg-bg-neutral-weak px-4 py-3">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-body-14-medium text-fg-neutral">{c.nickname}</span>
-                <span className="text-caption-12-regular text-fg-neutral-subtle">
+                <span className="text-caption-12-regular text-fg-neutral-muted">
                   {formatDateDot(c.createdAt.slice(0, 10))}
                 </span>
               </div>

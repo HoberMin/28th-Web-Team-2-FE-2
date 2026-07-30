@@ -13,7 +13,7 @@ export function PriceAlertSettings({ favorites }: { favorites: string[] }) {
     return (
       <section aria-label="가격 알림 설정" className="flex flex-col gap-3">
         <h2 className="text-body-16-semibold text-fg-neutral">가격 알림</h2>
-        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-subtle">
+        <p className="rounded-xl bg-bg-neutral-weak px-4 py-6 text-center text-body-14-regular text-fg-neutral-muted">
           찜한 야채가 있으면 가격이 떨어질 때 알려드려요.
         </p>
       </section>
@@ -24,7 +24,7 @@ export function PriceAlertSettings({ favorites }: { favorites: string[] }) {
     <section aria-label="가격 알림 설정" className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-body-16-semibold text-fg-neutral">가격 알림</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">예시 기능 · 실제 발송 없음</span>
+        <span className="text-caption-12-regular text-fg-neutral-muted">예시 기능 · 실제 발송 없음</span>
       </div>
       <ul className="flex flex-col gap-2">
         {favorites.map((id) => {

@@ -7,7 +7,7 @@ export function TrendLabel({ trend, size = "sm" }: { trend: PriceTrend | null; s
   const textClass = size === "md" ? "text-body-14-medium" : "text-caption-12-regular";
 
   if (!trend || trend.direction === "flat") {
-    return <span className={`${textClass} text-fg-neutral-subtle`}>어제와 같음</span>;
+    return <span className={`${textClass} text-fg-neutral-muted`}>어제와 같음</span>;
   }
 
   const up = trend.direction === "up";

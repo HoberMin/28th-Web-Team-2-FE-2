@@ -10,7 +10,7 @@ export default function CardNewsPage() {
       <AppBar title="시세 이야기" backHref="/prototype" />
       <Scroll className="pb-6">
         <div className="flex flex-col gap-3 px-4 pt-3">
-          <p className="text-caption-12-regular text-fg-neutral-subtle">
+          <p className="text-caption-12-regular text-fg-neutral-muted">
             예시 콘텐츠예요. 실제로는 시세 변동을 자동으로 요약해 보여드려요.
           </p>
           {CARD_NEWS.map((news) => {
@@ -33,7 +33,7 @@ export default function CardNewsPage() {
                     </span>
                   </span>
                 </div>
-                <p className="text-body-14-regular text-fg-neutral-subtle">{news.body}</p>
+                <p className="text-body-14-regular text-fg-neutral-muted">{news.body}</p>
               </Link>
             );
           })}
