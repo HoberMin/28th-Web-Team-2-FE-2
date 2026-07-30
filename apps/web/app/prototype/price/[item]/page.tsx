@@ -10,15 +10,12 @@ import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components
 import { ReportSheet } from "../../_components/report-sheet";
 import { FavoriteButton } from "../../_components/favorite-button";
 import { CommentList } from "../../_components/comment-list";
-import { RecipeList } from "../../_components/recipe-list";
 import { CheapestMonthBadge } from "../../_components/cheapest-month-badge";
-import { AddToBasketButton } from "../../_components/add-to-basket-button";
 import { VegetableThumb } from "../../_components/vegetable-thumb";
 import { OnlinePrices } from "../../_components/online-prices";
 import { TrendLabel } from "../../_components/trend-label";
 import { CollapsibleSection } from "../../_components/collapsible-section";
 import { CalloutLink } from "../../_components/callout-link";
-import { getRecipesFor } from "../../_lib/recipes";
 
 // F03 야채 시세 — 데이터 fetch는 서버(RSC). 그래프·제보·댓글만 클라 leaf.
 // 색·크기는 seed 토큰으로 통일했다(이전엔 Figma hex를 직접 박아 새 섹션과 두 색 체계가 섞였다).
@@ -31,7 +28,6 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
   const online = getOnlinePrices(veg.id);
   const trend = getDailyTrend(baseline.series.week);
   const todayIso = getTodayIso();
-  const hasRecipes = getRecipesFor(veg.id).length > 0;
 
   return (
     <PhoneFrame>
@@ -69,14 +65,8 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
           </div>
 
-          {/* 액션 — 담기와 즉석 판단을 한 묶음으로. 이전엔 두 줄로 떨어져 각각 다른 무게로 읽혔다 */}
+          {/* 액션 — 매장에서 바로 판단하고 싶을 때. 가격만 넣으면 되는 최단 경로로 보낸다 */}
           <div className="flex flex-col gap-2 px-4 pb-4">
-            <AddToBasketButton
-              vegetableId={veg.id}
-              vegetableName={veg.name}
-              unitType={veg.unitType}
-            />
-            {/* 매장에서 바로 판단하고 싶을 때 — 가격만 넣으면 되는 최단 경로로 보낸다 */}
             <CalloutLink href={`/prototype/judge?item=${veg.id}`}>
               지금 본 가격이 괜찮은지 확인하기
             </CalloutLink>
@@ -106,21 +96,15 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
           {/* 시세 그래프 + 기간 평균가 + 온라인가(보조 기준) */}
           <div className="flex flex-col gap-4 px-4 pt-6 pb-6">
             <PriceChart vegetableName={veg.name} series={baseline.series} />
-            <CheapestMonthBadge yearSeries={baseline.series.year} source={baseline.source} />
-            {online && <OnlinePrices set={online} unit={veg.unit} />}
+            <CheapestMonthBadge yearSeries={baseline.series.year} />
+            {online && <OnlinePrices set={online} unit={veg.unit} vegetableName={veg.name} />}
           </div>
 
           {/* 섹션 구분 band */}
           <div className="h-1.5 shrink-0 bg-bg-neutral-weak" aria-hidden="true" />
 
-          {/* 아래 둘은 "지금 살까" 판단에 필요하지 않다 → 기본 접힘.
+          {/* 댓글은 "지금 살까" 판단에 필요하지 않다 → 기본 접힘.
               펼치지 않으면 판단 근거가 스크롤 없이 읽힌다 */}
-          {hasRecipes && (
-            <CollapsibleSection title="이 야채로 만드는 레시피" note="예시 · 제휴 아님">
-              <RecipeList vegetableId={veg.id} />
-            </CollapsibleSection>
-          )}
-
           <CollapsibleSection title="동네 댓글">
             <CommentList vegetableId={veg.id} />
           </CollapsibleSection>
