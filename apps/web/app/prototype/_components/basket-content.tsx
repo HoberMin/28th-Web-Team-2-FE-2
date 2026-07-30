@@ -1,18 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { getBaselineDummy, getVegetable } from "../_lib/vegetables";
+import { VegetableThumb } from "./vegetable-thumb";
+import { getVegetable } from "../_lib/vegetables";
 import { useBasket, removeFromBasket, setBasketWeight, addToBasket } from "../_lib/basket-store";
 import { useFavorites } from "../_lib/favorites-store";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
-import { formatNumber, formatWon } from "../_lib/format";
+import { formatNumber, formatQuantity, formatWon } from "../_lib/format";
 import { AddVegetableSheet } from "./add-vegetable-sheet";
+import { CourseCard } from "./course-card";
+import { RepeatShopping } from "./repeat-shopping";
+import { QuantityStepper } from "./quantity-stepper";
+import { planCourse } from "../_lib/course";
+import type { PriceMap } from "../_lib/stores";
 
 // F07 장바구니 — "장보기 전 예산 계획". 담은 품목의 KAMIS 기준 예상액 vs 동네 최저 제보가 기준 예상액을 비교한다.
 // 실 구매 액션은 아님(계획 도구) — 각 행의 "제보하러 가기"가 F03-1 제보 플로우로 연결한다.
-export function BasketContent() {
+export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
   const items = useBasket();
   const favorites = useFavorites();
   const { district } = useCurrentDistrict();
@@ -40,7 +45,7 @@ export function BasketContent() {
                     onClick={() => addToBasket(veg.id, 1)}
                     className="flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-neutral-weak py-4 active:bg-bg-neutral-weak-pressed"
                   >
-                    <Image src={veg.image} alt="" width={48} height={56} className="h-14 w-auto object-contain" />
+                    <VegetableThumb image={veg.image} emoji={veg.emoji} size="lg" />
                     <span className="text-body-14-medium text-fg-neutral">{veg.name}</span>
                   </button>
                 </li>
@@ -48,6 +53,8 @@ export function BasketContent() {
             </ul>
           </div>
         )}
+
+        <RepeatShopping />
 
         <AddVegetableSheet />
       </div>
@@ -61,7 +68,7 @@ export function BasketContent() {
     const veg = getVegetable(item.vegetableId);
     if (!veg) return null;
 
-    const kamisPerKg = getBaselineDummy(item.vegetableId).current;
+    const kamisPerKg = priceMap[item.vegetableId] ?? 0;
     const reportPrices = districtReports
       .filter((r) => r.vegetableId === item.vegetableId)
       .map((r) => r.pricePerKg);
@@ -82,22 +89,34 @@ export function BasketContent() {
       <p aria-live="polite" className="sr-only">
         장바구니에 {items.length}개 담았어요
       </p>
-      <section aria-label="예상 총액" className="flex flex-col gap-3 rounded-2xl bg-bg-brand-weak px-5 py-5">
+      {/* 예상 총액 — "이론상 최저"와 "실제로 가능한 금액"을 구분해 보여준다.
+          동네 최저가를 전부 모으면 가게가 흩어져 한 번에 살 수 없다 → 실현 가능한 안은 아래 코스가 담당. */}
+      <section aria-label="예상 총액" className="flex flex-col gap-3 rounded-2xl bg-bg-neutral-weak px-5 py-5">
         <div className="flex items-center justify-between text-body-14-regular">
-          <span className="text-fg-neutral-subtle">오늘 시세 기준 총액</span>
-          <span className="text-fg-neutral">{formatWon(totalKamis)}</span>
+          <span className="text-fg-neutral-subtle">공공 시세 기준</span>
+          <span className="tabular-nums text-fg-neutral">{formatWon(totalKamis)}</span>
         </div>
         <div className="flex items-center justify-between text-body-14-regular">
-          <span className="text-fg-neutral-subtle">동네 최저 제보가 기준 총액</span>
-          <span className="text-fg-neutral">{formatWon(totalLowest)}</span>
+          <span className="text-fg-neutral-subtle">동네 최저가를 전부 모으면</span>
+          <span className="tabular-nums text-fg-neutral">{formatWon(totalLowest)}</span>
         </div>
         {saved > 0 && (
-          <div className="flex items-center justify-between border-t border-bg-brand-weak-pressed pt-3">
-            <span className="text-body-14-medium text-fg-brand">동네 최저가로 사면</span>
-            <span className="text-body-16-semibold text-fg-positive">{formatNumber(saved)}원 절약 예상</span>
+          <div className="flex flex-col gap-1 border-t border-bg-neutral-weak-pressed pt-3">
+            <div className="flex items-center justify-between">
+              <span className="text-body-14-medium text-fg-neutral">최대 절약 가능액</span>
+              <span className="text-body-16-semibold tabular-nums text-fg-positive">
+                {formatNumber(saved)}원
+              </span>
+            </div>
+            <p className="text-caption-12-regular text-fg-neutral-subtle">
+              가게가 흩어져 있을 수 있어요. 실제로 갈 만한 코스는 아래에서 확인하세요.
+            </p>
           </div>
         )}
       </section>
+
+      {/* 장보기 코스 — 한 곳에서 다 사기 vs 두 곳 돌기 */}
+      <CourseCard plan={planCourse(items, districtReports, priceMap)} district={district} />
 
       <ul className="flex flex-col gap-2">
         {rows.map((row) => {
@@ -106,7 +125,7 @@ export function BasketContent() {
           return (
             <li key={veg.id} className="flex flex-col gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3">
               <div className="flex items-center gap-3">
-                <Image src={veg.image} alt="" width={40} height={40} className="size-10 shrink-0 object-contain" />
+                <VegetableThumb image={veg.image} emoji={veg.emoji} size="md" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-body-16-semibold text-fg-neutral">{veg.name}</span>
                   <span className="block text-caption-12-regular text-fg-neutral-subtle">
@@ -114,34 +133,21 @@ export function BasketContent() {
                     {!hasReport && " · 동네 제보 없음(시세로 대체)"}
                   </span>
                 </span>
-                <div className="flex items-center gap-1 rounded-full bg-bg-layer-default px-1 py-1">
-                  <button
-                    type="button"
-                    aria-label={item.weightKg <= 1 ? `${veg.name} 장바구니에서 빼기` : `${veg.name} 수량 줄이기`}
-                    onClick={() => setBasketWeight(veg.id, item.weightKg - 1)}
-                    className="flex size-11 -my-2.5 items-center justify-center text-body-16-semibold text-fg-neutral-subtle"
-                  >
-                    −
-                  </button>
-                  <span aria-live="polite" className="min-w-8 text-center text-body-14-medium text-fg-neutral">
-                    {item.weightKg}kg
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`${veg.name} 수량 늘리기`}
-                    onClick={() => setBasketWeight(veg.id, item.weightKg + 1)}
-                    className="flex size-11 -my-2.5 items-center justify-center text-body-16-semibold text-fg-neutral-subtle"
-                  >
-                    +
-                  </button>
-                </div>
+                {/* 수량 조절 — 단위는 품목마다 다르다. 삭제는 이 스테퍼가 아니라 아래 한 곳만 담당한다
+                    (이전엔 1kg에서 −를 눌러도 삭제돼 삭제 경로가 둘로 갈렸다) */}
+                <QuantityStepper
+                  quantity={item.weightKg}
+                  unitType={veg.unitType}
+                  onChange={(next) => setBasketWeight(veg.id, next)}
+                  itemName={veg.name}
+                />
                 <button
                   type="button"
                   aria-label={`${veg.name} 장바구니에서 빼기`}
                   onClick={() => removeFromBasket(veg.id)}
-                  className="flex min-h-11 items-center text-caption-12-regular text-fg-neutral-subtle underline"
+                  className="flex size-11 shrink-0 items-center justify-center text-body-16-regular text-fg-neutral-subtle"
                 >
-                  삭제
+                  <span aria-hidden="true">×</span>
                 </button>
               </div>
               <Link

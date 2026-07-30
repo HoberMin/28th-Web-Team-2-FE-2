@@ -10,7 +10,19 @@ import { getNearbyStores, type NearbyStore } from "../_lib/nearby-stores";
 
 // F04-1 가게 위치 선택 — GPS 반경 + Kakao 키워드 검색(청과·채소·과일) 더미.
 // 목록에서 고르거나 없으면 직접 입력 → 제보 폼(F04-2)으로 place를 들고 이동.
-export function ReportLocation({ item, method }: { item: string; method: string }) {
+export function ReportLocation({
+  item,
+  method,
+  price = "",
+  weight = "",
+}: {
+  item: string;
+  method: string;
+  /** 즉석 판단(F10)에서 넘어온 가격 — 제보 폼 프리필용 통과 값 */
+  price?: string;
+  /** 즉석 판단에서 고른 단위의 기준 단위 환산 수량 */
+  weight?: string;
+}) {
   const router = useRouter();
   const { district, loading } = useCurrentDistrict();
   const [stores, setStores] = useState<NearbyStore[] | null>(null);
@@ -31,7 +43,13 @@ export function ReportLocation({ item, method }: { item: string; method: string 
   const backHref = `/prototype/price/${item}`;
 
   function goNext(place: string) {
-    const query = new URLSearchParams({ item, method, place });
+    const query = new URLSearchParams({
+      item,
+      method,
+      place,
+      ...(price ? { price } : {}),
+      ...(weight ? { weight } : {}),
+    });
     const nextHref =
       method === "photo" ? `/prototype/capture?${query.toString()}` : `/prototype/report?${query.toString()}`;
     router.push(nextHref);

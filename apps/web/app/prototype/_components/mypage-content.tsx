@@ -3,6 +3,8 @@
 import { type ReactNode, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { SegmentedControl, SegmentedControlItem } from "seed-design/ui/segmented-control";
+import { VegetableThumb } from "./vegetable-thumb";
 import { getBaselineDummy, getVegetable } from "../_lib/vegetables";
 import { useFavorites } from "../_lib/favorites-store";
 import { useMyReports } from "../_lib/reports-store";
@@ -61,24 +63,18 @@ export function MyPageContent() {
       <PriceAlertSettings favorites={favorites} />
 
       {/* 탭 */}
-      <div role="group" aria-label="마이페이지 목록" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
-        {TABS.map((t) => {
-          const selected = t.key === tab;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => setTab(t.key)}
-              className={`min-h-9 flex-1 rounded-lg py-1.5 text-body-14-medium transition-colors ${
-                selected ? "bg-bg-layer-default text-fg-neutral shadow-sm" : "text-fg-neutral-subtle"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* 세그먼트 컨트롤 — 랭킹 화면과 같은 seed 컴포넌트를 쓴다(이전엔 두 화면에 같은 마크업이 복붙돼 있었다) */}
+      <SegmentedControl
+        aria-label="마이페이지 목록"
+        value={tab}
+        onValueChange={(v) => setTab(v as Tab)}
+      >
+        {TABS.map((t) => (
+          <SegmentedControlItem key={t.key} value={t.key}>
+            {t.label}
+          </SegmentedControlItem>
+        ))}
+      </SegmentedControl>
 
       {/* 탭 내용 */}
       {tab === "favorites" && <FavoritesTab favorites={favorites} />}
@@ -150,7 +146,7 @@ function FavoritesTab({ favorites }: { favorites: string[] }) {
               href={`/prototype/price/${veg.id}`}
               className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl py-3 pl-3 pr-14 active:bg-bg-neutral-weak-pressed"
             >
-              <Image src={veg.image} alt="" width={48} height={48} className="size-12 shrink-0 object-contain" />
+              <VegetableThumb image={veg.image} emoji={veg.emoji} size="lg" />
               <span className="flex min-w-0 flex-col">
                 <span className="text-body-16-semibold text-fg-neutral">{veg.name}</span>
                 <span className="text-body-14-regular text-fg-neutral-subtle">

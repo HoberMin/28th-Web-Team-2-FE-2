@@ -1,17 +1,13 @@
 import { getRecipesFor } from "../_lib/recipes";
 
 // 레시피 연계 — 콘텐츠는 예시/더미(실제 레시피 제휴 없음). 인터랙션 없어 서버 렌더.
+// 제목·접기는 페이지의 CollapsibleSection이 담당한다(판단 정보와 위계를 가르기 위해).
 export function RecipeList({ vegetableId }: { vegetableId: string }) {
   const recipes = getRecipesFor(vegetableId);
   if (recipes.length === 0) return null;
 
   return (
-    <section aria-label="이 야채로 만드는 레시피" className="flex flex-col gap-4 px-4 pt-7">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#141a24]">이 야채로 만드는 레시피</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">예시 · 실제 레시피 제휴 아님</span>
-      </div>
-      <ul className="flex gap-2 overflow-x-auto">
+    <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {recipes.map((r) => (
           <li
             key={r.id}
@@ -21,7 +17,6 @@ export function RecipeList({ vegetableId }: { vegetableId: string }) {
             <span className="text-caption-12-regular text-fg-neutral-subtle">{r.minutes}분</span>
           </li>
         ))}
-      </ul>
-    </section>
+    </ul>
   );
 }

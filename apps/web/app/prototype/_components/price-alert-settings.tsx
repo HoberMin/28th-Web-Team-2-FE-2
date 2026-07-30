@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import { Switch } from "seed-design/ui/switch";
+import { VegetableThumb } from "./vegetable-thumb";
 import { getVegetable } from "../_lib/vegetables";
 import { togglePriceAlert, usePriceAlerts } from "../_lib/price-alerts-store";
 
@@ -35,24 +36,15 @@ export function PriceAlertSettings({ favorites }: { favorites: string[] }) {
               key={id}
               className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3"
             >
-              <Image src={veg.image} alt="" width={36} height={36} className="size-9 shrink-0 object-contain" />
+              <VegetableThumb image={veg.image} emoji={veg.emoji} size="sm" />
               <span className="min-w-0 flex-1 text-body-14-medium text-fg-neutral">{veg.name} 시세 알림</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={enabled}
+              {/* seed Switch로 교체 — 직접 만든 토글은 켜짐 배경에 존재하지 않는 토큰(bg-brand)을 써서
+                  ON 상태가 무색으로 보였다. 정품은 상태 색·포커스 링·키보드 조작이 기본 내장이다. */}
+              <Switch
+                checked={enabled}
+                onCheckedChange={() => togglePriceAlert(id)}
                 aria-label={`${veg.name} 가격 알림 ${enabled ? "끄기" : "켜기"}`}
-                onClick={() => togglePriceAlert(id)}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  enabled ? "bg-bg-brand" : "bg-bg-neutral-weak-pressed"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 size-5 rounded-full bg-bg-layer-default transition-transform ${
-                    enabled ? "translate-x-[22px]" : "translate-x-0.5"
-                  }`}
-                />
-              </button>
+              />
             </li>
           );
         })}

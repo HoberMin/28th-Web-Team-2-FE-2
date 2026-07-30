@@ -4,11 +4,8 @@
 // 실서비스 전환 시 이 파일만 Spring BFF 호출로 교체하면 화면은 그대로 동작.
 
 import { useSyncExternalStore } from "react";
-import { MY_SEED_REPORTS, SEED_REPORTS } from "./vegetables";
+import { getNeighborhoodSeedReports, MY_SEED_REPORTS } from "./vegetables";
 import type { Report } from "./types";
-
-/** 동네 크라우드소싱 풀(이웃 제보 + 내 제보 시드). 로컬 제보는 여기에 얹힌다. */
-const SEEDED = [...MY_SEED_REPORTS, ...SEED_REPORTS];
 
 const STORAGE_KEY = "veg-reports-v1";
 const listeners = new Set<() => void>();
@@ -77,10 +74,14 @@ export function addReport(input: NewReportInput): Report {
   return report;
 }
 
-/** 시드 + 로컬 제보를 합쳐 필터·최신순 정렬해 반환(동네 크라우드소싱 목록). */
+/**
+ * 시드 + 로컬 제보를 합쳐 필터·최신순 정렬해 반환(동네 크라우드소싱 목록).
+ * 이웃 시드는 **요청된 동네만** 지연 생성한다(46종 × 전 동네를 미리 만들면 1만 건이 넘음).
+ */
 export function useReports(filter?: { vegetableId?: string; district?: string }): Report[] {
   const local = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const merged = [...local, ...SEEDED];
+  const neighborhood = filter?.district ? getNeighborhoodSeedReports(filter.district) : [];
+  const merged = [...local, ...MY_SEED_REPORTS, ...neighborhood];
   const filtered = merged.filter(
     (r) =>
       (!filter?.vegetableId || r.vegetableId === filter.vegetableId) &&
@@ -95,6 +96,6 @@ export function useReports(filter?: { vegetableId?: string; district?: string })
  */
 export function useMyReports(): Report[] {
   const local = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const merged = [...local, ...SEEDED].filter((r) => r.mine);
+  const merged = [...local, ...MY_SEED_REPORTS].filter((r) => r.mine);
   return merged.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 }

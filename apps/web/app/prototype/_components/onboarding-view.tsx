@@ -15,6 +15,7 @@ import { setOnboarding } from "../_lib/onboarding-store";
 import { setDistrict } from "../_lib/location";
 import { searchRegions, regionsByProximity } from "../_lib/regions";
 import { DEFAULT_DISTRICT, VEGETABLES } from "../_lib/vegetables";
+import type { Vegetable } from "../_lib/types";
 
 type Step = "nickname" | "region" | "welcome";
 
@@ -39,7 +40,11 @@ function SearchIcon(props: SVGProps<SVGSVGElement>) {
 const ORBIT_COUNT = 6;
 const ORBIT_RADIUS = 100; // px — 씬(size-64=256px) 안에서 도는 반지름
 const ORBIT_DUR = 16; // s — 한 바퀴
-const ORBIT = VEGETABLES.slice(0, ORBIT_COUNT).map((veg, i) => ({
+// 46종 중 Figma 일러스트를 가진 품목만 궤도에 올린다(이모지는 이 연출에 안 맞는다).
+const ILLUSTRATED = VEGETABLES.filter(
+  (v): v is Vegetable & { image: string } => typeof v.image === "string",
+);
+const ORBIT = ILLUSTRATED.slice(0, ORBIT_COUNT).map((veg, i) => ({
   veg,
   angle: (360 / ORBIT_COUNT) * i,
   size: 54,

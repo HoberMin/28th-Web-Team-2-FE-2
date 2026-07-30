@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import {
   BottomSheetBody,
   BottomSheetContent,
   BottomSheetRoot,
   BottomSheetTrigger,
 } from "seed-design/ui/bottom-sheet";
+import { VegetableThumb } from "./vegetable-thumb";
 import { VEGETABLES } from "../_lib/vegetables";
 import { addToBasket } from "../_lib/basket-store";
 
@@ -40,7 +40,7 @@ export function AddVegetableSheet({ excludeIds = [] }: { excludeIds?: string[] }
                     onClick={() => addToBasket(v.id, 1)}
                     className="flex w-full flex-col items-center gap-1.5 rounded-2xl bg-bg-neutral-weak py-4 active:bg-bg-neutral-weak-pressed"
                   >
-                    <Image src={v.image} alt="" width={48} height={56} className="h-14 w-auto object-contain" />
+                    <VegetableThumb image={v.image} emoji={v.emoji} size="lg" />
                     <span className="text-body-14-medium text-fg-neutral">{v.name}</span>
                   </button>
                 </li>

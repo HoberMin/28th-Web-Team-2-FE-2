@@ -1,7 +1,23 @@
-// 야채 catalog + 더미 시세/제보 데이터 (순수 데이터, 서버·클라 공용).
-// 실 API 연결 전까지 화면을 채우는 저충실도 더미. KAMIS 매핑값은 실연결 대비 보관.
+// 야채 catalog(46종) + 더미 시세/제보 데이터 (순수 데이터, 서버·클라 공용).
+//
+// 카탈로그는 `shared/kamis-vegetable-data-spec.md` v3 규격과 1:1 스냅샷이다. 규격이 진실 소스.
+//   단위 정책: kg·g → KAMIS `p_convert_kg_yn=Y` / 개·포기 → `N`(소비자가 그 단위로 사는 품목만)
+//   부류코드: 규격상 100(식량작물) 또는 200(채소류) 둘 중 하나로 고정
+//   일러스트(SVG)는 Figma에서 받은 8종만 있고 나머지는 이모지 폴백(image 미지정)
+// 시세는 실 API 연결 전까지 화면을 채우는 저충실도 더미다.
 
-import type { BaselinePrice, MartPrice, PricePeriod, PricePoint, Report, Vegetable } from "./types";
+import type {
+  BaselinePrice,
+  MarketUnitOption,
+  MartPrice,
+  OnlineChannelKind,
+  OnlineMall,
+  PricePeriod,
+  PricePoint,
+  Report,
+  Vegetable,
+  VegetableGroup,
+} from "./types";
 import { REGIONS } from "./regions";
 
 export const DEFAULT_REGION = "서울";
@@ -11,66 +27,390 @@ export const DEFAULT_DISTRICT = "삼성동";
 /** 더미 기준일 — Figma 와이어프레임(2026-07-24)과 정합. 실 API 연결 시 대체. */
 export const ANCHOR_DATE = "2026-07-24";
 
-/** Figma "인기 야채" 그리드 9종. */
+/**
+ * 배추·무의 계절 품종코드 — 봄/여름고랭지/가을/월동 4개를 매번 전부 조회해
+ * **응답이 있는 것만** 평균하는 게 규격(캘린더로 고정하지 않는다).
+ * TODO(✍️): 4개 각각의 실제 kindCode 값이 규격 문서에 없어 확인 필요. 지금은 01~04로 조회 시도.
+ */
+const SEASONAL_KIND_CODES = ["01", "02", "03", "04"];
+
+/** 유저 노출 46종 (규격 §품목 스코프). */
 export const VEGETABLES: Vegetable[] = [
-  { id: "potato", name: "감자", image: "/veg/potato.svg", emoji: "🥔", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "152" },
-  { id: "garlic", name: "마늘", image: "/veg/garlic.svg", emoji: "🧄", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "258" },
-  { id: "onion", name: "양파", image: "/veg/onion.svg", emoji: "🧅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "245" },
-  { id: "sweet-potato", name: "고구마", image: "/veg/sweet-potato.svg", emoji: "🍠", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "151" },
-  { id: "carrot", name: "당근", image: "/veg/carrot.svg", emoji: "🥕", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "246" },
-  { id: "tomato", name: "토마토", image: "/veg/tomato.svg", emoji: "🍅", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "225" },
-  { id: "corn", name: "옥수수", image: "/veg/corn.svg", emoji: "🌽", category: "식량작물", unit: "1kg", itemCategoryCode: "100", itemCode: "292" },
-  { id: "bell-pepper", name: "피망", image: "/veg/bell-pepper.svg", emoji: "🫑", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "256" },
-  { id: "cucumber", name: "오이", image: "/veg/cucumber.svg", emoji: "🥒", category: "채소류", unit: "1kg", itemCategoryCode: "200", itemCode: "223" },
+  // ── 식량작물(100) ─────────────────────────────────────────────
+  { id: "potato", name: "감자", image: "/veg/potato.svg", emoji: "🥔", category: "식량작물", unit: "1kg", unitType: "kg", itemCategoryCode: "100", itemCode: "152", kindCode: "01", kindLabel: "수미·노지" },
+  { id: "sweet-potato", name: "고구마", image: "/veg/sweet-potato.svg", emoji: "🍠", category: "식량작물", unit: "1kg", unitType: "kg", itemCategoryCode: "100", itemCode: "151", kindCode: "00", kindLabel: "밤고구마" },
+
+  // ── 뿌리·양념 채소 ────────────────────────────────────────────
+  { id: "garlic", name: "마늘", image: "/veg/garlic.svg", emoji: "🧄", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "258", kindCode: "01", kindLabel: "깐마늘 국산" },
+  { id: "onion", name: "양파", image: "/veg/onion.svg", emoji: "🧅", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "245", kindCode: "00" },
+  { id: "carrot", name: "당근", image: "/veg/carrot.svg", emoji: "🥕", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "232", kindCode: "01", kindLabel: "무세척" },
+  { id: "ginger", name: "생강", emoji: "🫚", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "247", kindCode: "00", kindLabel: "국산" },
+
+  // ── 열매 채소 ─────────────────────────────────────────────────
+  { id: "tomato", name: "토마토", image: "/veg/tomato.svg", emoji: "🍅", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "225", kindCode: "00" },
+  { id: "cherry-tomato", name: "방울토마토", emoji: "🍅", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "422", kindCode: "01" },
+  { id: "date-cherry-tomato", name: "대추방울토마토", emoji: "🍅", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "422", kindCode: "02" },
+  { id: "bell-pepper", name: "피망", image: "/veg/bell-pepper.svg", emoji: "🫑", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "255", kindCode: "00", kindLabel: "청" },
+  { id: "paprika", name: "파프리카", emoji: "🫑", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "256", kindCode: "00" },
+  { id: "cucumber", name: "오이", image: "/veg/cucumber.svg", emoji: "🥒", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "223", kindCode: "02", kindLabel: "다다기계통" },
+  { id: "zucchini-korean", name: "애호박", emoji: "🥒", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "224", kindCode: "01" },
+  { id: "zucchini", name: "쥬키니", emoji: "🥒", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "224", kindCode: "02" },
+
+  // ── 고추류 ────────────────────────────────────────────────────
+  { id: "green-pepper", name: "풋고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "00", kindLabel: "녹광 등" },
+  { id: "kkwari-pepper", name: "꽈리고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "02" },
+  { id: "cheongyang-pepper", name: "청양고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "03" },
+  { id: "mild-pepper", name: "오이맛고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "04" },
+  { id: "red-pepper", name: "붉은고추", emoji: "🌶️", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "243", kindCode: "00" },
+  { id: "dried-pepper", name: "건고추", emoji: "🌶️", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "241", kindCode: "00", kindLabel: "화건" },
+  { id: "pepper-powder-kr", name: "고춧가루(국산)", emoji: "🫙", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "248", kindCode: "00" },
+  { id: "pepper-powder-cn", name: "고춧가루(중국산)", emoji: "🫙", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "248", kindCode: "01" },
+
+  // ── 배추·무 계열 ──────────────────────────────────────────────
+  { id: "napa-cabbage", name: "배추", emoji: "🥬", category: "채소류", unit: "1포기", unitType: "포기", itemCategoryCode: "200", itemCode: "211", kindCode: "00", kindLabel: "계절형(봄·여름고랭지·가을·월동)", seasonalKindCodes: SEASONAL_KIND_CODES },
+  { id: "radish", name: "무", emoji: "🥬", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "231", kindCode: "00", kindLabel: "계절형(봄·고랭지·가을·월동)", seasonalKindCodes: SEASONAL_KIND_CODES },
+  { id: "baby-napa-cabbage", name: "알배기배추", emoji: "🥬", category: "채소류", unit: "1포기", unitType: "포기", itemCategoryCode: "200", itemCode: "279", kindCode: "00" },
+  { id: "young-napa-cabbage", name: "얼갈이배추", emoji: "🥬", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "215", kindCode: "00" },
+  { id: "cabbage", name: "양배추", emoji: "🥬", category: "채소류", unit: "1포기", unitType: "포기", itemCategoryCode: "200", itemCode: "212", kindCode: "00" },
+  { id: "young-radish", name: "열무", emoji: "🥬", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "233", kindCode: "00" },
+
+  // ── 잎채소 ────────────────────────────────────────────────────
+  { id: "spinach", name: "시금치", emoji: "🥬", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "213", kindCode: "00" },
+  { id: "red-lettuce", name: "적상추", emoji: "🥬", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "214", kindCode: "01" },
+  { id: "green-lettuce", name: "청상추", emoji: "🥬", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "214", kindCode: "02" },
+  { id: "perilla-leaf", name: "깻잎", emoji: "🌿", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "253", kindCode: "00" },
+  { id: "water-parsley", name: "미나리", emoji: "🌿", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "252", kindCode: "00" },
+  { id: "welsh-onion", name: "대파", emoji: "🌱", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "246", kindCode: "00" },
+  { id: "chive", name: "쪽파", emoji: "🌱", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "246", kindCode: "02" },
+  { id: "broccoli", name: "브로콜리", emoji: "🥦", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "280", kindCode: "00" },
+  { id: "mustard-green", name: "갓", emoji: "🥬", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "216", kindCode: "00", season: { months: [11, 12], label: "가을~겨울 한정" } },
+
+  // ── 버섯 ──────────────────────────────────────────────────────
+  { id: "oyster-mushroom", name: "느타리버섯", emoji: "🍄", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "315", kindCode: "00" },
+  { id: "enoki-mushroom", name: "팽이버섯", emoji: "🍄", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "316", kindCode: "00" },
+  { id: "king-oyster-mushroom", name: "새송이버섯", emoji: "🍄", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "317", kindCode: "00" },
+
+  // ── 특용작물 ──────────────────────────────────────────────────
+  { id: "sesame", name: "참깨", emoji: "🌾", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "312", kindCode: "01", kindLabel: "국산" },
+  { id: "peanut", name: "땅콩", emoji: "🥜", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "314", kindCode: "01", kindLabel: "국산" },
+
+  // ── KAMIS가 채소류로 분류하는 과채류(규격 §스코프) ───────────
+  { id: "watermelon", name: "수박", emoji: "🍉", category: "과일", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "221", kindCode: "00", season: { months: [5, 6, 7, 8, 9], label: "여름 한정" } },
+  { id: "korean-melon", name: "참외", emoji: "🍈", category: "과일", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "222", kindCode: "00", season: { months: [3, 4, 5, 6, 7, 8], label: "봄~여름 한정" } },
+  { id: "melon", name: "멜론", emoji: "🍈", category: "과일", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "257", kindCode: "00" },
+  { id: "strawberry", name: "딸기", emoji: "🍓", category: "과일", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "226", kindCode: "00", season: { months: [12, 1, 2, 3, 4, 5], label: "겨울~봄 한정" } },
 ];
 
-/** 품목별 현재 시세 기준값(원). potato는 Figma(2,490원)와 일치. */
+/**
+ * 화면 필터용 그룹 — 46종을 3열 그리드에 그대로 쏟으면 16줄이 되어 홈이 스크롤에 잠긴다.
+ * 부류코드(100/200)는 값이 2개뿐이라 필터가 안 되므로 "장 볼 때 묶는 방식"으로 따로 나눈다.
+ * id → 그룹 맵으로 둬서 카탈로그 46줄을 건드리지 않는다.
+ */
+const GROUP_BY_ID: Record<string, VegetableGroup> = {
+  potato: "감자·뿌리",
+  "sweet-potato": "감자·뿌리",
+  carrot: "감자·뿌리",
+  radish: "감자·뿌리",
+  ginger: "감자·뿌리",
+
+  garlic: "양념",
+  onion: "양념",
+  "welsh-onion": "양념",
+  chive: "양념",
+  "pepper-powder-kr": "양념",
+  "pepper-powder-cn": "양념",
+  "dried-pepper": "양념",
+  "red-pepper": "양념",
+  sesame: "양념",
+  peanut: "양념",
+
+  "green-pepper": "고추",
+  "kkwari-pepper": "고추",
+  "cheongyang-pepper": "고추",
+  "mild-pepper": "고추",
+
+  "napa-cabbage": "잎채소",
+  "baby-napa-cabbage": "잎채소",
+  "young-napa-cabbage": "잎채소",
+  cabbage: "잎채소",
+  "young-radish": "잎채소",
+  spinach: "잎채소",
+  "red-lettuce": "잎채소",
+  "green-lettuce": "잎채소",
+  "perilla-leaf": "잎채소",
+  "water-parsley": "잎채소",
+  "mustard-green": "잎채소",
+  broccoli: "잎채소",
+
+  tomato: "열매채소",
+  "cherry-tomato": "열매채소",
+  "date-cherry-tomato": "열매채소",
+  "bell-pepper": "열매채소",
+  paprika: "열매채소",
+  cucumber: "열매채소",
+  "zucchini-korean": "열매채소",
+  zucchini: "열매채소",
+
+  "oyster-mushroom": "버섯",
+  "enoki-mushroom": "버섯",
+  "king-oyster-mushroom": "버섯",
+
+  watermelon: "과채",
+  "korean-melon": "과채",
+  melon: "과채",
+  strawberry: "과채",
+};
+
+/** 필터 칩 노출 순서 — 자주 사는 것부터. */
+export const VEGETABLE_GROUPS: VegetableGroup[] = [
+  "감자·뿌리",
+  "잎채소",
+  "열매채소",
+  "고추",
+  "양념",
+  "버섯",
+  "과채",
+];
+
+export function getVegetableGroup(id: string): VegetableGroup {
+  return GROUP_BY_ID[id] ?? "잎채소";
+}
+
+/** 홈 "인기 야채" 상단 고정 — 일러스트가 있어 그리드에서 가장 잘 읽히는 8종. */
+export const POPULAR_IDS: string[] = [
+  "potato",
+  "onion",
+  "garlic",
+  "sweet-potato",
+  "carrot",
+  "tomato",
+  "cucumber",
+  "bell-pepper",
+];
+
+/**
+ * 품목별 현재 시세 기준값(원) — **각 품목의 `unit` 단위 기준**.
+ * potato는 Figma(2,490원/1kg)와 일치. 나머지는 소매 상식 수준의 저충실도 더미.
+ */
 const BASE_PRICE: Record<string, number> = {
   potato: 2490,
+  "sweet-potato": 3600,
   garlic: 8900,
   onion: 1980,
-  "sweet-potato": 3600,
   carrot: 2900,
+  ginger: 9800,
   tomato: 5200,
-  corn: 1500,
+  "cherry-tomato": 400,
+  "date-cherry-tomato": 500,
   "bell-pepper": 6900,
-  cucumber: 4300,
+  paprika: 1200,
+  cucumber: 1100,
+  "zucchini-korean": 1800,
+  zucchini: 1600,
+  "green-pepper": 9800,
+  "kkwari-pepper": 11000,
+  "cheongyang-pepper": 12500,
+  "mild-pepper": 9500,
+  "red-pepper": 1500,
+  "dried-pepper": 3800,
+  "pepper-powder-kr": 32000,
+  "pepper-powder-cn": 14000,
+  "napa-cabbage": 5500,
+  radish: 2200,
+  "baby-napa-cabbage": 3200,
+  "young-napa-cabbage": 3500,
+  cabbage: 4300,
+  "young-radish": 3800,
+  spinach: 900,
+  "red-lettuce": 1100,
+  "green-lettuce": 1000,
+  "perilla-leaf": 1900,
+  "water-parsley": 1300,
+  "welsh-onion": 3400,
+  chive: 6800,
+  broccoli: 2900,
+  "mustard-green": 4200,
+  "oyster-mushroom": 800,
+  "enoki-mushroom": 500,
+  "king-oyster-mushroom": 900,
+  sesame: 3200,
+  peanut: 2100,
+  watermelon: 18000,
+  "korean-melon": 3500,
+  melon: 9800,
+  strawberry: 2400,
 };
 
 /**
- * 실제 컬리 판매가(원, 1kg 환산) — api.kurly.com 조회 결과, 2026-07-24 기준.
- * price = 실제 컬리 판매가를 1kg로 환산한 값(baseline과 단위 정합). productName = 환산 근거 SKU.
- * 컬리는 프리미엄 온라인 그로서리라 시장/제보가보다 대체로 높다(의도된 포지셔닝 차이).
- * ⚠️ 옥수수·피망·오이는 컬리가 개수(입) 단위로만 팔아 1kg 환산이 불가 → 비교 제외(엔트리 없음).
- * 실 API 연동 시 이 표를 정기 조회 결과로 대체.
+ * 온라인 판매가 스냅샷 — 컬리는 실측(api.kurly.com, 2026-07-24), **쿠팡·G마켓·B마트는 더미**다.
+ * ⚠️ 크롤링 미연결 상태라 실측이 아닌 값은 화면에서 "예시"로 밝힌다.
+ *
+ * 채널 성격을 반드시 함께 담는다(types §OnlineChannelKind):
+ *   컬리 = 새벽배송·프리미엄 → 대체로 비쌈(의도된 포지셔닝)
+ *   쿠팡 = 새벽/당일·회원가 전제
+ *   G마켓 = 오픈마켓·판매자 편차 큼·배송비 별도
+ *   B마트 = 즉시배송·소량 → 단가가 구조적으로 높음
+ * 기준 단위 환산이 불가한 SKU는 엔트리를 두지 않는다(억지 환산이 더 위험하다).
  */
-const MART_PRICE: Record<string, { price: number; productName: string }> = {
-  potato: { price: 4990, productName: "[팜송] 왕감자 1kg" },
-  garlic: { price: 12900, productName: "깐마늘 1kg (26년 햇)" },
-  // 양파 1.5kg 3,990원 → 1kg 환산 2,660원
-  onion: { price: 2660, productName: "양파 1.5kg (1kg 환산)" },
-  "sweet-potato": { price: 4990, productName: "한입 꿀고구마 1kg" },
-  carrot: { price: 4290, productName: "흙당근 1kg" },
-  tomato: { price: 7990, productName: "완숙토마토 1kg" },
+interface MallEntry {
+  mall: OnlineMall;
+  price: number;
+  productName: string;
+  channel: OnlineChannelKind;
+  channelNote?: string;
+  /** 실제 조회값인지(컬리만 true) — 화면에서 "예시" 라벨 여부를 가른다 */
+  measured?: boolean;
+}
+
+const ONLINE_PRICES: Record<string, MallEntry[]> = {
+  potato: [
+    { mall: "컬리", price: 4990, productName: "[팜송] 왕감자 1kg", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 3680, productName: "곰곰 감자 2kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "G마켓", price: 3200, productName: "포슬포슬 감자 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "B마트", price: 5400, productName: "감자 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  onion: [
+    { mall: "컬리", price: 2660, productName: "양파 1.5kg (1kg 환산)", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 2290, productName: "곰곰 양파 3kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "G마켓", price: 1890, productName: "국내산 양파 10kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "B마트", price: 3200, productName: "양파 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  garlic: [
+    { mall: "컬리", price: 12900, productName: "깐마늘 1kg (26년 햇)", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 11900, productName: "깐마늘 1kg", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "G마켓", price: 9800, productName: "깐마늘 2kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+  ],
+  "sweet-potato": [
+    { mall: "컬리", price: 4990, productName: "한입 꿀고구마 1kg", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 4180, productName: "꿀고구마 2kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "G마켓", price: 3490, productName: "베니하루카 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+  ],
+  carrot: [
+    { mall: "컬리", price: 4290, productName: "흙당근 1kg", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 3480, productName: "곰곰 당근 1kg", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "B마트", price: 4600, productName: "당근 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  tomato: [
+    { mall: "컬리", price: 7990, productName: "완숙토마토 1kg", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 6980, productName: "완숙토마토 1kg", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "B마트", price: 8400, productName: "완숙토마토 700g (1kg 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  paprika: [
+    { mall: "컬리", price: 1690, productName: "파프리카 2입 (100g 환산)", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 1380, productName: "파프리카 1kg (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+  ],
+  spinach: [
+    { mall: "컬리", price: 1490, productName: "시금치 200g (100g 환산)", channel: "새벽배송", measured: true },
+    { mall: "B마트", price: 1900, productName: "시금치 200g (100g 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  "welsh-onion": [
+    { mall: "컬리", price: 4290, productName: "손질대파 1kg", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 3690, productName: "손질대파 1kg", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "G마켓", price: 2980, productName: "흙대파 3kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+  ],
+  broccoli: [
+    { mall: "컬리", price: 3290, productName: "브로콜리 1개", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 2680, productName: "브로콜리 2입 (1개 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+  ],
+  cabbage: [
+    { mall: "컬리", price: 5490, productName: "양배추 1포기", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 4680, productName: "양배추 1포기", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "B마트", price: 5900, productName: "양배추 1/2포기 (1포기 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+  ],
+  "enoki-mushroom": [
+    { mall: "컬리", price: 690, productName: "팽이버섯 300g (100g 환산)", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 530, productName: "팽이버섯 5봉 (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+  ],
+  strawberry: [
+    { mall: "컬리", price: 3990, productName: "설향 딸기 500g (100g 환산)", channel: "새벽배송", measured: true },
+    { mall: "쿠팡", price: 3480, productName: "설향 딸기 750g (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+  ],
 };
 
 export function getVegetable(id: string): Vegetable | undefined {
   return VEGETABLES.find((v) => v.id === id);
 }
 
-/** 실제 컬리 판매가(1kg 환산). 개수 단위 품목 등 엔트리 없으면 undefined → "컬리 가격" 행 미노출. */
-export function getMartPrice(vegetableId: string): MartPrice | undefined {
+/**
+ * 이 품목이 지금 달에 조사되는지(제철인지).
+ * `season` 없는 품목은 연중 조사되므로 항상 true.
+ */
+export function isInSeason(veg: Vegetable, month: number): boolean {
+  if (!veg.season) return true;
+  return veg.season.months.includes(month);
+}
+
+/**
+ * 시장에서 실제로 파는 단위 목록 — 기준 단위(veg.unit) 환산비를 함께 준다.
+ * 시장은 "감자 1망 5,000원"처럼 팔기 때문에, kg 시세와 비교하려면 이 환산이 먼저다.
+ * 첫 항목이 기준 단위(ratio 1) — 폼의 기본 선택값.
+ */
+export function getMarketUnitOptions(veg: Vegetable): MarketUnitOption[] {
+  switch (veg.unitType) {
+    case "kg":
+      return [
+        { label: "1kg", ratio: 1 },
+        { label: "1단", ratio: 0.8, note: "대파·쪽파 등 단 묶음 평균 800g" },
+        { label: "1망", ratio: 1.5, note: "감자·양파 망 평균 1.5kg" },
+        { label: "1박스", ratio: 5, note: "소매 박스 평균 5kg" },
+      ];
+    case "g":
+      return [
+        { label: "100g", ratio: 1 },
+        { label: "1봉지(200g)", ratio: 2 },
+        { label: "1단(300g)", ratio: 3, note: "시금치·미나리 등 단 묶음" },
+        { label: "500g", ratio: 5 },
+      ];
+    case "개":
+      return [
+        { label: "1개", ratio: 1 },
+        { label: "3개 묶음", ratio: 3 },
+        { label: "1봉지(5개)", ratio: 5 },
+      ];
+    case "포기":
+      return [
+        { label: "1포기", ratio: 1 },
+        { label: "2포기", ratio: 2 },
+        { label: "3포기", ratio: 3 },
+      ];
+  }
+}
+
+export interface OnlinePriceSet {
+  /** 싼 순으로 정렬된 채널별 가격 */
+  prices: MartPrice[];
+  /** 가장 싼 채널 */
+  cheapest: MartPrice;
+  /** 실측이 아닌(더미) 값이 섞여 있는지 — 화면에서 "예시" 라벨을 붙일 근거 */
+  hasEstimated: boolean;
+}
+
+/**
+ * 품목의 온라인 판매가 묶음(기준 단위 환산). 엔트리 없으면 undefined → 온라인 항목 자체 미노출.
+ * 최저가 하나만 요약으로 보여주고 상세는 접어둔다 — 온라인은 보조 기준이라 화면 주인이 아니다.
+ */
+export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined {
   const veg = getVegetable(vegetableId);
-  const entry = MART_PRICE[vegetableId];
-  if (!veg || !entry) return undefined;
+  const entries = ONLINE_PRICES[vegetableId];
+  if (!veg || !entries || entries.length === 0) return undefined;
+
+  const prices: MartPrice[] = entries
+    .map((e) => ({
+      vegetableId: veg.id,
+      mall: e.mall,
+      productName: e.productName,
+      unit: veg.unit,
+      price: e.price,
+      channel: e.channel,
+      channelNote: e.channelNote,
+      asOf: ANCHOR_DATE,
+    }))
+    .sort((a, b) => a.price - b.price);
+
   return {
-    vegetableId: veg.id,
-    mall: "컬리",
-    productName: entry.productName,
-    unit: veg.unit,
-    price: entry.price,
-    source: "kurly",
-    asOf: ANCHOR_DATE,
+    prices,
+    cheapest: prices[0],
+    hasEstimated: entries.some((e) => !e.measured),
   };
 }
 
@@ -143,68 +483,82 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
 /**
  * 손으로 작성한 동네 이웃 제보 시드(mine=false).
  * potato/삼성동 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원) — 자동 생성이 덮지 않게 별도 보존.
+ * place는 가게 축(F09 가게 상세)이 비지 않도록 삼성동 실제 상권 이름으로 채운다.
  */
 const HAND_SEED_REPORTS: Report[] = [
-  { id: "seed-potato-1", vegetableId: "potato", district: "삼성동", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false, purchased: true },
-  { id: "seed-potato-2", vegetableId: "potato", district: "삼성동", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false, purchased: true },
-  { id: "seed-potato-3", vegetableId: "potato", district: "삼성동", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false, purchased: true },
-  { id: "seed-onion-1", vegetableId: "onion", district: "삼성동", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false, purchased: true },
-  { id: "seed-carrot-1", vegetableId: "carrot", district: "삼성동", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false, purchased: true },
+  { id: "seed-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false, purchased: true },
+  { id: "seed-potato-2", vegetableId: "potato", district: "삼성동", place: "행복청과", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false, purchased: true },
+  { id: "seed-potato-3", vegetableId: "potato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false, purchased: true },
+  { id: "seed-onion-1", vegetableId: "onion", district: "삼성동", place: "우리농산물가락직판장", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false, purchased: true },
+  { id: "seed-carrot-1", vegetableId: "carrot", district: "삼성동", place: "행복청과", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false, purchased: true },
 ];
 
 /**
  * 내가 올린 제보 시드(mine=true) — 마이페이지 "제보/구매 내역"이 첫 방문에도 비지 않게.
  * "제보 = 관찰한 실제가"이며, purchased=true 인 것만 구매 내역·절약 계산 대상이다.
  * (tomato는 봤지만 비싸서 안 산 케이스 — 제보 내역엔 뜨지만 구매 내역엔 안 잡힘)
- * 동네 크라우드소싱 목록에도 함께 섞여 노출된다(내 제보도 동네 제보의 일부).
  */
 export const MY_SEED_REPORTS: Report[] = [
-  { id: "mine-potato-1", vegetableId: "potato", district: "삼성동", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true, purchased: true },
-  { id: "mine-tomato-1", vegetableId: "tomato", district: "삼성동", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true, purchased: false },
-  { id: "mine-onion-1", vegetableId: "onion", district: "삼성동", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true, purchased: true },
-  { id: "mine-carrot-1", vegetableId: "carrot", district: "삼성동", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true, purchased: true },
+  { id: "mine-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true, purchased: true },
+  { id: "mine-tomato-1", vegetableId: "tomato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true, purchased: false },
+  { id: "mine-onion-1", vegetableId: "onion", district: "삼성동", place: "행복청과", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true, purchased: true },
+  { id: "mine-carrot-1", vegetableId: "carrot", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true, purchased: true },
 ];
 
+/** 자동 생성 제보에 붙일 가게명 풀 — 동네별로 결정적으로 골라 가게 축(F09)이 항상 채워지게. */
+const STORE_NAME_POOL = ["행복청과", "동네야채가게", "제일마트", "선릉시장 3번가게", "농협하나로마트"];
+
 /**
- * 동네별 이웃 제보 자동 생성 — 어느 동네를 골라도 "동네 제보가"가 비지 않도록
- * 전 동 × 전 품목을 결정적(seed 기반) 더미로 채운다. mine=false(이웃 제보).
- * 이미 수기 시드가 있는 (동네×품목)은 건너뛴다 — 삼성동 감자 등 Figma 정합값 보존.
+ * 한 동네의 이웃 제보를 결정적으로 생성한다(mine=false).
+ * 46종 × 100여 개 동을 미리 다 만들면 1만 건이 넘어 렌더마다 정렬 비용이 커진다
+ * → **요청된 동네만 만들고 캐시**한다. 이미 수기 시드가 있는 품목은 건너뛴다
+ *   (삼성동 감자 등 Figma 정합값 보존).
  */
-function generateNeighborhoodReports(): Report[] {
+const neighborhoodCache = new Map<string, Report[]>();
+
+export function getNeighborhoodSeedReports(district: string): Report[] {
+  const cached = neighborhoodCache.get(district);
+  if (cached) return cached;
+
+  const handSeeds = HAND_SEED_REPORTS.filter((r) => r.district === district);
   const authored = new Set(
-    [...HAND_SEED_REPORTS, ...MY_SEED_REPORTS].map((r) => `${r.district}|${r.vegetableId}`),
+    [...HAND_SEED_REPORTS, ...MY_SEED_REPORTS]
+      .filter((r) => r.district === district)
+      .map((r) => r.vegetableId),
   );
-  const reports: Report[] = [];
-  for (const region of REGIONS) {
-    for (const veg of VEGETABLES) {
-      if (authored.has(`${region.label}|${veg.id}`)) continue;
-      const base = BASE_PRICE[veg.id] ?? 3000;
-      const seed = hashSeed(`${region.id}-${veg.id}`);
-      const count = 2 + (seed % 2); // 동네·품목마다 2~3건
-      for (let i = 0; i < count; i++) {
-        // 기준가 대비 -10~+10% 편차 · 최근 2주 내 날짜 (모두 seed로 결정)
-        const price = round10(base * (1 + (((seed + i * 37) % 21) - 10) / 100));
-        const daysAgo = (seed + i * 5) % 14;
-        reports.push({
-          id: `nb-${region.id}-${veg.id}-${i}`,
-          vegetableId: veg.id,
-          district: region.label,
-          weightKg: 1,
-          price,
-          pricePerKg: price,
-          createdAt: `${shiftDays(ANCHOR_DATE, -daysAgo)}T09:00:00+09:00`,
-          method: i % 2 === 0 ? "photo" : "manual",
-          mine: false,
-          purchased: true,
-        });
-      }
+  const region = REGIONS.find((r) => r.label === district);
+  const regionId = region?.id ?? `unknown-${district}`;
+
+  const generated: Report[] = [];
+  for (const veg of VEGETABLES) {
+    if (authored.has(veg.id)) continue;
+    const base = BASE_PRICE[veg.id] ?? 3000;
+    const seed = hashSeed(`${regionId}-${veg.id}`);
+    const count = 2 + (seed % 2); // 품목마다 2~3건
+    for (let i = 0; i < count; i++) {
+      // 기준가 대비 -10~+10% 편차 · 최근 2주 내 날짜 (모두 seed로 결정)
+      const price = round10(base * (1 + (((seed + i * 37) % 21) - 10) / 100));
+      const daysAgo = (seed + i * 5) % 14;
+      generated.push({
+        id: `nb-${regionId}-${veg.id}-${i}`,
+        vegetableId: veg.id,
+        district,
+        place: STORE_NAME_POOL[(seed + i) % STORE_NAME_POOL.length],
+        weightKg: 1,
+        price,
+        pricePerKg: price,
+        createdAt: `${shiftDays(ANCHOR_DATE, -daysAgo)}T09:00:00+09:00`,
+        method: i % 2 === 0 ? "photo" : "manual",
+        mine: false,
+        purchased: true,
+      });
     }
   }
-  return reports;
-}
 
-/** 동네 크라우드소싱 시드 = 수기 시드(삼성동 Figma 정합) + 전 동네 자동 생성. */
-export const SEED_REPORTS: Report[] = [...HAND_SEED_REPORTS, ...generateNeighborhoodReports()];
+  const result = [...handSeeds, ...generated];
+  neighborhoodCache.set(district, result);
+  return result;
+}
 
 /** 찜 시드 — 첫 방문에도 마이페이지 "찜한 야채"가 비지 않게(vegetableId). */
 export const SEED_FAVORITES: string[] = ["potato", "onion"];

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ActionButton } from "seed-design/ui/action-button";
+import { SegmentedControl, SegmentedControlItem } from "seed-design/ui/segmented-control";
 import { AppBar, BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { getVegetable, VEGETABLES } from "../_lib/vegetables";
 import { useCurrentDistrict } from "../_lib/location";
@@ -13,8 +14,8 @@ import type { Report } from "../_lib/types";
 
 // 구매 여부 선택지 — "샀어요"만 구매 내역·시세 대비 절약에 잡히고, 둘 다 동네 시세엔 기여.
 const PURCHASE_OPTIONS = [
-  { value: true, label: "네, 샀어요" },
-  { value: false, label: "시세만 봤어요" },
+  { key: "yes", label: "네, 샀어요" },
+  { key: "no", label: "시세만 봤어요" },
 ] as const;
 
 // F04-2 야채 제보 폼 — 위치는 F04-1(가게 위치 선택)에서 넘어옴, 나머지 직접 입력 → localStorage 저장 → 제보 완료(F04-3).
@@ -23,20 +24,26 @@ export function ReportForm({
   item,
   method,
   place,
+  prefillPrice = "",
+  prefillWeight = "",
 }: {
   item: string;
   method: Report["method"];
   place: string;
+  /** 즉석 판단(F10)에서 이미 입력한 가격 — 있으면 다시 묻지 않는다 */
+  prefillPrice?: string;
+  /** 즉석 판단에서 고른 단위의 기준 단위 환산 수량 */
+  prefillWeight?: string;
 }) {
   const router = useRouter();
   // UT 데모: 사진 촬영은 항상 감자로 인식된다 → 품목을 감자로 고정(읽기 전용).
   const presetVeg = method === "photo" ? getVegetable("potato") : getVegetable(item);
   const { district, loading } = useCurrentDistrict();
 
-  // 사진 촬영 데모: 이미지가 1kg·3000원 감자라 인식 결과를 그대로 미리 채운다.
+  // 프리필 우선순위: 즉석 판단에서 넘어온 값 → 사진 촬영 데모(1kg·3000원 감자) → 빈 값.
   const [itemName, setItemName] = useState(presetVeg?.name ?? "");
-  const [weight, setWeight] = useState(method === "photo" ? "1" : "");
-  const [price, setPrice] = useState(method === "photo" ? "3000" : "");
+  const [weight, setWeight] = useState(prefillWeight || (method === "photo" ? "1" : ""));
+  const [price, setPrice] = useState(prefillPrice || (method === "photo" ? "3000" : ""));
   const [purchased, setPurchased] = useState(true);
   // 위치 — F04-1에서 넘어온 값을 기본값으로 채우되, 지금 있는 곳에서 등록하는 게 아닐 수 있어 수정 가능하게 둔다.
   const [placeValue, setPlaceValue] = useState(place);
@@ -95,7 +102,14 @@ export function ReportForm({
               <TextFieldInput placeholder="예: 감자" />
             </TextField>
 
-            <TextField label="양(무게)" value={weight} onValueChange={(v) => setWeight(v.value)} suffix="kg">
+            {/* 양 — 단위는 품목마다 다르다(kg·개·포기·g). 규격 §단위 정책을 그대로 따른다 */}
+            <TextField
+              label="양"
+              value={weight}
+              onValueChange={(v) => setWeight(v.value)}
+              suffix={veg?.unitType ?? "kg"}
+              description={veg ? `${veg.name}은 ${veg.unit} 기준으로 비교해요` : undefined}
+            >
               <TextFieldInput placeholder="0" inputMode="decimal" />
             </TextField>
 
@@ -103,28 +117,22 @@ export function ReportForm({
               <TextFieldInput placeholder="0" inputMode="numeric" />
             </TextField>
 
-            {/* 구매 여부 — 샀는지 / 시세만 봤는지. 샀을 때만 마이페이지 구매 내역·절약에 잡힘 */}
-            <fieldset className="flex flex-col gap-2 border-0 p-0">
-              <legend className="mb-2 text-body-14-medium text-fg-neutral">이 가격에 구매하셨나요?</legend>
-              <div role="group" className="flex gap-1 rounded-xl bg-bg-neutral-weak p-1">
-                {PURCHASE_OPTIONS.map((opt) => {
-                  const selected = purchased === opt.value;
-                  return (
-                    <button
-                      key={opt.label}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => setPurchased(opt.value)}
-                      className={`min-h-11 flex-1 rounded-lg py-2 text-body-14-medium transition-colors ${
-                        selected ? "bg-bg-layer-default text-fg-neutral shadow-sm" : "text-fg-neutral-subtle"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
+            {/* 구매 여부 — 샀는지 / 시세만 봤는지. 샀을 때만 마이페이지 구매 내역·절약에 잡힘.
+                랭킹·마이페이지와 같은 seed SegmentedControl을 쓴다(세 화면에 복붙돼 있던 마크업 제거) */}
+            <div className="flex flex-col gap-2">
+              <p className="text-body-14-medium text-fg-neutral">이 가격에 구매하셨나요?</p>
+              <SegmentedControl
+                aria-label="구매 여부"
+                value={purchased ? "yes" : "no"}
+                onValueChange={(v) => setPurchased(v === "yes")}
+              >
+                {PURCHASE_OPTIONS.map((opt) => (
+                  <SegmentedControlItem key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </SegmentedControlItem>
+                ))}
+              </SegmentedControl>
+            </div>
           </div>
         </Scroll>
 

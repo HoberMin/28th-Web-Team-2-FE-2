@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ActionButton } from "seed-design/ui/action-button";
+import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { useCurrentDistrict } from "../_lib/location";
 import { useOnboarding } from "../_lib/onboarding-store";
 import { addComment, useComments } from "../_lib/comments-store";
@@ -21,11 +23,8 @@ export function CommentList({ vegetableId }: { vegetableId: string }) {
   }
 
   return (
-    <section aria-label="동네 댓글" className="flex flex-col gap-4 px-4 pt-7">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#141a24]">동네 댓글</h2>
-        <span className="text-caption-12-regular text-fg-neutral-subtle">{district} 이웃만 보여요</span>
-      </div>
+    <div className="flex flex-col gap-4">
+      <p className="text-caption-12-regular text-fg-neutral-subtle">{district} 이웃만 보여요</p>
 
       {comments.length === 0 ? (
         <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-subtle">
@@ -47,27 +46,34 @@ export function CommentList({ vegetableId }: { vegetableId: string }) {
         </ul>
       )}
 
-      <div className="flex items-center gap-2">
-        <input
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => {
-            // 한글 IME 조합 중 Enter는 무시(조합 확정 키) — 미완성 텍스트 제출 방지
-            if (e.key === "Enter" && !e.nativeEvent.isComposing) handleSubmit();
-          }}
-          aria-label="댓글 입력"
-          placeholder="이웃에게 한마디 남겨보세요"
-          className="min-w-0 flex-1 rounded-xl bg-bg-neutral-weak px-4 py-3 text-body-14-regular text-fg-neutral outline-none placeholder:text-fg-neutral-subtle"
-        />
-        <button
+      {/* 입력은 seed TextField로 — 제보 폼·위치 선택과 같은 입력 컴포넌트를 쓴다
+          (이전엔 여기만 raw input이라 같은 앱에서 입력 필드 생김새가 두 종류였다) */}
+      <div className="flex items-end gap-2">
+        <div className="min-w-0 flex-1">
+          <TextField
+            value={body}
+            onValueChange={(v) => setBody(v.value)}
+            aria-label="댓글 입력"
+          >
+            <TextFieldInput
+              placeholder="이웃에게 한마디 남겨보세요"
+              onKeyDown={(e) => {
+                // 한글 IME 조합 중 Enter는 무시(조합 확정 키) — 미완성 텍스트 제출 방지
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) handleSubmit();
+              }}
+            />
+          </TextField>
+        </div>
+        <ActionButton
           type="button"
+          variant="neutralSolid"
+          size="medium"
           onClick={handleSubmit}
           disabled={!body.trim()}
-          className="shrink-0 rounded-xl bg-bg-neutral-inverted px-4 py-3 text-body-14-medium text-fg-neutral-inverted disabled:opacity-40"
         >
           등록
-        </button>
+        </ActionButton>
       </div>
-    </section>
+    </div>
   );
 }

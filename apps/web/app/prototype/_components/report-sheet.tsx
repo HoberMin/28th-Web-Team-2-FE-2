@@ -14,10 +14,11 @@ export function ReportSheet({ vegetableId }: { vegetableId: string }) {
   return (
     <BottomSheetRoot>
       <BottomSheetTrigger asChild>
-        {/* Figma 정합: gray/900(#262f3c)·56px·radius 12·18px SemiBold — seed 기본 배경과 hex가 달라 명시 스타일 */}
+        {/* seed 토큰으로 통일 — Figma는 gray/900이고 seed의 neutral-solid가 같은 역할이다.
+            hex를 박으면 다크모드·토큰 변경에 따라가지 못한다 */}
         <button
           type="button"
-          className="flex h-14 w-full items-center justify-center rounded-[12px] bg-[#262f3c] text-[18px] font-semibold tracking-[-0.02em] text-white"
+          className="flex h-14 w-full items-center justify-center rounded-xl bg-bg-neutral-solid text-body-18-semibold text-fg-neutral-inverted"
         >
           오프라인 가격 제보하기
         </button>

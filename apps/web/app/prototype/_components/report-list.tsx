@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import IconLocationpinFill from "@karrotmarket/react-monochrome-icon/IconLocationpinFill";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { formatDateDot, formatNumber } from "../_lib/format";
+import { countCrossChecks, getFreshness, isOutlier } from "../_lib/stores";
+import type { Report } from "../_lib/types";
 
 // 제보가 표 3열 정렬(제보일 / 오늘 시세 기준 / 가격) — 헤더·행 공통 (Figma F03 node 84:2377).
-const ROW_GRID = "grid grid-cols-[140px_1fr_auto] items-center";
+// 색·크기는 seed 토큰으로 통일했다(이전엔 Figma hex를 직접 박아 같은 화면 안에 두 색 체계가 섞였다).
+const ROW_GRID = "grid grid-cols-[132px_1fr_auto] items-start gap-2";
 
 const PREVIEW_COUNT = 3;
 
@@ -15,8 +19,8 @@ const PREVIEW_COUNT = 3;
 export function DistrictBadge() {
   const { district } = useCurrentDistrict();
   return (
-    <span className="flex items-center gap-0.5 text-[14px] font-normal tracking-[-0.02em] text-[#4a5667]">
-      <span className="text-[#4a5667] [&_svg]:size-4" aria-hidden="true">
+    <span className="flex items-center gap-0.5 text-body-14-regular text-fg-neutral">
+      <span className="[&_svg]:size-4" aria-hidden="true">
         <IconLocationpinFill />
       </span>
       {district}
@@ -30,10 +34,10 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
   const reports = useReports({ vegetableId, district });
   const latest = reports[0];
   if (!latest) {
-    return <span className="text-[14px] font-medium tracking-[-0.02em] text-[#99a1b1]">아직 없어요</span>;
+    return <span className="text-body-14-medium text-fg-neutral-subtle">아직 없어요</span>;
   }
   return (
-    <span className="text-[14px] font-medium tracking-[-0.02em] text-[#697383]">
+    <span className="text-body-14-medium tabular-nums text-fg-neutral">
       {formatNumber(latest.pricePerKg)}원
     </span>
   );
@@ -41,14 +45,30 @@ export function LatestReportPrice({ vegetableId }: { vegetableId: string }) {
 
 /**
  * 동네 제보가 리스트 (크라우드소싱 결과, 현재 동 기준).
- * basePrice = 오늘 시세 — 오늘 제보한 실제가와의 플마 차이를 행에 표시(핵심 가치: 눈으로 보는 변화).
+ * basePrice = 오늘 시세 — 제보한 실제가와의 플마 차이를 행에 표시(핵심 가치: 눈으로 보는 변화).
+ *
+ * 신뢰 장치 3개가 여기 붙는다:
+ *   신선도  — 야채 가격은 주 단위로 움직여 1주일 넘은 제보는 흐리게 + 경고
+ *   교차검증 — 같은 가게·같은 품목 제보가 2건 이상이면 "이웃 N명 확인"
+ *   이상치  — 시세의 3배/⅓ 밖 제보는 목록 맨 아래로 내리고 "확인 필요"로 표시(삭제하지 않는다)
  */
-export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; basePrice: number }) {
+export function ReportsList({
+  vegetableId,
+  basePrice,
+  todayIso,
+  unit,
+}: {
+  vegetableId: string;
+  basePrice: number;
+  todayIso: string;
+  unit: string;
+}) {
   const { district } = useCurrentDistrict();
-  const reports = useReports({ vegetableId, district });
+  const all = useReports({ vegetableId, district });
+  const districtReports = useReports({ district });
   const [expanded, setExpanded] = useState(false);
 
-  if (reports.length === 0) {
+  if (all.length === 0) {
     return (
       <p className="rounded-xl bg-bg-neutral-weak px-4 py-8 text-center text-body-14-regular text-fg-neutral-subtle">
         아직 우리 동네 제보가 없어요.
@@ -58,64 +78,117 @@ export function ReportsList({ vegetableId, basePrice }: { vegetableId: string; b
     );
   }
 
-  const visible = expanded ? reports : reports.slice(0, PREVIEW_COUNT);
+  // 이상치는 지우지 않고 맨 아래로 — 판단을 흐리지 않으면서 기록은 남긴다.
+  const normal: Report[] = [];
+  const outliers: Report[] = [];
+  for (const r of all) {
+    if (isOutlier(r.pricePerKg, basePrice)) outliers.push(r);
+    else normal.push(r);
+  }
+  const ordered = [...normal, ...outliers];
+  const visible = expanded ? ordered : ordered.slice(0, PREVIEW_COUNT);
 
   return (
     <div className="flex flex-col">
       {/* 컬럼 헤더 (Figma node 101:1045) */}
-      <div className={`${ROW_GRID} pb-3 text-[13px] font-normal tracking-[-0.02em] text-[#99a1b1]`}>
+      <div className={`${ROW_GRID} pb-3 text-caption-12-regular text-fg-neutral-subtle`}>
         <span>제보일</span>
         <span>오늘 시세 기준</span>
         <span className="justify-self-end">가격</span>
       </div>
       <ul className="flex flex-col gap-3">
         {visible.map((r) => {
-          // 모든 행에 오늘 시세 대비 플마를 표시(핵심 가치: 눈으로 보는 변화).
           // diff>0 = 제보가가 시세보다 쌈(▼ 초록). 퍼센트 부호는 Figma 규격(쌈=음수, 비쌈=양수).
           const diff = basePrice - r.pricePerKg;
           const cheaper = diff > 0;
           const pct = basePrice > 0 ? ((r.pricePerKg - basePrice) / basePrice) * 100 : 0;
+          const freshness = getFreshness(r.createdAt, todayIso);
+          const crossChecks = r.place ? countCrossChecks(districtReports, r.place, vegetableId) : 0;
+          const outlier = isOutlier(r.pricePerKg, basePrice);
+
           return (
-            <li key={r.id} className={ROW_GRID}>
-              <span className="flex flex-col">
-                <span className="text-[16px] font-normal tracking-[-0.02em] text-[#697383]">
+            <li key={r.id} className={`${ROW_GRID} ${outlier ? "opacity-60" : ""}`}>
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span
+                  className={`text-body-16-regular ${
+                    freshness.level === "stale" ? "text-fg-neutral-subtle" : "text-fg-neutral"
+                  }`}
+                >
                   {formatDateDot(r.createdAt.slice(0, 10))}
                 </span>
-                {/* 구매 장소 공개 — 같은 동 목록이라 별도 라벨 없이 노출(핵심 가치: 이웃 신뢰) */}
+                {/* 구매 장소 공개 — 가게명을 누르면 그 가게의 전 품목 가격으로 간다(가게 축) */}
                 {r.place && (
-                  <span className="truncate text-[12px] font-normal tracking-[-0.02em] text-[#99a1b1]">
+                  <Link
+                    href={`/prototype/store/${encodeURIComponent(r.place)}`}
+                    className="truncate text-caption-12-regular text-fg-neutral-subtle underline decoration-dotted"
+                  >
                     {r.place}
-                  </span>
+                  </Link>
                 )}
+                <span className="flex flex-wrap items-center gap-1">
+                  {freshness.level === "stale" ? (
+                    <span className="text-caption-12-regular text-fg-warning">
+                      {freshness.label} · 오래됨
+                    </span>
+                  ) : (
+                    <span className="text-caption-12-regular text-fg-neutral-subtle">
+                      {freshness.label}
+                    </span>
+                  )}
+                  {crossChecks >= 2 && (
+                    <span className="rounded bg-bg-positive-weak px-1 py-0.5 text-caption-12-regular text-fg-positive">
+                      {crossChecks}명 확인
+                    </span>
+                  )}
+                </span>
               </span>
+
               <span
-                className={`flex items-center gap-0.5 text-[12px] font-normal tracking-[-0.02em] ${
-                  diff === 0 ? "text-[#99a1b1]" : cheaper ? "text-[#05a163]" : "text-[#fa342c]"
+                className={`flex items-center gap-0.5 text-caption-12-regular tabular-nums ${
+                  outlier
+                    ? "text-fg-warning"
+                    : diff === 0
+                      ? "text-fg-neutral-subtle"
+                      : cheaper
+                        ? "text-fg-positive"
+                        : "text-fg-critical"
                 }`}
               >
-                {diff !== 0 && <span aria-hidden="true">{cheaper ? "▼" : "▲"}</span>}
-                <span className="sr-only">
-                  {diff === 0 ? "오늘 시세와 같음, " : cheaper ? "오늘 시세보다 저렴, " : "오늘 시세보다 비쌈, "}
-                </span>
-                {formatNumber(Math.abs(diff))}원({pct > 0 ? "+" : ""}
-                {pct.toFixed(1)}%)
+                {outlier ? (
+                  "확인 필요"
+                ) : (
+                  <>
+                    {diff !== 0 && <span aria-hidden="true">{cheaper ? "▼" : "▲"}</span>}
+                    <span className="sr-only">
+                      {diff === 0
+                        ? "오늘 시세와 같음, "
+                        : cheaper
+                          ? "오늘 시세보다 저렴, "
+                          : "오늘 시세보다 비쌈, "}
+                    </span>
+                    {formatNumber(Math.abs(diff))}원({pct > 0 ? "+" : ""}
+                    {pct.toFixed(1)}%)
+                  </>
+                )}
               </span>
-              <span className="justify-self-end text-[16px] font-medium tracking-[-0.02em] text-[#141a24]">
+
+              <span className="justify-self-end text-body-16-medium tabular-nums text-fg-neutral">
                 {formatNumber(r.pricePerKg)}원{" "}
-                <span className="font-normal text-[#99a1b1]">/1kg</span>
+                <span className="text-body-16-regular text-fg-neutral-subtle">/{unit}</span>
               </span>
             </li>
           );
         })}
       </ul>
 
-      {reports.length > PREVIEW_COUNT && (
+      {ordered.length > PREVIEW_COUNT && (
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-lg border border-[#e5e8ef] bg-[#f2f3f8] py-3.5 text-center text-[14px] font-medium tracking-[-0.02em] text-[#697383]"
+          aria-expanded={expanded}
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-lg bg-bg-neutral-weak py-3.5 text-center text-body-14-medium text-fg-neutral active:bg-bg-neutral-weak-pressed"
         >
-          {expanded ? "접기" : "제보 내역 더보기"}
+          {expanded ? "접기" : `제보 ${ordered.length}건 모두 보기`}
         </button>
       )}
     </div>

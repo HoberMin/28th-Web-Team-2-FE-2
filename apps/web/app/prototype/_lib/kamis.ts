@@ -7,7 +7,7 @@
 
 import "server-only"; // 클라이언트에서 import 시 빌드 실패 — 인증키의 서버 격리 강제.
 import { DEFAULT_REGION, getBaselineDummy, getVegetable } from "./vegetables";
-import type { BaselinePrice, PricePoint, Vegetable } from "./types";
+import type { BaselinePrice, PricePeriod, PricePoint, Vegetable } from "./types";
 
 // 검증된 실호출 엔드포인트(action=periodProductList) — p_countrycode=1101(서울), p_productclscode=01(소매).
 const KAMIS_ENDPOINT = "https://www.kamis.or.kr/service/price/xml.do";
@@ -158,6 +158,82 @@ function isoDate(d: Date): string {
 }
 
 /**
+ * 품종코드 하나로 KAMIS를 1회 조회한다. 실패·결측이면 null(호출부가 판단).
+ * 단위 정책(규격 §단위 정책): kg·g는 kg 환산(Y), 개·포기는 소비자가 그 단위로 사므로 환산하지 않는다(N).
+ * 등급은 04(상품) 고정 — 05(중품)는 표본이 얇아 며칠씩 값이 안 바뀌는 등 품질이 낮았다.
+ */
+async function fetchOneKind(
+  veg: Vegetable,
+  region: string,
+  kindCode: string,
+  startDay: string,
+  endDay: string,
+  certKey: string,
+  certId: string,
+): Promise<BaselinePrice | null> {
+  const convertKg = veg.unitType === "kg" || veg.unitType === "g" ? "Y" : "N";
+  const params = new URLSearchParams({
+    action: "periodProductList",
+    p_productclscode: "01",
+    p_startday: startDay,
+    p_endday: endDay,
+    p_itemcategorycode: veg.itemCategoryCode,
+    p_itemcode: veg.itemCode,
+    p_kindcode: kindCode,
+    p_productrankcode: "04",
+    p_countrycode: "1101",
+    p_convert_kg_yn: convertKg,
+    p_cert_key: certKey,
+    p_cert_id: certId,
+    p_returntype: "json",
+  });
+
+  // 시세는 하루 1회 갱신 → revalidate 1시간(뮤테이션 없어 revalidateTag 짝은 불필요, 태그는 조회 그룹핑용).
+  const res = await fetch(`${KAMIS_ENDPOINT}?${params.toString()}`, {
+    next: { revalidate: 3600, tags: ["prices"] },
+  });
+  if (!res.ok) return null;
+  const json: unknown = await res.json();
+  return normalizeKamis(json, veg, region);
+}
+
+/**
+ * 여러 시즌 품종의 기준선을 평균한다(배추·무 — 동시에 두 시즌이 살아있는 전환기용).
+ * 시리즈는 날짜 교집합이 보장되지 않아 **날짜별로 있는 값만** 평균한다.
+ */
+function averageBaselines(list: BaselinePrice[]): BaselinePrice {
+  const head = list[0];
+  const mergePeriod = (period: PricePeriod): PricePoint[] => {
+    const byDate = new Map<string, number[]>();
+    for (const b of list) {
+      for (const p of b.series[period]) {
+        const bucket = byDate.get(p.date);
+        if (bucket) bucket.push(p.price);
+        else byDate.set(p.date, [p.price]);
+      }
+    }
+    return Array.from(byDate.entries())
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([date, prices]) => ({
+        date,
+        price: Math.round(prices.reduce((s, n) => s + n, 0) / prices.length),
+      }));
+  };
+
+  const series = {
+    week: mergePeriod("week"),
+    month: mergePeriod("month"),
+    year: mergePeriod("year"),
+  };
+  const current = Math.round(list.reduce((s, b) => s + b.current, 0) / list.length);
+  const average = Math.round(list.reduce((s, b) => s + b.average, 0) / list.length);
+  // 여러 시즌 중 가장 최근 조사일을 대표 기준일로 삼는다.
+  const asOf = list.reduce((latest, b) => (b.asOf > latest ? b.asOf : latest), head.asOf);
+
+  return { ...head, current, average, series, asOf };
+}
+
+/**
  * 품목 기준 시세를 반환한다.
  * - 인증키(KAMIS_CERT_KEY/ID) 또는 품목 매핑이 없으면 더미로 폴백 (프로토타입이 항상 동작).
  * - 실호출 실패·응답 이상(error_code≠"000")·평균행 0개도 전부 더미로 폴백.
@@ -177,31 +253,19 @@ export async function getBaselinePrice(
   try {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
-    const params = new URLSearchParams({
-      action: "periodProductList",
-      p_productclscode: "01",
-      p_startday: isoDate(startDate),
-      p_endday: isoDate(endDate),
-      p_itemcategorycode: veg.itemCategoryCode,
-      p_itemcode: veg.itemCode,
-      p_countrycode: "1101",
-      p_convert_kg_yn: "Y",
-      p_cert_key: certKey,
-      p_cert_id: certId,
-      p_returntype: "json",
-    });
 
-    // 시세는 하루 1회 갱신 → revalidate 1시간(뮤테이션 없어 revalidateTag 짝은 불필요, 태그는 조회 그룹핑용).
-    const res = await fetch(`${KAMIS_ENDPOINT}?${params.toString()}`, {
-      next: { revalidate: 3600, tags: ["prices"] },
-    });
-    if (!res.ok) {
-      return getBaselineDummy(vegetableId, region);
-    }
-
-    const json: unknown = await res.json();
-    const normalized = normalizeKamis(json, veg, region);
-    return normalized ?? getBaselineDummy(vegetableId, region);
+    // 배추·무는 품종이 아니라 계절로 갈린다 → 4개 시즌 코드를 전부 조회해 응답 있는 것만 쓴다
+    // (캘린더로 고정하지 않는 게 규격. 지금 살아있는 시즌이 무엇인지 응답이 알려준다).
+    const kindCodes = veg.seasonalKindCodes ?? [veg.kindCode];
+    const results = await Promise.all(
+      kindCodes.map((kindCode) =>
+        fetchOneKind(veg, region, kindCode, isoDate(startDate), isoDate(endDate), certKey, certId),
+      ),
+    );
+    const alive = results.filter((r): r is BaselinePrice => r !== null);
+    if (alive.length === 0) return getBaselineDummy(vegetableId, region);
+    if (alive.length === 1) return alive[0];
+    return averageBaselines(alive);
   } catch {
     // 네트워크 실패·타임아웃·파싱 오류 등 — 프로토타입은 항상 동작해야 하므로 더미로 폴백.
     return getBaselineDummy(vegetableId, region);
