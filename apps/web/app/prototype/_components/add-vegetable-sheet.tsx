@@ -1,5 +1,6 @@
 "use client";
 
+import { ActionButton } from "seed-design/ui/action-button";
 import {
   BottomSheetBody,
   BottomSheetContent,
@@ -17,17 +18,17 @@ export function AddVegetableSheet({ excludeIds = [] }: { excludeIds?: string[] }
   return (
     <BottomSheetRoot>
       <BottomSheetTrigger asChild>
-        <button
-          type="button"
-          className="flex h-12 w-full items-center justify-center rounded-full bg-bg-neutral-inverted text-body-14-medium text-fg-neutral-inverted"
-        >
+        {/* "더 담기"는 보조 액션이다 — 장바구니의 주 CTA(장보기 시작하기, brandSolid)와
+            solid로 경쟁하지 않게 neutralWeak. 이전엔 손으로 만든 h-12 rounded-full 이라
+            같은 앱에 solid 버튼 생김새가 세 종류였다. */}
+        <ActionButton type="button" variant="neutralWeak" size="large" className="w-full">
           + 야채 담기
-        </button>
+        </ActionButton>
       </BottomSheetTrigger>
       <BottomSheetContent title="어떤 야채를 담을까요?">
         <BottomSheetBody className="pb-4">
           {options.length === 0 ? (
-            <p className="py-8 text-center text-body-14-regular text-fg-neutral-subtle">
+            <p className="py-8 text-center text-body-14-regular text-fg-neutral-muted">
               전부 담았어요
             </p>
           ) : (
