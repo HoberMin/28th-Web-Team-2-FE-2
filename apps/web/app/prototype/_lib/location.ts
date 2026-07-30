@@ -19,7 +19,14 @@ function toKnownDistrict(district: string): string {
 
 type Status = "idle" | "loading" | "done";
 
+/** 동 중심 좌표 — GPS를 못 쓸 때(온보딩 선택·권한 거부) 거리 계산의 기준점이 된다. */
+function centerOf(name: string): { lat: number; lng: number } {
+  const region = REGIONS.find((r) => r.label === name);
+  return { lat: region?.lat ?? 37.514, lng: region?.lng ?? 127.056 };
+}
+
 let district = DEFAULT_DISTRICT;
+let coords = centerOf(DEFAULT_DISTRICT);
 let status: Status = "idle";
 const listeners = new Set<() => void>();
 
@@ -34,23 +41,23 @@ function subscribe(cb: () => void): () => void {
 }
 // 스냅샷은 원시 문자열이라 참조가 안정적 → useSyncExternalStore 안전.
 function getSnapshot(): string {
-  return `${status}|${district}`;
+  return `${status}|${district}|${coords.lat}|${coords.lng}`;
 }
 function getServerSnapshot(): string {
-  return `idle|${DEFAULT_DISTRICT}`;
+  const c = centerOf(DEFAULT_DISTRICT);
+  return `idle|${DEFAULT_DISTRICT}|${c.lat}|${c.lng}`;
 }
 
-function finish(next: string) {
+function finish(next: string, nextCoords?: { lat: number; lng: number }) {
   district = next;
+  coords = nextCoords ?? centerOf(next);
   status = "done";
   emit();
 }
 
 /** 온보딩에서 선택한 지역을 즉시 채택(GPS 측위 생략) — 홈 게이트 리다이렉트 전에도 값이 있도록. */
 export function setDistrict(next: string): void {
-  district = next;
-  status = "done";
-  emit();
+  finish(next);
 }
 
 function ensureLocated() {
@@ -82,7 +89,11 @@ function ensureLocated() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch(`/api/geocode?lat=${latitude}&lng=${longitude}`);
         const data = (await res.json()) as { district?: string };
-        finish(data.district ? toKnownDistrict(data.district) : DEFAULT_DISTRICT);
+        // 좌표는 실측값 그대로 보관한다 — 가게까지의 거리는 동 중심이 아니라 지금 서 있는 자리 기준이라야 쓸모 있다.
+        finish(data.district ? toKnownDistrict(data.district) : DEFAULT_DISTRICT, {
+          lat: latitude,
+          lng: longitude,
+        });
       } catch {
         finish(DEFAULT_DISTRICT);
       }
@@ -99,4 +110,14 @@ export function useCurrentDistrict(): { district: string; loading: boolean } {
   }, []);
   const [snapStatus, snapDistrict] = snapshot.split("|");
   return { district: snapDistrict, loading: snapStatus !== "done" };
+}
+
+/** 현재 좌표(GPS 실측 또는 동 중심 폴백) — 가게까지의 거리 계산용. */
+export function useCurrentCoords(): { lat: number; lng: number } {
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useEffect(() => {
+    ensureLocated();
+  }, []);
+  const [, , lat, lng] = snapshot.split("|");
+  return { lat: Number(lat), lng: Number(lng) };
 }

@@ -6,12 +6,15 @@ import IconHouseFill from "@karrotmarket/react-monochrome-icon/IconHouseFill";
 import IconHouseLine from "@karrotmarket/react-monochrome-icon/IconHouseLine";
 import IconTrophyFill from "@karrotmarket/react-monochrome-icon/IconTrophyFill";
 import IconTrophyLine from "@karrotmarket/react-monochrome-icon/IconTrophyLine";
-import IconCartFill from "@karrotmarket/react-monochrome-icon/IconCartFill";
-import IconCartLine from "@karrotmarket/react-monochrome-icon/IconCartLine";
+import IconStoreFill from "@karrotmarket/react-monochrome-icon/IconStoreFill";
+import IconStoreLine from "@karrotmarket/react-monochrome-icon/IconStoreLine";
 import IconPersonFill from "@karrotmarket/react-monochrome-icon/IconPersonFill";
 import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 
-// GNB(하단 탭바) — 홈/랭킹/장바구니/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
+// GNB(하단 탭바) — 홈/랭킹/매장/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
+//
+// 3번째 탭이 장바구니에서 매장으로 바뀌었다(2026-07-30). 장바구니는 담아둔 목록을 보여줄 뿐이라
+// 찜하기와 구별되지 않았고, 사용자의 실제 질문은 "무엇을 담았나"가 아니라 "오늘 어느 가게 갈까"다.
 //
 // 이전엔 텍스트 + 6px 점만으로 현재 탭을 표시해서 4개 중 어디에 있는지 한눈에 안 읽혔다.
 // 지금은 세 가지 신호를 함께 준다: 채운/선 아이콘 · 색 · aria-current
@@ -19,7 +22,7 @@ import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 const TABS = [
   { href: "/prototype", label: "홈", Fill: IconHouseFill, Line: IconHouseLine },
   { href: "/prototype/ranking", label: "랭킹", Fill: IconTrophyFill, Line: IconTrophyLine },
-  { href: "/prototype/basket", label: "장바구니", Fill: IconCartFill, Line: IconCartLine },
+  { href: "/prototype/stores", label: "매장", Fill: IconStoreFill, Line: IconStoreLine },
   { href: "/prototype/mypage", label: "마이페이지", Fill: IconPersonFill, Line: IconPersonLine },
 ] as const;
 

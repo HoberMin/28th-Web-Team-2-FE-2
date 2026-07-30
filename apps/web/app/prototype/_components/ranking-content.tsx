@@ -8,7 +8,7 @@ import { summarizeStores, type PriceMap } from "../_lib/stores";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { formatWon } from "../_lib/format";
-import { FreshnessTag } from "./freshness-tag";
+import { StoreRow } from "./store-row";
 
 type Tab = "store" | "price" | "reporter";
 
@@ -46,7 +46,7 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
 
       {tab === "price" && (
         <>
-          <p className="text-caption-12-regular text-fg-neutral-muted">예시 데이터입니다 · {district} 기준</p>
+          <p className="text-caption-12-regular text-fg-neutral-muted">{district} 기준 · 오늘</p>
           <ul className="flex flex-col gap-2">
             {LOW_PRICE_RANKING.map((item, i) => (
               <li key={item.vegetableId}>
@@ -81,7 +81,7 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
 
       {tab === "reporter" && (
         <>
-          <p className="text-caption-12-regular text-fg-neutral-muted">예시 데이터입니다 · {district} 기준</p>
+          <p className="text-caption-12-regular text-fg-neutral-muted">{district} 기준 · 이번 주</p>
           <ul className="flex flex-col gap-2">
             {REPORTER_RANKING.map((r) => (
               <li key={r.rank} className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3">
@@ -101,7 +101,12 @@ export function RankingContent({ priceMap, todayIso }: { priceMap: PriceMap; tod
   );
 }
 
-/** 싼 가게 순위 — 시세 대비 평균이 싼 가게 순. 예시 데이터가 아니라 실제 제보 집계다. */
+/**
+ * 싼 가게 순위 — 시세 대비 평균이 싼 가게 순.
+ *
+ * 매장 탭과 **같은 줄 컴포넌트**를 쓴다(StoreRow): 목록에서 바로 단골 등록이 되고,
+ * 거리·도보 시간이 같은 자리에 나온다. 두 화면에 같은 마크업을 복붙하면 규칙이 갈린다.
+ */
 function StoreRanking({
   stores,
   district,
@@ -126,40 +131,7 @@ function StoreRanking({
       </p>
       <ul className="flex flex-col gap-2">
         {stores.map((s, i) => (
-          <li key={s.name}>
-            <Link
-              href={`/prototype/store/${encodeURIComponent(s.name)}`}
-              className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3 active:bg-bg-neutral-weak-pressed"
-            >
-              <span className="w-5 shrink-0 text-body-16-semibold tabular-nums text-fg-neutral-muted">
-                {i + 1}
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="truncate text-body-16-semibold text-fg-neutral">{s.name}</span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
-                    {s.itemCount}개 품목
-                  </span>
-                  <FreshnessTag freshness={s.freshness} />
-                </span>
-              </span>
-              <span className="flex shrink-0 flex-col items-end">
-                {s.avgDiffPct !== null && (
-                  <span
-                    className={`text-body-14-medium tabular-nums ${
-                      s.avgDiffPct < 0 ? "text-fg-positive" : "text-fg-neutral-muted"
-                    }`}
-                  >
-                    시세 {s.avgDiffPct < 0 ? "" : "+"}
-                    {s.avgDiffPct}%
-                  </span>
-                )}
-                <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
-                  싼 품목 {s.cheaperCount}개
-                </span>
-              </span>
-            </Link>
-          </li>
+          <StoreRow key={s.name} store={s} rank={i + 1} />
         ))}
       </ul>
     </>
