@@ -29,7 +29,7 @@ export function ErrandList({ raw, priceMap }: { raw: string; priceMap: PriceMap 
         <AppBar title="심부름 목록" backHref="/prototype" />
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
           <p className="text-body-16-semibold text-fg-neutral">목록이 비어 있어요</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             링크가 잘렸을 수 있어요. 보내주신 분께 다시 받아주세요.
           </p>
         </div>
@@ -48,11 +48,11 @@ export function ErrandList({ raw, priceMap }: { raw: string; priceMap: PriceMap 
             <p className="text-body-16-semibold text-fg-neutral">
               {items.length}개 사다 주세요
             </p>
-            <p className="text-body-14-regular text-fg-neutral-subtle">
+            <p className="text-body-14-regular text-fg-neutral-muted">
               각 야채마다 &lsquo;이 가격까지&rsquo;가 적혀 있어요. 그보다 비싸면 안 사도 괜찮아요.
             </p>
             {/* 상한의 근거를 밝힌다 — 받은 사람의 위치가 보낸 사람과 다를 수 있다 */}
-            <p className="text-caption-12-regular text-fg-neutral-subtle">
+            <p className="text-caption-12-regular text-fg-neutral-muted">
               {district} 시세·이웃 제보가 기준
             </p>
           </div>
@@ -79,7 +79,7 @@ export function ErrandList({ raw, priceMap }: { raw: string; priceMap: PriceMap 
                       setChecked((prev) => ({ ...prev, [item.vegetableId]: next === true }))
                     }
                     className={`w-full gap-3 rounded-2xl px-4 py-3 ${
-                      isDone ? "bg-bg-neutral-weak-pressed" : "bg-bg-neutral-weak"
+                      isDone ? "bg-bg-positive-weak" : "bg-bg-neutral-weak"
                     }`}
                     label={
                       <span className="flex min-w-0 flex-1 items-center gap-3">
@@ -87,17 +87,17 @@ export function ErrandList({ raw, priceMap }: { raw: string; priceMap: PriceMap 
                         <span className="flex min-w-0 flex-1 flex-col">
                           <span
                             className={`text-body-16-semibold ${
-                              isDone ? "text-fg-neutral-subtle line-through" : "text-fg-neutral"
+                              isDone ? "text-fg-neutral-muted line-through" : "text-fg-neutral"
                             }`}
                           >
                             {veg.name} {formatQuantity(item.weightKg, veg.unitType)}
                           </span>
                           {totalCeiling != null ? (
-                            <span className="text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+                            <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
                               {formatNumber(totalCeiling)}원까지면 사도 돼요
                             </span>
                           ) : (
-                            <span className="text-caption-12-regular text-fg-neutral-subtle">
+                            <span className="text-caption-12-regular text-fg-neutral-muted">
                               기준 가격이 없어요 — 보내주신 분께 물어보세요
                             </span>
                           )}
@@ -110,7 +110,7 @@ export function ErrandList({ raw, priceMap }: { raw: string; priceMap: PriceMap 
             })}
           </ul>
 
-          <p aria-live="polite" className="text-center text-caption-12-regular tabular-nums text-fg-neutral-subtle">
+          <p aria-live="polite" className="text-center text-caption-12-regular tabular-nums text-fg-neutral-muted">
             {doneCount} / {items.length}개 담았어요
           </p>
         </div>

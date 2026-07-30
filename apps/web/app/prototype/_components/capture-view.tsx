@@ -81,7 +81,7 @@ export function CaptureView({ item, place }: { item: string; place: string }) {
 
   return (
     <PhoneFrame>
-      <div className="absolute inset-0 bg-neutral-900">
+      <div className="absolute inset-0 bg-palette-static-black">
         {/* 실시간 카메라 프리뷰 (인식중엔 숨기고 고정 프레임 표시) */}
         <video
           ref={videoRef}
@@ -98,14 +98,14 @@ export function CaptureView({ item, place }: { item: string; place: string }) {
           className={`absolute inset-0 size-full object-cover ${phase === "analyzing" ? "" : "hidden"}`}
         />
 
-        <div className="relative z-10 flex h-full flex-col text-white">
+        <div className="relative z-10 flex h-full flex-col text-palette-static-white">
           {/* 상단 바 */}
-          <div className="shrink-0 bg-neutral-900/95">
+          <div className="shrink-0 bg-palette-static-black/95">
             <div className="relative flex h-14 items-center justify-center">
               <Link
                 href={closeHref}
                 aria-label="촬영 닫기"
-                className="absolute left-2 flex size-12 items-center justify-center rounded-full hover:bg-white/10 [&_svg]:size-6"
+                className="absolute left-2 flex size-12 items-center justify-center rounded-full hover:bg-palette-static-white-alpha-200 [&_svg]:size-6"
               >
                 <IconXmarkLine />
               </Link>
@@ -117,14 +117,14 @@ export function CaptureView({ item, place }: { item: string; place: string }) {
             {phase === "analyzing" && <DotSpinner />}
             {phase === "error" && (
               <div className="mx-8 flex flex-col items-center gap-4 text-center">
-                <p className="text-body-14-regular text-white/90">
+                <p className="text-body-14-regular text-palette-static-white-alpha-900">
                   카메라를 열 수 없어요.
                   <br />
                   브라우저 카메라 권한을 확인해 주세요.
                 </p>
                 <Link
                   href={shutterHref}
-                  className="rounded-full bg-white/15 px-5 py-2 text-body-14-regular text-white hover:bg-white/25"
+                  className="rounded-full bg-palette-static-white-alpha-200 px-5 py-2 text-body-14-regular text-palette-static-white hover:bg-palette-static-white-alpha-300"
                 >
                   촬영 없이 계속하기
                 </Link>
@@ -133,18 +133,18 @@ export function CaptureView({ item, place }: { item: string; place: string }) {
           </div>
 
           {/* 안내 + 셔터 (사진 위, 가독성 위해 하단 그라디언트) */}
-          <div className="shrink-0 bg-gradient-to-t from-black/60 to-transparent pt-10 pb-10">
+          <div className="shrink-0 bg-gradient-to-t from-palette-static-black-alpha-500 to-transparent pt-10 pb-10">
             <div className="flex flex-col items-center gap-5">
               <button
                 type="button"
                 aria-label="촬영"
                 onClick={handleShutter}
                 disabled={phase !== "live"}
-                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:bg-neutral-500"
+                className="flex size-[74px] items-center justify-center rounded-full bg-bg-brand-solid shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-palette-static-white disabled:bg-palette-static-white-alpha-300"
               >
                 <Image src="/veg/camera.svg" alt="" width={32} height={32} className="size-8" />
               </button>
-              <p aria-live="polite" className="text-body-16-regular text-white/90">
+              <p aria-live="polite" className="text-body-16-regular text-palette-static-white-alpha-900">
                 {phase === "analyzing" ? "야채를 인식중입니다" : "가격과 야채가 잘 보이게 촬영해 주세요"}
               </p>
             </div>
@@ -162,7 +162,7 @@ function DotSpinner() {
       {Array.from({ length: 8 }).map((_, i) => (
         <span
           key={i}
-          className="absolute left-1/2 top-1/2 size-2 rounded-full bg-white"
+          className="absolute left-1/2 top-1/2 size-2 rounded-full bg-palette-static-white"
           style={{
             transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateY(-18px)`,
             opacity: (i + 1) / 8,

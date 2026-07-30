@@ -4,8 +4,8 @@ import Image from "next/image";
 // 46종 중 일러스트는 8종뿐이라 폴백 경로가 기본값에 가깝다. 한 군데서만 분기하도록 컴포넌트로 묶었다.
 // 장식 이미지라 alt=""·aria-hidden — 품목명은 항상 옆 텍스트가 담당한다.
 const SIZE = {
-  sm: { box: "size-8", px: 32, emoji: "text-2xl" },
-  md: { box: "size-10", px: 40, emoji: "text-3xl" },
+  sm: { box: "size-8", px: 32, emoji: "text-[24px]" },
+  md: { box: "size-10", px: 40, emoji: "text-[30px]" },
   lg: { box: "size-12", px: 48, emoji: "text-[34px]" },
   xl: { box: "size-16", px: 64, emoji: "text-[44px]" },
   /** 시세 화면(F03) 헤더 카드 전용 — Figma 규격 104px */
