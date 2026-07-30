@@ -8,7 +8,7 @@ import { useBasket, removeFromBasket, setBasketWeight, addToBasket } from "../_l
 import { useFavorites } from "../_lib/favorites-store";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
-import { formatNumber, formatQuantity, formatWon } from "../_lib/format";
+import { formatNumber, formatWon } from "../_lib/format";
 import { AddVegetableSheet } from "./add-vegetable-sheet";
 import { CourseCard } from "./course-card";
 import { RepeatShopping } from "./repeat-shopping";
@@ -31,14 +31,14 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
       <div className="flex flex-col gap-8 px-4 pt-16">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="text-body-16-semibold text-fg-neutral">아직 담은 야채가 없어요</p>
-          <p className="text-body-14-regular text-fg-neutral-subtle">
+          <p className="text-body-14-regular text-fg-neutral-muted">
             장 보기 전에 살 야채를 담아 예상 금액을 미리 확인해요
           </p>
         </div>
 
         {favoriteVegs.length > 0 && (
           <div className="flex flex-col gap-3">
-            <h2 className="text-body-14-medium text-fg-neutral-subtle">찜한 야채로 빠르게 담기</h2>
+            <h2 className="text-body-14-medium text-fg-neutral-muted">찜한 야채로 빠르게 담기</h2>
             <ul className="grid grid-cols-3 gap-3">
               {favoriteVegs.map((veg) => (
                 <li key={veg.id}>
@@ -63,9 +63,8 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
     );
   }
 
-  let totalKamis = 0;
-  let totalLowest = 0;
-
+  // 행을 만들면서 합계를 누적하지 않는다 — 렌더 중 외부 변수를 재대입하면
+  // 리렌더마다 값이 누적돼 어긋난다(react-hooks/immutability). 행에 소계를 담아두고 합계는 따로 접는다.
   const rows = items.map((item) => {
     const veg = getVegetable(item.vegetableId);
     if (!veg) return null;
@@ -76,14 +75,17 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
       .map((r) => r.pricePerKg);
     const lowestPerKg = reportPrices.length > 0 ? Math.min(...reportPrices) : kamisPerKg;
 
-    const kamisSubtotal = kamisPerKg * item.weightKg;
-    const lowestSubtotal = lowestPerKg * item.weightKg;
-    totalKamis += kamisSubtotal;
-    totalLowest += lowestSubtotal;
-
-    return { veg, item, kamisSubtotal, hasReport: reportPrices.length > 0 };
+    return {
+      veg,
+      item,
+      kamisSubtotal: kamisPerKg * item.weightKg,
+      lowestSubtotal: lowestPerKg * item.weightKg,
+      hasReport: reportPrices.length > 0,
+    };
   });
 
+  const totalKamis = rows.reduce((sum, row) => sum + (row?.kamisSubtotal ?? 0), 0);
+  const totalLowest = rows.reduce((sum, row) => sum + (row?.lowestSubtotal ?? 0), 0);
   const saved = totalKamis - totalLowest;
 
   return (
@@ -95,11 +97,11 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
           동네 최저가를 전부 모으면 가게가 흩어져 한 번에 살 수 없다 → 실현 가능한 안은 아래 코스가 담당. */}
       <section aria-label="예상 총액" className="flex flex-col gap-3 rounded-2xl bg-bg-neutral-weak px-5 py-5">
         <div className="flex items-center justify-between text-body-14-regular">
-          <span className="text-fg-neutral-subtle">공공 시세 기준</span>
+          <span className="text-fg-neutral-muted">공공 시세 기준</span>
           <span className="tabular-nums text-fg-neutral">{formatWon(totalKamis)}</span>
         </div>
         <div className="flex items-center justify-between text-body-14-regular">
-          <span className="text-fg-neutral-subtle">동네 최저가를 전부 모으면</span>
+          <span className="text-fg-neutral-muted">동네 최저가를 전부 모으면</span>
           <span className="tabular-nums text-fg-neutral">{formatWon(totalLowest)}</span>
         </div>
         {saved > 0 && (
@@ -110,7 +112,7 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
                 {formatNumber(saved)}원
               </span>
             </div>
-            <p className="text-caption-12-regular text-fg-neutral-subtle">
+            <p className="text-caption-12-regular text-fg-neutral-muted">
               가게가 흩어져 있을 수 있어요. 실제로 갈 만한 코스는 아래에서 확인하세요.
             </p>
           </div>
@@ -138,7 +140,7 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
                 <VegetableThumb image={veg.image} emoji={veg.emoji} size="md" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-body-16-semibold text-fg-neutral">{veg.name}</span>
-                  <span className="block text-caption-12-regular text-fg-neutral-subtle">
+                  <span className="block text-caption-12-regular text-fg-neutral-muted">
                     {formatWon(kamisSubtotal)}
                     {!hasReport && " · 동네 제보 없음(시세로 대체)"}
                   </span>
@@ -155,14 +157,14 @@ export function BasketContent({ priceMap }: { priceMap: PriceMap }) {
                   type="button"
                   aria-label={`${veg.name} 장바구니에서 빼기`}
                   onClick={() => removeFromBasket(veg.id)}
-                  className="flex size-11 shrink-0 items-center justify-center text-body-16-regular text-fg-neutral-subtle"
+                  className="flex size-11 shrink-0 items-center justify-center text-body-16-regular text-fg-neutral-muted"
                 >
                   <span aria-hidden="true">×</span>
                 </button>
               </div>
               <Link
                 href={`/prototype/price/${veg.id}`}
-                className="text-caption-12-regular text-fg-brand"
+                className="text-caption-12-regular text-fg-neutral-muted underline"
               >
                 제보하러 가기 →
               </Link>

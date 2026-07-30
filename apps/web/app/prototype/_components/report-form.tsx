@@ -85,12 +85,15 @@ export function ReportForm({
 
           <div className="mt-8 flex flex-col gap-6">
             {/* 위치 — F04-1(가게 위치 선택) 값이 기본값이지만, 지금 있는 곳에서 등록하는 게 아닐 수 있어 다시 눌러 수정 가능 */}
+            {/* 측위 중 안내는 placeholder·description으로 준다 — value에 "위치 확인 중…"을 꽂으면
+                사용자가 먼저 입력한 가게명을 덮어쓴다(F04-1에서 넘어온 값도 잠깐 사라진다) */}
             <TextField
               label="위치"
-              value={loading ? "위치 확인 중…" : placeValue}
+              value={placeValue}
               onValueChange={(v) => setPlaceValue(v.value)}
+              description={loading ? "위치를 확인하고 있어요" : undefined}
             >
-              <TextFieldInput placeholder={district} readOnly={loading} />
+              <TextFieldInput placeholder={loading ? "위치 확인 중…" : district} />
             </TextField>
 
             <TextField
