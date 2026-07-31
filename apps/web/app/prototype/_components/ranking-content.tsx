@@ -106,7 +106,7 @@ function PodiumSlot({ entry }: { entry: ReporterRankEntry }) {
             있다"로 읽힌다(2026-07-31). 마이페이지·설정·제보자 프로필처럼 1명만 보이는
             화면은 야채 아바타를 그대로 쓴다 — 이 교체는 랭킹에만 적용한다. */}
         <span className="rounded-full ring-4 ring-bg-layer-default">
-          <DefaultProfileAvatar size={avatarSize} />
+          <DefaultProfileAvatar size={avatarSize} variant="rank" />
         </span>
         <div
           className={`flex w-full flex-col items-center gap-0.5 rounded-t-2xl pt-3 ${PODIUM_HEIGHT[rank]} ${PODIUM_STAGE_BG[rank]}`}
@@ -135,7 +135,7 @@ function ReporterRow({ entry }: { entry: ReporterRankEntry }) {
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-body-14-medium tabular-nums text-fg-neutral">
           {entry.rank}
         </span>
-        <DefaultProfileAvatar size={40} />
+        <DefaultProfileAvatar size={40} variant="list" />
         <span className="min-w-0 flex-1 truncate text-body-14-regular text-fg-neutral">{entry.nickname}</span>
         <span className="shrink-0 tabular-nums text-body-16-semibold text-fg-neutral">
           제보 {entry.reportCount}건

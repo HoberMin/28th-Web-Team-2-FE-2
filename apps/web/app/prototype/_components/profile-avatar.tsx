@@ -38,11 +38,26 @@ export function ProfileAvatar({ avatarId, size = 64 }: { avatarId?: string; size
  * `ProfileAvatar`처럼 62.5%로 축소해 별도 원형 배경 위에 얹지 않는다(그러면 원 안에
  * 흰 원이 또 뜬다). 랭킹에서 여러 사람이 나란히 뜰 때 야채 아바타 대신 쓴다 — 다른
  * 화면(마이페이지·설정)의 야채 아바타 선택 기능과는 무관하다.
+ *
+ * variant로 배경색이 갈린다(디자이너 제공 2종) — 포디움은 컬러 스테이지 위에 얹혀서
+ * 흰 배경(list용)을 그대로 쓰면 붕 떠 보이고, 리스트는 옅은 회색 배경(rank용)이 카드
+ * 배경(bg-neutral-weak)과 거의 같은 톤이라 아바타 윤곽이 안 보인다.
  */
-export function DefaultProfileAvatar({ size = 64 }: { size?: number }) {
+const DEFAULT_AVATAR_BY_VARIANT = {
+  list: "/veg/profile-default-list.svg",
+  rank: "/veg/profile-default-rank.svg",
+} as const;
+
+export function DefaultProfileAvatar({
+  size = 64,
+  variant = "list",
+}: {
+  size?: number;
+  variant?: keyof typeof DEFAULT_AVATAR_BY_VARIANT;
+}) {
   return (
     <Image
-      src="/veg/profile-default.svg"
+      src={DEFAULT_AVATAR_BY_VARIANT[variant]}
       alt=""
       width={size}
       height={size}
