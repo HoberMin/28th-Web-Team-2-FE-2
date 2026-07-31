@@ -32,3 +32,22 @@ export function ProfileAvatar({ avatarId, size = 64 }: { avatarId?: string; size
     </span>
   );
 }
+
+/**
+ * 랭킹 전용 기본 프로필 이미지 — 원형 배경 + 실루엣이 한 장에 합쳐진 에셋이라
+ * `ProfileAvatar`처럼 62.5%로 축소해 별도 원형 배경 위에 얹지 않는다(그러면 원 안에
+ * 흰 원이 또 뜬다). 랭킹에서 여러 사람이 나란히 뜰 때 야채 아바타 대신 쓴다 — 다른
+ * 화면(마이페이지·설정)의 야채 아바타 선택 기능과는 무관하다.
+ */
+export function DefaultProfileAvatar({ size = 64 }: { size?: number }) {
+  return (
+    <Image
+      src="/veg/profile-default.svg"
+      alt=""
+      width={size}
+      height={size}
+      className="shrink-0 rounded-full"
+      style={{ width: size, height: size }}
+    />
+  );
+}
