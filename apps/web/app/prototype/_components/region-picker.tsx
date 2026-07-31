@@ -109,7 +109,13 @@ export function RegionPicker({
         </p>
       )}
 
-      <ul ref={scrollRef} className="mt-2 flex flex-col">
+      {/* 목록 높이를 제한한다 — 검색어에 따라 451개 중 수백 개가 걸릴 수 있는데, 이 컴포넌트는
+          온보딩(전체 화면)뿐 아니라 홈·내 정보의 bottom sheet 안에서도 쓰여서 제한이 없으면
+          시트가 화면을 넘겨 버린다. 스크롤바는 감추고 목록 자체만 스크롤시킨다. */}
+      <ul
+        ref={scrollRef}
+        className="mt-2 flex max-h-[45vh] flex-col overflow-y-auto overscroll-contain no-scrollbar"
+      >
         {regions.length === 0 ? (
           <li className="py-12 text-center text-body-14-regular text-fg-neutral-muted">
             검색 결과가 없어요

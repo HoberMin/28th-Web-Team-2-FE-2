@@ -113,7 +113,7 @@ export function HomeVegetables({
             value={group}
             onValueChange={(v) => setGroup(v)}
             aria-label="야채 종류 필터"
-            className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1"
+            className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 no-scrollbar"
           >
             {[ALL, ...VEGETABLE_GROUPS].map((g) => (
               <RadioChipItem key={g} value={g} className="snap-start shrink-0">
@@ -127,7 +127,7 @@ export function HomeVegetables({
           value={sort}
           onValueChange={(v) => handleSortChange(v as SortKey)}
           aria-label="야채 정렬"
-          className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1"
+          className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 no-scrollbar"
         >
           {SORT_OPTIONS.map((option) => (
             <RadioChipItem key={option.value} value={option.value} className="snap-start shrink-0">

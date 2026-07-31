@@ -11,7 +11,7 @@ export function BadgeList({ reportCount, purchaseCount }: { reportCount: number;
         <h2 className="text-body-16-semibold text-fg-neutral">뱃지</h2>
         <span className="text-caption-12-regular text-fg-neutral-muted">{earnedCount}/{badges.length}</span>
       </div>
-      <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1">
+      <ul className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 no-scrollbar">
         {badges.map((b) => (
           <li
             key={b.id}

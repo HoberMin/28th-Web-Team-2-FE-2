@@ -62,7 +62,7 @@ export function VegetablePickerSheet({
             <TextFieldInput placeholder="예: 감자, ㄱㅈ" autoFocus aria-label="품목 검색" />
           </TextField>
 
-          <ul className="flex max-h-[50vh] flex-col gap-1 overflow-y-auto">
+          <ul className="flex max-h-[50vh] flex-col gap-1 overflow-y-auto overscroll-contain no-scrollbar">
             {results.length === 0 ? (
               <li className="py-8 text-center text-body-14-regular text-fg-neutral-muted">
                 &ldquo;{query}&rdquo;와 일치하는 품목이 없어요

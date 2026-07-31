@@ -32,7 +32,7 @@ export default function PlaygroundPage() {
             <br />
             Figma에 있는 것만 등록.
           </p>
-          <div className="mt-4 flex gap-4 overflow-x-auto md:flex-col md:gap-5">
+          <div className="mt-4 flex gap-4 overflow-x-auto no-scrollbar md:flex-col md:gap-5">
             {grouped.map(({ group, items }) => (
               <div key={group} className="shrink-0">
                 <p className="px-2 text-[11px] font-semibold tracking-wide text-neutral-400 uppercase">

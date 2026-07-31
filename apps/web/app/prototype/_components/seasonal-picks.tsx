@@ -17,7 +17,7 @@ export function SeasonalPicks({ picks, month }: { picks: SeasonalPick[]; month: 
       </div>
 
       {/* 가로 스크롤 — 목록이 길어져도 홈 세로 길이를 늘리지 않는다 */}
-      <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto overscroll-x-contain px-4 pb-1">
+      <ul className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 no-scrollbar">
         {picks.map((p) => (
           <li key={p.vegetableId} className="snap-start shrink-0">
             <Link

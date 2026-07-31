@@ -12,10 +12,16 @@ export function CardNewsTeaser() {
   const scrollRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
 
+  // 스크롤바를 감췄으므로 "더 있다"를 알려주는 건 이 점 인디케이터뿐이다 → 위치가 정확해야 한다.
+  // clientWidth로 나누면 좌우 패딩과 카드 사이 간격이 빠져 뒤 카드로 갈수록 인덱스가 밀린다.
+  // 실제 카드 폭 + 간격으로 나눈다.
   function handleScroll() {
     const el = scrollRef.current;
-    if (!el) return;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
+    const card = el?.firstElementChild;
+    if (!el || !card) return;
+    const gap = Number.parseFloat(getComputedStyle(el).columnGap) || 0;
+    const step = card.clientWidth + gap;
+    const index = step > 0 ? Math.round(el.scrollLeft / step) : 0;
     setActive(Math.min(CARD_NEWS.length - 1, Math.max(0, index)));
   }
 
@@ -24,7 +30,7 @@ export function CardNewsTeaser() {
       <ul
         ref={scrollRef}
         onScroll={handleScroll}
-        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4"
+        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto overscroll-x-contain px-4 no-scrollbar"
       >
         {CARD_NEWS.map((news) => {
           const veg = getVegetable(news.vegetableId);

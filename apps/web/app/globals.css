@@ -47,6 +47,20 @@ body {
   }
 }
 
+/* 스크롤바 감추기 — 모바일 앱 느낌을 위해.
+   iOS Safari는 원래 오버레이 스크롤바라 안 보이지만, Android 일부와 데스크톱(디자이너가
+   보는 환경)에서는 막대가 그려져 가로 목록 아래에 회색 줄이 남는다. 그 줄 자리를 비우려고
+   컨테이너마다 pb-1을 넣어왔는데, 막대를 없애면 그 여백도 필요 없다.
+   스크롤 자체는 그대로 동작한다 — 막대만 숨긴다. 대신 목록은 다음 항목이 살짝 걸치게
+   두어(snap + 우측 여백) 더 있다는 걸 눈으로 알 수 있어야 한다. */
+@utility no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 구 Edge */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* 프로토타입 온보딩 환영 화면 모션 — 아기자기한 야채 그래픽(등장 팝 + 둥실 부유 + 텍스트 라이즈). */
 @keyframes veg-pop {
   0% { opacity: 0; transform: scale(0.3); }

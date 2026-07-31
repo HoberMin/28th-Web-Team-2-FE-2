@@ -74,7 +74,12 @@ export function Scroll({
   ref?: Ref<HTMLElement>;
 }) {
   return (
-    <main ref={ref} className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${className ?? ""}`}>
+    // no-scrollbar: 폰 프레임 안에 데스크톱 스크롤바가 그려지면 앱이 아니라 웹 문서로 보인다.
+    // 디자이너가 결과를 보는 환경이 데스크톱 브라우저라 여기서 특히 티가 난다.
+    <main
+      ref={ref}
+      className={`min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar ${className ?? ""}`}
+    >
       {children}
     </main>
   );
