@@ -29,7 +29,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
 
   return (
     <PhoneFrame>
-      {/* 뒤로가기 — 랭킹·매장·가게 상세 등 여러 경로에서 들어와 고정 목적지(`/prototype`)로
+      {/* 뒤로가기 — 랭킹·가게·가게 상세 등 여러 경로에서 들어와 고정 목적지(`/prototype`)로
           튕기면 안 된다. 온 길로 돌아가고, 히스토리가 없으면 홈으로 폴백(클라 leaf). */}
       <PriceAppBar vegetableId={veg.id} vegetableName={veg.name} />
       <Scroll className="pb-4">
@@ -66,7 +66,7 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
           </div>
 
-          {/* 판단 진입 — 매장 가격표 앞에서 "이 가격 사도 되나"만 3초에 확인하고 싶을 때.
+          {/* 판단 진입 — 가게 가격표 앞에서 "이 가격 사도 되나"만 3초에 확인하고 싶을 때.
               하단 제보 시트는 이제 제보 전용이라(F10 백로그 #11), 판단은 여기 위쪽 CTA로
               들어간다: 위=판단, 아래=제보로 역할이 문구로 갈린다. */}
           <div className="px-4 pb-2">

@@ -19,8 +19,8 @@ import { VerdictCard, verdictAnnouncement, type JudgeStatus } from "./verdict-ca
 import { VegetablePickerSheet } from "./vegetable-picker-sheet";
 import { VegetableThumb } from "./vegetable-thumb";
 
-// F10 즉석 판단 — 매장 가격표 앞에서 "이 가격 사도 되나"를 3초에 끝낸다.
-// 판정 기준: 오늘 공공 시세 단일(가게 상세·매장과 동일 기준 — judgement.ts 참조).
+// F10 즉석 판단 — 가게 가격표 앞에서 "이 가격 사도 되나"를 3초에 끝낸다.
+// 판정 기준: 오늘 공공 시세 단일(가게 상세·가게와 동일 기준 — judgement.ts 참조).
 // 동네 이웃 제보는 판정엔 안 쓰고 참고 건수로만 화면에 보여준다(이상치·오래된 제보는 그 건수에서도 뺀다).
 // 판정이 끝나면 바로 제보로 이어진다 — 판단을 위해 이미 가격을 입력했으니 제보 비용이 0이다.
 export function QuickJudge({

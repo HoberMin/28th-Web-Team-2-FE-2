@@ -9,6 +9,7 @@
 //
 // 랭킹에 있을 때는 하드코딩 더미였는데, 여기서는 동네 제보를 실제로 집계한다.
 
+import { useState } from "react";
 import Link from "next/link";
 import { useReports } from "../_lib/reports-store";
 import { useCurrentDistrict } from "../_lib/location";
@@ -35,9 +36,10 @@ interface CheapestItem {
 export function CheapestToday({ priceMap, todayIso }: { priceMap: PriceMap; todayIso: string }) {
   const { district, loading } = useCurrentDistrict();
   const reports = useReports({ district });
+  const [expanded, setExpanded] = useState(false);
 
   // 위치를 아직 못 불러온 동안은 아예 그리지 않는다 — district가 기본값(삼성동)으로 잠깐
-  // 고정돼 있어, 그 값으로 만든 목록이 다른 동네 사용자에게 스친다(매장 탭과 같은 잣대 —
+  // 고정돼 있어, 그 값으로 만든 목록이 다른 동네 사용자에게 스친다(가게 탭과 같은 잣대 —
   // 백로그 F07). 이 섹션은 빈 목록일 때도 null이라 로딩 표시 없이 사라져 있어도 어색하지 않다.
   if (loading) return null;
 
@@ -67,17 +69,37 @@ export function CheapestToday({ priceMap, todayIso }: { priceMap: PriceMap; toda
   }
 
   // 시세 대비 많이 싼 순 — 절대 금액이 아니라 할인폭이 "잘 산 것"의 기준이다.
-  const list = [...best.values()].filter((i) => i.diffPct < 0).sort((a, b) => a.diffPct - b.diffPct);
-  if (list.length === 0) return null;
+  const sorted = [...best.values()].filter((i) => i.diffPct < 0).sort((a, b) => a.diffPct - b.diffPct);
+  if (sorted.length === 0) return null;
+
+  // 「전체보기」— 다른 화면으로 보내지 않고 같은 자리에서 펼친다(vegetable-price-list.tsx의
+  // 「더보기」와 같은 패턴). 이 목록은 "이웃이 오늘 실제로 본 값 + 시세 대비 할인폭"이라
+  // 야채시세 탭(46종 절대가 정렬)으로 보내면 그 맥락이 사라진다.
+  const list = expanded ? sorted : sorted.slice(0, LIMIT);
+  const canShowMore = !expanded && sorted.length > LIMIT;
 
   return (
     <section aria-label={`${district} 오늘 최저가`} className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-head2-16 text-fg-neutral">{district} 오늘 최저가</h2>
-        <span className="text-caption-12-regular text-fg-neutral-muted">이웃 제보 기준</span>
+        <span className="flex items-baseline gap-1 text-caption-12-regular text-fg-neutral-muted">
+          이웃 제보 기준
+          {canShowMore && (
+            <>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="text-fg-neutral-muted underline underline-offset-2 active:text-fg-neutral"
+              >
+                전체보기
+              </button>
+            </>
+          )}
+        </span>
       </div>
       <ul className="flex flex-col">
-        {list.slice(0, LIMIT).map((item, i) => (
+        {list.map((item, i) => (
           <li key={item.vegetableId}>
             <Link
               href={`/prototype/price/${item.vegetableId}`}

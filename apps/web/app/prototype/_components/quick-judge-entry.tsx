@@ -3,7 +3,7 @@ import IconCheckmarkCircleFill from "@karrotmarket/react-monochrome-icon/IconChe
 import IconChevronRightLine from "@karrotmarket/react-monochrome-icon/IconChevronRightLine";
 
 // 홈 → 즉석 판단(F10) 진입점.
-// 매장 가격표 앞에서 켜는 앱이라, 홈에서 품목을 찾아 들어가는 경로(스크롤 4회)와 별도로
+// 가게 가격표 앞에서 켜는 앱이라, 홈에서 품목을 찾아 들어가는 경로(스크롤 4회)와 별도로
 // "지금 이 가격 사도 되나"만 묻는 최단 경로를 홈 상단에 둔다.
 //
 // 배경이 주황(brand-solid)이 아니라 어두운 solid인 이유:

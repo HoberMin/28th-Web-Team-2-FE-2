@@ -7,7 +7,7 @@ import { useCurrentDistrict } from "../_lib/location";
 import { ProfileAvatar } from "./profile-avatar";
 import { EmptyState } from "./empty-state";
 
-// F06 랭킹 — 제보왕 단독 화면(백로그 F06 재편). "싼 가게"는 매장(F07) 탭으로,
+// F06 랭킹 — 제보왕 단독 화면(백로그 F06 재편). "싼 가게"는 가게(F07) 탭으로,
 // "최저가 품목"은 홈으로 옮겼다. 실제 제보(reports-store) 집계라 내가 제보하면 바로 순위가 오른다.
 //
 // 클라 스토어 특성상 첫 페인트엔 아직 위치를 몰라 목록이 비어 있다(공통 백로그 #1) —
@@ -101,8 +101,12 @@ function PodiumSlot({ entry }: { entry: ReporterRankEntry }) {
         ) : (
           <span className="h-6" aria-hidden="true" />
         )}
+        {/* avatarId를 안 넘긴다 — 랭킹은 여러 사람이 나란히 뜨는 자리라, 개인화 야채 아이콘을
+            그대로 쓰면 "이 사람이 감자다"가 아니라 "감자가 순위에 있다"로 읽힌다(2026-07-31).
+            사람이라는 게 분명한 기본 프로필 실루엣(ProfileAvatar 기본 폴백)으로 통일한다.
+            마이페이지·설정·제보자 프로필처럼 1명만 보이는 화면은 야채 아바타를 그대로 쓴다. */}
         <span className="rounded-full ring-4 ring-bg-layer-default">
-          <ProfileAvatar avatarId={entry.avatarId} size={avatarSize} />
+          <ProfileAvatar size={avatarSize} />
         </span>
         <div
           className={`flex w-full flex-col items-center gap-0.5 rounded-t-2xl pt-3 ${PODIUM_HEIGHT[rank]} ${PODIUM_STAGE_BG[rank]}`}
@@ -131,7 +135,7 @@ function ReporterRow({ entry }: { entry: ReporterRankEntry }) {
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-body-14-medium tabular-nums text-fg-neutral">
           {entry.rank}
         </span>
-        <ProfileAvatar avatarId={entry.avatarId} size={40} />
+        <ProfileAvatar size={40} />
         <span className="min-w-0 flex-1 truncate text-body-14-regular text-fg-neutral">{entry.nickname}</span>
         <span className="shrink-0 tabular-nums text-body-16-semibold text-fg-neutral">
           제보 {entry.reportCount}건

@@ -13,13 +13,15 @@ import IconStoreLine from "@karrotmarket/react-monochrome-icon/IconStoreLine";
 import IconPersonFill from "@karrotmarket/react-monochrome-icon/IconPersonFill";
 import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 
-// GNB(하단 탭바) — 홈/야채시세/랭킹/매장/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
+// GNB(하단 탭바) — 홈/야채시세/랭킹/동네 가게/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
 //
 // 2번째 탭 "야채시세"는 2026-07-31 홈 개편으로 신설. 홈(F01)이 "모든 야채 시세를 보는 화면"에서
 // "여러 정보를 모아 액션을 유도하는 대시보드"로 역할이 바뀌면서, 46종 전체를 검색·필터로 훑어보는
 // 목적은 여기 전용 탭(F01-1)으로 분리했다. 홈에는 인기 품목 미리보기 + 전체보기 링크만 남는다.
 //
-// 3번째 탭이 장바구니에서 매장으로 바뀌었다(2026-07-30). 장바구니는 담아둔 목록을 보여줄 뿐이라
+// 3번째 탭이 장바구니에서 가게로 바뀌었다(2026-07-30, 라벨은 2026-07-31 "동네 가게"로 정리 —
+// "매장"이라는 말을 이 화면 포함 전체에서 "가게"로 통일하면서, 탭에서만 "가게" 한 단어로는
+// 무엇의 목록인지 짧아 헷갈릴 수 있어 "동네"를 붙였다). 장바구니는 담아둔 목록을 보여줄 뿐이라
 // 찜하기와 구별되지 않았고, 사용자의 실제 질문은 "무엇을 담았나"가 아니라 "오늘 어느 가게 갈까"다.
 //
 // 이전엔 텍스트 + 6px 점만으로 현재 탭을 표시해서 어디에 있는지 한눈에 안 읽혔다.
@@ -29,7 +31,7 @@ const TABS = [
   { href: "/prototype", label: "홈", Fill: IconHouseFill, Line: IconHouseLine },
   { href: "/prototype/vegetables", label: "야채시세", Fill: IconTagFill, Line: IconTagLine },
   { href: "/prototype/ranking", label: "랭킹", Fill: IconTrophyFill, Line: IconTrophyLine },
-  { href: "/prototype/stores", label: "매장", Fill: IconStoreFill, Line: IconStoreLine },
+  { href: "/prototype/stores", label: "동네 가게", Fill: IconStoreFill, Line: IconStoreLine },
   { href: "/prototype/mypage", label: "마이페이지", Fill: IconPersonFill, Line: IconPersonLine },
 ] as const;
 

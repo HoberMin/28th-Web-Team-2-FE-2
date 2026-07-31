@@ -1,5 +1,5 @@
 // 랭킹(F06) — 제보왕 단독 화면(백로그 F06 재편). 싼 가게·최저가 품목 더미는 제거했다
-// (각각 매장 탭·홈에 이미 있는 기능이라 여기 중복 데이터를 둘 이유가 없다).
+// (각각 가게 탭·홈에 이미 있는 기능이라 여기 중복 데이터를 둘 이유가 없다).
 
 import type { Report } from "./types";
 import { AVATAR_OPTIONS } from "../_components/profile-avatar";

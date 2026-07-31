@@ -15,7 +15,7 @@ import { getNearbyStores, type NearbyStore } from "../_lib/nearby-stores";
 
 // 제보 폼 안의 가게 위치 선택 drawer(구 F04-1 페이지를 흡수) — 근처 가게 목록 + 직접 입력.
 // 시트에서 고른 값이 폼의 유일한 위치 값이 된다(자유 편집 금지 — 오타로 같은 가게가
-// 갈라지면 매장 탭·가게 상세의 "한 가게 × 여러 품목" 집계가 깨진다).
+// 갈라지면 가게 탭·가게 상세의 "한 가게 × 여러 품목" 집계가 깨진다).
 export function LocationPickerSheet({
   value,
   onSelect,

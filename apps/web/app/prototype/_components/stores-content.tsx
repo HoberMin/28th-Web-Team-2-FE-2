@@ -8,16 +8,16 @@ import { BASELINE_LABEL } from "../_lib/format";
 import { StoreRow } from "./store-row";
 import { EmptyState } from "./empty-state";
 
-// 매장 탭 — 이 서비스가 실제로 답하려는 질문("오늘 어디로 갈까")의 정면 화면.
+// 가게 탭 — 이 서비스가 실제로 답하려는 질문("오늘 어디로 갈까")의 정면 화면.
 //
 // 두 층으로 나눈다:
 //  1) 내 단골 — 재방문 사용자는 목적지가 이미 정해져 있다. 매번 순위를 훑게 하지 않는다.
-//  2) 우리 동네 매장 — 시세 대비 평균이 싼 순. 첫 사용자는 단골이 없으므로 이 목록이 화면을 채운다
+//  2) 우리 동네 가게 — 시세 대비 평균이 싼 순. 첫 사용자는 단골이 없으므로 이 목록이 화면을 채운다
 //     (그래서 단골 0개여도 빈 화면이 안 된다).
 //
 // 순위 기준이 "제보가 평균"이 아니라 **시세 대비 편차 평균**인 이유: 가게마다 제보된 품목 구성이
 // 달라서, 금액을 그대로 평균 내면 비싼 품목이 많이 제보된 가게가 무조건 비싸 보인다.
-// 그러면 매장이 아니라 품목 구성을 비교하게 된다.
+// 그러면 가게가 아니라 품목 구성을 비교하게 된다.
 export function StoresContent({ priceMap, todayIso }: { priceMap: PriceMap; todayIso: string }) {
   const { district, loading } = useCurrentDistrict();
   const reports = useReports({ district });
@@ -60,9 +60,9 @@ export function StoresContent({ priceMap, todayIso }: { priceMap: PriceMap; toda
         </section>
       )}
 
-      <section aria-label="우리 동네 매장" className="flex flex-col gap-3">
+      <section aria-label="우리 동네 가게" className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="text-head2-18 text-fg-neutral">{district} 매장</h2>
+          <h2 className="text-head2-18 text-fg-neutral">{district} 가게</h2>
           <p className="text-caption-12-regular text-fg-neutral-muted">
             {BASELINE_LABEL} 대비 · 이웃 제보 기준 싼 가게 순
           </p>

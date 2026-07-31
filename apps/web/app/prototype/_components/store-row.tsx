@@ -10,7 +10,7 @@ import type { StoreSummary } from "../_lib/stores";
 import { formatDiff, getDiffColorToken } from "../_lib/format";
 import { FreshnessTag } from "./freshness-tag";
 
-// 매장 목록의 한 줄 — 매장 탭과 랭킹(싼 가게)이 같은 줄을 쓴다.
+// 가게 목록의 한 줄 — 가게 탭과 랭킹(싼 가게)이 같은 줄을 쓴다.
 //
 // 한 줄에 세 가지를 같이 담는다: 얼마나 싼가(시세 대비 평균) · 얼마나 먼가(거리·도보) ·
 // 근거가 얼마나 두꺼운가(품목 수·최신도). 싼 것만 보여주면 발걸음이 늘어 절약이 상쇄된다.

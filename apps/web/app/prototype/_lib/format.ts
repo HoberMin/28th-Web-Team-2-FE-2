@@ -90,7 +90,7 @@ export type DiffColorToken = "text-fg-positive" | "text-fg-critical" | "text-fg-
  * 시세 대비 상태 → 색 토큰. **초록=싸다 전용 / 빨강=비싸다 전용 / 회색=같음** — 교차검증·오늘 제보
  * 같은 "신뢰" 신호와 색을 공유하지 않는다(백로그 「공통」#2 — 지금 초록이 싸다·오늘 제보·교차검증
  * 3가지 뜻으로 쓰여 가게 상세 한 줄에서 서로 다른 두 의미가 같은 색으로 나란히 뜬다).
- * 매장·가게 상세가 지금 "비쌈"을 회색으로 쓰는 것도 이 함수 적용 시 빨강으로 통일된다(다음 파도).
+ * 가게·가게 상세가 지금 "비쌈"을 회색으로 쓰는 것도 이 함수 적용 시 빨강으로 통일된다(다음 파도).
  */
 export function getDiffColorToken(diffPct: number): DiffColorToken {
   if (diffPct < 0) return "text-fg-positive";

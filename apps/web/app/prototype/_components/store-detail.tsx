@@ -116,7 +116,7 @@ export function StoreDetail({
               href="/prototype/stores"
               className="mt-4 flex min-h-11 items-center justify-center rounded-lg bg-bg-neutral-weak px-4 py-2.5 text-body-14-medium text-fg-neutral active:bg-bg-neutral-weak-pressed"
             >
-              매장 둘러보기
+              가게 둘러보기
             </Link>
           </div>
         </Scroll>
