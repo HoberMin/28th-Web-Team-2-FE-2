@@ -7,7 +7,7 @@ import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ChipLabel, RadioChipItem, RadioChipRoot } from "seed-design/ui/chip";
 import type { HomeVegetableItem } from "../_lib/home-data";
 import { VEGETABLE_GROUPS } from "../_lib/vegetables";
-import { formatNumber } from "../_lib/format";
+import { formatAsOfLabel, formatNumber } from "../_lib/format";
 import { matchesVegetableName } from "../_lib/search";
 import { TrendLabel } from "./trend-label";
 import { VegetableThumb } from "./vegetable-thumb";
@@ -45,17 +45,16 @@ function sortItems(items: HomeVegetableItem[], sort: SortKey): HomeVegetableItem
   }
 }
 
-/** "2026-07-30" → "7월 30일 기준" — 시세 기준일 표시(백로그 공통 항목). */
-function formatAsOfLabel(iso: string): string {
-  const [, m, d] = iso.split("-");
-  return `${Number(m)}월 ${Number(d)}일 기준`;
-}
-
-// 검색 + 그룹 필터 + 정렬 + 야채 그리드.
+// F01-1 야채 시세 — GNB 탭 루트 콘텐츠. 검색 + 그룹 필터 + 정렬 + 야채 그리드.
+// 2026-07-31 홈 개편으로 F01(홈)에서 분리했다 — 홈은 여러 정보를 모아 액션을 유도하는
+// 대시보드 역할로, 46종 전체 조회는 여기 전용 탭으로 옮겼다(홈에는 인기 품목 미리보기만 남음,
+// `home-vegetables-preview.tsx`). AppBar가 이미 "야채 시세"를 제목으로 달고 있어
+// 여기 안에서는 그 단어를 다시 헤더로 반복하지 않는다(검색 중엔 "검색 결과"로 상태만 알림).
+//
 // 기본 12종만 보여주고 「더보기」로 46종 전체를 편다(정렬을 바꾸면 다시 12종으로 접힌다) —
-// 46종을 한 번에 3열로 쏟으면 16줄이라 홈이 스크롤에 잠긴다.
+// 46종을 한 번에 3열로 쏟으면 16줄이라 화면이 스크롤에 잠긴다.
 // 데이터는 서버(getHomeData)에서 조립해 props로 받는다 — 시세·등락 계산은 클라에서 하지 않는다.
-export function HomeVegetables({
+export function VegetablePriceList({
   items,
   priceMeta,
 }: {
@@ -85,8 +84,16 @@ export function HomeVegetables({
     setExpanded(false); // 정렬이 바뀌면 다시 12종으로 접힌다
   }
 
+  const meta = (
+    <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
+      {sorted.length}종 · {formatAsOfLabel(priceMeta.asOf)}
+      {/* 더미 표기는 앱 전체에서 "예시 데이터" 한 가지로 — 시세 화면·카드뉴스와 같은 말 */}
+      {priceMeta.isFallback && " · 예시 데이터"}
+    </span>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 px-4 pt-1 pb-8">
       {/* label prop을 쓰면 시각 라벨이 함께 생긴다 — aria-label만 두면 placeholder가 사라진 뒤
           이 칸이 무엇을 받는 칸인지 화면에 남지 않는다(타깃 연령대에서 특히 불리하다) */}
       <TextField
@@ -99,14 +106,14 @@ export function HomeVegetables({
       </TextField>
 
       <div className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-head2-16 text-fg-neutral">{keyword ? "검색 결과" : "야채 시세"}</h2>
-          <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
-            {sorted.length}종 · {formatAsOfLabel(priceMeta.asOf)}
-            {/* 더미 표기는 앱 전체에서 "예시 데이터" 한 가지로 — 시세 화면·카드뉴스와 같은 말 */}
-            {priceMeta.isFallback && " · 예시 데이터"}
-          </span>
-        </div>
+        {keyword ? (
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-head2-16 text-fg-neutral">검색 결과</h2>
+            {meta}
+          </div>
+        ) : (
+          <div className="flex justify-end">{meta}</div>
+        )}
 
         {/* 그룹 필터 — 검색 중에는 숨긴다(두 필터가 동시에 걸리면 결과가 왜 비었는지 알 수 없다) */}
         {!keyword && (

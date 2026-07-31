@@ -48,6 +48,12 @@ export function formatMonthLabel(iso: string): string {
   return `${Number(m)}월`;
 }
 
+/** "2026-07-30" → "7월 30일 기준" — 시세 화면(야채 시세 탭·홈 미리보기) 공통 기준일 표기. */
+export function formatAsOfLabel(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${Number(m)}월 ${Number(d)}일 기준`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // 시세 대비 표기 통일 (백로그 「공통·용어」) — **아직 어디서도 쓰지 않는다.**
 // 화면마다 부호(+/−, ↓, ▼, 괄호)·소수 자릿수(1자리 vs 정수)·단어가 제각각이라 하나로 모은다.
