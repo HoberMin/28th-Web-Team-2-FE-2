@@ -6,12 +6,11 @@ import IconHeartLine from "@karrotmarket/react-monochrome-icon/IconHeartLine";
 import IconArticleLine from "@karrotmarket/react-monochrome-icon/IconArticleLine";
 import IconReceiptLine from "@karrotmarket/react-monochrome-icon/IconReceiptLine";
 import IconStoreLine from "@karrotmarket/react-monochrome-icon/IconStoreLine";
-import IconBellLine from "@karrotmarket/react-monochrome-icon/IconBellLine";
+import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 import IconChevronRightLine from "@karrotmarket/react-monochrome-icon/IconChevronRightLine";
 import { useFavorites } from "../_lib/favorites-store";
 import { useMyReports } from "../_lib/reports-store";
 import { useFavoriteStores } from "../_lib/favorite-stores-store";
-import { useStoreAlerts } from "../_lib/store-alerts-store";
 import { useCurrentDistrict } from "../_lib/location";
 import { useOnboarding } from "../_lib/onboarding-store";
 import type { PriceMap } from "../_lib/stores";
@@ -31,7 +30,6 @@ export function MyPageContent({ todayIso, priceMap }: { todayIso: string; priceM
   const favorites = useFavorites();
   const myReports = useMyReports();
   const favoriteStores = useFavoriteStores();
-  const storeAlerts = useStoreAlerts();
 
   // 제보 = 내 제보 전체(샀든 안 샀든), 구매 = 실제로 산 것(purchased)만.
   const purchases = myReports.filter((r) => r.purchased);
@@ -57,7 +55,7 @@ export function MyPageContent({ todayIso, priceMap }: { todayIso: string; priceM
       {/* 뱃지 — 구매인증(제보) 원동력 */}
       <BadgeList reportCount={myReports.length} purchaseCount={purchases.length} />
 
-      {/* 리스트 메뉴 — 항목이 6개뿐이라 아이콘 그리드보다, 개수를 먼저 보여주는 리스트가 낫다 */}
+      {/* 리스트 메뉴 — 항목이 다섯뿐이라 아이콘 그리드보다, 개수를 먼저 보여주는 리스트가 낫다 */}
       <nav aria-label="마이페이지 메뉴" className="flex flex-col">
         <MenuRow
           href="/prototype/mypage/favorites"
@@ -81,13 +79,15 @@ export function MyPageContent({ todayIso, priceMap }: { todayIso: string; priceM
           href="/prototype/mypage/stores"
           icon={<IconStoreLine />}
           label="단골 가게"
-          value={`${favoriteStores.length}곳`}
+          value={favoriteStores.length === 0 ? "없음" : `${favoriteStores.length}곳`}
         />
+        {/* 진입점 단일화 — 예전엔 마이페이지 우측 상단 톱니였다. 리스트 메뉴 맨 아래로 옮겨
+            찜/제보/구매/단골과 같은 자리에서 훑히게 한다(진입점이 둘로 흩어질 이유가 없다). */}
         <MenuRow
-          href="/prototype/mypage/stores"
-          icon={<IconBellLine />}
-          label="매장 알림"
-          value={`${storeAlerts.length}개 켜짐`}
+          href="/prototype/mypage/settings"
+          icon={<IconPersonLine />}
+          label="내 정보"
+          value={nickname || "미설정"}
         />
       </nav>
     </div>

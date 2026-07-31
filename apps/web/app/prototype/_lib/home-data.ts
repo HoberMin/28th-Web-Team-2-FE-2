@@ -9,6 +9,7 @@ import "server-only";
 import { getBaselinePrice } from "./kamis";
 import { getDailyTrend, pickSeasonalBargains, type SeasonalPick } from "./trend";
 import { getVegetableGroup, isInSeason, VEGETABLES, POPULAR_IDS } from "./vegetables";
+import type { PriceSnapshotMap } from "./stores";
 import type { PriceTrend, VegetableGroup } from "./types";
 
 /** 홈 그리드 한 칸에 필요한 최소 정보. */
@@ -20,6 +21,11 @@ export interface HomeVegetableItem {
   unit: string;
   /** 오늘 시세(원, 기준 단위). 비수기로 데이터가 없으면 null. */
   price: number | null;
+  /**
+   * 최근 평균가(원, 기준 단위·최근 30일). 비수기로 데이터가 없으면 null.
+   * 알림 다이제스트가 "최근 평균 대비 하락"을 판정할 때 기준으로 쓴다(`getPriceSnapshotMap`).
+   */
+  average: number | null;
   /** 전일 대비 등락. 계산 불가면 null. */
   trend: PriceTrend | null;
   /** 지금 달에 조사되는 품목인지 */
@@ -62,6 +68,7 @@ export async function getHomeData(): Promise<HomeData> {
       image: veg.image,
       unit: veg.unit,
       price: inSeason ? baseline.current : null,
+      average: inSeason ? baseline.average : null,
       trend: inSeason ? getDailyTrend(baseline.series.week) : null,
       inSeason,
       seasonLabel: veg.season?.label,
@@ -94,6 +101,16 @@ export async function getHomeData(): Promise<HomeData> {
 export async function getPriceMap(): Promise<Record<string, number | null>> {
   const { items } = await getHomeData();
   return Object.fromEntries(items.map((i) => [i.id, i.price]));
+}
+
+/**
+ * 품목 → {오늘 시세, 최근 평균} 맵. 알림 다이제스트(F05-1 「오늘 이런 알림을 받아요」 미리보기)가
+ * "찜한 야채가 최근 평균 대비 얼마나 내렸나"를 계산할 때 쓴다 — 이것도 클라에서 재계산하지 않고
+ * 서버 값을 그대로 내려 홈/시세 화면과 기준이 갈리지 않게 한다.
+ */
+export async function getPriceSnapshotMap(): Promise<PriceSnapshotMap> {
+  const { items } = await getHomeData();
+  return Object.fromEntries(items.map((i) => [i.id, { current: i.price, average: i.average }]));
 }
 
 /** 화면들이 같은 "오늘"을 쓰도록 서버 기준일을 내려준다(신선도 계산이 기기 시계에 흔들리지 않게). */

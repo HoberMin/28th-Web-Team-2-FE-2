@@ -91,6 +91,12 @@ export interface StoreSummary {
 export type PriceMap = Record<string, number | null>;
 
 /**
+ * 품목별 {오늘 시세, 최근 평균} 맵 — 알림 다이제스트(`notifications-digest.ts`)가 "최근 평균 대비
+ * 하락"을 판정할 때 쓴다. `average`는 KAMIS 최근 30일 평균(`kamis.ts`의 `BaselinePrice.average`).
+ */
+export type PriceSnapshotMap = Record<string, { current: number | null; average: number | null }>;
+
+/**
  * 한 가게의 품목별 최신 제보가 목록.
  * 같은 품목 제보가 여러 건이면 **가장 최신 1건**을 대표로 쓴다(가격은 시간에 민감하다).
  */

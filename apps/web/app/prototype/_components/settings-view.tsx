@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "seed-design/ui/action-button";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
@@ -19,46 +19,39 @@ import {
   useDistricts,
   useOnboarding,
 } from "../_lib/onboarding-store";
+import { setNotificationsEnabled, useNotificationsEnabled } from "../_lib/notifications-store";
+import type { PriceSnapshotMap } from "../_lib/stores";
 import { RegionPicker } from "./region-picker";
 import { AVATAR_OPTIONS, ProfileAvatar } from "./profile-avatar";
+import { NotificationDigestPreview } from "./notification-digest-preview";
 
 // 닉네임 규칙 — onboarding-view.tsx와 같은 기준(2~10자). 그 파일이 상수를 export하지 않아
 // 여기서 값만 맞춰 다시 선언한다(온보딩 로직 자체를 가져다 쓰긴엔 화면 구조가 다르다).
 const NICKNAME_MIN = 2;
 const NICKNAME_MAX = 10;
 
-const NOTIF_KEY = "veg-notifications-enabled-v1";
-function readNotifEnabled(): boolean {
-  if (typeof window === "undefined") return true;
-  return window.localStorage.getItem(NOTIF_KEY) !== "0";
-}
-
 type Sheet = "nickname" | "district" | "avatar" | "withdraw" | null;
 
-// F05-1 설정 화면 — 계정(닉네임·동네·프로필 이미지) / 알림 전체 on-off / 약관·버전·문의(더미) /
-// 로그아웃·탈퇴. 지금까지 마이페이지엔 회원 관리가 통째로 없었다.
-export function SettingsView() {
+// F05-1 「내 정보」 화면 — 계정(닉네임·동네·프로필 이미지) / 알림(전역 토글 + 오늘의 미리보기) /
+// 약관·버전·문의(더미) / 로그아웃·탈퇴. 지금까지 마이페이지엔 회원 관리가 통째로 없었다.
+//
+// 알림은 단골 가게별 개별 토글(예전 store-alerts-store.ts)을 없애고 전역 토글 하나로 합쳤다 —
+// 대상은 별도 등록 없이 찜한 야채 + 단골 가게고, 트리거도 가게 단위가 아니라 "의미 있는 변화 +
+// 하루 1회 다이제스트"로 묶인다. priceMap·todayIso는 그 다이제스트 미리보기가 홈/시세 화면과
+// 같은 시세 기준을 쓰게 서버에서 내려온 값이다.
+export function SettingsView({
+  priceMap,
+  todayIso,
+}: {
+  priceMap: PriceSnapshotMap;
+  todayIso: string;
+}) {
   const router = useRouter();
   const { nickname, avatar, district } = useOnboarding();
   const districts = useDistricts();
   const [sheet, setSheet] = useState<Sheet>(null);
   const [districtView, setDistrictView] = useState<"list" | "add">("list");
-  const [notifEnabled, setNotifEnabled] = useState(true);
-
-  // 알림 on/off는 이 화면에서만 쓰는 단순 설정이라 별도 스토어 파일을 새로 만들지 않고
-  // localStorage를 직접 읽고 쓴다(다른 화면이 구독할 필요가 없다).
-  useEffect(() => {
-    setNotifEnabled(readNotifEnabled());
-  }, []);
-
-  function handleNotifChange(next: boolean) {
-    setNotifEnabled(next);
-    try {
-      window.localStorage.setItem(NOTIF_KEY, next ? "1" : "0");
-    } catch {
-      // 프라이빗 모드 등 저장 실패 — 세션 내 상태만 유지
-    }
-  }
+  const notifEnabled = useNotificationsEnabled();
 
   function closeSheet() {
     setSheet(null);
@@ -109,9 +102,16 @@ export function SettingsView() {
       <SettingsSection title="알림">
         <div className="flex h-14 items-center justify-between px-1">
           <span className="text-body-16-regular text-fg-neutral">알림 받기</span>
-          <Switch checked={notifEnabled} onCheckedChange={handleNotifChange} aria-label="알림 전체 켜기/끄기" />
+          <Switch
+            checked={notifEnabled}
+            onCheckedChange={setNotificationsEnabled}
+            aria-label="알림 전체 켜기/끄기"
+          />
         </div>
       </SettingsSection>
+
+      {/* 개별 끄기가 없는 전역 토글이라 "그래서 뭘 받게 되는지"가 이 미리보기로만 확인된다. */}
+      <NotificationDigestPreview priceMap={priceMap} todayIso={todayIso} enabled={notifEnabled} />
 
       <SettingsSection title="정보">
         <StaticRow label="이용약관" value="준비 중" />
