@@ -17,6 +17,10 @@ export function RankingContent() {
   const { district, loading } = useCurrentDistrict();
   const reports = useReports({ district });
   const ranking = buildReporterRanking(reports);
+  // TOP3는 포디움으로 한눈에 보여주고, 4위부터만 리스트로 잇는다 — 상세는 어느 쪽이든 같은
+  // 목적지(reporter/[닉네임])로 간다(백로그 F06 재편, 2026-07-31 포디움 도입).
+  const podium = ranking.filter((r) => r.rank <= 3);
+  const rest = ranking.filter((r) => r.rank > 3);
 
   return (
     <div className="flex flex-col gap-3 px-4 pt-1 pb-6">
@@ -34,45 +38,104 @@ export function RankingContent() {
           첫 제보를 남기면 1위가 될 수 있어요.
         </EmptyState>
       ) : (
-        <ol className="flex flex-col gap-2">
-          {ranking.map((r) => (
-            <ReporterRow key={r.nickname} entry={r} />
-          ))}
-        </ol>
+        <>
+          <RankingPodium entries={podium} />
+          {rest.length > 0 && (
+            <ol className="flex flex-col gap-2">
+              {rest.map((r) => (
+                <ReporterRow key={r.nickname} entry={r} />
+              ))}
+            </ol>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-/** 1·2·3위는 배지 색·아바타 크기로 구분한다 — 세부 표현은 디자이너 몫(백로그 F06). */
-function ReporterRow({ entry }: { entry: ReporterRankEntry }) {
-  const isTop3 = entry.rank <= 3;
-  const avatarSize = entry.rank === 1 ? 52 : isTop3 ? 44 : 40;
-  const badgeClass =
-    entry.rank === 1
-      ? "bg-bg-brand-solid text-palette-static-white"
-      : isTop3
-        ? "bg-bg-brand-weak text-fg-brand-contrast"
-        : "text-fg-neutral";
-  const countClass =
-    entry.rank === 1
-      ? "text-head2-18 text-fg-brand-contrast"
-      : "text-body-16-semibold text-fg-neutral";
+/** 포디움 순위는 항상 1~3만 온다(podium = ranking.filter(rank<=3)) — 타입으로 그 불변식을 드러낸다. */
+type PodiumRank = 1 | 2 | 3;
 
+/** 스테이지 순서(2-1-3 계단)·높이·색 — 1위가 가운데·제일 높고 브랜드색, 2·3위는 좌우로 낮게. */
+const PODIUM_ORDER: Record<PodiumRank, string> = { 1: "order-2", 2: "order-1", 3: "order-3" };
+const PODIUM_HEIGHT: Record<PodiumRank, string> = { 1: "h-32", 2: "h-24", 3: "h-20" };
+const PODIUM_STAGE_BG: Record<PodiumRank, string> = {
+  1: "bg-bg-brand-solid",
+  2: "bg-bg-neutral-inverted",
+  3: "bg-bg-neutral-inverted",
+};
+
+/**
+ * TOP3 포디움 — 리스트를 스크롤하지 않아도 순위를 한눈에 보여준다(2026-07-31 신설).
+ * entries는 1~3개 다 온다는 보장이 없다(초반 제보왕이 1~2명뿐일 수 있음) — 있는 만큼만
+ * 슬롯을 그리고, 순서는 CSS order로 고정하기 때문에 2위가 없어도 1위가 어긋나지 않는다.
+ * 4위+ 리스트와 마찬가지로 `<ol>`로 감싼다 — 순위라는 같은 성격의 목록이라 스크린리더가
+ * "n개 항목" 그룹으로 안내해야 한다.
+ */
+function RankingPodium({ entries }: { entries: ReporterRankEntry[] }) {
+  if (entries.length === 0) return null;
+
+  return (
+    <ol className="flex items-end justify-center gap-2 pt-1 pb-2">
+      {entries.map((entry) => (
+        <PodiumSlot key={entry.nickname} entry={entry} />
+      ))}
+    </ol>
+  );
+}
+
+function PodiumSlot({ entry }: { entry: ReporterRankEntry }) {
+  const rank = entry.rank as PodiumRank;
+  const avatarSize = rank === 1 ? 56 : 44;
+
+  return (
+    <li className={PODIUM_ORDER[rank]}>
+      <Link
+        href={`/prototype/reporter/${encodeURIComponent(entry.nickname)}`}
+        className="flex w-24 flex-col items-center gap-1.5 rounded-2xl active:opacity-80"
+      >
+        {rank === 1 ? (
+          <span className="text-head1-24 leading-none" aria-hidden="true">
+            👑
+          </span>
+        ) : (
+          <span className="h-6" aria-hidden="true" />
+        )}
+        <span className="rounded-full ring-4 ring-bg-layer-default">
+          <ProfileAvatar avatarId={entry.avatarId} size={avatarSize} />
+        </span>
+        <div
+          className={`flex w-full flex-col items-center gap-0.5 rounded-t-2xl pt-3 ${PODIUM_HEIGHT[rank]} ${PODIUM_STAGE_BG[rank]}`}
+        >
+          <span className="text-caption-12-medium tabular-nums text-fg-neutral-inverted">{entry.rank}</span>
+          <span className="max-w-full truncate px-1 text-body-14-medium text-fg-neutral-inverted">
+            {entry.nickname}
+          </span>
+          <span className="text-caption-12-regular tabular-nums text-fg-neutral-inverted">
+            {entry.reportCount}건
+          </span>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+/** 4위부터의 리스트 행 — TOP3는 포디움이 맡으므로 여기 오는 entry는 항상 4위 이상이다. */
+function ReporterRow({ entry }: { entry: ReporterRankEntry }) {
   return (
     <li>
       <Link
         href={`/prototype/reporter/${encodeURIComponent(entry.nickname)}`}
         className="flex items-center gap-3 rounded-2xl bg-bg-neutral-weak px-4 py-3 active:bg-bg-neutral-weak-pressed"
       >
-        <span
-          className={`flex size-8 shrink-0 items-center justify-center rounded-full text-body-14-medium tabular-nums ${badgeClass}`}
-        >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-body-14-medium tabular-nums text-fg-neutral">
           {entry.rank}
         </span>
-        <ProfileAvatar avatarId={entry.avatarId} size={avatarSize} />
+        <ProfileAvatar avatarId={entry.avatarId} size={40} />
         <span className="min-w-0 flex-1 truncate text-body-14-regular text-fg-neutral">{entry.nickname}</span>
-        <span className={`shrink-0 tabular-nums ${countClass}`}>제보 {entry.reportCount}건</span>
+        <span className="shrink-0 tabular-nums text-body-16-semibold text-fg-neutral">
+          제보 {entry.reportCount}건
+        </span>
       </Link>
     </li>
   );
