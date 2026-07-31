@@ -47,3 +47,47 @@ export function formatMonthLabel(iso: string): string {
   const [, m] = iso.split("-");
   return `${Number(m)}월`;
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// 시세 대비 표기 통일 (백로그 「공통·용어」) — **아직 어디서도 쓰지 않는다.**
+// 화면마다 부호(+/−, ↓, ▼, 괄호)·소수 자릿수(1자리 vs 정수)·단어가 제각각이라 하나로 모은다.
+// 적용(기존 화면 교체)은 다음 파도 작업. 여기 만든 이름·시그니처가 그 작업의 계약이다.
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * 기준선 이름 단일 표기 — "시세"/"오늘 시세"/"오늘 공공 시세"/"공공 시세(KAMIS)" 4종이 섞여 있던 걸
+ * 하나로 모은다. 판정 로직(`judgement.ts`)의 기준이 공공 시세 단일로 통일된 것(2026-07-31)과도 정합.
+ */
+export const BASELINE_LABEL = "오늘 공공 시세";
+
+/**
+ * 시세 대비 차이 문구 — **부호 규약: 양수 = 비쌈**(`stores.ts`의 `diffPct`·`judgement.ts`의 `pct`와
+ * 통일. 예전엔 이 둘이 서로 반대 부호였다). 소수 1자리로 반올림해 자릿수도 고정한다.
+ *
+ * @param diffPct 기준가 대비 차이(%). 양수=비쌈, 음수=쌈, 0=같음
+ * @param diffWon 기준가 대비 차액(원, 부호 규약 동일). 생략하면 퍼센트만 문장에 담는다
+ * @returns 예: "1,200원 싸요 (12%)" · diffWon 생략 시 "시세보다 12% 싸요" · 0%면 "시세와 같아요"
+ */
+export function formatDiff(diffPct: number, diffWon?: number): string {
+  const pct = Math.round(diffPct * 10) / 10;
+  if (pct === 0) return "시세와 같아요";
+  const word = pct > 0 ? "비싸요" : "싸요";
+  const pctText = `${Math.abs(pct)}%`;
+  if (diffWon === undefined) return `시세보다 ${pctText} ${word}`;
+  return `${formatWon(Math.abs(diffWon))} ${word} (${pctText})`;
+}
+
+/** `formatDiff`·화면 표기와 짝을 맞추는 색 토큰. */
+export type DiffColorToken = "text-fg-positive" | "text-fg-critical" | "text-fg-neutral-muted";
+
+/**
+ * 시세 대비 상태 → 색 토큰. **초록=싸다 전용 / 빨강=비싸다 전용 / 회색=같음** — 교차검증·오늘 제보
+ * 같은 "신뢰" 신호와 색을 공유하지 않는다(백로그 「공통」#2 — 지금 초록이 싸다·오늘 제보·교차검증
+ * 3가지 뜻으로 쓰여 가게 상세 한 줄에서 서로 다른 두 의미가 같은 색으로 나란히 뜬다).
+ * 매장·가게 상세가 지금 "비쌈"을 회색으로 쓰는 것도 이 함수 적용 시 빨강으로 통일된다(다음 파도).
+ */
+export function getDiffColorToken(diffPct: number): DiffColorToken {
+  if (diffPct < 0) return "text-fg-positive";
+  if (diffPct > 0) return "text-fg-critical";
+  return "text-fg-neutral-muted";
+}

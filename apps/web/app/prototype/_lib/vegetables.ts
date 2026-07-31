@@ -24,8 +24,15 @@ export const DEFAULT_REGION = "서울";
 /** GPS 미허용/키 미수령 시 폴백 동네(동 단위) — UT 테스트 장소인 강남구 선릉역 인근. */
 export const DEFAULT_DISTRICT = "삼성동";
 
-/** 더미 기준일 — Figma 와이어프레임(2026-07-24)과 정합. 실 API 연결 시 대체. */
-export const ANCHOR_DATE = "2026-07-24";
+/**
+ * 더미 시세 시리즈·시드 제보의 "오늘" — 예전엔 고정 앵커("2026-07-24")였는데, 실행일이 그
+ * 날짜에서 하루씩 멀어질 때마다 모든 시드 제보가 함께 늙어 8일째부터 전 화면이 "오래된 가격"
+ * 경고색으로 뒤덮이는 문제가 있었다(백로그 「공통」#3). 이제 항상 실행 시점 기준으로 움직인다.
+ * 실 API 연결 시 이 함수 자체가 필요 없어진다(KAMIS 응답의 실제 조사일을 쓰게 됨).
+ */
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 /**
  * 배추·무의 계절 품종코드 — 봄/여름고랭지/가을/월동 4개를 매번 전부 조회해
@@ -428,7 +435,7 @@ export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined
       price: e.price,
       channel: e.channel,
       channelNote: e.channelNote,
-      asOf: ANCHOR_DATE,
+      asOf: todayIso(),
     }))
     .sort((a, b) => a.price - b.price);
 
@@ -466,17 +473,17 @@ function shiftMonths(iso: string, months: number): string {
   return `${dt.getUTCFullYear()}-${mm}-${dd}`;
 }
 
-function buildSeries(base: number, seed: number): Record<PricePeriod, PricePoint[]> {
+function buildSeries(base: number, seed: number, anchor: string): Record<PricePeriod, PricePoint[]> {
   const week: PricePoint[] = Array.from({ length: 7 }, (_, i) => ({
-    date: shiftDays(ANCHOR_DATE, i - 6),
+    date: shiftDays(anchor, i - 6),
     price: round10(base * (1 + 0.08 * Math.sin((i + seed) * 0.8))),
   }));
   const month: PricePoint[] = Array.from({ length: 30 }, (_, i) => ({
-    date: shiftDays(ANCHOR_DATE, i - 29),
+    date: shiftDays(anchor, i - 29),
     price: round10(base * (1 + 0.14 * Math.sin((i + seed) * 0.32))),
   }));
   const year: PricePoint[] = Array.from({ length: 12 }, (_, i) => ({
-    date: shiftMonths(ANCHOR_DATE, i - 11),
+    date: shiftMonths(anchor, i - 11),
     price: round10(base * (1 + 0.22 * Math.sin((i + seed) * 0.6))),
   }));
   // 현재가(오늘)는 기준값으로 고정 — 모든 기간의 그래프 끝점과 헤더 수치를 맞춘다.
@@ -491,7 +498,10 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
   const veg = getVegetable(vegetableId) ?? VEGETABLES[0];
   const base = BASE_PRICE[veg.id] ?? 3000;
   const seed = hashSeed(veg.id);
-  const series = buildSeries(base, seed);
+  // 한 번만 계산해 시리즈 끝점(오늘)과 asOf가 같은 날을 가리키게 한다(둘을 따로 new Date()하면
+  // 자정 근처에서 하루 어긋날 수 있음).
+  const anchor = todayIso();
+  const series = buildSeries(base, seed, anchor);
   const monthAvg = series.month.reduce((sum, p) => sum + p.price, 0) / series.month.length;
   return {
     vegetableId: veg.id,
@@ -501,56 +511,120 @@ export function getBaselineDummy(vegetableId: string, region: string = DEFAULT_R
     average: round10(monthAvg),
     series,
     source: "dummy",
-    // 더미 폴백의 기준일은 시리즈 앵커(ANCHOR_DATE)가 아니라 "지금 화면을 보고 있는 오늘" —
     // 진짜/더미 구분(isFallback)과 짝을 맞춰 "오늘 기준 값처럼 보이되 실데이터가 아님"을 드러낸다.
-    asOf: new Date().toISOString().slice(0, 10),
+    asOf: anchor,
     isFallback: true,
   };
 }
 
 /**
+ * N일 전 "YYYY-MM-DDTHH:mm:ss+09:00" — 오늘(`todayIso`) 기준 상대 시각.
+ * 시드의 절대 날짜를 고정하지 않고 "오늘로부터 며칠 전"만 고정해, 실행일이 바뀌어도
+ * 신선도(오늘/어제/N일 전 · 8일 초과 시 "오래된 가격")가 항상 같은 상태로 유지되게 한다.
+ */
+function daysAgoAt(days: number, time: string): string {
+  return `${shiftDays(todayIso(), -days)}T${time}+09:00`;
+}
+
+/**
+ * 시드(수기·자동 생성 이웃 제보)를 부여하는 동 — **이 목록 밖의 동네는 항상 빈 배열**이라
+ * 「제보 없는 동네」 빈 상태(랭킹·매장·가게 상세·댓글)에 실제로 도달할 수 있다(백로그 「공통」#4).
+ * 동네를 바꿔가며 빈 상태를 보고 싶으면 이 배열에 없는 동(예: 대부분의 다른 구)으로 전환하면 된다.
+ */
+export const SEED_DISTRICTS: string[] = [
+  "삼성동", // 기본 동네(DEFAULT_DISTRICT) — 수기 시드(Figma 정합값) 보유
+  "역삼1동",
+  "대치1동",
+  "서초2동",
+  "잠실3동",
+  "서교동", // 홍대
+  "여의동",
+  "신촌동",
+];
+
+/** 자동 생성 이웃 제보에 붙일 닉네임 풀 — 결정적으로 골라 같은 조건이면 항상 같은 이름이 나오게(본명 아님). */
+const NEIGHBOR_NICKNAME_POOL = [
+  "선릉이웃",
+  "알뜰장보기",
+  "동네한바퀴",
+  "세아이엄마",
+  "장바구니요정",
+  "냉장고파먹기",
+  "매일저녁찬거리",
+  "주말장보기",
+];
+
+/**
  * 손으로 작성한 동네 이웃 제보 시드(mine=false).
  * potato/삼성동 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원) — 자동 생성이 덮지 않게 별도 보존.
  * place는 가게 축(F09 가게 상세)이 비지 않도록 삼성동 실제 상권 이름으로 채운다.
+ * 함수인 이유: createdAt이 `daysAgoAt`(오늘 기준 상대값)이라 호출 시점마다 다시 계산해야 한다.
  */
-const HAND_SEED_REPORTS: Report[] = [
-  { id: "seed-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: "2026-07-24T09:00:00+09:00", method: "photo", mine: false, purchased: true },
-  { id: "seed-potato-2", vegetableId: "potato", district: "삼성동", place: "행복청과", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: "2026-07-22T18:20:00+09:00", method: "manual", mine: false, purchased: true },
-  { id: "seed-potato-3", vegetableId: "potato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: "2026-07-20T11:05:00+09:00", method: "photo", mine: false, purchased: true },
-  { id: "seed-onion-1", vegetableId: "onion", district: "삼성동", place: "우리농산물가락직판장", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: "2026-07-23T14:30:00+09:00", method: "manual", mine: false, purchased: true },
-  { id: "seed-carrot-1", vegetableId: "carrot", district: "삼성동", place: "행복청과", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: "2026-07-21T10:15:00+09:00", method: "photo", mine: false, purchased: true },
-];
+function buildHandSeedReports(): Report[] {
+  return [
+    { id: "seed-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: daysAgoAt(0, "09:00:00"), method: "photo", mine: false, purchased: true, nickname: "선릉이웃" },
+    { id: "seed-potato-2", vegetableId: "potato", district: "삼성동", place: "행복청과", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: daysAgoAt(2, "18:20:00"), method: "manual", mine: false, purchased: true, nickname: "알뜰장보기" },
+    { id: "seed-potato-3", vegetableId: "potato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: daysAgoAt(4, "11:05:00"), method: "photo", mine: false, purchased: true, nickname: "동네한바퀴" },
+    { id: "seed-onion-1", vegetableId: "onion", district: "삼성동", place: "우리농산물가락직판장", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: daysAgoAt(1, "14:30:00"), method: "manual", mine: false, purchased: true, nickname: "세아이엄마" },
+    { id: "seed-carrot-1", vegetableId: "carrot", district: "삼성동", place: "행복청과", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: daysAgoAt(3, "10:15:00"), method: "photo", mine: false, purchased: true, nickname: "장바구니요정" },
+  ];
+}
 
 /**
  * 내가 올린 제보 시드(mine=true) — 마이페이지 "제보/구매 내역"이 첫 방문에도 비지 않게.
  * "제보 = 관찰한 실제가"이며, purchased=true 인 것만 구매 내역·절약 계산 대상이다.
  * (tomato는 봤지만 비싸서 안 산 케이스 — 제보 내역엔 뜨지만 구매 내역엔 안 잡힘)
+ *
+ * nickname은 자리표시자("나")일 뿐이다 — 실제 표시 닉네임은 `reports-store.ts`가 읽기 시점에
+ * **현재 온보딩 닉네임**으로 항상 덮어쓴다(mine=true 전부 동일 규칙).
+ *
+ * ⚠️ mine-onion-1(9일 전)·mine-carrot-1(13일 전)은 **의도적으로 8일 초과(오래된 가격)로 남겨둔다** —
+ * 이 상태에 도달할 방법이 아예 없으면 디자이너가 "오래된 가격이에요" 화면을 검증할 수 없다.
+ * 함수인 이유는 `buildHandSeedReports`와 동일(상대 날짜 재계산).
  */
-export const MY_SEED_REPORTS: Report[] = [
-  { id: "mine-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: "2026-07-23T19:10:00+09:00", method: "photo", mine: true, purchased: true },
-  { id: "mine-tomato-1", vegetableId: "tomato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: "2026-07-19T18:40:00+09:00", method: "manual", mine: true, purchased: false },
-  { id: "mine-onion-1", vegetableId: "onion", district: "삼성동", place: "행복청과", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: "2026-07-15T11:25:00+09:00", method: "photo", mine: true, purchased: true },
-  { id: "mine-carrot-1", vegetableId: "carrot", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: "2026-07-11T09:30:00+09:00", method: "manual", mine: true, purchased: true },
-];
+function buildMySeedReports(): Report[] {
+  return [
+    { id: "mine-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2100, pricePerKg: 2100, createdAt: daysAgoAt(1, "19:10:00"), method: "photo", mine: true, purchased: true, nickname: "나" },
+    { id: "mine-tomato-1", vegetableId: "tomato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 4800, pricePerKg: 4800, createdAt: daysAgoAt(5, "18:40:00"), method: "manual", mine: true, purchased: false, nickname: "나" },
+    { id: "mine-onion-1", vegetableId: "onion", district: "삼성동", place: "행복청과", weightKg: 2, price: 3400, pricePerKg: 1700, createdAt: daysAgoAt(9, "11:25:00"), method: "photo", mine: true, purchased: true, nickname: "나" },
+    { id: "mine-carrot-1", vegetableId: "carrot", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 3200, pricePerKg: 3200, createdAt: daysAgoAt(13, "09:30:00"), method: "manual", mine: true, purchased: true, nickname: "나" },
+  ];
+}
 
-/** 자동 생성 제보에 붙일 가게명 풀 — 동네별로 결정적으로 골라 가게 축(F09)이 항상 채워지게. */
-const STORE_NAME_POOL = ["행복청과", "동네야채가게", "제일마트", "선릉시장 3번가게", "농협하나로마트"];
+/** 마이페이지 "제보/구매 내역" 등이 쓰는 내 제보 시드. 항상 새로 계산해 상대 날짜를 유지한다. */
+export function getMySeedReports(): Report[] {
+  return buildMySeedReports();
+}
 
 /**
- * 한 동네의 이웃 제보를 결정적으로 생성한다(mine=false).
- * 46종 × 100여 개 동을 미리 다 만들면 1만 건이 넘어 렌더마다 정렬 비용이 커진다
- * → **요청된 동네만 만들고 캐시**한다. 이미 수기 시드가 있는 품목은 건너뛴다
- *   (삼성동 감자 등 Figma 정합값 보존).
+ * 자동 생성 제보에 붙일 가게명 풀 — 동네별로 결정적으로 골라 가게 축(F09)이 항상 채워지게.
+ * `comments-store.ts`가 "시드 댓글을 붙일 가게"를 판단할 때도 같이 참조한다(export 필요 이유).
+ */
+export const STORE_NAME_POOL = ["행복청과", "동네야채가게", "제일마트", "선릉시장 3번가게", "농협하나로마트"];
+
+/** 수기 시드(`buildHandSeedReports`)가 쓰는 삼성동 가게명 — 댓글 시드 대상 판단에도 재사용. */
+export const HAND_SEED_STORE_NAMES = ["우리농산물가락직판장", "행복청과", "이마트 강남점"];
+
+/**
+ * 한 동네의 이웃 제보를 결정적으로 생성한다(mine=false). `SEED_DISTRICTS`에 없는 동네는
+ * 빈 배열 — 「제보 없는 동네」 빈 상태에 실제로 도달할 수 있어야 한다(백로그 「공통」#4).
+ * 46종 × 100여 개 동을 미리 다 만들면 1만 건이 넘어 렌더마다 정렬 비용이 커지므로, 시드 대상
+ * 동네여도 **요청된 동네만 만들고 캐시**한다. 이미 수기 시드가 있는 품목은 건너뛴다
+ * (삼성동 감자 등 Figma 정합값 보존). 캐시 키에 오늘 날짜를 포함해, 서버 프로세스가 자정을
+ * 넘겨 계속 떠 있어도(로컬 개발 서버 등) 다음날 재계산되게 한다.
  */
 const neighborhoodCache = new Map<string, Report[]>();
 
 export function getNeighborhoodSeedReports(district: string): Report[] {
-  const cached = neighborhoodCache.get(district);
+  if (!SEED_DISTRICTS.includes(district)) return [];
+
+  const cacheKey = `${district}::${todayIso()}`;
+  const cached = neighborhoodCache.get(cacheKey);
   if (cached) return cached;
 
-  const handSeeds = HAND_SEED_REPORTS.filter((r) => r.district === district);
+  const handSeeds = buildHandSeedReports().filter((r) => r.district === district);
   const authored = new Set(
-    [...HAND_SEED_REPORTS, ...MY_SEED_REPORTS]
+    [...buildHandSeedReports(), ...buildMySeedReports()]
       .filter((r) => r.district === district)
       .map((r) => r.vegetableId),
   );
@@ -575,16 +649,17 @@ export function getNeighborhoodSeedReports(district: string): Report[] {
         weightKg: 1,
         price,
         pricePerKg: price,
-        createdAt: `${shiftDays(ANCHOR_DATE, -daysAgo)}T09:00:00+09:00`,
+        createdAt: daysAgoAt(daysAgo, "09:00:00"),
         method: i % 2 === 0 ? "photo" : "manual",
         mine: false,
         purchased: true,
+        nickname: NEIGHBOR_NICKNAME_POOL[(seed + i * 7) % NEIGHBOR_NICKNAME_POOL.length],
       });
     }
   }
 
   const result = [...handSeeds, ...generated];
-  neighborhoodCache.set(district, result);
+  neighborhoodCache.set(cacheKey, result);
   return result;
 }
 

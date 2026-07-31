@@ -25,15 +25,30 @@ export interface StoreReview {
 // useSyncExternalStore는 스냅샷 참조가 안정적이어야 함 → 쓰기 때만 교체하는 캐시.
 let cache: StoreReview[] | null = null;
 
+// 파싱 실패를 빈 배열과 구분하기 위한 플래그(백로그 「공통」#에러가 빈 상태로 위장 — 가게 상세 F09
+// 후기 요약 소비처가 구분해 보여준다). 성공적으로 다시 읽으면 스스로 해제된다.
+let readError = false;
+
 function readLocal(): StoreReview[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as StoreReview[];
+    if (!raw) {
+      readError = false;
+      return [];
+    }
+    const parsed = JSON.parse(raw) as StoreReview[];
+    readError = false;
+    return parsed;
   } catch {
+    readError = true;
     return [];
   }
+}
+
+/** 마지막 읽기가 저장소 파싱 실패였는지 — 가게 상세(F09) 후기 요약이 "후기 없음"과 구분해 보여준다. */
+export function getStoreReviewsReadError(): boolean {
+  return readError;
 }
 
 function subscribe(callback: () => void): () => void {

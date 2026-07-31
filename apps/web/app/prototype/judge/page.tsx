@@ -1,5 +1,5 @@
 import { QuickJudge } from "../_components/quick-judge";
-import { getHomeData } from "../_lib/home-data";
+import { getHomeData, getTodayIso } from "../_lib/home-data";
 
 // 시세는 하루 1회 갱신 → 1시간 단위 재검증(홈과 같은 조립 결과를 재사용).
 export const revalidate = 3600;
@@ -13,5 +13,5 @@ export default async function JudgePage({
 }) {
   const { item } = await searchParams;
   const { items } = await getHomeData();
-  return <QuickJudge items={items} initialItemId={item ?? ""} />;
+  return <QuickJudge items={items} initialItemId={item ?? ""} todayIso={getTodayIso()} />;
 }

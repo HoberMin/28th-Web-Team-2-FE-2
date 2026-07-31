@@ -9,6 +9,7 @@ import { PriceChart } from "../../_components/price-chart";
 import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components/report-list";
 import { ReportSheet } from "../../_components/report-sheet";
 import { PriceAppBar } from "../../_components/price-app-bar";
+import { CalloutLink } from "../../_components/callout-link";
 import { CheapestMonthBadge } from "../../_components/cheapest-month-badge";
 import { VegetableThumb } from "../../_components/vegetable-thumb";
 import { OnlinePrices } from "../../_components/online-prices";
@@ -65,12 +66,20 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
           </div>
 
+          {/* 판단 진입 — 매장 가격표 앞에서 "이 가격 사도 되나"만 3초에 확인하고 싶을 때.
+              하단 제보 시트는 이제 제보 전용이라(F10 백로그 #11), 판단은 여기 위쪽 CTA로
+              들어간다: 위=판단, 아래=제보로 역할이 문구로 갈린다. */}
+          <div className="px-4 pb-2">
+            <CalloutLink href={`/prototype/judge?item=${veg.id}`}>
+              이 가격 사도 될지 판단해보기
+            </CalloutLink>
+          </div>
+
           {/* 섹션 구분 band */}
           <div className="h-1.5 shrink-0 bg-bg-neutral-weak" aria-hidden="true" />
 
           {/* 동네 제보가 — 그래프보다 위이고 제목도 한 급 위다. 이 서비스의 차별점이자
-              "지금 살까"의 직접 근거다. 즉석 판단 CTA는 하단 제보 시트의 "가격만 확인하기"로
-              통합했다(상단·하단에 같은 성격의 버튼이 둘 있던 것을 정리). */}
+              "지금 살까"의 직접 근거다. */}
           <section className="flex flex-col gap-4 px-4 pt-6" aria-label="동네 제보가">
             <div className="flex items-center justify-between">
               <h2 className="text-head2-20 text-fg-neutral">동네 제보가</h2>

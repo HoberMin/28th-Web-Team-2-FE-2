@@ -103,7 +103,8 @@ export function HomeVegetables({
           <h2 className="text-head2-16 text-fg-neutral">{keyword ? "검색 결과" : "야채 시세"}</h2>
           <span className="text-caption-12-regular tabular-nums text-fg-neutral-muted">
             {sorted.length}종 · {formatAsOfLabel(priceMeta.asOf)}
-            {priceMeta.isFallback && " · 임시 데이터"}
+            {/* 더미 표기는 앱 전체에서 "예시 데이터" 한 가지로 — 시세 화면·카드뉴스와 같은 말 */}
+            {priceMeta.isFallback && " · 예시 데이터"}
           </span>
         </div>
 

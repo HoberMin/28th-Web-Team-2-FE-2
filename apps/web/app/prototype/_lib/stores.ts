@@ -81,10 +81,15 @@ export interface StoreSummary {
   itemCount: number;
   /** 시세보다 싼 품목 수 — 가게의 "싼 집" 정도 */
   cheaperCount: number;
-  /** 시세 대비 평균 차이(%). 음수 = 대체로 싼 가게 */
+  /** 시세 대비 평균 차이(%). 음수 = 대체로 싼 가게. 이상치·낡은(7일 초과) 제보는 제외하고 낸다 —
+   * 화면이 낡은 제보를 "오래된 가격"이라 경고하면서 순위엔 같은 무게로 반영하면 경고와 순위가
+   * 모순된다(백로그 F07). */
   avgDiffPct: number | null;
   /** 가장 최근 제보의 제보 시점 */
   freshness: ReportAgeInfo;
+  /** 같은 가게·품목 제보가 2건 이상(교차 검증됨)인 품목 수 — 근거 두께 신호.
+   * 제보 1건짜리 가게와 20건짜리 가게가 같은 무게로 보이지 않도록 목록에 노출한다(백로그 F07). */
+  crossCheckedItemCount: number;
 }
 
 /** 품목별 오늘 시세 맵 — 서버에서 받은 값을 그대로 넘긴다(클라에서 더미로 재계산하지 않도록). */
@@ -160,7 +165,11 @@ export function summarizeStores(
   const summaries: StoreSummary[] = [];
   for (const [name, list] of byPlace) {
     const items = getStoreItems(list, name, priceMap, todayIso);
-    const valid = items.filter((i) => !i.outlier && i.diffPct !== null);
+    // 순위 평균에서 이상치와 낡은(7일 초과) 제보를 같은 잣대로 뺀다 — 둘 다 "믿을 수 없는 값"이라는
+    // 점은 같다. 낡은 제보만 넣어두면 "오래된 가격이에요" 경고와 순위 계산이 서로 반박하게 된다.
+    const valid = items.filter(
+      (i) => !i.outlier && i.freshness.level !== "stale" && i.diffPct !== null,
+    );
     const avgDiffPct =
       valid.length > 0
         ? Math.round((valid.reduce((s, i) => s + (i.diffPct ?? 0), 0) / valid.length) * 10) / 10
@@ -175,6 +184,7 @@ export function summarizeStores(
       cheaperCount: valid.filter((i) => (i.diffPct ?? 0) < 0).length,
       avgDiffPct,
       freshness: getReportAge(latest.createdAt, todayIso),
+      crossCheckedItemCount: items.filter((i) => !i.outlier && i.crossChecks >= 2).length,
     });
   }
 

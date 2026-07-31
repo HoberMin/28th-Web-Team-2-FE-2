@@ -9,6 +9,7 @@
 // 실서비스 전환 시 이 파일만 Spring BFF 호출로 교체.
 
 import { useSyncExternalStore } from "react";
+import { HAND_SEED_STORE_NAMES, STORE_NAME_POOL } from "./vegetables";
 
 export interface Comment {
   id: string;
@@ -53,12 +54,26 @@ function hashSeed(input: string): number {
   return h;
 }
 
-/** 기준일 — 제보 시드와 같은 앵커를 써야 "3일 전"이 화면마다 어긋나지 않는다. */
+/**
+ * 시드 댓글 앵커 — 실제 표시 포맷(상대/절대)은 소비처(comment-list.tsx) 책임이다.
+ * ⚠️ 2026-07-31: 표시를 절대 날짜("26.07.24")에서 **상대 표시로 통일**했다(백로그 「공통」
+ * "날짜 표기 — 제보는 상대, 댓글은 절대가 한 화면에 공존해 어느 쪽이 최신인지 대조가 안 됨").
+ * createdAt 저장 형식은 그대로 ISO — 앵커도 그대로 유지(과거처럼 보이는 게 자연스럽다는 판단도 유지).
+ */
 const ANCHOR = Date.parse("2026-07-24T12:00:00+09:00");
+
+/**
+ * 시드 댓글을 붙이는 가게명 — `vegetables.ts`가 자동 생성 제보에 실제로 쓰는 가게명만 포함한다.
+ * 이 목록 밖의 가게(사용자가 직접 제보해 생긴 새 가게 등)는 댓글 0건 → 「댓글 없음」 빈 상태에
+ * 실제로 도달할 수 있다(백로그 「공통」#4).
+ */
+const SEEDED_STORE_NAMES = new Set<string>([...STORE_NAME_POOL, ...HAND_SEED_STORE_NAMES]);
 
 const seedCache = new Map<string, Comment[]>();
 
 function getSeedComments(storeName: string): Comment[] {
+  if (!SEEDED_STORE_NAMES.has(storeName)) return [];
+
   const cached = seedCache.get(storeName);
   if (cached) return cached;
 
@@ -82,14 +97,26 @@ function getSeedComments(storeName: string): Comment[] {
   return comments;
 }
 
+// 파싱 실패를 빈 배열과 구분하기 위한 플래그(백로그 「공통」#에러가 빈 상태로 위장).
+// 성공적으로 다시 읽으면 스스로 해제된다 — 새로고침 후 재시도가 곧 복구 경로다.
+let readError = false;
+
 function readLocal(): Comment[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Comment[]) : [];
+    const parsed = raw ? (JSON.parse(raw) as Comment[]) : [];
+    readError = false;
+    return parsed;
   } catch {
+    readError = true;
     return [];
   }
+}
+
+/** 마지막 읽기가 저장소 파싱 실패였는지 — comment-list.tsx가 "댓글 없음"과 구분해 보여준다. */
+export function getCommentsReadError(): boolean {
+  return readError;
 }
 
 function subscribe(callback: () => void): () => void {

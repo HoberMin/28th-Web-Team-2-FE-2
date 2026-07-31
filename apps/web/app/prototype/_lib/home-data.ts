@@ -6,6 +6,7 @@
 // 클라로 보내면 페이로드가 과해진다 → 여기서 요약 DTO로 줄인다.
 
 import "server-only";
+import { cache } from "react";
 import { getBaselinePrice } from "./kamis";
 import { getDailyTrend, pickSeasonalBargains, type SeasonalPick } from "./trend";
 import { getVegetableGroup, isInSeason, VEGETABLES, POPULAR_IDS } from "./vegetables";
@@ -51,8 +52,13 @@ export interface HomeData {
 /**
  * 홈 데이터 조립.
  * 인기 8종(일러스트 보유)을 앞에 두고 나머지를 이름 순으로 잇는다 — 검색은 클라에서 이 배열을 필터한다.
+ *
+ * `cache()`로 감싼 이유: 아래 getPriceMap·getPriceSnapshotMap·getPriceMeta가 전부 이 함수를 부르고,
+ * 한 화면이 그중 둘~셋을 동시에 쓴다(홈은 셋). 감싸지 않으면 렌더 한 번에 46종 × 시리즈(약 2,200 포인트)
+ * 조립이 세 번 돈다 — 실제로 정적 생성이 두 배로 늘고 마이페이지가 60초 타임아웃에 걸렸다.
+ * 같은 렌더 안에서는 한 번만 계산된다.
  */
-export async function getHomeData(): Promise<HomeData> {
+export const getHomeData = cache(async function getHomeData(): Promise<HomeData> {
   const month = new Date().getMonth() + 1;
 
   const baselines = await Promise.all(
@@ -91,7 +97,7 @@ export async function getHomeData(): Promise<HomeData> {
     seasonalPicks: pickSeasonalBargains(baselines, month),
     month,
   };
-}
+});
 
 /**
  * 품목 → 오늘 시세 맵. **클라이언트 화면이 시세를 다시 계산하지 않게** 하는 통로다.

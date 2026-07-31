@@ -43,7 +43,7 @@ export function VegetablePickerSheet({
 
   if (disabled) {
     return (
-      <ButtonChip type="button" variant="outlineWeak" size="medium" disabled>
+      <ButtonChip type="button" variant="outlineWeak" size="medium" className="min-h-11" disabled>
         <ChipLabel>{label}</ChipLabel>
       </ButtonChip>
     );
@@ -52,7 +52,14 @@ export function VegetablePickerSheet({
   return (
     <BottomSheetRoot open={open} onOpenChange={setOpen}>
       <BottomSheetTrigger asChild>
-        <ButtonChip type="button" variant={value ? "solid" : "outlineStrong"} size="medium">
+        {/* min-h-11(44px) — seed chip 기본이 36px이라 터치 타겟 기준에 미달한다.
+            제보 폼과 즉석 판단이 같이 쓰는 트리거라 여기서 한 번만 올린다. */}
+        <ButtonChip
+          type="button"
+          variant={value ? "solid" : "outlineStrong"}
+          size="medium"
+          className="min-h-11"
+        >
           <ChipLabel>{label}</ChipLabel>
         </ButtonChip>
       </BottomSheetTrigger>

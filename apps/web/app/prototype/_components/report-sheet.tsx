@@ -21,6 +21,10 @@ export function ReportSheet({ vegetableId }: { vegetableId: string }) {
           오프라인 가격 제보하기
         </ActionButton>
       </BottomSheetTrigger>
+      {/* 이 시트는 "제보" 전용이다 — 판단(가격이 괜찮은지 확인)은 제보가 아니라서 여기 섞지 않는다.
+          예전엔 F03 백로그 #7로 상단 CalloutLink를 없애고 여기 "가격만 확인하기"로 합쳤는데,
+          제보가 아닌 선택지가 "어떻게 제보할까요?" 안에 껴서 위=판단/아래=제보 구분이 무너졌다.
+          판단 진입은 시세 화면 상단 CalloutLink로 되돌렸다(백로그 F10 #11, price/[item]/page.tsx). */}
       <BottomSheetContent title="어떻게 제보할까요?">
         <BottomSheetBody className="flex flex-col gap-2 pb-2">
           {/* 가게 위치 선택은 별도 화면이 아니라 제보 폼 안의 drawer다 → 촬영·직접입력 모두 목적지로 직행 */}
@@ -29,11 +33,6 @@ export function ReportSheet({ vegetableId }: { vegetableId: string }) {
           </ActionButton>
           <ActionButton asChild variant="neutralWeak" size="large" className="w-full">
             <Link href={`/prototype/report?item=${vegetableId}&method=manual`}>직접 입력하기</Link>
-          </ActionButton>
-          {/* 즉석 판단 최단 경로 — 상단 CalloutLink를 없앤 대신 여기로 통합(F03 백로그 #7).
-              제보 없이 "이 가격 괜찮은지"만 확인하고 싶을 때. */}
-          <ActionButton asChild variant="neutralWeak" size="large" className="w-full">
-            <Link href={`/prototype/judge?item=${vegetableId}`}>가격만 확인하기</Link>
           </ActionButton>
         </BottomSheetBody>
       </BottomSheetContent>

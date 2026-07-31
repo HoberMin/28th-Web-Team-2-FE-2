@@ -8,6 +8,7 @@ import { SeasonalPicks } from "./_components/seasonal-picks";
 import { QuickJudgeEntry } from "./_components/quick-judge-entry";
 import { FavoriteStoresCard } from "./_components/favorite-stores-card";
 import { FirstReportCard } from "./_components/first-report-card";
+import { CheapestToday } from "./_components/cheapest-today";
 import { getHomeData, getPriceMap, getPriceMeta, getTodayIso } from "./_lib/home-data";
 
 // 시세는 하루 1회 갱신 → 홈도 1시간 단위 재검증(46종 기준선을 서버에서 한 번에 조립).
@@ -35,6 +36,10 @@ export default async function HomePage() {
           <HomeVegetables items={items} priceMeta={priceMeta} />
           <FirstReportCard />
           <FavoriteStoresCard priceMap={priceMap} todayIso={todayIso} />
+          {/* 랭킹(F06)의 최저가 품목 탭에서 옮겨왔다 — 랭킹은 제보왕 단독으로 재편했고,
+              이 목록은 아래 제철 추천과 성격이 같아 여기 나란히 둔다. 근거는 서로 다르다:
+              이쪽은 오늘 이웃이 실제로 본 가격, 아래는 1년 시세에서 뽑은 계절 저점. */}
+          <CheapestToday priceMap={priceMap} todayIso={todayIso} />
           <SeasonalPicks picks={seasonalPicks} month={month} />
           {/* 카드뉴스는 "지금 뭘 해야 하나"가 아니라 둘러보기다 → 이 화면의 원칙대로 아래로 내린다. */}
           <CardNewsTeaser />

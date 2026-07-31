@@ -36,8 +36,10 @@ export function CardNewsTeaser() {
           const veg = getVegetable(news.vegetableId);
           return (
             <li key={news.id} className="w-full shrink-0 snap-start">
+              {/* 앵커로 눌린 글 위치를 넘긴다 — 예전엔 3장 전부 목록 맨 위로 가 스와이프한
+                  맥락(3번째 카드를 눌러도 1번 글부터 보임)이 버려졌다(백로그 F08). */}
               <Link
-                href="/prototype/cardnews"
+                href={`/prototype/cardnews#${news.id}`}
                 className="flex items-center justify-between gap-3 rounded-2xl bg-bg-brand-weak px-4 py-3.5 active:bg-bg-brand-weak-pressed"
               >
                 <span className="flex min-w-0 flex-col">

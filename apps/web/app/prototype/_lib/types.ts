@@ -168,4 +168,10 @@ export interface Report {
    * 내 **구매 내역·시세 대비 절약** 계산에는 purchased=true 인 것만 포함된다.
    */
   purchased: boolean;
+  /**
+   * 작성자 닉네임(공개값 — 본명 아님). 제보왕(F06) 리더보드·공개 제보 목록의 소스.
+   * mine=true 제보는 항상 **현재 온보딩 닉네임**으로 표시된다(닉네임 변경 시 과거 내 제보도 갱신 —
+   * reports-store.ts가 읽기 시점에 덮어씀). mine=false 이웃 시드는 고정 이웃 닉네임.
+   */
+  nickname: string;
 }

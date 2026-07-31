@@ -1,34 +1,50 @@
-// 랭킹(F06) 더미 데이터 — 동 단위 고정. 실서비스 전환 시 reports-store 집계로 교체.
+// 랭킹(F06) — 제보왕 단독 화면(백로그 F06 재편). 싼 가게·최저가 품목 더미는 제거했다
+// (각각 매장 탭·홈에 이미 있는 기능이라 여기 중복 데이터를 둘 이유가 없다).
 
-export interface LowPriceRankItem {
-  vegetableId: string;
-  name: string;
-  emoji: string;
-  price: number;
-  discountPct: number;
-  place: string;
-}
+import type { Report } from "./types";
+import { AVATAR_OPTIONS } from "../_components/profile-avatar";
 
-export interface ReporterRankItem {
+/** 실제 집계된 제보왕 순위 한 줄. */
+export interface ReporterRankEntry {
   rank: number;
   nickname: string;
+  /** `profile-avatar.tsx`의 `AVATAR_OPTIONS` id — 닉네임에서 결정적으로 뽑는다(무작위 아님). */
+  avatarId: string;
   reportCount: number;
 }
 
-/** 동 단위 오늘의 최저가 Top 5 (더미). */
-export const LOW_PRICE_RANKING: LowPriceRankItem[] = [
-  { vegetableId: "potato", name: "감자", emoji: "🥔", price: 2000, discountPct: 20, place: "우리농산물가락직판장" },
-  { vegetableId: "onion", name: "양파", emoji: "🧅", price: 1700, discountPct: 14, place: "행복청과" },
-  { vegetableId: "carrot", name: "당근", emoji: "🥕", price: 2600, discountPct: 10, place: "이마트 강남점" },
-  { vegetableId: "garlic", name: "마늘", emoji: "🧄", price: 7900, discountPct: 11, place: "우리농산물가락직판장" },
-  { vegetableId: "tomato", name: "토마토", emoji: "🍅", price: 4600, discountPct: 12, place: "행복청과" },
-];
+/** 문자열 → 안정적 seed (다른 파일의 동명 함수와 동일한 알고리즘 — 결정적 더미 생성 공통 패턴). */
+function hashSeed(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 997;
+  return h;
+}
 
-/** 이번 주 동 단위 제보왕 리더보드 (더미). */
-export const REPORTER_RANKING: ReporterRankItem[] = [
-  { rank: 1, nickname: "선릉이웃", reportCount: 12 },
-  { rank: 2, nickname: "청과왕민지", reportCount: 9 },
-  { rank: 3, nickname: "알뜰장보기", reportCount: 7 },
-  { rank: 4, nickname: "야채러버", reportCount: 5 },
-  { rank: 5, nickname: "동네지킴이", reportCount: 4 },
-];
+/** 닉네임에서 결정적으로 아바타를 고른다 — 같은 닉네임은 항상 같은 아바타. */
+export function pickAvatarId(nickname: string): string {
+  const options = AVATAR_OPTIONS;
+  if (options.length === 0) return "";
+  return options[hashSeed(nickname) % options.length].id;
+}
+
+/**
+ * 제보왕 실데이터 집계 — 현재 동 제보(mine·이웃 구분 없이)를 닉네임별로 세어 순위를 만든다.
+ * 호출부가 이미 동 단위로 필터링한 `Report[]`를 넘겨야 한다(이 함수는 동 필터링을 하지 않는다 —
+ * `useReports({ district })`가 동 필터를 담당).
+ * 동점(제보 수 동일)이면 닉네임 가나다순으로 안정 정렬한다.
+ */
+export function buildReporterRanking(reports: Report[]): ReporterRankEntry[] {
+  const counts = new Map<string, number>();
+  for (const r of reports) {
+    counts.set(r.nickname, (counts.get(r.nickname) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .sort(([aName, aCount], [bName, bCount]) => bCount - aCount || aName.localeCompare(bName, "ko"))
+    .map(([nickname, reportCount], i) => ({
+      rank: i + 1,
+      nickname,
+      avatarId: pickAvatarId(nickname),
+      reportCount,
+    }));
+}
