@@ -12,7 +12,16 @@ const listeners = new Set<() => void>();
 /** 등록 가능한 동네 최대 개수 — 초과 등록 시 가장 오래된 것부터 밀려난다. */
 const MAX_DISTRICTS = 3;
 
+/**
+ * 로그인 수단 — `""`는 아직 F00-0(서비스 소개·로그인)을 통과하지 않은 상태다.
+ * `guest`는 「먼저 둘러볼게요」로 들어온 비회원(동네만 정하고 시세 조회까지 허용).
+ * 프로토타입이라 실제 카카오 OAuth 대신 목업 인증을 쓴다(`kakao-auth.ts`).
+ */
+export type AuthProvider = "" | "kakao" | "guest";
+
 export interface OnboardingState {
+  /** F00-0 통과 여부 겸 회원/비회원 구분. 재진입 규칙의 첫 분기 기준. */
+  authProvider: AuthProvider;
   nickname: string;
   /** 지금 활성화된 동네 — 20개+ 소비처가 이 단일 값을 읽으므로 배열로 바꾸지 않는다. */
   district: string;
@@ -27,6 +36,7 @@ export interface OnboardingState {
 }
 
 const DEFAULT_STATE: OnboardingState = {
+  authProvider: "",
   nickname: "",
   district: "",
   districts: [],
@@ -37,10 +47,17 @@ const DEFAULT_STATE: OnboardingState = {
 // useSyncExternalStore는 스냅샷 참조가 안정적이어야 함 → 쓰기 때만 교체하는 캐시.
 let cache: OnboardingState | null = null;
 
-/** v1 저장값(`districts` 없음) 마이그레이션 — 있던 단일 `district`를 등록 목록의 첫 항목으로 채운다. */
+/**
+ * 저장값 마이그레이션.
+ * - v1(`districts` 없음): 있던 단일 `district`를 등록 목록의 첫 항목으로 채운다.
+ * - v2(`authProvider` 없음): 이미 온보딩을 마친 사람은 `kakao`로 본다. 안 그러면 F00-0 신설로
+ *   기존 사용자가 전부 소개 화면으로 튕긴다.
+ */
 function migrate(state: OnboardingState): OnboardingState {
-  if (state.districts.length > 0 || !state.district) return state;
-  return { ...state, districts: [state.district] };
+  let next = state;
+  if (!next.authProvider && next.completed) next = { ...next, authProvider: "kakao" };
+  if (next.districts.length === 0 && next.district) next = { ...next, districts: [next.district] };
+  return next;
 }
 
 function readLocal(): OnboardingState {
@@ -141,4 +158,16 @@ export function useDistricts(): string[] {
 export function readOnboarding(): OnboardingState {
   // 캐시 우선 — 저장 실패(프라이빗 모드) 시에도 세션 내 완료 상태를 게이트가 인식해 루프를 막는다.
   return cache ?? readLocal();
+}
+
+/**
+ * 재진입 규칙(F00-0 §재진입) — 지금 상태에서 보내야 할 온보딩 화면. 완료됐으면 `null`.
+ *
+ * 각 단계는 통과 즉시 저장하므로, 앱을 껐다 켜면 멈춘 자리부터 이어간다.
+ * 카카오 인증을 이미 마친 사람에게 인증을 다시 시키지 않는 게 이 함수의 존재 이유다.
+ */
+export function nextOnboardingRoute(state: OnboardingState): string | null {
+  if (!state.authProvider) return "/prototype/intro";
+  if (!state.completed) return "/prototype/onboarding";
+  return null;
 }

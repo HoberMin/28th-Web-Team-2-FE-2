@@ -61,33 +61,12 @@ body {
   }
 }
 
-/* 프로토타입 온보딩 환영 화면 모션 — 아기자기한 야채 그래픽(등장 팝 + 둥실 부유 + 텍스트 라이즈). */
-@keyframes veg-pop {
-  0% { opacity: 0; transform: scale(0.3); }
-  70% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 1; transform: scale(1); }
-}
+/* 프로토타입 온보딩 모션 — 소개 화면(F00-0) 히어로 야채가 느리게 둥실거린다.
+   구 환영 화면(F00-3)의 3D 오빗·반짝임·팝·라이즈 키프레임은 화면과 함께 삭제했다 —
+   도는 그래픽이 로딩바로 읽혀서 소개·로그인 화면으로 대체했다. */
 @keyframes veg-bob {
   0%, 100% { transform: translateY(0) rotate(-4deg); }
   50% { transform: translateY(-10px) rotate(4deg); }
-}
-@keyframes veg-rise {
-  0% { opacity: 0; transform: translateY(14px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes veg-twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-/* 3D 오빗 — 야채들이 원 궤도를 깊이감 있게 돌며(앞으로 커지고 뒤로 작아짐).
-   ring은 Y축으로 회전, 각 야채는 counter로 상쇄해 항상 정면(빌보드)을 본다. */
-@keyframes veg-orbit-spin {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
-}
-@keyframes veg-orbit-counter {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(-360deg); }
 }
 /* 모션 최소화 선호 시 모든 온보딩 모션 정지 + 최종 상태로 고정. */
 @media (prefers-reduced-motion: reduce) {

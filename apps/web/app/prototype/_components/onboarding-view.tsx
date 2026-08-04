@@ -1,50 +1,28 @@
 "use client";
 
-// F00 온보딩 — 닉네임 → 지역 선택 → 환영(문구 중심 히어로 + CTA) → 홈.
-// 입력을 모두 마친 뒤 홈(목록)으로 넘어가기 직전에 환영 화면을 둔다(사용자 요청).
-// 완료 전엔 홈(F01)이 이리로 리다이렉트한다(onboarding-gate.tsx).
+// F00-1 닉네임 → F00-2 지역 선택 → 홈. 라우트는 하나(`/prototype/onboarding`)고 단계는 화면 안에서 전환된다.
+//
+// 앞단에 F00-0(서비스 소개·로그인)이 생겼다. 그래서 여기 두 가지가 달라졌다:
+//  1. 구 F00-3(환영 화면)을 없앴다 — 지역을 고르는 즉시 홈으로 간다. 도는 야채 그래픽이
+//     로딩바로 읽혔고, 소개는 이제 진입 시점(F00-0)에서 한다.
+//  2. 시작 단계를 저장 상태에서 계산한다(재진입 규칙). 카카오 인증을 마친 사람에게 인증을
+//     다시 시키지 않고, 비회원(둘러보기)은 닉네임을 건너뛰고 지역부터 받는다.
 
-import { type PointerEvent, useState } from "react";
-import Image from "next/image";
+import { type PointerEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ActionButton } from "seed-design/ui/action-button";
 import IconChevronLeftLine from "@karrotmarket/react-monochrome-icon/IconChevronLeftLine";
 import { BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
-import { setOnboarding } from "../_lib/onboarding-store";
+import { readOnboarding, setOnboarding } from "../_lib/onboarding-store";
 import { setDistrict } from "../_lib/location";
-import { VEGETABLES } from "../_lib/vegetables";
-import type { Vegetable } from "../_lib/types";
 import { RegionPicker } from "./region-picker";
 
-type Step = "nickname" | "region" | "welcome";
+type Step = "nickname" | "region";
 
 // 닉네임 규칙 — 제보자 표시명이라 식별 가능한 최소 길이를 두고, 카드 한 줄을 넘지 않게 상한을 건다.
 const NICKNAME_MIN = 2;
 const NICKNAME_MAX = 10;
-
-// 환영 화면 3D 오빗 — 6종을 원 궤도에 등간격으로 배치해 Y축으로 돌린다.
-// perspective로 앞쪽 야채는 커지고 뒤쪽은 작아지며, 각자는 빌보드로 항상 정면을 본다.
-const ORBIT_COUNT = 6;
-const ORBIT_RADIUS = 100; // px — 씬(size-64=256px) 안에서 도는 반지름
-const ORBIT_DUR = 16; // s — 한 바퀴
-// 46종 중 Figma 일러스트를 가진 품목만 궤도에 올린다(이모지는 이 연출에 안 맞는다).
-const ILLUSTRATED = VEGETABLES.filter(
-  (v): v is Vegetable & { image: string } => typeof v.image === "string",
-);
-const ORBIT = ILLUSTRATED.slice(0, ORBIT_COUNT).map((veg, i) => ({
-  veg,
-  angle: (360 / ORBIT_COUNT) * i,
-  size: 54,
-}));
-
-// 배경 반짝임 좌표(%)와 딜레이.
-const SPARKLES = [
-  { left: 16, top: 26, delay: 0 },
-  { left: 84, top: 22, delay: 0.6 },
-  { left: 88, top: 66, delay: 1.1 },
-  { left: 12, top: 62, delay: 1.6 },
-];
 
 // 여백 탭 시 키보드 내리기 — input/button 밖을 눌렀을 때만 포커스 해제.
 function handleBackgroundPointerDown(event: PointerEvent<HTMLElement>) {
@@ -55,9 +33,19 @@ function handleBackgroundPointerDown(event: PointerEvent<HTMLElement>) {
 
 export function OnboardingView() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("nickname");
-  const [nickname, setNickname] = useState("");
-  const [district, setPickedDistrict] = useState("");
+  // 초기 단계·초기값은 저장된 상태에서 한 번만 읽는다(useState 초기화 함수 — 매 렌더 재계산 방지).
+  const [saved] = useState(() => readOnboarding());
+  // 비회원은 닉네임을 받지 않는다. 회원인데 닉네임까지 저장돼 있으면 지역부터 이어간다.
+  const [step, setStep] = useState<Step>(() =>
+    saved.authProvider === "guest" || saved.nickname ? "region" : "nickname",
+  );
+  const [nickname, setNickname] = useState(saved.nickname);
+
+  // 이 화면에 직접 들어왔는데 F00-0을 안 거쳤으면(회원/비회원 미결정) 소개 화면으로 되돌린다.
+  // 하이드레이션 후에 체크한다 — localStorage는 서버에서 못 읽는다.
+  useEffect(() => {
+    if (!readOnboarding().authProvider) router.replace("/prototype/intro");
+  }, [router]);
 
   // 검증은 trim 기준 — 공백만 입력한 값은 빈 값과 같게 본다.
   const trimmedNickname = nickname.trim();
@@ -66,10 +54,24 @@ export function OnboardingView() {
   // 입력을 시작하기 전엔 에러를 띄우지 않는다(첫 화면이 빨갛게 뜨는 걸 막는다).
   const nicknameInvalid = nickname.length > 0 && !nicknameValid;
 
-  function start() {
-    setOnboarding({ nickname: nickname.trim(), district, completed: true });
+  function submitNickname() {
+    if (!nicknameValid) return;
+    // 단계 통과 즉시 저장 — 여기서 이탈하면 다시 켰을 때 지역 단계부터 이어간다.
+    setOnboarding({ nickname: trimmedNickname });
+    setStep("region");
+  }
+
+  function pickRegion(district: string) {
+    // 지역을 고르는 즉시 온보딩 완료로 저장하고 홈으로. 확인 버튼·환영 화면 없음.
+    setOnboarding({ district, completed: true });
     setDistrict(district);
     router.replace("/prototype");
+  }
+
+  function backFromRegion() {
+    // 둘러보기(비회원)는 닉네임 단계를 거치지 않았으므로 소개 화면으로 돌아간다.
+    if (saved.authProvider === "guest") router.replace("/prototype/intro");
+    else setStep("nickname");
   }
 
   if (step === "nickname") {
@@ -79,7 +81,7 @@ export function OnboardingView() {
           onPointerDown={handleBackgroundPointerDown}
           onSubmit={(event) => {
             event.preventDefault();
-            if (nicknameValid) setStep("region");
+            submitNickname();
           }}
           className="flex min-h-0 flex-1 flex-col"
         >
@@ -119,127 +121,27 @@ export function OnboardingView() {
     );
   }
 
-  if (step === "region") {
-    return (
-      <PhoneFrame>
-        <div onPointerDown={handleBackgroundPointerDown} className="flex min-h-0 flex-1 flex-col">
-          {/* 헤더 — 뒤로가면 닉네임 단계로 (와이어프레임 상단 arrow-left) */}
-          <header className="relative flex h-14 shrink-0 items-center px-2">
-            <button
-              type="button"
-              aria-label="뒤로 가기"
-              onClick={() => setStep("nickname")}
-              className="flex size-12 items-center justify-center rounded-full text-fg-neutral active:bg-bg-neutral-weak [&_svg]:size-6"
-            >
-              <IconChevronLeftLine />
-            </button>
-          </header>
-          <Scroll className="px-4 pt-2">
-            <h1 className="text-head1-24 text-fg-neutral">평소 어디에서 야채를 구매하나요?</h1>
-            <div className="mt-8">
-              <RegionPicker
-                onSelect={(next) => {
-                  setPickedDistrict(next);
-                  setStep("welcome");
-                }}
-              />
-            </div>
-          </Scroll>
-        </div>
-      </PhoneFrame>
-    );
-  }
-
-  // welcome — 입력 완료 후 홈 진입 직전의 문구 중심 히어로(+ CTA).
-  const displayName = nickname.trim();
   return (
     <PhoneFrame>
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-8 text-center">
-        {/* 아기자기한 야채 정원 — 각자 둥실둥실 떠다니며 등장 (reduced-motion이면 정지) */}
-        <div className="relative size-64" aria-hidden="true" style={{ perspective: 600 }}>
-          {/* 부드러운 원형 배경 */}
-          <div className="absolute inset-6 rounded-full bg-bg-brand-weak" />
-          <div className="absolute inset-12 rounded-full bg-bg-brand-solid/10" />
-
-          {/* 반짝임 */}
-          {SPARKLES.map((s, i) => (
-            <span
-              key={`sparkle-${i}`}
-              data-veg-motion
-              className="absolute size-2 rounded-full bg-bg-brand-solid"
-              style={{
-                left: `${s.left}%`,
-                top: `${s.top}%`,
-                animation: `veg-twinkle 2.4s ease-in-out ${s.delay}s infinite`,
-              }}
-            />
-          ))}
-
-          {/* 3D 오빗 링 — Y축으로 회전(앞쪽 야채는 커지고 뒤쪽은 작아짐) */}
-          <div
-            data-veg-motion
-            className="absolute inset-0"
-            style={{ transformStyle: "preserve-3d", animation: `veg-orbit-spin ${ORBIT_DUR}s linear infinite` }}
+      <div onPointerDown={handleBackgroundPointerDown} className="flex min-h-0 flex-1 flex-col">
+        {/* 헤더 — 뒤로가면 닉네임 단계(비회원은 소개 화면)로 */}
+        <header className="relative flex h-14 shrink-0 items-center px-2">
+          <button
+            type="button"
+            aria-label="뒤로 가기"
+            onClick={backFromRegion}
+            className="flex size-12 items-center justify-center rounded-full text-fg-neutral active:bg-bg-neutral-weak [&_svg]:size-6"
           >
-            {ORBIT.map((s) => (
-              <div
-                key={s.veg.id}
-                className="absolute left-1/2 top-1/2"
-                style={{
-                  transform: `translate(-50%, -50%) rotateY(${s.angle}deg) translateZ(${ORBIT_RADIUS}px)`,
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                {/* 정적 빌보드 오프셋(-angle) + 링 회전 상쇄(counter) → 항상 정면 */}
-                <div style={{ transform: `rotateY(${-s.angle}deg)`, transformStyle: "preserve-3d" }}>
-                  <div data-veg-motion style={{ animation: `veg-orbit-counter ${ORBIT_DUR}s linear infinite` }}>
-                    <Image
-                      src={s.veg.image}
-                      alt=""
-                      width={s.size}
-                      height={s.size}
-                      className="object-contain drop-shadow-md"
-                      style={{ width: s.size, height: s.size }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+            <IconChevronLeftLine />
+          </button>
+        </header>
+        <Scroll className="px-4 pt-2">
+          <h1 className="text-head1-24 text-fg-neutral">평소 어디에서 야채를 구매하나요?</h1>
+          <div className="mt-8">
+            <RegionPicker onSelect={pickRegion} />
           </div>
-        </div>
-
-        <div
-          data-veg-motion
-          className="flex flex-col gap-3"
-          style={{ animation: "veg-rise 0.5s ease-out 0.5s both" }}
-        >
-          <h1 className="text-head1-24 font-bold leading-tight text-fg-neutral">
-            {displayName && (
-              <>
-                {displayName}님,
-                <br />
-              </>
-            )}
-            이제 우리 동네
-            <br />
-            야채 시세를 확인해 보세요!
-          </h1>
-          <p className="text-body-14-regular text-fg-neutral-muted">
-            {district}의 오늘 시세와 이웃 제보가를 모았어요
-          </p>
-        </div>
+        </Scroll>
       </div>
-      <BottomBar>
-        <ActionButton
-          type="button"
-          variant="neutralSolid"
-          size="large"
-          className="w-full"
-          onClick={start}
-        >
-          야채 시세 보러 가기
-        </ActionButton>
-      </BottomBar>
     </PhoneFrame>
   );
 }
