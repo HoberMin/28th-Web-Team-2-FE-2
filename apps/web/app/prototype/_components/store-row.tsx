@@ -15,7 +15,7 @@ import { FreshnessTag } from "./freshness-tag";
 // 한 줄에 세 가지를 같이 담는다: 얼마나 싼가(시세 대비 평균) · 얼마나 먼가(거리·도보) ·
 // 근거가 얼마나 두꺼운가(품목 수·최신도). 싼 것만 보여주면 발걸음이 늘어 절약이 상쇄된다.
 //
-// 단골 토글은 링크 위에 겹치지 않고 옆에 둔다 — 목록에서 바로 등록할 수 있어야
+// 찜 토글은 링크 위에 겹치지 않고 옆에 둔다 — 목록에서 바로 등록할 수 있어야
 // "여기 자주 가는 데야"를 화면 이동 없이 남긴다.
 export function StoreRow({ store, rank }: { store: StoreSummary; rank?: number }) {
   const isFavorite = useIsFavoriteStore(store.name);
@@ -70,7 +70,7 @@ export function StoreRow({ store, rank }: { store: StoreSummary; rank?: number }
         type="button"
         onClick={() => toggleFavoriteStore(store.name)}
         aria-pressed={isFavorite}
-        aria-label={isFavorite ? `${store.name} 단골 해제` : `${store.name} 단골로 등록`}
+        aria-label={isFavorite ? `${store.name} 찜 해제` : `${store.name} 찜하기`}
         className={`absolute right-1 flex size-11 items-center justify-center rounded-full [&_svg]:size-5 ${
           isFavorite ? "text-fg-brand-contrast" : "text-fg-neutral-muted"
         }`}

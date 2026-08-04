@@ -9,6 +9,8 @@ import {
   getStoreLocation,
   walkMinutes,
 } from "../_lib/store-locations";
+// SDK 로더는 가게 탭의 전체 화면 지도와 공유한다(`_lib/kakao-map.ts`).
+import { loadKakaoSdk, type MapLoadStatus } from "../_lib/kakao-map";
 
 // 가게 위치 — "여기 어디야?"에 답한다.
 //
@@ -18,50 +20,6 @@ import {
 // 지도는 Kakao Maps JS SDK로 그린다. JS 앱키(NEXT_PUBLIC_KAKAO_JS_KEY)가 없거나 SDK 로드가
 // 실패한 환경에서는 빈 영역 대신 회색 박스로 자리를 채운다(백로그 F09) — 거리·주소는 그 아래
 // 텍스트가 항상 전달하므로 화면이 깨지거나 비지 않는다.
-
-interface KakaoLatLng {
-  getLat(): number;
-  getLng(): number;
-}
-interface KakaoMapsApi {
-  LatLng: new (lat: number, lng: number) => KakaoLatLng;
-  Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => unknown;
-  Marker: new (options: { position: KakaoLatLng; map: unknown }) => unknown;
-  load(callback: () => void): void;
-}
-interface KakaoGlobal {
-  maps: KakaoMapsApi;
-}
-
-const SDK_ID = "kakao-maps-sdk";
-
-function loadKakaoSdk(appKey: string): Promise<KakaoGlobal | null> {
-  return new Promise((resolve) => {
-    const existing = (window as unknown as { kakao?: KakaoGlobal }).kakao;
-    if (existing?.maps) {
-      existing.maps.load(() => resolve(existing));
-      return;
-    }
-    // 같은 스크립트를 화면마다 다시 넣지 않는다 — 태그가 이미 있으면 로드 완료만 기다린다.
-    const prior = document.getElementById(SDK_ID) as HTMLScriptElement | null;
-    const script = prior ?? document.createElement("script");
-    const onLoad = () => {
-      const kakao = (window as unknown as { kakao?: KakaoGlobal }).kakao;
-      if (kakao?.maps) kakao.maps.load(() => resolve(kakao));
-      else resolve(null);
-    };
-    script.addEventListener("load", onLoad, { once: true });
-    script.addEventListener("error", () => resolve(null), { once: true });
-    if (!prior) {
-      script.id = SDK_ID;
-      script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
-      document.head.appendChild(script);
-    }
-  });
-}
-
-type MapLoadStatus = "idle" | "loading" | "ready" | "failed";
 
 export function StoreMap({ storeName, district }: { storeName: string; district: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
