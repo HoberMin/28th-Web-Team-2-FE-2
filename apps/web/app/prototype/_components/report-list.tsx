@@ -214,7 +214,9 @@ export function ReportsList({
                   <time dateTime={r.createdAt.slice(0, 10)} aria-label={`${dateLabel} 제보`}>
                     {reportAge.label}
                   </time>
-                  {reportAge.level === "stale" && <span className="text-fg-warning">· 오래됨</span>}
+                  {/* 「· 오래됨」 캡션은 2026-08-04에 뺐다 — 며칠부터 오래된 건지는 품목마다
+                      사람마다 달라(감자 5일 전 vs 상추 5일 전) 기준을 우리가 정할 근거가 없었다.
+                      날짜(reportAge.label)는 그대로 있으니 판단은 보는 사람이 한다. */}
                   {crossChecks >= 2 && (
                     <span className="rounded bg-bg-positive-weak px-1 py-0.5 text-fg-positive">
                       {crossChecks}명 확인

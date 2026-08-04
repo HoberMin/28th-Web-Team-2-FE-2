@@ -3,13 +3,12 @@ import { BottomBar, PhoneFrame, Scroll } from "../../_lib/shell";
 import { getOnlinePrices, getVegetable } from "../../_lib/vegetables";
 import { getBaselinePrice } from "../../_lib/kamis";
 import { getTodayIso } from "../../_lib/home-data";
-import { formatDateDot, formatWon } from "../../_lib/format";
+import { formatWon } from "../../_lib/format";
 import { getDailyTrend } from "../../_lib/trend";
 import { PriceChart } from "../../_components/price-chart";
 import { DistrictBadge, LatestReportPrice, ReportsList } from "../../_components/report-list";
 import { ReportSheet } from "../../_components/report-sheet";
 import { PriceAppBar } from "../../_components/price-app-bar";
-import { CalloutLink } from "../../_components/callout-link";
 import { CheapestMonthBadge } from "../../_components/cheapest-month-badge";
 import { VegetableThumb } from "../../_components/vegetable-thumb";
 import { OnlinePrices } from "../../_components/online-prices";
@@ -48,12 +47,12 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
                   <LatestReportPrice vegetableId={veg.id} />
                 </div>
                 <hr className="border-bg-neutral-weak-pressed" />
-                {/* 비교값 — 기준일 + 폴백 여부를 함께 밝힌다(공통 백로그: 진짜/더미 구분 불가 문제). */}
+                {/* 비교값 — 라벨은 「오늘 시세」 한 마디다(2026-08-04).
+                    예전엔 "오늘 시세 · 26.08.03 기준 · 예시 데이터"까지 한 줄에 붙어 있었는데,
+                    기준일과 데이터 출처는 이 자리에서 사용자가 하는 판단("동네가 싼가")에
+                    쓰이지 않으면서 줄을 두 줄로 밀어냈다. 그래프 섹션이 같은 정보를 갖고 있다. */}
                 <div className="flex items-center justify-between">
-                  <span className="text-caption-12-regular text-fg-neutral-muted">
-                    오늘 시세 · {formatDateDot(baseline.asOf)} 기준
-                    {baseline.isFallback ? " · 예시 데이터" : ""}
-                  </span>
+                  <span className="text-caption-12-regular text-fg-neutral-muted">오늘 시세</span>
                   <span className="text-body-14-medium tabular-nums text-fg-neutral-muted">
                     {formatWon(baseline.current)}
                   </span>
@@ -66,14 +65,9 @@ export default async function PricePage({ params }: { params: Promise<{ item: st
             </div>
           </div>
 
-          {/* 판단 진입 — 가게 가격표 앞에서 "이 가격 사도 되나"만 3초에 확인하고 싶을 때.
-              하단 제보 시트는 이제 제보 전용이라(F10 백로그 #11), 판단은 여기 위쪽 CTA로
-              들어간다: 위=판단, 아래=제보로 역할이 문구로 갈린다. */}
-          <div className="px-4 pb-2">
-            <CalloutLink href={`/prototype/judge?item=${veg.id}`}>
-              이 가격 사도 될지 판단해보기
-            </CalloutLink>
-          </div>
+          {/* 「이 가격 사도 될지 판단해보기」(F10) 진입점은 2026-08-04에 걷어냈다 — 기능째로
+              삭제했다. 가격을 따로 입력해 판정을 받는 것보다, 이 화면의 동네 제보가·오늘 시세를
+              나란히 보는 쪽이 같은 질문에 더 직접 답한다. */}
 
           {/* 섹션 구분 band */}
           <div className="h-1.5 shrink-0 bg-bg-neutral-weak" aria-hidden="true" />

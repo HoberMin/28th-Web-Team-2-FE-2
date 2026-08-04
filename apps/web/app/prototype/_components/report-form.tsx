@@ -1,11 +1,12 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import IconCameraLine from "@karrotmarket/react-monochrome-icon/IconCameraLine";
+import IconXmarkLine from "@karrotmarket/react-monochrome-icon/IconXmarkLine";
 import { TextField, TextFieldInput } from "seed-design/ui/text-field";
 import { ActionButton } from "seed-design/ui/action-button";
-import { SegmentedControl, SegmentedControlItem } from "seed-design/ui/segmented-control";
 import { AppBar, BottomBar, PhoneFrame, Scroll } from "../_lib/shell";
 import { getVegetable } from "../_lib/vegetables";
 import { useCurrentDistrict } from "../_lib/location";
@@ -14,15 +15,24 @@ import { LocationPickerSheet } from "./location-picker-sheet";
 import { VegetablePickerSheet } from "./vegetable-picker-sheet";
 import type { Report, Vegetable } from "../_lib/types";
 
-// 구매 여부 선택지 — "샀어요"만 구매 내역·시세 대비 절약에 잡히고, 둘 다 동네 시세엔 기여.
-const PURCHASE_OPTIONS = [
-  { key: "yes", label: "네, 샀어요" },
-  { key: "no", label: "시세만 봤어요" },
-] as const;
+/**
+ * 사진 인식 결과(데모 고정값) — UT에서는 어떤 사진을 넣어도 감자 1kg 3,000원으로 읽힌다.
+ * 실서비스에서는 이 상수 자리에 인식 API 응답이 들어온다. 화면 로직은 그대로 쓸 수 있게
+ * "인식 결과를 받아 폼을 채운다"는 형태만 지킨다.
+ */
+const PHOTO_RECOGNITION = { vegetableId: "potato", weight: "1", price: "3000" };
 
 // F04-2 야채 제보 폼 — 위치·품목은 시트에서 고른 값을 상단 요약 칩으로 고정 표시(자유 편집 금지),
 // 실제로 입력할 값(양·가격)만 필드로 남긴다. 확인 → localStorage 저장 → 제보 완료(F04-3).
 // 확인 버튼은 유효할 때만 활성(Figma) → 별도 에러 문구 없이 비활성으로 안내.
+//
+// 2026-08-04 개편 두 가지.
+//  ① 「이 가격에 구매하셨나요?」(구매 여부) 삭제 — 구매 인증 개념 자체를 버리고 제보로 간다.
+//     "샀는지"는 동네 시세에 아무 영향이 없는데도 마이페이지 금액 지표의 입력이라 물었던 값이다.
+//  ② 사진이 갈림길이 아니라 이 화면 안의 선택 입력이 됐다. 예전엔 「어떻게 제보할까요?」 시트에서
+//     촬영/직접입력을 먼저 고르게 했는데, 사진을 고른 사람도 결국 이 폼을 채웠다 — 갈림길이
+//     한 단계를 늘리기만 했다. 지금은 폼에 들어와서 사진을 넣으면 값이 채워지고(위 상수),
+//     나머지만 손으로 적는다. 사진 없이도 제보는 완료된다(사진은 선택 정보).
 export function ReportForm({
   item,
   method,
@@ -31,36 +41,56 @@ export function ReportForm({
   prefillWeight = "",
 }: {
   item: string;
+  /** 진입 시점의 입력 경로. 폼에서 사진을 넣으면 photo로 승격된다. */
   method: Report["method"];
   place: string;
-  /** 즉석 판단(F10)에서 이미 입력한 가격 — 있으면 다시 묻지 않는다 */
+  /** 다른 화면에서 이미 입력한 가격 — 있으면 다시 묻지 않는다 */
   prefillPrice?: string;
-  /** 즉석 판단에서 고른 단위의 기준 단위 환산 수량 */
+  /** 이미 정해진 수량(기준 단위 환산) */
   prefillWeight?: string;
 }) {
   const router = useRouter();
-  // UT 데모: 사진 촬영은 항상 감자로 인식된다 → 품목을 감자로 고정(시트를 열지 않는다).
-  const lockedVeg = method === "photo" ? getVegetable("potato") : undefined;
   const { district, loading } = useCurrentDistrict();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedVeg, setSelectedVeg] = useState<Vegetable | undefined>(
-    lockedVeg ?? getVegetable(item),
-  );
-  const veg = lockedVeg ?? selectedVeg;
-
-  // 프리필 우선순위: 즉석 판단에서 넘어온 값 → 사진 촬영 데모(1kg·3000원 감자) → 빈 값.
-  const [weight, setWeight] = useState(prefillWeight || (method === "photo" ? "1" : ""));
-  const [price, setPrice] = useState(prefillPrice || (method === "photo" ? "3000" : ""));
-  const [purchased, setPurchased] = useState(true);
+  const [selectedVeg, setSelectedVeg] = useState<Vegetable | undefined>(getVegetable(item));
+  const [weight, setWeight] = useState(prefillWeight);
+  const [price, setPrice] = useState(prefillPrice);
   // 위치 — 시트에서 고른 값만 채택한다(자유 텍스트 편집 금지). 완료 화면에서 넘어온 place는 기본값.
   const [placeValue, setPlaceValue] = useState(place);
+  // 사진 미리보기 URL(objectURL). 프로토타입이라 파일 자체는 저장하지 않는다 —
+  // localStorage에 이미지를 넣으면 용량 한도에 금방 걸린다.
+  const [photoUrl, setPhotoUrl] = useState("");
 
+  const veg = selectedVeg;
   const weightNum = Number(weight.replace(/[^0-9.]/g, ""));
   const priceNum = Number(price.replace(/[^0-9]/g, ""));
   const formValid = !!veg && !!placeValue.trim() && weightNum > 0 && priceNum > 0 && !loading;
   // 연속 입력 진입(`/prototype/report?place=…`)은 item이 없다 — 품목을 고르기 전에 닫으면
   // `/prototype/price/`(빈 세그먼트, 404)가 되지 않게 홈으로 폴백.
   const closeHref = veg ? `/prototype/price/${veg.id}` : "/prototype";
+
+  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    // 이전 미리보기 URL은 해제한다(같은 화면에서 사진을 여러 번 바꿀 수 있다).
+    if (photoUrl) URL.revokeObjectURL(photoUrl);
+    setPhotoUrl(URL.createObjectURL(file));
+
+    // 인식 결과로 폼을 채운다. 사용자가 이미 손으로 적어둔 값은 덮지 않는다 —
+    // 사진을 나중에 넣었다고 방금 고쳐 쓴 가격이 사라지면 안 된다.
+    const recognized = getVegetable(PHOTO_RECOGNITION.vegetableId);
+    if (recognized && !selectedVeg) setSelectedVeg(recognized);
+    if (!weight.trim()) setWeight(PHOTO_RECOGNITION.weight);
+    if (!price.trim()) setPrice(PHOTO_RECOGNITION.price);
+  }
+
+  function clearPhoto() {
+    if (photoUrl) URL.revokeObjectURL(photoUrl);
+    setPhotoUrl("");
+    // 같은 파일을 다시 고를 수 있게 input 값을 비운다(값이 같으면 change가 안 뜬다).
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
@@ -71,8 +101,8 @@ export function ReportForm({
       place: placeValue.trim() || undefined,
       weightKg: weightNum,
       price: priceNum,
-      method,
-      purchased,
+      // 사진을 넣었으면 사진 제보로 기록한다(진입 경로보다 실제 입력이 우선).
+      method: photoUrl ? "photo" : method,
     });
     // 가게명을 완료 화면까지 들고 간다 — 같은 가게의 다음 품목을 이어서 입력할 수 있게 한다.
     const placeParam = placeValue.trim() ? `&place=${encodeURIComponent(placeValue.trim())}` : "";
@@ -93,10 +123,58 @@ export function ReportForm({
             <Image src="/veg/cart.svg" alt="" width={99} height={97} className="mt-1 h-16 w-auto shrink-0 object-contain" />
           </div>
 
+          {/* 사진(선택) — 맨 위에 둔다. 넣으면 아래 값이 채워지므로 순서상 먼저 와야 한다. */}
+          <div className="mt-6 flex flex-col gap-2">
+            <p className="text-body-14-medium text-fg-neutral">
+              사진 <span className="text-fg-neutral-muted">(선택)</span>
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoChange}
+              className="sr-only"
+              id="report-photo"
+            />
+            {photoUrl ? (
+              <div className="relative w-fit">
+                {/* 사용자가 방금 고른 로컬 파일(objectURL)이라 next/image 최적화 대상이 아니다 */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photoUrl}
+                  alt="방금 고른 야채 사진"
+                  className="size-28 rounded-2xl object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={clearPhoto}
+                  aria-label="사진 지우기"
+                  className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-bg-neutral-inverted text-fg-neutral-inverted [&_svg]:size-4"
+                >
+                  <IconXmarkLine />
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="report-photo"
+                className="flex h-28 w-28 flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-bg-neutral-weak-pressed text-fg-neutral-muted active:bg-bg-neutral-weak"
+              >
+                <span className="[&_svg]:size-6" aria-hidden="true">
+                  <IconCameraLine />
+                </span>
+                <span className="text-caption-12-regular">사진 넣기</span>
+              </label>
+            )}
+            <p className="text-caption-12-regular text-fg-neutral-muted">
+              사진을 넣으면 품목과 가격을 자동으로 채워드려요
+            </p>
+          </div>
+
           {/* 이미 정해진 값(위치·품목)은 요약 칩으로 접는다 — 실제로 입력할 양·가격이 주인공이다. */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <LocationPickerSheet value={placeValue} onSelect={setPlaceValue} />
-            <VegetablePickerSheet value={veg} onSelect={setSelectedVeg} disabled={!!lockedVeg} />
+            <VegetablePickerSheet value={veg} onSelect={setSelectedVeg} />
           </div>
 
           <div className="mt-6 flex flex-col gap-6">
@@ -115,23 +193,6 @@ export function ReportForm({
             <TextField label="가격" value={price} onValueChange={(v) => setPrice(v.value)} suffix="원">
               <TextFieldInput placeholder="0" inputMode="numeric" className="text-head1-24 font-semibold" />
             </TextField>
-
-            {/* 구매 여부 — 샀는지 / 시세만 봤는지. 샀을 때만 마이페이지 구매 내역·절약에 잡힘.
-                랭킹·마이페이지와 같은 seed SegmentedControl을 쓴다(세 화면에 복붙돼 있던 마크업 제거) */}
-            <div className="flex flex-col gap-2">
-              <p className="text-body-14-medium text-fg-neutral">이 가격에 구매하셨나요?</p>
-              <SegmentedControl
-                aria-label="구매 여부"
-                value={purchased ? "yes" : "no"}
-                onValueChange={(v) => setPurchased(v === "yes")}
-              >
-                {PURCHASE_OPTIONS.map((opt) => (
-                  <SegmentedControlItem key={opt.key} value={opt.key}>
-                    {opt.label}
-                  </SegmentedControlItem>
-                ))}
-              </SegmentedControl>
-            </div>
           </div>
         </Scroll>
 

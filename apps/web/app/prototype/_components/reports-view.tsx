@@ -72,11 +72,8 @@ export function ReportsView({ priceMap }: { priceMap: PriceMap }) {
                   <span className="text-body-16-semibold text-fg-neutral">
                     {veg?.name ?? r.vegetableId}
                   </span>
-                  {!r.purchased && (
-                    <span className="rounded-md bg-bg-neutral-weak-pressed px-1.5 py-0.5 text-caption-12-regular text-fg-neutral-muted">
-                      시세만 봄
-                    </span>
-                  )}
+                  {/* 「시세만 봄」 배지는 2026-08-04에 뺐다 — 구매 여부를 더 이상 묻지 않으므로
+                      새 제보에는 붙을 일이 없고, 옛 제보에만 붙어 있으면 기준이 둘로 보인다. */}
                 </span>
                 <span className="text-caption-12-regular text-fg-neutral-muted">
                   {formatDateDot(r.createdAt.slice(0, 10))} · {r.district}

@@ -66,8 +66,6 @@ export interface NewReportInput {
   weightKg: number;
   price: number;
   method: Report["method"];
-  /** 이 가격에 실제로 구매했는지("샀어요/안 샀어요"). 구매 내역·절약 계산은 true만 포함. */
-  purchased: boolean;
 }
 
 export function addReport(input: NewReportInput): Report {
@@ -82,7 +80,9 @@ export function addReport(input: NewReportInput): Report {
     createdAt: new Date().toISOString(),
     method: input.method,
     mine: true,
-    purchased: input.purchased,
+    // 구매 여부는 더 이상 묻지 않는다(2026-08-04, 구매 인증 개념 폐기) — 새 제보는 전부 true로
+    // 정규화한다. 필드 자체는 시드·기존 저장값이 갖고 있어 타입에 남겨 뒀다(`types.ts` 참고).
+    purchased: true,
     // 생성 시점 스냅샷 — 어차피 읽을 때 `withMyNickname`이 최신 닉네임으로 다시 덮어쓴다.
     nickname: readOnboarding().nickname || "이웃",
   };
@@ -173,7 +173,7 @@ export function useNearbyDistrictReports(
 }
 
 /**
- * 내가 올린 제보만(mine=true) 최신순으로 반환 — 마이페이지 "제보/구매 내역"의 소스.
+ * 내가 올린 제보만(mine=true) 최신순으로 반환 — 마이페이지 "내 제보"의 소스.
  * 동네 필터는 걸지 않는다(내 기록은 위치와 무관하게 내 것).
  */
 export function useMyReports(): Report[] {

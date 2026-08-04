@@ -10,10 +10,12 @@ const STYLE: Record<ReportAgeInfo["level"], string> = {
 };
 
 export function FreshnessTag({ freshness }: { freshness: ReportAgeInfo }) {
+  // 「· 오래된 가격이에요」 문구는 2026-08-04에 뺐다(동네 제보가 목록의 「오래됨」과 같은 이유 —
+  // 며칠부터 오래된 건지는 품목·사람마다 달라 우리가 기준을 정할 근거가 없었다).
+  // 색(warning)과 날짜 라벨은 남긴다 — 신호는 주되 단정하지 않는다.
   return (
     <span className={`text-caption-12-regular ${STYLE[freshness.level]}`}>
       {freshness.label} 제보
-      {freshness.level === "stale" && <span className="ml-1">· 오래된 가격이에요</span>}
     </span>
   );
 }

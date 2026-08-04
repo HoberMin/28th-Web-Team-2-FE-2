@@ -182,9 +182,14 @@ export function VegetablePriceList({
             aria-label="야채 종류 필터"
             className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto overscroll-x-contain px-4 no-scrollbar"
           >
+            {/* 칩에 그 종류의 품목 수를 붙인다(예: 잎채소 32) — 누르기 전에 "여기 몇 개나
+                있나"를 알 수 있어야 헛걸음(눌렀더니 2종)이 줄어든다. 개수는 지금 데이터에서
+                직접 센다(하드코딩하면 품목이 늘 때 어긋난다). */}
             {[ALL, ...VEGETABLE_GROUPS].map((g) => (
               <RadioChipItem key={g} value={g} className="snap-start shrink-0">
-                <ChipLabel>{g}</ChipLabel>
+                <ChipLabel>
+                  {g} {g === ALL ? items.length : items.filter((v) => v.group === g).length}
+                </ChipLabel>
               </RadioChipItem>
             ))}
           </RadioChipRoot>
@@ -213,8 +218,14 @@ export function VegetablePriceList({
                       </span>
                     ) : (
                       <>
+                        {/* 단위를 값에 붙인다 — "3,200원"만 있으면 1kg인지 1개인지 몰라
+                            품목끼리 비교가 성립하지 않는다(46종의 단위가 kg·개·포기로 섞여 있다). */}
                         <span className="text-body-14-medium tabular-nums text-fg-neutral">
                           {formatNumber(v.price)}원
+                          <span className="text-caption-12-regular text-fg-neutral-muted">
+                            {" "}
+                            /{v.unit}
+                          </span>
                         </span>
                         <TrendLabel trend={v.trend} />
                       </>

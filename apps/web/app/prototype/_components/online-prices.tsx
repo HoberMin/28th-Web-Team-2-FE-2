@@ -25,15 +25,15 @@ function mallSearchUrl(mall: string, term: string): string {
   return `https://search.naver.com/search.naver?query=${encodeURIComponent(term)}`;
 }
 
-/** 막대 길이 계산 — 0~100% 클램프(기준선이 온라인 최고가보다 훨씬 싸도 막대가 안 넘치게). */
-function barWidthPct(price: number, max: number): number {
-  if (max <= 0) return 0;
-  return Math.min(100, Math.max(2, (price / max) * 100));
-}
-
-// 온라인 판매가 — 가로 막대로 채널별 가격을 비교하고, 같은 축에 오프라인 기준선(동네 제보가
-// 또는 오늘 시세)을 얹는다. 세로 리스트일 땐 온라인끼리만 비교돼 "동네가 싼가 온라인이 싼가"가
-// 안 보였다(백로그 F03 #11). 여전히 **보조 기준**이라 헤딩 위계는 올리지 않는다.
+// 온라인 판매가 — 채널별 가격을 **싼 순 리스트**로 보여주고, 맨 위에 오프라인 기준선
+// (동네 제보가 우선, 없으면 오늘 시세)을 한 줄로 얹는다. 줄을 누르면 그 몰의 검색 결과로 나간다.
+//
+// 2026-08-04: 가로 막대를 걷어냈다. 막대는 값의 비율을 보여주려던 장치인데, 이 자리에서
+// 사용자가 하는 판단은 "동네보다 싼가"의 예/아니오 하나이고 그건 숫자 두 개를 나란히 두면 끝난다.
+// 막대 때문에 한 줄이 3층(이름·막대·배송조건)으로 늘어 리스트가 화면 한 장을 넘겼다.
+// 정렬도 싼 순으로 고정했다 — 목록의 목적이 "제일 싼 데가 어디냐"라서 그 답이 첫 줄에 와야 한다.
+//
+// 여전히 **보조 기준**이라 헤딩 위계는 올리지 않는다.
 export function OnlinePrices({
   set,
   unit,
@@ -54,8 +54,8 @@ export function OnlinePrices({
   const referencePrice = localPrice ?? baselinePrice;
   const referenceLabel = localPrice ? "동네 제보가" : "오늘 시세";
 
-  const { prices } = set;
-  const maxPrice = Math.max(referencePrice, ...prices.map((p) => p.price));
+  // 싼 순 — 목록의 질문이 "제일 싼 데가 어디냐"라서 답이 첫 줄에 와야 한다.
+  const prices = [...set.prices].sort((a, b) => a.price - b.price);
 
   return (
     <section aria-label="온라인 판매가 비교" className="flex flex-col gap-3">
@@ -66,55 +66,56 @@ export function OnlinePrices({
         )}
       </div>
 
-      {/* 기준선 — 오프라인 값(동네 제보가 우선, 없으면 오늘 시세) */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between text-caption-12-regular text-fg-neutral-muted">
-          <span>{referenceLabel}(기준)</span>
-          <span className="tabular-nums text-fg-neutral">
-            {formatNumber(referencePrice)}원<span> /{unit}</span>
-          </span>
-        </div>
-        <div className="h-2.5 w-full rounded-full bg-bg-neutral-weak">
-          <div
-            className="h-2.5 rounded-full bg-bg-brand-solid"
-            style={{ width: `${barWidthPct(referencePrice, maxPrice)}%` }}
-          />
-        </div>
+      {/* 기준선 — 오프라인 값(동네 제보가 우선, 없으면 오늘 시세). 비교 대상이 무엇인지
+          목록 위에 한 줄로 못 박아 둔다(막대 없이도 이 줄이 있으면 "동네보다 싼가"가 읽힌다). */}
+      <div className="flex items-center justify-between rounded-xl bg-bg-neutral-weak px-3 py-2 text-caption-12-regular text-fg-neutral-muted">
+        <span>{referenceLabel}(기준)</span>
+        <span className="tabular-nums text-fg-neutral">
+          {formatNumber(referencePrice)}원<span> /{unit}</span>
+        </span>
       </div>
 
-      {/* 채널별 막대 — 성격 라벨(즉시배송 등)은 막대 아래 한 줄로. 라벨을 숨기고 금액만
-          줄 세우면 "즉시배송이 제일 비싸다"는 당연한 결론만 반복돼 정보량이 0이 된다. */}
-      <ul className="flex flex-col gap-3">
-        {prices.map((p) => (
-          <li key={p.mall}>
-            <a
-              href={mallSearchUrl(p.mall, vegetableName)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col gap-1 rounded-xl px-1 py-1 active:bg-bg-neutral-weak"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-body-14-medium text-fg-neutral">{p.mall}</span>
-                <span className="flex shrink-0 items-center gap-1">
+      {/* 채널별 리스트(싼 순) — 성격 라벨(즉시배송 등)은 가격 아래 한 줄로. 라벨을 숨기고 금액만
+          줄 세우면 "즉시배송이 제일 비싸다"는 당연한 결론만 반복돼 정보량이 0이 된다.
+          줄 전체가 링크라 어디를 눌러도 그 몰 검색 결과로 나간다. */}
+      <ul className="flex flex-col">
+        {prices.map((p) => {
+          const cheaper = p.price < referencePrice;
+          return (
+            <li key={p.mall}>
+              <a
+                href={mallSearchUrl(p.mall, vegetableName)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 border-b border-bg-neutral-weak py-3 last:border-b-0 active:bg-bg-neutral-weak"
+              >
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-body-14-medium text-fg-neutral">{p.mall}</span>
+                  <span className="truncate text-caption-12-regular text-fg-neutral-muted">
+                    {p.channel}
+                    {p.channelNote ? ` · ${p.channelNote}` : ""}
+                  </span>
+                </span>
+                <span className="flex shrink-0 flex-col items-end">
                   <span className="text-body-14-medium tabular-nums text-fg-neutral">
                     {formatNumber(p.price)}원
                   </span>
-                  <IconChevronRightLine className="size-4 text-fg-neutral-muted" aria-hidden="true" />
+                  {/* 색만으로 싼/비싼을 나누지 않는다 — 문구도 같이 준다(WCAG 1.4.1) */}
+                  <span
+                    className={`text-caption-12-regular tabular-nums ${
+                      cheaper ? "text-fg-positive" : "text-fg-neutral-muted"
+                    }`}
+                  >
+                    {cheaper ? "기준보다 싸요" : "기준보다 비싸요"}
+                  </span>
                 </span>
-              </div>
-              <div className="h-2.5 w-full rounded-full bg-bg-neutral-weak">
-                <div
-                  className="h-2.5 rounded-full bg-bg-neutral-weak-pressed"
-                  style={{ width: `${barWidthPct(p.price, maxPrice)}%` }}
-                />
-              </div>
-              <span className="truncate text-caption-12-regular text-fg-neutral-muted">
-                {p.channel}
-                {p.channelNote ? ` · ${p.channelNote}` : ""}
-              </span>
-            </a>
-          </li>
-        ))}
+                <span className="shrink-0 text-fg-neutral-muted [&_svg]:size-4" aria-hidden="true">
+                  <IconChevronRightLine />
+                </span>
+              </a>
+            </li>
+          );
+        })}
       </ul>
 
       <p className="text-caption-12-regular text-fg-neutral-muted">
