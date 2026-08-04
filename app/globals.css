@@ -1,0 +1,309 @@
+/* Seed Design(UT 프로토타입용, design-guide §1-2) + Tailwind v4 공존 — cascade layer 순서로 우선순위 결정.
+   SEED 스타일은 seed-* 레이어에, Tailwind 유틸리티는 utilities 레이어에 놓여 충돌 없이 얹힌다. */
+@layer theme, base, seed-base, components, seed-components, utilities;
+@import "./fonts/wanted-sans-subset.css";
+@import "@seed-design/css/all.layered.css";
+@import "tailwindcss";
+@import "@seed-design/tailwind4-theme";
+
+:root {
+  /* UT 프로토타입은 흰 배경 고정 — OS 다크모드에도 라이트로 강제 (design-guide 원칙). */
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   디자인 토큰 — 진실 소스는 Figma Variables (design-guide.md §0)
+   이 @theme 블록이 서비스의 디자인 가이드 본체다. figma-implementer가 Figma → sync로 갱신하고,
+   디자이너가 직접 값을 주입해도 되는 자리다. 손으로 임의 hex를 추가하지 말고 Figma에 있는 값만 넣는다.
+   Figma에 없는 플레이스홀더 금지 — sync된 규격만 등록한다.
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme static {
+  /*
+   * 컬러 — Figma Design Library (fileKey WfW1Nkx1oiOWBHNwrw48IL) node 126-1092
+   *   Raw Color 58 + Semantic Color 24. **재검증 완료 2026-08-05** — 이전 sync(08-04)는 스크린샷
+   *   판독이라 hex 8건(gray/400·red/300·red/800·green/400·green/700·blue/200·blue/800·blue/900)이
+   *   틀려 있었고 이번에 Figma 원본 값으로 바로잡았다. 검산은 `/playground` Color 스토리에서.
+   * `color/kakao/500`은 이 라이브러리 밖의 별도 Variable(CTA_small fill 395-13199) — 유지.
+   */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  /* Figma `common/black50` — alpha 50% raw 토큰. overlay/dim이 이걸 alias한다. */
+  --color-black-50: color-mix(in srgb, #000000 50%, transparent);
+
+  --color-gray-50: #f9f9fb;
+  --color-gray-100: #f2f3f8;
+  --color-gray-200: #e5e8ef;
+  --color-gray-300: #cbd1dc;
+  --color-gray-400: #b4bbcb;
+  --color-gray-500: #99a1b1;
+  --color-gray-600: #697383;
+  --color-gray-700: #4a5667;
+  --color-gray-800: #354153;
+  --color-gray-900: #262f3c;
+  --color-gray-1000: #141a24;
+
+  --color-orange-50: #fff8ec;
+  --color-orange-100: #fff0d3;
+  --color-orange-200: #ffdea5;
+  --color-orange-300: #ffc56d;
+  --color-orange-400: #ffa132;
+  --color-orange-500: #ff850a;
+  --color-orange-600: #ff6f00;
+  --color-orange-700: #cc5002;
+  --color-orange-800: #a13e0b;
+  --color-orange-900: #82350c;
+  --color-orange-1000: #461804;
+
+  --color-red-50: #fff1f3;
+  --color-red-100: #ffe0e4;
+  --color-red-200: #ffc6cc;
+  --color-red-300: #ff9ea9;
+  --color-red-400: #ff6677;
+  --color-red-500: #fd364d;
+  --color-red-600: #ed2c42;
+  --color-red-700: #c60f24;
+  --color-red-800: #a41021;
+  --color-red-900: #871522;
+  --color-red-1000: #4a050d;
+
+  --color-green-50: #ecfdf4;
+  --color-green-100: #d1fae1;
+  --color-green-200: #a7f3c9;
+  --color-green-300: #6ee7ac;
+  --color-green-400: #34d38b;
+  --color-green-500: #10b972;
+  --color-green-600: #05a163;
+  --color-green-700: #04784d;
+  --color-green-800: #065f3e;
+  --color-green-900: #064e35;
+  --color-green-1000: #022c1e;
+
+  --color-blue-50: #eef7ff;
+  --color-blue-100: #d9edff;
+  --color-blue-200: #bbe1ff;
+  --color-blue-300: #8ccfff;
+  --color-blue-400: #55b4ff;
+  --color-blue-500: #2e94ff;
+  --color-blue-600: #217cf9;
+  --color-blue-700: #105fe5;
+  --color-blue-800: #144db9;
+  --color-blue-900: #174491;
+  --color-blue-1000: #132a58;
+
+  --color-kakao-500: #fee500;
+
+  /*
+   * 시맨틱 컬러 — Semantic Color 컬렉션. Figma alias 그대로 raw 토큰을 var()로 참조(중복 hex 방지).
+   * surface/tertiary, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
+   */
+  --color-background-primary: var(--color-white);
+  --color-background-secondary: var(--color-gray-50);
+  --color-surface-primary: var(--color-white);
+  --color-surface-secondary: var(--color-gray-900);
+  --color-surface-tertiary: color-mix(in srgb, var(--color-gray-700) 90%, transparent);
+  --color-content-primary: var(--color-gray-900);
+  --color-content-secondary: var(--color-gray-600);
+  --color-content-disabled: var(--color-gray-400);
+  --color-content-inverse: var(--color-gray-50);
+  --color-content-brand: var(--color-green-600);
+  --color-border-primary: var(--color-gray-200);
+  --color-border-secondary: var(--color-gray-100);
+  --color-action-primary-default: var(--color-green-500);
+  --color-action-primary-pressed: var(--color-green-600);
+  --color-action-primary-disabled: var(--color-gray-300);
+  --color-action-secondary-default: var(--color-gray-900);
+  --color-action-secondary-pressed: var(--color-gray-700);
+  --color-action-secondary-disabled: var(--color-gray-300);
+  --color-action-tertiary-default: var(--color-gray-100);
+  --color-action-tertiary-pressed: var(--color-gray-200);
+  --color-trend-up: var(--color-red-600);
+  --color-trend-down: var(--color-blue-600);
+  --color-trend-flat: var(--color-gray-400);
+  --color-overlay-dim: var(--color-black-50);
+
+  /*
+   * 레디어스 — Radius 컬렉션 sync 2026-08-04
+   */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /*
+   * 타이포그래피 — Figma Variables (node 171-3737) sync 2026-08-05 · **최종본**
+   *   패밀리는 전부 **Wanted Sans** 1종 (구 head1/head2 2종 체계 폐기).
+   *   매핑 규칙: Figma `title/24-bold` → `--text-title-24-bold`
+   *   letterSpacing: Figma 전 스타일 -2% → -0.02em
+   *   line-height: Figma 배수 그대로(단위 없음).
+   *   ⚠️ title-20-bold(1.5)·title-18-semibold(1.55)는 같은 계열의 다른 스타일(1.45)과 다르다 —
+   *      Figma 원본 값을 그대로 옮겼다. 의도치 않은 값이면 Figma에서 고쳐야 한다.
+   */
+
+  /* title (24 / 20 / 18 × bold·semibold·medium) */
+  --text-title-24-bold: 1.5rem;
+  --text-title-24-bold--line-height: 1.45;
+  --text-title-24-bold--letter-spacing: -0.02em;
+  --text-title-24-bold--font-weight: 700;
+  --text-title-24-semibold: 1.5rem;
+  --text-title-24-semibold--line-height: 1.45;
+  --text-title-24-semibold--letter-spacing: -0.02em;
+  --text-title-24-semibold--font-weight: 600;
+  --text-title-24-medium: 1.5rem;
+  --text-title-24-medium--line-height: 1.45;
+  --text-title-24-medium--letter-spacing: -0.02em;
+  --text-title-24-medium--font-weight: 500;
+  --text-title-20-bold: 1.25rem;
+  --text-title-20-bold--line-height: 1.5;
+  --text-title-20-bold--letter-spacing: -0.02em;
+  --text-title-20-bold--font-weight: 700;
+  --text-title-20-semibold: 1.25rem;
+  --text-title-20-semibold--line-height: 1.45;
+  --text-title-20-semibold--letter-spacing: -0.02em;
+  --text-title-20-semibold--font-weight: 600;
+  --text-title-20-medium: 1.25rem;
+  --text-title-20-medium--line-height: 1.45;
+  --text-title-20-medium--letter-spacing: -0.02em;
+  --text-title-20-medium--font-weight: 500;
+  --text-title-18-bold: 1.125rem;
+  --text-title-18-bold--line-height: 1.45;
+  --text-title-18-bold--letter-spacing: -0.02em;
+  --text-title-18-bold--font-weight: 700;
+  --text-title-18-semibold: 1.125rem;
+  --text-title-18-semibold--line-height: 1.55;
+  --text-title-18-semibold--letter-spacing: -0.02em;
+  --text-title-18-semibold--font-weight: 600;
+  --text-title-18-medium: 1.125rem;
+  --text-title-18-medium--line-height: 1.45;
+  --text-title-18-medium--letter-spacing: -0.02em;
+  --text-title-18-medium--font-weight: 500;
+
+  /* body (16 / 14 × bold·semibold·medium·regular) */
+  --text-body-16-bold: 1rem;
+  --text-body-16-bold--line-height: 1.55;
+  --text-body-16-bold--letter-spacing: -0.02em;
+  --text-body-16-bold--font-weight: 700;
+  --text-body-16-semibold: 1rem;
+  --text-body-16-semibold--line-height: 1.55;
+  --text-body-16-semibold--letter-spacing: -0.02em;
+  --text-body-16-semibold--font-weight: 600;
+  --text-body-16-medium: 1rem;
+  --text-body-16-medium--line-height: 1.55;
+  --text-body-16-medium--letter-spacing: -0.02em;
+  --text-body-16-medium--font-weight: 500;
+  --text-body-16-regular: 1rem;
+  --text-body-16-regular--line-height: 1.55;
+  --text-body-16-regular--letter-spacing: -0.02em;
+  --text-body-16-regular--font-weight: 400;
+  --text-body-14-bold: 0.875rem;
+  --text-body-14-bold--line-height: 1.55;
+  --text-body-14-bold--letter-spacing: -0.02em;
+  --text-body-14-bold--font-weight: 700;
+  --text-body-14-semibold: 0.875rem;
+  --text-body-14-semibold--line-height: 1.55;
+  --text-body-14-semibold--letter-spacing: -0.02em;
+  --text-body-14-semibold--font-weight: 600;
+  --text-body-14-medium: 0.875rem;
+  --text-body-14-medium--line-height: 1.55;
+  --text-body-14-medium--letter-spacing: -0.02em;
+  --text-body-14-medium--font-weight: 500;
+  --text-body-14-regular: 0.875rem;
+  --text-body-14-regular--line-height: 1.55;
+  --text-body-14-regular--letter-spacing: -0.02em;
+  --text-body-14-regular--font-weight: 400;
+
+  /* caption (12 × bold·semibold·medium·regular) */
+  --text-caption-12-bold: 0.75rem;
+  --text-caption-12-bold--line-height: 1.45;
+  --text-caption-12-bold--letter-spacing: -0.02em;
+  --text-caption-12-bold--font-weight: 700;
+  --text-caption-12-semibold: 0.75rem;
+  --text-caption-12-semibold--line-height: 1.45;
+  --text-caption-12-semibold--letter-spacing: -0.02em;
+  --text-caption-12-semibold--font-weight: 600;
+  --text-caption-12-medium: 0.75rem;
+  --text-caption-12-medium--line-height: 1.45;
+  --text-caption-12-medium--letter-spacing: -0.02em;
+  --text-caption-12-medium--font-weight: 500;
+  --text-caption-12-regular: 0.75rem;
+  --text-caption-12-regular--line-height: 1.45;
+  --text-caption-12-regular--letter-spacing: -0.02em;
+  --text-caption-12-regular--font-weight: 400;
+}
+
+/* 앱 전용 변수 — 위 Figma 토큰과 구분해서 둔다(런타임 var 참조라 inline). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* 폰트 패밀리 — Wanted Sans 1종 (Figma node 171-3737 최종본).
+     @font-face는 app/fonts/wanted-sans-subset.css(동적 서브셋 self-host)가 정의한다.
+     스택은 Wanted Sans 공식 웹폰트 가이드 권장 구성 그대로 — 폰트 미로딩 구간에도 한글 대체가 자연스럽다.
+     구 Pretendard + head1/head2 3종 체계는 폐기했다. */
+  --font-sans:
+    "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, system-ui,
+    "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+/* SEED 컴포넌트 내부의 브랜드색(당근 carrot #f60) 제거 — 우리 orange 토큰으로 대체.
+   앱 코드의 SEED 색 유틸(text-fg-*·bg-bg-*)은 우리 토큰 유틸로 전부 교체했지만,
+   SEED 컴포넌트는 recipe CSS가 이 변수를 직접 읽어서 클래스 교체로는 안 바뀐다.
+   실사용: ActionButton variant="brandSolid"(report-success), ProgressCircle tone="brand"(loading). */
+:root {
+  --seed-color-bg-brand-solid: var(--color-orange-600);
+  --seed-color-bg-brand-solid-pressed: var(--color-orange-700);
+  --seed-color-fg-brand: var(--color-orange-600);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* 폰트는 <html>의 font-sans 유틸이 소유한다(layout.tsx) — SEED가 font-family: inherit이라 여기서 끊으면 안 된다. */
+}
+
+/* 커스텀 인터랙션 요소(버튼·링크·카드·details 등)의 포커스 링을 SEED 토큰으로 통일 —
+   기본값이면 브라우저 UA 아웃라인(검정)이 떠서 SEED 컴포넌트와 어긋난다.
+   `button`이 빠져 있으면 손으로 만든 버튼(수량 스테퍼·접기·찜 등)이 UA 기본에 의존하는데,
+   Safari는 button에 아웃라인을 그리지 않아 키보드 포커스가 아예 사라진다(WCAG 2.4.7).
+   base 레이어 + :where(0 specificity)라 SEED 컴포넌트 자체 포커스 규칙은 그대로 이긴다. */
+@layer base {
+  :where(button, a, summary, [role="button"], [tabindex]):focus-visible {
+    outline: var(--seed-dimension-x0_5, 2px) solid
+      var(--seed-color-stroke-focus-ring, #1e82eb);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* 스크롤바 감추기 — 모바일 앱 느낌을 위해.
+   iOS Safari는 원래 오버레이 스크롤바라 안 보이지만, Android 일부와 데스크톱(디자이너가
+   보는 환경)에서는 막대가 그려져 가로 목록 아래에 회색 줄이 남는다. 그 줄 자리를 비우려고
+   컨테이너마다 pb-1을 넣어왔는데, 막대를 없애면 그 여백도 필요 없다.
+   스크롤 자체는 그대로 동작한다 — 막대만 숨긴다. 대신 목록은 다음 항목이 살짝 걸치게
+   두어(snap + 우측 여백) 더 있다는 걸 눈으로 알 수 있어야 한다. */
+@utility no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 구 Edge */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 프로토타입 온보딩 모션 — 소개 화면(F00-0) 히어로 야채가 느리게 둥실거린다.
+   구 환영 화면(F00-3)의 3D 오빗·반짝임·팝·라이즈 키프레임은 화면과 함께 삭제했다 —
+   도는 그래픽이 로딩바로 읽혀서 소개·로그인 화면으로 대체했다. */
+@keyframes veg-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-10px) rotate(4deg); }
+}
+/* 모션 최소화 선호 시 모든 온보딩 모션 정지 + 최종 상태로 고정. */
+@media (prefers-reduced-motion: reduce) {
+  [data-veg-motion] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

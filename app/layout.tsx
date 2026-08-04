@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 
-// Pretendard variable — self-host (OFL). CSS 변수 --font-pretendard로 노출.
-const pretendard = localFont({
-  src: "./fonts/PretendardVariable.woff2",
-  variable: "--font-pretendard",
-  display: "swap",
-  weight: "45 920",
-});
+// 폰트는 globals.css가 import하는 app/fonts/wanted-sans-subset.css(@font-face 92분할)가 소유한다.
+// next/font/local을 쓰지 않는 이유: 동적 서브셋은 unicode-range로 쪼갠 92개 파일이라
+// next/font가 다루는 단일 파일 모델에 맞지 않는다. 대신 브라우저가 페이지에 실제로 등장한
+// 문자 범위의 조각만 내려받는다(한 페이지 보통 2~4개 ≈ 50~100KB, 통합본은 1.29MB).
 
 export const metadata: Metadata = {
   title: "동네 야채 시세",
@@ -23,8 +19,9 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${pretendard.variable} h-full antialiased`}
+      className="h-full font-sans antialiased"
       // Seed Design 테마 속성 — 번들러 플러그인 없이 수동 지정 (design-guide §1-2)
+      // SEED는 font-family: inherit이라 루트의 font-sans를 그대로 따른다.
       data-seed-color-mode="light-only"
       data-seed-user-color-scheme="light"
     >
