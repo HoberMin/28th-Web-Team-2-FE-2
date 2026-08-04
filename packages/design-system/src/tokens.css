@@ -6,19 +6,113 @@
  */
 @theme {
   /*
-   * 컬러 — Figma section 395-9705 sync 2026-07-14
-   * `color/kakao/500`은 Tokens 컬렉션의 Variable이며 CTA_small fill(395-13199)에 연결돼 있다.
+   * 컬러 — Figma Design Library (fileKey WfW1Nkx1oiOWBHNwrw48IL) Raw Color/Semantic Color 컬렉션
+   * sync 2026-08-04, 스크린샷에서 값 옮김(MCP가 라이브 선택 필요 — 노드 직접 조회 실패).
+   * hex 마지막 1~2자리는 스크린샷 압축으로 오독 가능성 있음 — 특히 gray/300, red/800, green·blue 700 이상 대조 권장.
+   * `color/kakao/500`은 이 라이브러리 밖의 별도 Variable(CTA_small fill 395-13199) — 이번 sync 범위 아님, 유지.
    */
   --color-white: #ffffff;
-  --color-gray-50: #f5f6fb;
-  --color-gray-200: #c2c6d1;
-  --color-gray-400: #626670;
-  --color-gray-800: #272e3f;
-  --color-gray-900: #0f172a;
-  --color-blue-100: #d2e2ff;
-  --color-blue-400: #659bff;
-  --color-red-300: #ff5858;
+  --color-black: #000000;
+
+  --color-gray-50: #f9f9fb;
+  --color-gray-100: #f2f3f8;
+  --color-gray-200: #e5e8ef;
+  --color-gray-300: #cbd1dc;
+  --color-gray-400: #b4b8cb;
+  --color-gray-500: #99a1b1;
+  --color-gray-600: #697383;
+  --color-gray-700: #4a5667;
+  --color-gray-800: #354153;
+  --color-gray-900: #262f3c;
+  --color-gray-1000: #141a24;
+
+  --color-orange-50: #fff8ec;
+  --color-orange-100: #fff0d3;
+  --color-orange-200: #ffdea5;
+  --color-orange-300: #ffc56d;
+  --color-orange-400: #ffa132;
+  --color-orange-500: #ff850a;
+  --color-orange-600: #ff6f00;
+  --color-orange-700: #cc5002;
+  --color-orange-800: #a13e0b;
+  --color-orange-900: #82350c;
+  --color-orange-1000: #461804;
+
+  --color-red-50: #fff1f3;
+  --color-red-100: #ffe0e4;
+  --color-red-200: #ffc6cc;
+  --color-red-300: #ff96a9;
+  --color-red-400: #ff6677;
+  --color-red-500: #fd364d;
+  --color-red-600: #ed2c42;
+  --color-red-700: #c60f24;
+  --color-red-800: #aa1021;
+  --color-red-900: #871522;
+  --color-red-1000: #4a050d;
+
+  --color-green-50: #ecfdf4;
+  --color-green-100: #d1fae1;
+  --color-green-200: #a7f3c9;
+  --color-green-300: #6ee7ac;
+  --color-green-400: #34d3b8;
+  --color-green-500: #10b972;
+  --color-green-600: #05a163;
+  --color-green-700: #047b4d;
+  --color-green-800: #065f3e;
+  --color-green-900: #064e35;
+  --color-green-1000: #022c1e;
+
+  --color-blue-50: #eef7ff;
+  --color-blue-100: #d9edff;
+  --color-blue-200: #8be1ff;
+  --color-blue-300: #8ccfff;
+  --color-blue-400: #55b4ff;
+  --color-blue-500: #2e94ff;
+  --color-blue-600: #217cf9;
+  --color-blue-700: #105fe5;
+  --color-blue-800: #144d89;
+  --color-blue-900: #1f4491;
+  --color-blue-1000: #132a58;
+
   --color-kakao-500: #fee500;
+
+  /*
+   * 시맨틱 컬러 — Semantic Color 컬렉션. Figma alias 그대로 raw 토큰을 var()로 참조(중복 hex 방지).
+   * surface/tertiary, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
+   */
+  --color-background-primary: var(--color-white);
+  --color-background-secondary: var(--color-gray-50);
+  --color-surface-primary: var(--color-white);
+  --color-surface-secondary: var(--color-gray-900);
+  --color-surface-tertiary: color-mix(in srgb, var(--color-gray-700) 90%, transparent);
+  --color-content-primary: var(--color-gray-900);
+  --color-content-secondary: var(--color-gray-600);
+  --color-content-disabled: var(--color-gray-400);
+  --color-content-inverse: var(--color-gray-50);
+  --color-content-brand: var(--color-green-600);
+  --color-border-primary: var(--color-gray-200);
+  --color-border-secondary: var(--color-gray-100);
+  --color-action-primary-default: var(--color-green-500);
+  --color-action-primary-pressed: var(--color-green-600);
+  --color-action-primary-disabled: var(--color-gray-300);
+  --color-action-secondary-default: var(--color-gray-900);
+  --color-action-secondary-pressed: var(--color-gray-700);
+  --color-action-secondary-disabled: var(--color-gray-300);
+  --color-action-tertiary-default: var(--color-gray-100);
+  --color-action-tertiary-pressed: var(--color-gray-200);
+  --color-trend-up: var(--color-red-600);
+  --color-trend-down: var(--color-blue-600);
+  --color-trend-flat: var(--color-gray-400);
+  --color-overlay-dim: color-mix(in srgb, var(--color-black) 50%, transparent);
+
+  /*
+   * 레디어스 — Radius 컬렉션 sync 2026-08-04
+   */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
 
   /*
    * 타이포그래피 스케일 — Figma Variables (node 369-4075) sync 2026-07-13
