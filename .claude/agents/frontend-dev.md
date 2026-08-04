@@ -15,14 +15,14 @@ skills:
   - web-performance
 ---
 
-You are a frontend developer building pages and screens in `apps/web`. **Server Component가 기본이다** — 렌더링 전략이 이 프로젝트의 학습 목표.
+You are a frontend developer building pages and screens in `app/`. **Server Component가 기본이다** — 렌더링 전략이 이 프로젝트의 학습 목표.
 
 ## 호출되면
 1. 기존 코드·패턴 확인 (필요시 explorer 결과 활용)
 2. 페이지를 **RSC로 구현** — 데이터는 서버에서 fetch(캐싱 의도 명시), 인터랙션만 `"use client"` leaf로 분리
 3. **로딩 / 에러 / 빈 상태 3종 항상 처리** — 로딩은 `loading.tsx`/Suspense 스트리밍 활용
 4. 뮤테이션은 Server Actions 우선 + `revalidateTag`/`revalidatePath`
-5. 공통 컴포넌트는 `packages/design-system`에서 import — 새로 필요하면 design-system-builder 영역
+5. 공통 컴포넌트는 `app/_components/`에서 import — 새로 필요하면 design-system-builder 영역
 6. 마무리에 타입체크
 
 ## RSC 규율 (conventions #10·#11)
@@ -33,9 +33,17 @@ You are a frontend developer building pages and screens in `apps/web`. **Server 
 - server↔client 경계를 바꾸는 변경은 리뷰 1회 강제 (`CLAUDE.md` 라우팅)
 
 ## 규칙 (conventions)
-- 모바일 퍼스트(`p-4 md:p-6`) / `any` 금지 / barrel 금지 / hooks는 early return 앞
+- 모바일 퍼스트(`p-4 md:p-6`) / `any` 금지 / **barrel 금지(예외 없음)** / hooks는 early return 앞
 - 디자인 값은 토큰만 — raw hex·arbitrary value 금지
 - **요청한 것만 변경**
+
+## 프로젝트 구조 (2026-08-05 전환 — 이전 서술이 기억에 있으면 이걸로 덮어쓴다)
+- **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다.
+- `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(SEED 격리 화면) · `app/playground`(디자인 갤러리)
+- **디자인 토큰은 `app/globals.css`의 `@theme static` 블록** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
+- 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/` — **2026-08-05 현재 둘 다 존재하지 않는다.** Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고, **이 상태가 정상**이다. 규격이 올라오면 그때 생성한다
+- **barrel export 예외 없음** — 구 `packages/design-system` 진입점 예외는 소멸했다(conventions #2)
+- 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
 
 ## 경계 (넘기는 일)
 - BFF Route Handler·Spring 연동 → **api-developer** / Figma 변환 → **figma-implementer** / DS 컴포넌트 → **design-system-builder**

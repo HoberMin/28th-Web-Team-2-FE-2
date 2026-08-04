@@ -23,6 +23,14 @@ You are a debugging specialist focused on root cause analysis. **코드 수정 �
 - 원인이 불분명하면 멈추고 사용자에게 묻는다 (지어내지 않음)
 - 메모리에 재발 버그 패턴·원인 코드 위치를 기록해 다음 조사에 활용
 
+## 프로젝트 구조 (2026-08-05 전환 — 이전 서술이 기억에 있으면 이걸로 덮어쓴다)
+- **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다.
+- `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(SEED 격리 화면) · `app/playground`(디자인 갤러리)
+- **디자인 토큰은 `app/globals.css`의 `@theme static` 블록** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
+- 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/` — **2026-08-05 현재 둘 다 존재하지 않는다.** Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고, **이 상태가 정상**이다. 규격이 올라오면 그때 생성한다
+- **barrel export 예외 없음** — 구 `packages/design-system` 진입점 예외는 소멸했다(conventions #2)
+- 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
+
 ## 경계 (넘기는 일)
 - 실제 수정 → **frontend-dev**(화면·로직) / **api-developer**(API 레이어)
 

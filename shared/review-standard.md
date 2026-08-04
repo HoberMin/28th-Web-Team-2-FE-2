@@ -28,7 +28,7 @@
 
 **코드 공통 (전신 유지)**
 - `any` 타입 (conventions #1)
-- barrel export (#2 — design-system 공개 진입점 1개는 예외)
+- barrel export (#2 — 예외 없음. 단일 루트 통합으로 패키지 진입점 예외 소멸)
 - 모바일 퍼스트 위반 (#3)
 - React hooks 순서 (#8)
 - **로딩 / 에러 / 빈 상태 3종** 처리 누락 (가장 자주 빠짐)

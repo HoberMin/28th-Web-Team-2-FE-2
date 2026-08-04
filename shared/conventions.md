@@ -6,7 +6,7 @@
 ## 최상위 불변 규칙
 
 1. **`any` 타입 금지** — proper 타입 정의
-2. **Barrel export 금지** — `index.ts` re-export 하지 않고 직접 import (예외: `packages/design-system`의 공개 진입점 1개는 허용 — 패키지 경계라서)
+2. **Barrel export 금지** — `index.ts` re-export 하지 않고 직접 import (**예외 없음** — 구 `packages/design-system` 패키지 진입점 예외는 단일 루트 통합으로 근거 소멸, 2026-08-05)
 3. **모바일 퍼스트** — 무프리픽스 = 모바일(sm 기준), `md:` 부터 데스크탑. 예: `p-4 md:p-6`
 4. **요청한 것만 변경** — 요청에 없는 리팩토링·정리·기능 추가 금지
 5. **모르면 추측 말고 질문** — 의도 불분명·자료 없음 → 멈추고 한 가지 질문으로 확인 (전역)
@@ -20,23 +20,24 @@
 
 ## 스택 (확정)
 
-- 구조: **pnpm 모노레포** — `apps/web`(Next.js 앱) + `packages/design-system`(토큰·공통 컴포넌트, **추후 분리 전제의 독립 패키지**)
+- 구조: **단일 루트 Next.js 프로젝트** (모노레포 아님 — 2026-08-05 전환) — 루트에 `app/`(App Router). 디자인 시스템은 별도 패키지·폴더가 아니라 **서비스 안에 병합**: 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/`, **토큰은 `app/globals.css`의 `@theme` 블록**. 워크스페이스·패키지 경계 없음. **2026-08-05 현재 `app/_components/`·`app/_lib/`는 존재하지 않는다** — Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없기 때문. 규격이 올라오면 그때 생성한다
 - 프론트: **Next.js (App Router) + Tailwind CSS v4**
 - 백엔드: **외부 Spring (별도 레포)** — 이 레포엔 도메인 백엔드 구현 없음
 - **렌더링 전략 (확정 2026-07-13)**: **풀 RSC + BFF.**
   - Server Component 기본, 데이터는 서버에서 fetch.
-  - `apps/web/app/api/*` Route Handler가 **외부 Spring 앞단 BFF** — 토큰·시크릿은 여기(서버)까지만, 응답 가공·캐싱도 여기서.
+  - `app/api/*` Route Handler가 **외부 Spring 앞단 BFF** — 토큰·시크릿은 여기(서버)까지만, 응답 가공·캐싱도 여기서.
   - 클라이언트 인터랙션(폼·토글·낙관적 업데이트)만 `"use client"` + 필요 시 **TanStack Query**.
   - 뮤테이션은 **Server Actions 우선**, 클라 편의가 크면 TanStack Mutation 허용.
 - **캐싱 (적극 활용 — 이 프로젝트의 학습 목표)**: 정적 렌더링/Full Route Cache 기본 → 동적 필요 시에만 opt-out. `fetch(..., { next: { revalidate, tags } })` + 뮤테이션에서 `revalidateTag`/`revalidatePath`. 비-fetch 데이터는 `unstable_cache`. Route Segment Config(`export const revalidate/dynamic`)로 라우트 단위 선언. → `data-fetching` 스킬이 상세.
 - **React Compiler**: opt-in 활성 (자동 메모이제이션 — 수동 `memo`/`useMemo` 남발 금지)
-- 컴포넌트: **shadcn/ui(Radix 기반)** 위에 `packages/design-system` 구축 — a11y가 기본 내장되는 최대 지렛대
+- 컴포넌트: **shadcn/ui(Radix 기반)** 위에 `app/_components/` 구축 — a11y가 기본 내장되는 최대 지렛대
 - 폼: **react-hook-form + zod** (Server Actions와 병용 시 zod 스키마 공유)
-- 패키지 매니저: **pnpm** (workspace)
+- 패키지 매니저: **pnpm** (워크스페이스 없음 — 단일 프로젝트)
 - 테스트: **Vitest(유닛) + Playwright(E2E + `toHaveScreenshot` 시각 회귀 + axe a11y)**
-- 디자인 검증: **`apps/web/app/playground`** 갤러리 라우트 (스토리북 안 씀) — **런칭 전까진 배포에서도 공개**(팀 검증용 Vercel이 보는 화면). 실사용자 릴리즈 시 Vercel env `PLAYGROUND_DISABLED=1`로 숨김 (`TODO(✍️):` 런칭 시점에 설정). 스토리 규약(Figma 규격만·1규격 1파일·흰 배경 고정·좌측 목차)은 `design-guide.md §1-1`
-- 디자인: **Figma + MCP**, 토큰은 Figma Variables → Tailwind v4 `@theme` 로 스냅샷 sync (`figma-bridge` 스킬)
+- 디자인 검증: **`app/playground`** 갤러리 라우트 (스토리북 안 씀) — **런칭 전까진 배포에서도 공개**(팀 검증용 Vercel이 보는 화면). 실사용자 릴리즈 시 Vercel env `PLAYGROUND_DISABLED=1`로 숨김 (`TODO(✍️):` 런칭 시점에 설정). 스토리 규약(Figma 규격만·1규격 1파일·흰 배경 고정·좌측 목차)은 `design-guide.md §1-1`
+- 디자인: **Figma + MCP**, 토큰은 Figma Variables → `app/globals.css`의 Tailwind v4 `@theme static` 블록으로 스냅샷 sync (`figma-bridge` 스킬). **디자이너가 이 블록에 직접 주입해도 된다.** `static`인 이유: 미사용 토큰까지 항상 emit해야 시맨틱 alias·SEED 오버라이드가 끊기지 않는다
 - 접근성: **WCAG 2.2 AA 목표** — Radix 기본기 + axe 자동 검사 + `accessibility` 스킬
+- 폰트: **Wanted Sans Variable 1종** (SIL OFL) — 동적 서브셋 92분할 self-host(`public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). 페이지당 2~4조각(≈50~100KB)만 내려받는다. **버전 업 외 직접 편집 금지**
 - 다국어: 안 함 (한국어 only)
 
 ## 미정 (TODO — 건드리는 작업이면 사용자에게 묻고 여기 기록)

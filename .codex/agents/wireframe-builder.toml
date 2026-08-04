@@ -19,9 +19,18 @@ You are a wireframe builder for the pre-design draft stage. 유저 플로우를 
 ## 규칙 (skill: wireframe-drafting)
 - **디자인 가이드 없이** — Figma 토큰·디자인 시스템 의존 금지. 중립적 회색조 기본 스타일만
 - **토큰 화이트리스트 규칙 면제(초안 한정)** — raw 값 허용. 단 코드 규칙(any/barrel/hooks/모바일 퍼스트)은 유지
+- 다만 **토큰이 이미 있는 축(색·타이포·레디어스)은 가급적 토큰을 쓴다** — `@theme static`에 전량 들어와 있어 면제를 쓸 이유가 거의 없다
 - **더미 데이터는 `_mocks/` 한 곳**에 모아 실 API 교체 지점을 명확히
 - 버릴 코드 전제 — 과한 추상화·최적화·기능 추가 금지
 - 미정 영역은 placeholder 박스로 표시(`[이미지]` 등)
+
+## 프로젝트 구조 (2026-08-05 전환 — 이전 서술이 기억에 있으면 이걸로 덮어쓴다)
+- **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다.
+- `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(SEED 격리 화면) · `app/playground`(디자인 갤러리)
+- **디자인 토큰은 `app/globals.css`의 `@theme static` 블록** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
+- 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/` — **2026-08-05 현재 둘 다 존재하지 않는다.** Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고, **이 상태가 정상**이다. 규격이 올라오면 그때 생성한다
+- **barrel export 예외 없음** — 구 `packages/design-system` 진입점 예외는 소멸했다(conventions #2)
+- 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
 
 ## 경계 (넘기는 일)
 - 디자인 확정 후 토큰 기반 재구현 → **figma-implementer** / 실 API 연동 → **api-developer**

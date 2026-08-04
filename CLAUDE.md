@@ -26,7 +26,7 @@
 
 | | 🎨 디자인 빌더 | ⚙️ 프론트 개발자 |
 |---|---|---|
-| 주 영역 | `packages/design-system` (토큰·공통 컴포넌트) + 화면 UI | `apps/web` 앱 로직·RSC·BFF·데이터·성능 |
+| 주 영역 | `app/_components/` (공통 컴포넌트) + `app/globals.css` `@theme`(토큰) + 화면 UI | `app/` 앱 로직·RSC·BFF·데이터·성능 |
 | 기본 posture | Figma MCP 토큰 → 코드, 시각 정합, a11y, `/playground` 검증 | 아키텍처, Server/Client 경계, 캐싱, 타입 안정성 |
 | 코드 범위 | 제한 없음 (RSC/BFF 수정 가능 — 프론트가 co-review) | 전 영역 |
 | 우선 agent | design-system-builder · figma-implementer · wireframe-builder · design-reviewer | frontend-dev · api-developer · bug-investigator · code-reviewer |
@@ -99,7 +99,7 @@
 ## 오케스트레이션 (병렬 실행 규약)
 
 - **독립 조사(읽기)는 병렬로** — explorer·auditor·리뷰어 동시 실행 OK. 같은 결론을 위해 순차로 기다리지 않는다.
-- **쓰기는 소유 영역이 겹치지 않을 때만 병렬** — 예: design-system과 apps/web 동시 작업 OK, 같은 패키지 내 동시 쓰기 X.
+- **쓰기는 소유 영역이 겹치지 않을 때만 병렬** — 예: `app/_components/`와 `app/prototype/` 동시 작업 OK, 같은 디렉토리 내 동시 쓰기 X. **`app/globals.css`는 토큰이 모여 있어 한 번에 한 agent만.**
 - **공유 파일(conventions·agent-roles 등 shared/)은 한 번에 한 agent만** 수정.
 - **구현과 리뷰는 컨텍스트 분리** — 구현한 agent가 자기 결과를 리뷰하지 않는다 (code-reviewer는 별도 컨텍스트).
 - 병렬 agent를 띄울 땐 **입력·출력 계약을 프롬프트에 명시** (무엇을 받아 무엇을 반환하는지).

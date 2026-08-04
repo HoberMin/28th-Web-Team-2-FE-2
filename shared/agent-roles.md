@@ -28,9 +28,9 @@
 | bug-investigator | 버그 근본원인 추적 | 읽기 | 높음 | domain, api-patterns | 수정 금지. 원인·위치만 |
 | api-developer | **BFF Route Handler + 외부 Spring 연동 + 캐싱 전략** | 쓰기 | 중간 | domain, api-patterns, backend-api-reference, data-fetching | **백엔드 상상 금지**. 스펙 없으면 멈춤. 시크릿은 서버까지만 |
 | frontend-dev | 페이지·화면 구현 (**RSC 기본, `"use client"` 는 leaf만**) | 쓰기 | 중간 | domain, api-patterns, frontend-design, form-patterns, nextjs-app-router, data-fetching | BFF·API는 api-developer. 경계 전환은 리뷰 대상 |
-| **design-system-builder** 🆕 | **디자이너 바이브코딩** — `packages/design-system` 토큰·공통 컴포넌트 (Radix/shadcn 기반) | 쓰기 | 중간 | domain, frontend-design, tailwind-v4, accessibility, figma-bridge | Radix 기반 우선(a11y 내장). 컴포넌트마다 `/playground` 스토리 필수. **빌드 1회→리뷰 1회→바로 푸시로 종료 — 테스트·플랜 문서는 범위 밖**(conventions #12). 앱 로직(`apps/web` 데이터·BFF)은 frontend-dev/api-developer 우선 |
+| **design-system-builder** 🆕 | **디자이너 바이브코딩** — `app/globals.css` `@theme static` 토큰 + `app/_components/` 공통 컴포넌트(Radix/shadcn 기반). **2026-08-05 현재 Figma에 컴포넌트 규격이 없어 토큰 작업이 주 업무** | 쓰기 | 중간 | domain, frontend-design, tailwind-v4, accessibility, figma-bridge | Radix 기반 우선(a11y 내장). 컴포넌트마다 `/playground` 스토리 필수. **빌드 1회→리뷰 1회→바로 푸시로 종료 — 테스트·플랜 문서는 범위 밖**(conventions #12). 앱 로직(`app/` 데이터·BFF)은 frontend-dev/api-developer 우선 |
 | wireframe-builder | 디자인 전 와이어프레임 초안 (더미 데이터·배포) | 쓰기 | 중간 | domain, wireframe-drafting, form-patterns | **디자인 가이드 없이**. 토큰 규칙 면제(초안 한정) |
-| figma-implementer | Figma→코드 변환 + **토큰 sync**(Variables→`@theme`) | 쓰기 | 중간 | domain, figma-bridge, frontend-design, tailwind-v4 | **토큰 화이트리스트만**. 못 가져온 값 추측 금지→게이트 |
+| figma-implementer | Figma→코드 변환 + **토큰 sync**(Variables→`app/globals.css` `@theme static`) | 쓰기 | 중간 | domain, figma-bridge, frontend-design, tailwind-v4 | **토큰 화이트리스트만**. 못 가져온 값 추측 금지→게이트. **스크린샷 판독 금지**(2026-08-04 sync에서 hex 8건 오독). sync 후 `/playground` 스토리 라벨 동반 갱신 |
 | test-writer | AI-native 테스트 (Vitest + Playwright + **스크린샷 회귀 + axe**) | 쓰기 | 중간 | domain, test-strategy | 구현 베끼는 동어반복 테스트 금지 |
 | code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) | 읽기 | 높음 | domain, api-patterns, frontend-design, typescript-strict, accessibility, web-performance | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도 누락·시크릿 클라 노출 필수 체크** |
 | design-reviewer | Figma 정합·토큰 위반·**a11y** 검토 | 읽기 | 높음 | domain, figma-bridge, frontend-design, accessibility | raw 값/arbitrary value 검출. 와이어프레임엔 미적용 |

@@ -20,7 +20,7 @@
 
 ## 스택
 
-**pnpm 모노레포**: `apps/web`(Next.js App Router, **풀 RSC+BFF**) + `packages/design-system`(독립 패키지, 추후 분리).
+**단일 루트 Next.js 프로젝트**(2026-08-05 모노레포 해체): 루트 `app/`(App Router, **풀 RSC+BFF**). 디자인 시스템은 서비스 병합 — `app/_components/` + `app/globals.css` `@theme`.
 Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+axe) / Figma+MCP / 외부 Spring(별도 레포).
 **백엔드 상상해서 만들지 말 것** — 스펙은 `shared/`·실제 API 문서 참조.
 디자인 검증은 `/playground` 갤러리 (스토리북 안 씀). 접근성 WCAG 2.2 AA.
@@ -28,8 +28,8 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 ## 페르소나 (힌트 — 차단 아님)
 
 **디자인 빌더 / 프론트 개발자** 둘 다 코드 작성 + full git. 영역만 다름:
-- 디자인 빌더 → `packages/design-system`·화면 UI 중심. design-system-builder·figma-implementer 우선.
-- 프론트 개발자 → `apps/web` 앱 로직·RSC·BFF·캐싱. frontend-dev·api-developer 우선.
+- 디자인 빌더 → `app/_components/`·`@theme` 토큰·화면 UI 중심. design-system-builder·figma-implementer 우선.
+- 프론트 개발자 → `app/` 앱 로직·RSC·BFF·캐싱. frontend-dev·api-developer 우선.
 - 디자이너의 RSC/BFF 수정 허용 — 프론트가 co-review.
 
 ## Git (shared/git-flow.md)

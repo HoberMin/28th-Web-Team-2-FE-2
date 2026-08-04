@@ -7,7 +7,7 @@ description: API 레이어 구조 — BFF(Route Handler)·서버 fetch 함수·�
 
 > 전신(CSR·클라 fetch 래퍼 중심)과 다름 — **여기선 서버 함수가 1급이다.**
 
-## 폴더 구조 (`apps/web`)
+## 폴더 구조 (루트 `app/`)
 
 ```
 lib/api/
