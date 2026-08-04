@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import IconCameraLine from "@karrotmarket/react-monochrome-icon/IconCameraLine";
@@ -61,6 +61,14 @@ export function ReportForm({
   // 사진 미리보기 URL(objectURL). 프로토타입이라 파일 자체는 저장하지 않는다 —
   // localStorage에 이미지를 넣으면 용량 한도에 금방 걸린다.
   const [photoUrl, setPhotoUrl] = useState("");
+
+  // 화면을 떠날 때 마지막 미리보기 URL을 해제한다(사진을 바꿀 때의 해제는 각 핸들러가 한다).
+  // 이 화면은 제보를 끝내면 성공 화면으로 넘어가므로 언마운트 시점에 반드시 한 번은 남는다.
+  useEffect(() => {
+    return () => {
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+    };
+  }, [photoUrl]);
 
   const veg = selectedVeg;
   const weightNum = Number(weight.replace(/[^0-9.]/g, ""));

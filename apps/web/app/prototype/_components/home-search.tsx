@@ -58,6 +58,9 @@ export function HomeSearch({ onOpenChange }: { onOpenChange?: (open: boolean) =>
     <div className="flex flex-1 flex-col gap-2">
       <div className="flex items-center gap-1">
         <div className="min-w-0 flex-1">
+          {/* label은 sr-only가 아니라 seed의 label prop을 쓰면 시각 라벨이 생겨 헤더 한 줄을
+              넘긴다 → 여기서는 aria-label만 둔다. 무엇을 치는 칸인지는 placeholder + 바로
+              아래 안내 문구("찾는 야채 이름을 입력해 보세요")가 함께 전달한다. */}
           <TextField
             value={query}
             onValueChange={(v) => setQuery(v.value)}

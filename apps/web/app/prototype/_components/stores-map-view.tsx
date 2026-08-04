@@ -26,15 +26,34 @@ import { useReports } from "../_lib/reports-store";
 import { useFavoriteStores } from "../_lib/favorite-stores-store";
 import { summarizeStores, type PriceMap } from "../_lib/stores";
 import { distanceMeters, getStoreLocation } from "../_lib/store-locations";
-import { loadKakaoSdk, type KakaoCustomOverlay, type MapLoadStatus } from "../_lib/kakao-map";
+import {
+  loadKakaoSdk,
+  type KakaoCustomOverlay,
+  type KakaoGlobal,
+  type KakaoMap,
+  type MapLoadStatus,
+} from "../_lib/kakao-map";
 import { StoreRow } from "./store-row";
 import { StoreSheetBody } from "./store-sheet-body";
 import { EmptyState } from "./empty-state";
+
+/**
+ * 지도를 여는 순간의 임시 중심 — UT 기준 지역(삼성동·선릉 일대). `location.ts`의 폴백과 같은 값.
+ * 지도 생성은 한 번뿐이라 그 시점 좌표를 effect 의존성으로 끌어오면 지도가 다시 만들어진다.
+ * 그래서 고정값으로 열고, 측위가 끝나면 아래 ③이 실제 좌표로 한 번 옮긴다.
+ */
+const DEFAULT_CENTER = { lat: 37.514, lng: 127.056 };
 
 export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; todayIso: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // 이미 그린 오버레이 — 찜 필터를 끌 때 지도에서 떼어내려면 참조를 들고 있어야 한다.
   const overlaysRef = useRef<KakaoCustomOverlay[]>([]);
+  // 지도 인스턴스와 SDK 핸들. state가 아니라 ref다 — 값이 바뀌어 렌더를 다시 돌 필요가 없고,
+  // state로 두면 지도 생성이 렌더 루프를 타게 된다. 렌더에 필요한 건 mapReady 플래그뿐이다.
+  const mapRef = useRef<KakaoMap | null>(null);
+  const kakaoRef = useRef<KakaoGlobal | null>(null);
+  const centeredRef = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
   // 앱키(도메인 제한 걸린 공개 키 — 시크릿 아님)가 없으면 시도 자체를 안 하므로 처음부터 failed다.
   // 이 판정을 effect에서 setState로 하면 렌더가 한 번 더 돌고(cascading render 린트)
   // 회색 캔버스가 한 프레임 스친다.
@@ -56,55 +75,78 @@ export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; toda
   // "어느 가게가 보이는가"만 바뀔 때 다시 그리면 되므로 이름 목록으로 좁힌다.
   const shownKey = shown.map((s) => s.name).join(",");
 
-  // 지도 + 핀. shown이 바뀌면(찜 토글·제보 추가) 오버레이를 다시 그린다.
+  // ① 지도 인스턴스는 **한 번만** 만든다. 예전엔 핀을 다시 그릴 때마다 new Map을 같은 노드에
+  //    올려서, 찜 토글이나 제보 추가 한 번에 사용자가 잡아둔 위치·확대가 초기화됐다.
   useEffect(() => {
-    if (!containerRef.current || !appKey) return;
+    if (!containerRef.current || !appKey || mapRef.current) return;
     let cancelled = false;
 
     loadKakaoSdk(appKey).then((kakao) => {
       const container = containerRef.current;
-      if (cancelled || !container) return;
+      if (cancelled || !container || mapRef.current) return;
       if (!kakao) {
         setStatus("failed");
         return;
       }
-
-      const center = new kakao.maps.LatLng(coords.lat, coords.lng);
-      const map = new kakao.maps.Map(container, { center, level: 5 });
-
-      overlaysRef.current.forEach((overlay) => overlay.setMap(null));
-      overlaysRef.current = shown.map((store) => {
-        const location = getStoreLocation(store.name, store.district);
-        const isFavorite = favoriteStores.includes(store.name);
-
-        // 핀 = 가게명 + (찜이면) 하트. 텍스트를 넣는 이유는 지도에서 이름 없이 점만 보면
-        // 어디가 어딘지 눌러봐야 알기 때문이다.
-        const pin = document.createElement("button");
-        pin.type = "button";
-        pin.className =
-          "flex max-w-32 items-center gap-1 rounded-full border border-bg-neutral-weak bg-bg-layer-default px-2.5 py-1.5 text-caption-12-medium text-fg-neutral shadow-md";
-        pin.setAttribute("aria-label", `${store.name} 정보 보기`);
-        pin.textContent = isFavorite ? `♥ ${store.name}` : store.name;
-        pin.addEventListener("click", () => setSelected(store.name));
-
-        return new kakao.maps.CustomOverlay({
-          position: new kakao.maps.LatLng(location.lat, location.lng),
-          content: pin,
-          map,
-          yAnchor: 1,
-          clickable: true,
-        });
+      kakaoRef.current = kakao;
+      // 초기 중심은 동 중심 폴백일 수 있다 — 측위가 끝나면 ③이 한 번 옮긴다.
+      mapRef.current = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
+        level: 5,
       });
-
       setStatus("ready");
+      setMapReady(true);
     });
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- shown 대신 shownKey(이름 목록)로
-    // 좁힌 의도적 선택이다. shown 배열은 매 렌더 새 객체라 넣으면 무한 재실행된다.
-  }, [appKey, coords.lat, coords.lng, favoriteStores, shownKey]);
+  }, [appKey]);
+
+  // ② 핀만 다시 그린다(지도는 그대로). shown이 바뀌면 이전 오버레이를 떼고 새로 붙인다.
+  useEffect(() => {
+    const kakao = kakaoRef.current;
+    const map = mapRef.current;
+    if (!kakao || !map) return;
+
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null));
+    overlaysRef.current = shown.map((store) => {
+      const location = getStoreLocation(store.name, store.district);
+      const isFavorite = favoriteStores.includes(store.name);
+
+      // 핀 = 가게명 + (찜이면) 하트. 텍스트를 넣는 이유는 지도에서 이름 없이 점만 보면
+      // 어디가 어딘지 눌러봐야 알기 때문이다.
+      const pin = document.createElement("button");
+      pin.type = "button";
+      pin.className =
+        "flex max-w-32 items-center gap-1 rounded-full border border-bg-neutral-weak bg-bg-layer-default px-2.5 py-1.5 text-caption-12-medium text-fg-neutral shadow-md";
+      pin.setAttribute("aria-label", `${store.name} 정보 보기`);
+      pin.textContent = isFavorite ? `♥ ${store.name}` : store.name;
+      pin.addEventListener("click", () => setSelected(store.name));
+
+      return new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(location.lat, location.lng),
+        content: pin,
+        map,
+        yAnchor: 1,
+        clickable: true,
+      });
+    });
+    // shown 대신 shownKey(이름 목록)를 의존성으로 쓴 의도적 선택 — shown 배열은 매 렌더 새
+    // 객체라 그대로 넣으면 무한 재실행된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady, favoriteStores, shownKey]);
+
+  // ③ 측위가 끝나 좌표가 확정되면 그때 한 번 중심을 옮긴다. 매번 옮기면 사용자가 지도를
+  //    끌어다 본 위치를 앱이 다시 뺏는다 → 첫 확정 때만 움직인다.
+  useEffect(() => {
+    if (!mapReady || loading || centeredRef.current) return;
+    const kakao = kakaoRef.current;
+    const map = mapRef.current;
+    if (!kakao || !map) return;
+    map.setCenter(new kakao.maps.LatLng(coords.lat, coords.lng));
+    centeredRef.current = true;
+  }, [mapReady, loading, coords.lat, coords.lng]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -194,4 +236,3 @@ export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; toda
     </div>
   );
 }
-

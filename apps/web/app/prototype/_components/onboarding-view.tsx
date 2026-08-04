@@ -33,19 +33,30 @@ function handleBackgroundPointerDown(event: PointerEvent<HTMLElement>) {
 
 export function OnboardingView() {
   const router = useRouter();
-  // 초기 단계·초기값은 저장된 상태에서 한 번만 읽는다(useState 초기화 함수 — 매 렌더 재계산 방지).
-  const [saved] = useState(() => readOnboarding());
-  // 비회원은 닉네임을 받지 않는다. 회원인데 닉네임까지 저장돼 있으면 지역부터 이어간다.
-  const [step, setStep] = useState<Step>(() =>
-    saved.authProvider === "guest" || saved.nickname ? "region" : "nickname",
-  );
-  const [nickname, setNickname] = useState(saved.nickname);
+  // 시작 단계는 **마운트 후에** 저장값에서 정한다. useState 초기화 함수에서 localStorage를 읽으면
+  // 서버 프리렌더(값 없음 → 닉네임)와 클라 하이드레이션(값 있음 → 지역)이 다른 트리를 그려
+  // 하이드레이션 불일치가 난다. 그래서 판정 전에는 step=null로 두고 아무것도 그리지 않는다.
+  const [step, setStep] = useState<Step | null>(null);
+  const [nickname, setNickname] = useState("");
+  // 비회원 여부는 뒤로가기 목적지를 가른다(둘러보기는 닉네임 단계를 거치지 않았다).
+  const [isGuest, setIsGuest] = useState(false);
 
-  // 이 화면에 직접 들어왔는데 F00-0을 안 거쳤으면(회원/비회원 미결정) 소개 화면으로 되돌린다.
-  // 하이드레이션 후에 체크한다 — localStorage는 서버에서 못 읽는다.
+  // localStorage는 서버에서 못 읽으므로 마운트 후 한 번 읽어 단계를 정한다 — 이게 하이드레이션
+  // 불일치를 피하는 방법이다(store-detail·location-picker-sheet도 같은 패턴).
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (!readOnboarding().authProvider) router.replace("/prototype/intro");
+    const saved = readOnboarding();
+    // F00-0을 안 거쳤으면(회원/비회원 미결정) 소개 화면으로 되돌린다.
+    if (!saved.authProvider) {
+      router.replace("/prototype/intro");
+      return;
+    }
+    setIsGuest(saved.authProvider === "guest");
+    setNickname(saved.nickname);
+    // 비회원은 닉네임을 받지 않는다. 회원인데 닉네임까지 저장돼 있으면 지역부터 이어간다.
+    setStep(saved.authProvider === "guest" || saved.nickname ? "region" : "nickname");
   }, [router]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // 검증은 trim 기준 — 공백만 입력한 값은 빈 값과 같게 본다.
   const trimmedNickname = nickname.trim();
@@ -70,9 +81,13 @@ export function OnboardingView() {
 
   function backFromRegion() {
     // 둘러보기(비회원)는 닉네임 단계를 거치지 않았으므로 소개 화면으로 돌아간다.
-    if (saved.authProvider === "guest") router.replace("/prototype/intro");
+    if (isGuest) router.replace("/prototype/intro");
     else setStep("nickname");
   }
+
+  // 단계 판정 전(프리렌더·하이드레이션 시점) — 빈 프레임만. 곧바로 아래 두 단계 중 하나로 바뀐다.
+  // 스켈레톤을 두지 않는 이유: 판정은 localStorage 읽기 한 번이라 사람이 볼 만한 시간이 아니다.
+  if (step === null) return <PhoneFrame>{null}</PhoneFrame>;
 
   if (step === "nickname") {
     return (

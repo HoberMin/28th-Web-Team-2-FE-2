@@ -31,9 +31,14 @@ export function NearbyCheapStore({
   priceMap: PriceMap;
   todayIso: string;
 }) {
-  const { district } = useCurrentDistrict();
+  const { district, loading } = useCurrentDistrict();
   const coords = useCurrentCoords();
   const reports = useReports({ district });
+
+  // 위치를 아직 못 불러온 동안은 계산하지 않는다 — district가 기본값(삼성동)으로 잠깐 고정돼
+  // 있어, 그 값으로 고른 가게가 다른 동네 사용자에게 스친다(홈 최저가·가게 탭과 같은 잣대).
+  // 좌표도 그때는 동 중심 폴백이라 "가까운 3곳"이 실제 내 근처가 아니다.
+  if (loading) return null;
 
   const summaries = summarizeStores(reports, priceMap, todayIso);
   if (summaries.length === 0) return null;
