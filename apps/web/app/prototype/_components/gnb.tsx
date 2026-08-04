@@ -6,14 +6,19 @@ import IconHouseFill from "@karrotmarket/react-monochrome-icon/IconHouseFill";
 import IconHouseLine from "@karrotmarket/react-monochrome-icon/IconHouseLine";
 import IconTagFill from "@karrotmarket/react-monochrome-icon/IconTagFill";
 import IconTagLine from "@karrotmarket/react-monochrome-icon/IconTagLine";
-import IconTrophyFill from "@karrotmarket/react-monochrome-icon/IconTrophyFill";
-import IconTrophyLine from "@karrotmarket/react-monochrome-icon/IconTrophyLine";
+import IconHeartFill from "@karrotmarket/react-monochrome-icon/IconHeartFill";
+import IconHeartLine from "@karrotmarket/react-monochrome-icon/IconHeartLine";
 import IconStoreFill from "@karrotmarket/react-monochrome-icon/IconStoreFill";
 import IconStoreLine from "@karrotmarket/react-monochrome-icon/IconStoreLine";
 import IconPersonFill from "@karrotmarket/react-monochrome-icon/IconPersonFill";
 import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 
-// GNB(하단 탭바) — 홈/야채시세/랭킹/동네 가게/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
+// GNB(하단 탭바) — 홈/야채시세/동네 가게/찜/마이페이지. 탭 루트 화면에만 노출(상세·제보 흐름엔 없음).
+//
+// 3번째 탭이 랭킹에서 찜으로 바뀌었다(2026-08-04). 랭킹은 탭째로 없앴다 — 경쟁 구도가 제보를
+// 늘리는지 확신이 없었고, 제보왕 순위는 보는 사람 대부분에게 자기 얘기가 아니었다. 그 자리에
+// 찜을 올린 건 반복 구매가 타깃의 특성이라, 관심 품목·단골 가게로 되돌아오는 경로가 상시로
+// 필요해서다(이전엔 마이페이지 하위에 묻혀 있었다).
 //
 // 2번째 탭 "야채시세"는 2026-07-31 홈 개편으로 신설. 홈(F01)이 "모든 야채 시세를 보는 화면"에서
 // "여러 정보를 모아 액션을 유도하는 대시보드"로 역할이 바뀌면서, 46종 전체를 검색·필터로 훑어보는
@@ -30,8 +35,8 @@ import IconPersonLine from "@karrotmarket/react-monochrome-icon/IconPersonLine";
 const TABS = [
   { href: "/prototype", label: "홈", Fill: IconHouseFill, Line: IconHouseLine },
   { href: "/prototype/vegetables", label: "야채시세", Fill: IconTagFill, Line: IconTagLine },
-  { href: "/prototype/ranking", label: "랭킹", Fill: IconTrophyFill, Line: IconTrophyLine },
   { href: "/prototype/stores", label: "동네 가게", Fill: IconStoreFill, Line: IconStoreLine },
+  { href: "/prototype/favorites", label: "찜", Fill: IconHeartFill, Line: IconHeartLine },
   { href: "/prototype/mypage", label: "마이페이지", Fill: IconPersonFill, Line: IconPersonLine },
 ] as const;
 
