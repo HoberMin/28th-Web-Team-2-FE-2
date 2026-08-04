@@ -65,11 +65,12 @@ export function SettingsView({
   }
 
   // 로그아웃 — 이 프로토타입엔 계정 서버가 없어 "완전히 다른 사람이 된다"는 의미가 없다.
-  // 대신 온보딩을 다시 거치게(completed=false) 해 디자이너가 재진입 플로우를 확인할 때 쓴다.
+  // 대신 처음(F00-0 소개·로그인)부터 다시 거치게 해 디자이너가 재진입 플로우를 확인할 때 쓴다.
+  // authProvider까지 비워야 소개 화면으로 간다 — completed만 내리면 닉네임 단계로 떨어진다.
   // 찜·제보 등 기기 데이터는 남는다 — 데이터까지 지우는 건 탈퇴의 역할.
   function handleLogout() {
-    setOnboarding({ completed: false });
-    router.push("/prototype/onboarding");
+    setOnboarding({ authProvider: "", completed: false });
+    router.push("/prototype/intro");
   }
 
   // 탈퇴 — 백엔드가 없어 "이 기기가 쌓은 걸 전부 지운다"로 구현한다. 이 앱 store는 전부
@@ -80,7 +81,7 @@ export function SettingsView({
     keys.forEach((k) => window.localStorage.removeItem(k));
     // 하드 내비게이션이라야 실제로 지워진다 — 각 스토어가 모듈 스코프에 스냅샷 캐시를 들고 있어
     // 클라 라우팅으로 넘어가면 localStorage만 비고 화면은 지운 데이터를 계속 보여준다.
-    window.location.href = "/prototype/onboarding";
+    window.location.href = "/prototype/intro";
   }
 
   return (
@@ -231,7 +232,7 @@ export function SettingsView({
         {sheet === "withdraw" && (
           <BottomSheetContent
             title="정말 탈퇴하시겠어요?"
-            description="찜·제보·구매 기록 등 이 기기에 저장된 모든 정보가 삭제되고 되돌릴 수 없어요."
+            description="찜·제보 기록 등 이 기기에 저장된 모든 정보가 삭제되고 되돌릴 수 없어요."
           >
             <BottomSheetBody className="flex flex-col gap-2 pb-4">
               <ActionButton
