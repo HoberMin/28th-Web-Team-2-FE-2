@@ -2,9 +2,9 @@
 
 // 지도 핀을 눌렀을 때 뜨는 가게 요약(바텀시트 본문) — 가게 상세(F09)의 압축판이다.
 //
-// 시트에 담는 건 "지금 갈까"를 정하는 데 필요한 최소값 셋이다: 얼마나 먼가 · 시세보다 싼가 ·
-// 싼 품목이 몇 개인가. 품목 목록·제보 이력·댓글은 상세로 넘긴다 — 시트가 화면을 반 넘게 덮으면
-// 지도를 띄운 이유가 없어진다.
+// 시트에 담는 건 "지금 갈까"를 정하는 데 필요한 최소값 셋 + 최근 제보 미리보기다: 얼마나 먼가 ·
+// 시세보다 싼가 · 싼 품목이 몇 개인가 · 최근 뭐가 얼마에 올라왔나. 전체 품목 목록·댓글은 상세로
+// 넘긴다 — 시트가 화면을 반 넘게 덮으면 지도를 띄운 이유가 없어진다.
 
 import Link from "next/link";
 import { ActionButton } from "seed-design/ui/action-button";
@@ -12,15 +12,21 @@ import IconHeartFill from "@karrotmarket/react-monochrome-icon/IconHeartFill";
 import IconHeartLine from "@karrotmarket/react-monochrome-icon/IconHeartLine";
 import { toggleFavoriteStore, useIsFavoriteStore } from "../_lib/favorite-stores-store";
 import { formatDistance, walkMinutes } from "../_lib/store-locations";
-import type { StoreSummary } from "../_lib/stores";
+import { formatNumber } from "../_lib/format";
+import type { StoreItemPrice, StoreSummary } from "../_lib/stores";
+import { VegetableThumb } from "./vegetable-thumb";
+import { FreshnessTag } from "./freshness-tag";
 
 export function StoreSheetBody({
   store,
   meters,
+  recentItems,
 }: {
   store: StoreSummary;
   /** 내 위치에서의 거리(m) — 좌표 계산은 호출부(지도)가 이미 했으니 다시 하지 않는다. */
   meters: number;
+  /** 최근 제보 미리보기(최대 3건, 제보 시점 최신순) — 호출부(지도)가 이미 정렬해 넘긴다. */
+  recentItems: StoreItemPrice[];
 }) {
   const isFavorite = useIsFavoriteStore(store.name);
 
@@ -52,6 +58,26 @@ export function StoreSheetBody({
           {store.freshness.label} 제보
         </p>
       </div>
+
+      {recentItems.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h3 className="text-caption-12-medium text-fg-neutral-muted">최근 제보</h3>
+          <ul className="flex flex-col gap-2">
+            {recentItems.map((item) => (
+              <li key={item.vegetableId} className="flex items-center gap-2">
+                <VegetableThumb image={item.image} emoji={item.emoji} size="sm" />
+                <span className="min-w-0 flex-1 truncate text-body-14-medium text-fg-neutral">
+                  {item.name}
+                </span>
+                <span className="shrink-0 text-body-14-medium tabular-nums text-fg-neutral">
+                  {formatNumber(item.price)}원
+                </span>
+                <FreshnessTag freshness={item.freshness} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="flex items-center gap-2">
         <ActionButton asChild variant="neutralSolid" size="medium" className="flex-1">

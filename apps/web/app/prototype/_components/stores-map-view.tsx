@@ -21,7 +21,7 @@ import {
 import { useCurrentCoords, useCurrentDistrict } from "../_lib/location";
 import { useReports } from "../_lib/reports-store";
 import { useFavoriteStores } from "../_lib/favorite-stores-store";
-import { summarizeStores, type PriceMap } from "../_lib/stores";
+import { getStoreItems, summarizeStores, type PriceMap } from "../_lib/stores";
 import { distanceMeters, getStoreLocation, offsetToPercent } from "../_lib/store-locations";
 import { StoreSheetBody } from "./store-sheet-body";
 import { EmptyState } from "./empty-state";
@@ -39,6 +39,16 @@ export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; toda
   const all = loading ? [] : summarizeStores(reports, priceMap, todayIso);
   const shown = favoritesOnly ? all.filter((s) => favoriteStores.includes(s.name)) : all;
   const selectedStore = shown.find((s) => s.name === selected) ?? null;
+  // 최근 제보 3건 — getStoreItems는 싼 순 정렬이라 시트에서 보여줄 "최근"은 제보 시점(일수) 기준으로
+  // 다시 줄 세운다. 이상치(시세의 3배↑/⅓↓ — 오타 의심)는 뺀다. 지도에서 핀만 누르고 보는 압축
+  // 미리보기라 상세 페이지(store-detail.tsx)처럼 "확인 필요" 경고를 붙일 자리가 없다 — 그대로
+  // 보여주면 오타성 가격이 정상 가격처럼 읽힌다.
+  const recentItems = selectedStore
+    ? [...getStoreItems(reports, selectedStore.name, priceMap, todayIso)]
+        .filter((i) => !i.outlier)
+        .sort((a, b) => a.freshness.days - b.freshness.days)
+        .slice(0, 3)
+    : [];
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -110,6 +120,7 @@ export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; toda
                   coords,
                   getStoreLocation(selectedStore.name, selectedStore.district),
                 )}
+                recentItems={recentItems}
               />
             )}
           </BottomSheetBody>
