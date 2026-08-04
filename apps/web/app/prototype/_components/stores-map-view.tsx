@@ -2,18 +2,15 @@
 
 // 동네 가게 탭 — 화면 전체가 지도다(네이버 지도 앱과 같은 구조).
 //
-// 2026-08-04 개편: 이전엔 「내 단골」 + 「우리 동네 가게(싼 순)」 두 층의 목록이었다. 목록은
-// 순위를 읽게 하지만, 이 탭에서 사용자가 실제로 하는 판단은 "지금 여기서 갈 만한가"이고 그건
-// 거리 감각 없이는 안 선다. 그래서 지도를 주(主)로 올리고, 가게 정보는 핀을 눌렀을 때
-// 바텀시트로 준다 — 목록으로 훑는 경로는 「찜」 탭이 이미 갖고 있다.
+// 실제 지도 SDK 대신 회색 배경 + "지도" 라벨로 자리만 잡는다(2026-08-04, 프로토타입 방향 확정).
+// 카카오맵 앱키 설정·도메인 등록에 기대면 환경(로컬/배포 프리뷰)마다 렌더 여부가 갈린다 — 이 화면이
+// 검증하려는 건 "지도 위에서 핀을 눌러 가게 상세를 본다"는 인터랙션이지 실제 지리 정확도가 아니라서,
+// 가짜 배경 위에 상대 위치로 흩은 핀이면 충분하다.
 //
-// 핀은 CustomOverlay(HTML)로 그린다. Marker 이미지로는 "찜한 가게는 하트" 같은 표시를 넣기
-// 어렵고, DOM이면 클릭 핸들러도 그대로 붙는다.
-//
-// 지도를 못 그리는 환경(앱키 미설정·SDK 로드 실패)에서는 **목록으로 폴백**한다. 지도 하나에
-// 탭 전체를 걸었으니, 실패했을 때 빈 화면이 되면 탭이 죽는다.
+// 핀 좌표는 가게 위치의 동 중심 대비 오프셋(store-locations.ts)을 그대로 %로 편다. 실좌표 투영이
+// 아니라 "서로 겹치지 않게 흩어져 있다"는 느낌만 준다.
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import IconHeartFill from "@karrotmarket/react-monochrome-icon/IconHeartFill";
 import IconHeartLine from "@karrotmarket/react-monochrome-icon/IconHeartLine";
 import {
@@ -25,40 +22,11 @@ import { useCurrentCoords, useCurrentDistrict } from "../_lib/location";
 import { useReports } from "../_lib/reports-store";
 import { useFavoriteStores } from "../_lib/favorite-stores-store";
 import { summarizeStores, type PriceMap } from "../_lib/stores";
-import { distanceMeters, getStoreLocation } from "../_lib/store-locations";
-import {
-  loadKakaoSdk,
-  type KakaoCustomOverlay,
-  type KakaoGlobal,
-  type KakaoMap,
-  type MapLoadStatus,
-} from "../_lib/kakao-map";
-import { StoreRow } from "./store-row";
+import { distanceMeters, getStoreLocation, offsetToPercent } from "../_lib/store-locations";
 import { StoreSheetBody } from "./store-sheet-body";
 import { EmptyState } from "./empty-state";
 
-/**
- * 지도를 여는 순간의 임시 중심 — UT 기준 지역(삼성동·선릉 일대). `location.ts`의 폴백과 같은 값.
- * 지도 생성은 한 번뿐이라 그 시점 좌표를 effect 의존성으로 끌어오면 지도가 다시 만들어진다.
- * 그래서 고정값으로 열고, 측위가 끝나면 아래 ③이 실제 좌표로 한 번 옮긴다.
- */
-const DEFAULT_CENTER = { lat: 37.514, lng: 127.056 };
-
 export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; todayIso: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  // 이미 그린 오버레이 — 찜 필터를 끌 때 지도에서 떼어내려면 참조를 들고 있어야 한다.
-  const overlaysRef = useRef<KakaoCustomOverlay[]>([]);
-  // 지도 인스턴스와 SDK 핸들. state가 아니라 ref다 — 값이 바뀌어 렌더를 다시 돌 필요가 없고,
-  // state로 두면 지도 생성이 렌더 루프를 타게 된다. 렌더에 필요한 건 mapReady 플래그뿐이다.
-  const mapRef = useRef<KakaoMap | null>(null);
-  const kakaoRef = useRef<KakaoGlobal | null>(null);
-  const centeredRef = useRef(false);
-  const [mapReady, setMapReady] = useState(false);
-  // 앱키(도메인 제한 걸린 공개 키 — 시크릿 아님)가 없으면 시도 자체를 안 하므로 처음부터 failed다.
-  // 이 판정을 effect에서 setState로 하면 렌더가 한 번 더 돌고(cascading render 린트)
-  // 회색 캔버스가 한 프레임 스친다.
-  const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-  const [status, setStatus] = useState<MapLoadStatus>(appKey ? "loading" : "failed");
   const [selected, setSelected] = useState<string | null>(null);
   // 찜한 가게만 보기 — FAB로 토글. 기본은 전체(처음 온 사람은 찜이 0개라 빈 지도가 된다).
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -71,136 +39,50 @@ export function StoresMapView({ priceMap, todayIso }: { priceMap: PriceMap; toda
   const all = loading ? [] : summarizeStores(reports, priceMap, todayIso);
   const shown = favoritesOnly ? all.filter((s) => favoriteStores.includes(s.name)) : all;
   const selectedStore = shown.find((s) => s.name === selected) ?? null;
-  // 핀을 다시 그릴 기준 — shown 배열은 매 렌더 새 객체라 의존성에 그대로 넣으면 무한 재실행된다.
-  // "어느 가게가 보이는가"만 바뀔 때 다시 그리면 되므로 이름 목록으로 좁힌다.
-  const shownKey = shown.map((s) => s.name).join(",");
-
-  // ① 지도 인스턴스는 **한 번만** 만든다. 예전엔 핀을 다시 그릴 때마다 new Map을 같은 노드에
-  //    올려서, 찜 토글이나 제보 추가 한 번에 사용자가 잡아둔 위치·확대가 초기화됐다.
-  useEffect(() => {
-    if (!containerRef.current || !appKey || mapRef.current) return;
-    let cancelled = false;
-
-    loadKakaoSdk(appKey).then((kakao) => {
-      const container = containerRef.current;
-      if (cancelled || !container || mapRef.current) return;
-      if (!kakao) {
-        setStatus("failed");
-        return;
-      }
-      kakaoRef.current = kakao;
-      // 초기 중심은 동 중심 폴백일 수 있다 — 측위가 끝나면 ③이 한 번 옮긴다.
-      mapRef.current = new kakao.maps.Map(container, {
-        center: new kakao.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
-        level: 5,
-      });
-      setStatus("ready");
-      setMapReady(true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [appKey]);
-
-  // ② 핀만 다시 그린다(지도는 그대로). shown이 바뀌면 이전 오버레이를 떼고 새로 붙인다.
-  useEffect(() => {
-    const kakao = kakaoRef.current;
-    const map = mapRef.current;
-    if (!kakao || !map) return;
-
-    overlaysRef.current.forEach((overlay) => overlay.setMap(null));
-    overlaysRef.current = shown.map((store) => {
-      const location = getStoreLocation(store.name, store.district);
-      const isFavorite = favoriteStores.includes(store.name);
-
-      // 핀 = 가게명 + (찜이면) 하트. 텍스트를 넣는 이유는 지도에서 이름 없이 점만 보면
-      // 어디가 어딘지 눌러봐야 알기 때문이다.
-      const pin = document.createElement("button");
-      pin.type = "button";
-      pin.className =
-        "flex max-w-32 items-center gap-1 rounded-full border border-bg-neutral-weak bg-bg-layer-default px-2.5 py-1.5 text-caption-12-medium text-fg-neutral shadow-md";
-      pin.setAttribute("aria-label", `${store.name} 정보 보기`);
-      pin.textContent = isFavorite ? `♥ ${store.name}` : store.name;
-      pin.addEventListener("click", () => setSelected(store.name));
-
-      return new kakao.maps.CustomOverlay({
-        position: new kakao.maps.LatLng(location.lat, location.lng),
-        content: pin,
-        map,
-        yAnchor: 1,
-        clickable: true,
-      });
-    });
-    // shown 대신 shownKey(이름 목록)를 의존성으로 쓴 의도적 선택 — shown 배열은 매 렌더 새
-    // 객체라 그대로 넣으면 무한 재실행된다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapReady, favoriteStores, shownKey]);
-
-  // ③ 측위가 끝나 좌표가 확정되면 그때 한 번 중심을 옮긴다. 매번 옮기면 사용자가 지도를
-  //    끌어다 본 위치를 앱이 다시 뺏는다 → 첫 확정 때만 움직인다.
-  useEffect(() => {
-    if (!mapReady || loading || centeredRef.current) return;
-    const kakao = kakaoRef.current;
-    const map = mapRef.current;
-    if (!kakao || !map) return;
-    map.setCenter(new kakao.maps.LatLng(coords.lat, coords.lng));
-    centeredRef.current = true;
-  }, [mapReady, loading, coords.lat, coords.lng]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* 지도 캔버스 — 정보(가게명·거리·가격)는 핀과 바텀시트가 전달하므로 캔버스 자체는 숨긴다 */}
-      {status !== "failed" && (
-        <div ref={containerRef} aria-hidden="true" className="min-h-0 flex-1 bg-bg-neutral-weak" />
-      )}
-
-      {status === "loading" && (
-        <p className="sr-only" role="status">
-          지도를 불러오는 중이에요
+      {/* 지도 자리 — 실제 SDK 없이 회색 배경 + 라벨로 화면을 꽉 채운다 */}
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-bg-neutral-weak">
+        <p
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center text-head1-24 text-fg-neutral-muted"
+        >
+          지도
         </p>
-      )}
 
-      {/* 키보드·스크린리더용 대체 경로. 핀은 지도 캔버스(aria-hidden) 안에 있어 보조기술로는
-          닿지 않는다 — 같은 시트를 여는 버튼 목록을 sr-only로 함께 둔다(WCAG 2.1.1).
-          지도가 실패했을 때는 아래 폴백 목록이 이미 보이므로 중복으로 두지 않는다. */}
-      {status !== "failed" && shown.length > 0 && (
-        <nav className="sr-only" aria-label="지도에 표시된 가게">
-          <ul>
-            {shown.map((store) => (
-              <li key={store.name}>
-                <button type="button" onClick={() => setSelected(store.name)}>
-                  {store.name} 정보 보기
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+        {shown.map((store) => {
+          const location = getStoreLocation(store.name, store.district);
+          const isFavorite = favoriteStores.includes(store.name);
+          return (
+            <button
+              key={store.name}
+              type="button"
+              onClick={() => setSelected(store.name)}
+              aria-label={`${store.name} 정보 보기`}
+              style={{
+                left: `${offsetToPercent(location.lngOffset)}%`,
+                top: `${offsetToPercent(-location.latOffset)}%`,
+              }}
+              className="absolute flex max-w-32 -translate-x-1/2 -translate-y-full items-center gap-1 rounded-full border border-bg-neutral-weak bg-bg-layer-default px-2.5 py-1.5 text-caption-12-medium text-fg-neutral shadow-md"
+            >
+              <span className="truncate">{isFavorite ? `♥ ${store.name}` : store.name}</span>
+            </button>
+          );
+        })}
 
-      {/* 폴백 — 지도를 못 그리면 목록으로. 탭이 빈 화면으로 죽지 않게 한다. */}
-      {status === "failed" && (
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar px-4 pb-4 pt-3">
-          <p className="mb-3 text-caption-12-regular text-fg-neutral-muted" role="status">
-            지도를 표시할 수 없어 목록으로 보여드려요
-          </p>
-          {shown.length === 0 ? (
+        {shown.length === 0 && (
+          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2">
             <EmptyState>
               {favoritesOnly ? "찜한 가게가 아직 없어요." : `아직 ${district}에 가게별 제보가 없어요.`}
               <br />
               {favoritesOnly
                 ? "가게 상세에서 하트를 눌러 담아보세요."
-                : "제보할 때 가게를 골라주시면 여기 목록이 생겨요."}
+                : "제보할 때 가게를 골라주시면 여기 핀이 생겨요."}
             </EmptyState>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {shown.map((store) => (
-                <StoreRow key={store.name} store={store} />
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* FAB — 찜한 가게만 지도에 남긴다. 켜졌는지는 색 하나가 아니라 채운 하트 + aria-pressed로도 알린다. */}
       <button

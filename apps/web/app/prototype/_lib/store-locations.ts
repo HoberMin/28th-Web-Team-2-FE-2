@@ -14,6 +14,14 @@ export interface StoreLocation {
   lng: number;
   /** 화면에 그대로 쓰는 주소 문구 */
   address: string;
+  /** 동 중심 대비 오프셋(도) — 가짜 지도에서 핀 좌표(%)를 만드는 데 쓴다. 항상 ±0.006 안쪽. */
+  latOffset: number;
+  lngOffset: number;
+}
+
+/** 오프셋(도) → 가짜 지도 박스 안 위치(%, 10~90 사이). 실좌표 투영 없이 상대 위치만 표현한다. */
+export function offsetToPercent(offset: number): number {
+  return 50 + (offset / 0.006) * 40;
 }
 
 /** 문자열 → 안정적 seed (Math.random 없이 결정적 좌표 생성). */
@@ -45,6 +53,8 @@ export function getStoreLocation(storeName: string, district: string): StoreLoca
     lat: (region?.lat ?? 37.514) + latOffset,
     lng: (region?.lng ?? 127.056) + lngOffset,
     address: `${district} ${100 + (seed % 400)}-${1 + (seed % 60)}`,
+    latOffset,
+    lngOffset,
   };
 }
 

@@ -3,7 +3,6 @@ import { GNB } from "./_components/gnb";
 import { HomeHeader } from "./_components/home-header";
 import { OnboardingGate } from "./_components/onboarding-gate";
 import { CardNewsTeaser } from "./_components/card-news-teaser";
-import { FavoriteStoresCard } from "./_components/favorite-stores-card";
 import { FirstReportCard } from "./_components/first-report-card";
 import { NearbyCheapStore } from "./_components/nearby-cheap-store";
 import { CheapestToday } from "./_components/cheapest-today";
@@ -15,10 +14,13 @@ export const revalidate = 3600;
 // F01 홈 — 여러 정보를 모아 액션을 유도하는 대시보드. 46종 전체 조회는 전용 탭(F01-1, GNB
 // "야채시세")이 갖는다.
 //
-// 순서: 헤더(동네 + 검색) → 첫 제보 안내 → 찜한 가게 → 이 가게 어때요? → 우리 동네 최저가 야채
+// 순서: 헤더(동네 + 검색) → 첫 제보 안내 → 이 가게 어때요? → 우리 동네 최저가 야채
 //       → 이번 주 시세 이야기.
 //
-// 2026-08-04 정리로 섹션 둘이 사라졌다.
+// 2026-08-04 정리로 섹션 셋이 사라졌다.
+//  - 「찜한 가게」: 미니 목록 카드를 없앴다. 같은 정보(찜한 가게로 다시 들어가기)를 「동네 가게」
+//    탭의 지도 + 찜 필터 FAB가 이미 더 나은 방식(위치 맥락 포함)으로 준다 — 홈에 축약판을 또
+//    둘 이유가 없다.
 //  - 「이 가격 사도 될까요?」(즉석 판단 F10): 기능째로 삭제. 가격 하나를 넣어 판정을 받는 것보다
 //    품목 시세를 보는 쪽이 같은 질문에 더 많이 답했다.
 //  - 「8월에 사기 좋은 야채」(제철 추천): 1년 시세 저점이라는 근거가 이 화면의 다른 섹션(이웃이
@@ -38,7 +40,6 @@ export default async function HomePage() {
         <div className="flex flex-col gap-6 px-4 pt-1">
           <HomeHeader />
           <FirstReportCard />
-          <FavoriteStoresCard />
           <NearbyCheapStore priceMap={priceMap} todayIso={todayIso} />
           <CheapestToday priceMap={priceMap} todayIso={todayIso} />
           {/* 카드뉴스는 "지금 뭘 해야 하나"가 아니라 둘러보기다 → 이 화면의 원칙대로 아래로 내린다.
