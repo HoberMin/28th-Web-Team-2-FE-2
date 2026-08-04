@@ -17,3 +17,12 @@ next-env.d.ts
 # Claude Code 서브에이전트 런타임 메모리 (런타임 생성물 — 커밋 X)
 .claude/agent-memory/
 **/.claude/agent-memory/
+
+# 구 apps/web/.gitignore에서 흡수 (루트 단일 프로젝트로 통합)
+*.pem
+.pnp
+.pnp.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

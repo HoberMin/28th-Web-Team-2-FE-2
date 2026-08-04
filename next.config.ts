@@ -1,9 +1,7 @@
-import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  transpilePackages: ["@web2/design-system"],
   images: {
     // 야채·카트 자산이 SVG(Figma export) — next/image가 SVG를 서빙하려면 필요.
     // 보안 하드닝: 스크립트 실행 차단(script-src 'none')·sandbox·다운로드 처리로
@@ -13,9 +11,12 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   turbopack: {
-    // 모노레포 루트 고정 — 홈 디렉토리의 무관한 lockfile 오인식 방지
-    root: path.join(import.meta.dirname, "../.."),
+    // 프로젝트 루트 고정 — 홈 디렉토리의 무관한 package-lock.json을 워크스페이스 루트로
+    // 오인하는 경고를 막는다(단일 루트 프로젝트 전환 후에도 이 고정은 필요하다).
+    root: import.meta.dirname,
   },
+  // transpilePackages 없음 — 단일 루트 프로젝트라 불필요
+  // (구 모노레포에서는 @web2/design-system 트랜스파일이 필요했다)
 };
 
 export default nextConfig;
