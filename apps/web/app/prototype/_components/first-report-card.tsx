@@ -30,10 +30,12 @@ export function FirstReportCard() {
       <p className="text-body-14-regular text-fg-neutral-muted">
         {isFirst
           ? "우리 동네 가격 기록이 아직 없어요. 첫 제보가 이웃의 기준이 됩니다."
-          : `${district} 이웃이 ${districtReports.length}건 남겼어요. 오늘 본 가격 하나만 알려주시면 내 절약 금액도 계산돼요.`}
+          : `${district} 이웃이 ${districtReports.length}건 남겼어요. 오늘 본 가격 하나만 알려주시면 이웃의 기준이 됩니다.`}
       </p>
       <div className="mt-1">
-        <CalloutLink href="/prototype/judge">가격 하나 알려주기</CalloutLink>
+        {/* 즉석 판단(F10)이 사라져 제보 화면으로 직접 보낸다. 문구도 "알려주기"에 맞춘다 —
+            예전 목적지는 가격을 넣어 판정을 받는 화면이라 제보로 이어지지 않았다. */}
+        <CalloutLink href="/prototype/report">가격 하나 알려주기</CalloutLink>
       </div>
     </section>
   );
