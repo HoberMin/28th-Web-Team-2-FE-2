@@ -157,12 +157,13 @@ function ColorStory() {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-caption-12-regular text-content-secondary">
-        라벨의 값은 Figma 원본이다 — 스와치와 라벨이 어긋나면 `@theme` sync가 틀린 것이다.
+        라벨에 적힌 값이 Figma 원본입니다. 스와치 색상과 라벨이 다르면 `@theme` sync가 잘못된
+        것입니다.
       </p>
 
       <section className="flex flex-col gap-4">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Semantic Color — 화면에서는 이걸 고른다 (28)
+          Semantic Color — 화면에서는 이 중에서 고릅니다 (28)
         </h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {SEMANTIC.map(({ name, cls, alias }) => (
@@ -173,7 +174,7 @@ function ColorStory() {
 
       <section className="flex flex-col gap-5">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Raw Color — 팔레트 원재료 (59). 시맨틱 슬롯이 있으면 직접 쓰지 않는다
+          Raw Color — 팔레트 원재료입니다 (59). 시맨틱 슬롯이 있으면 직접 쓰지 않습니다
         </h3>
         {RAW.map(({ group, items }) => (
           <div key={group} className="flex flex-col gap-3">
@@ -196,6 +197,6 @@ export const colorStory: Story = {
   group: "파운데이션",
   figma: "node 126-1092",
   description:
-    "Raw Color 59 + Semantic Color 28. 라벨에 Figma 원본 hex·alias를 함께 적어 sync 검산용으로 쓴다.",
+    "Raw Color 59종과 Semantic Color 28종입니다. 라벨에 Figma 원본 hex·alias를 함께 적어 sync 검산용으로 씁니다.",
   Component: ColorStory,
 };

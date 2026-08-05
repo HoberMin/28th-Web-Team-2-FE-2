@@ -15,8 +15,8 @@ function RadiusStory() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-caption-12-regular text-content-secondary">
-        Figma에 없는 `rounded`(4px 기본)·`rounded-2xl`(16px 기본)은 쓰지 않는다 — 값이 같아도 토큰을
-        경유하지 않아 Figma 변경이 전파되지 않는다.
+        Figma에 없는 `rounded`(기본값 4px)·`rounded-2xl`(기본값 16px)은 쓰지 않습니다. 지금 값이
+        같아 보여도 토큰을 거치지 않으면 나중에 Figma 값이 바뀌었을 때 반영되지 않습니다.
       </p>
       <div className="flex flex-wrap gap-5">
         {RADII.map(({ cls, name, px }) => (
@@ -38,6 +38,6 @@ export const radiusStory: Story = {
   title: "Radius",
   group: "파운데이션",
   figma: "node 126-1092",
-  description: "Radius 컬렉션 5종. Tailwind 기본 rounded-* 를 Figma 값으로 덮어쓴 결과를 확인한다.",
+  description: "Radius 컬렉션 5종입니다. Tailwind 기본 rounded-* 를 Figma 값으로 덮어쓴 결과를 확인할 수 있습니다.",
   Component: RadiusStory,
 };

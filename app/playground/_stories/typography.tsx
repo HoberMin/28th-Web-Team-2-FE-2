@@ -76,6 +76,6 @@ export const typographyStory: Story = {
   group: "파운데이션",
   figma: "node 171-3737",
   description:
-    "타이포 스케일 전량(title·body·caption 21종). Wanted Sans 1종 self-host — Figma node 171-3737 최종본 그대로.",
+    "타이포 스케일 21종(title·body·caption)을 모두 담았습니다. Wanted Sans 1종을 self-host로 쓰며, Figma node 171-3737 최종본을 그대로 반영했습니다.",
   Component: TypographyStory,
 };
