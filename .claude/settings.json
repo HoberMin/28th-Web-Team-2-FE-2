@@ -20,10 +20,8 @@
       "WebFetch(domain:api.figma.com)",
       "WebFetch(domain:figma.com)",
       "WebFetch(domain:*.figma.com)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(http:*)",
-      "Bash(httpie:*)"
+      "Bash(curl *figma.com*)",
+      "Bash(wget *figma.com*)"
     ]
   },
   "hooks": {

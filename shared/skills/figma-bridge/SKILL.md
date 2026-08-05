@@ -16,7 +16,8 @@ Figma 값을 가져오는 경로는 **MCP 도구 하나뿐이다.** 다음은 �
 | ❌ 금지 | 왜 |
 |---|---|
 | Figma REST / public API (`api.figma.com`) | 토큰을 레포·환경변수에 심게 되고, MCP가 주는 변수 바인딩·시맨틱 alias 정보가 없어 hex만 긁다 오독한다 |
-| `curl`·`wget`·`WebFetch`로 Figma 호출 | 같은 이유. `.claude/settings.json`의 `deny`로 **실제로 차단**돼 있다 |
+| `curl`·`wget`·`WebFetch`로 **Figma** 호출 | 같은 이유. `.claude/settings.json`의 `deny`가 figma.com 대상만 막는다 — **일반 `curl`/`wget`은 정상 허용**(범용 도구라 전면 금지하지 않는다). 패턴 기반이라 우회가 원리적으로 가능하니, 막히지 않았다고 해서 허용된 게 아니다 |
+| Figma 이미지·아이콘을 `curl`로 받기 | `download_assets` MCP 도구를 쓴다. 과거 세션에 `curl`로 asset을 받은 흔적이 있었고, 그게 바로 대체 대상이다 |
 | personal access token·`FIGMA_TOKEN` 류 발급·저장 | 시크릿 규칙 위반(conventions #7). MCP는 OAuth라 토큰이 필요 없다 |
 | 스크린샷만 보고 hex 옮기기 | 실측 8건 오독 (§2) |
 
