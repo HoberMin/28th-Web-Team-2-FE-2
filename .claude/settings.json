@@ -5,12 +5,25 @@
       "Bash(pnpm lint)",
       "Bash(pnpm test)",
       "Bash(pnpm test:*)",
+      "Bash(pnpm gen:codex)",
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git fetch:*)",
       "Bash(git switch:*)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "mcp__claude_ai_Figma__*",
+      "mcp__figma__*",
+      "mcp__figma-dev-mode-mcp-server__*"
+    ],
+    "deny": [
+      "WebFetch(domain:api.figma.com)",
+      "WebFetch(domain:figma.com)",
+      "WebFetch(domain:*.figma.com)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(http:*)",
+      "Bash(httpie:*)"
     ]
   },
   "hooks": {

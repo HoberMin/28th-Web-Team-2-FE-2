@@ -18,7 +18,7 @@ skills:
 You are a frontend developer building pages and screens in `app/`. **Server Component가 기본이다** — 렌더링 전략이 이 프로젝트의 학습 목표.
 
 ## 호출되면
-1. 기존 코드·패턴 확인 (필요시 explorer 결과 활용)
+1. 기존 코드·패턴 확인 (필요시 Explore agent 결과 활용)
 2. 페이지를 **RSC로 구현** — 데이터는 서버에서 fetch(캐싱 의도 명시), 인터랙션만 `"use client"` leaf로 분리
 3. **로딩 / 에러 / 빈 상태 3종 항상 처리** — 로딩은 `loading.tsx`/Suspense 스트리밍 활용
 4. 뮤테이션은 Server Actions 우선 + `revalidateTag`/`revalidatePath`
@@ -37,13 +37,9 @@ You are a frontend developer building pages and screens in `app/`. **Server Comp
 - 디자인 값은 토큰만 — raw hex·arbitrary value 금지
 - **요청한 것만 변경**
 
-## 프로젝트 구조 (2026-08-05 전환 — 이전 서술이 기억에 있으면 이걸로 덮어쓴다)
-- **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다.
-- `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(SEED 격리 화면) · `app/playground`(디자인 갤러리)
-- **디자인 토큰은 `app/globals.css`의 `@theme static` 블록** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
-- 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/` — **2026-08-05 현재 둘 다 존재하지 않는다.** Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고, **이 상태가 정상**이다. 규격이 올라오면 그때 생성한다
-- **barrel export 예외 없음** — 구 `packages/design-system` 진입점 예외는 소멸했다(conventions #2)
-- 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
+## 프로젝트 구조
+→ **`figma-bridge` 스킬 §8이 진실 소스.** (agent 파일에 복붙하지 않는다 — 여러 곳에 복붙돼 어긋났던 이력 때문)
+- 요점만: 단일 루트 Next 프로젝트 / `app/api/*`=BFF / **`app/prototype/*`은 구조 유지 대상(삭제·대규모 개편 금지)** / 토큰은 `app/globals.css` `@theme static` 한 곳 / `app/_components`·`app/_lib`는 아직 없음(정상)
 
 ## 경계 (넘기는 일)
 - BFF Route Handler·Spring 연동 → **api-developer** / Figma 변환 → **figma-implementer** / DS 컴포넌트 → **design-system-builder**

@@ -17,6 +17,9 @@
 - 위 `conventions.md` 최상위 규칙을 모든 작업에서 준수.
 - **모르면 추측 말고 질문. 미정(TODO) 영역 건드리면 진행 전 묻고 `domain.md`에 기록.**
 - 위험 경로 변경·배포 직전 = 사용자 확인 게이트. (커밋·푸시는 `git-flow.md` — main 직접 푸시 허용, 단 **푸시 전 리뷰 1회**)
+- **Figma 접근은 MCP 도구로만.** REST·public API(`api.figma.com`)·`curl`/`wget`/`WebFetch`·personal access token 전부 금지 — `.claude/settings.json`의 `deny`로 실제 차단돼 있다. **MCP가 안 되면 우회하지 말고 멈추고 알린다** (진단 순서는 `figma-bridge` §0-0). 디자이너에게 API 키를 요구하는 답은 잘못된 경로다
+- **`app/prototype/*`은 구조 유지 대상** — 삭제·대규모 개편 금지. 토큰을 입히거나 화면을 고치는 건 되지만 구조를 바꾸는 변경은 사용자 확인
+- **하네스는 규격만 담는다** — 기획서 성격의 문서(`shared/pages.md`·`detail-features.md`·`main-features.md`·`prototype-backlog.md` 등)의 내용을 agent·라우팅 문서에 옮겨 적지 않는다. 필요하면 그때 해당 파일을 읽는다
 
 ## 드라이버 (라우팅보다 먼저 — 힌트이지 차단이 아님)
 
@@ -29,11 +32,11 @@
 | 주 영역 | `app/_components/` (공통 컴포넌트) + `app/globals.css` `@theme`(토큰) + 화면 UI | `app/` 앱 로직·RSC·BFF·데이터·성능 |
 | 기본 posture | Figma MCP 토큰 → 코드, 시각 정합, a11y, `/playground` 검증 | 아키텍처, Server/Client 경계, 캐싱, 타입 안정성 |
 | 코드 범위 | 제한 없음 (RSC/BFF 수정 가능 — 프론트가 co-review) | 전 영역 |
-| 우선 agent | design-system-builder · figma-implementer · wireframe-builder · design-reviewer | frontend-dev · api-developer · bug-investigator · code-reviewer |
+| 우선 agent | design-system-builder · figma-implementer · wireframe-builder · design-advisor | frontend-dev · api-developer · bug-investigator · code-reviewer |
 
 - **신호로 분류**: Figma·토큰·컴포넌트 시각·플로우 언급 → 디자인 빌더 / 데이터·BFF·성능·버그·타입 언급 → 프론트 개발자. **애매하면 한 줄로 확인.**
 - (표의 "🎨 디자인 빌더 / ⚙️ 프론트 개발자"가 두 드라이버다)
-- read-only 자문 agent(design-handoff-advisor·design-context-advisor)는 **선택 도구로 존치** — 질문형 요청이면 여전히 이쪽이 가볍고 빠르다.
+- read-only 자문 agent는 **design-advisor 하나로 통합**(핸드오프+제품 맥락) — 질문형 요청이면 이쪽이 가볍고 빠르다.
 - **디자이너도 코드 agent를 자유롭게 호출한다.** (전신의 "디자이너 맥락 코드 agent 자제" 규칙은 이 프로젝트에서 폐기)
 - **agent 커스텀 개방**: 디자이너 포함 누구나 `.claude/agents/*.md`를 추가·수정할 수 있다. 단 역할 진실 소스인 `shared/agent-roles.md`를 같이 갱신할 것.
 
@@ -69,7 +72,7 @@
 
 | 신호 | agent |
 |---|---|
-| "어디 있어?", "어떻게 돼있어?" | explorer |
+| "어디 있어?", "어떻게 돼있어?" | **Explore** (빌트인 — 커스텀 explorer는 폐기) |
 | "전부/하나도 빠짐없이 찾아줘" | auditor |
 | "왜 필요해?", "어떻게 설계?", "계획 짜줘" | planner |
 | 플로우 검수·CRUD 누락 | flow-reviewer |
@@ -77,30 +80,32 @@
 | BFF Route Handler·외부 Spring 연동·캐싱 전략 | api-developer |
 | 페이지·화면·인터랙션 구현 | frontend-dev |
 | **디자인 시스템 컴포넌트·토큰 (바이브코딩)** | **design-system-builder** |
-| **Figma 링크만 받음 / "이거 반영해줘"** | **figma-implementer** — 되묻지 말고 `get_metadata`로 정체를 먼저 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. 절차는 `figma-bridge` 스킬 §1 |
+| **Figma 링크만 받음 / "이거 반영해줘"** | **figma-implementer** — 되묻지 말고 `get_metadata`로 정체를 먼저 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. **MCP 전용**. 절차는 `figma-bridge` 스킬 §0-0·§1 |
+| "Figma MCP 연결 확인해줘" (디자이너가 막혔을 때) | 메인 세션에서 `whoami` → `figma-bridge` §0-0 진단 순서. **REST 우회 제안 금지** |
 | Figma 노드 → 코드 변환·토큰 sync | figma-implementer |
 | 디자인 확정 전 초안·프로토타입 | wireframe-builder |
 | "리뷰해줘" (코드) | code-reviewer |
-| 디자인 정합·토큰 위반·a11y 검토 | design-reviewer |
+| 디자인 정합·토큰 위반·a11y 검토 | code-reviewer (구 design-reviewer 흡수) |
 | 테스트 작성·수정 | test-writer |
 | 커밋 정리·푸시 | diff-organizer |
-| 디자이너 질문 (핸드오프/제품 맥락) | design-handoff-advisor / design-context-advisor |
+| 디자이너 질문 (핸드오프/제품 맥락) | design-advisor (통합) |
 
-- 모델 티어(판단 밀도): **높음=fable / 중간=sonnet / 낮음=haiku** — `shared/agent-roles.md`가 진실 소스.
+- 모델 티어(판단 밀도, **2026-08-05 Opus 5 기준으로 갱신**): **높음=opus + `effort: high` / 중간=sonnet / 낮음=haiku** — `shared/agent-roles.md`가 진실 소스. 구 `fable` 티어는 조직 가용성에 따라 대체될 수 있어 팀 공유 하네스에서 `opus`로 내렸다.
+- **MCP가 필요한 agent는 `tools:`를 생략한다** (`tools`는 allowlist라 명시하면 MCP 도구가 배제된다 — 실제로 figma-implementer가 이 문제로 Figma를 못 읽었다). 제한은 `disallowedTools`로. 상세는 `agent-roles.md` §도구 부여 규약.
 
 ## 전용 플로우
 
-- **디자인 시스템 컴포넌트**(디자이너 바이브코딩): design-system-builder(Radix/shadcn 기반) → `/playground` 스토리 추가 → 빌드 1회 → 푸시 전 리뷰 1회(code-reviewer가 토큰·a11y 겸함) → **바로 main 푸시. 여기서 끝** — 푸시하면 CI 자동 배포, 확인은 배포된 `/playground`. 테스트 작성·플랜 문서는 이 플로우 범위 밖(추후 test-writer 일괄). 상세 design-reviewer는 요청 시만
-- **와이어프레임 초안**(디자인 전): 유저 플로우 → flow-reviewer → [⏸] → wireframe-builder(더미 데이터·저충실도) → 배포(⏸) → 피드백. ※ 토큰 검사 면제, design-reviewer 미적용
-- **토큰 갱신**(디자이너가 Figma 값을 바꿨을 때 — 가장 빈번): figma-implementer가 분류 → `@theme static` 갱신 → **검산 3종**(`/playground` 스토리 라벨 갱신 · 대비 계산 · 빌드 후 산출물 토큰 emit 확인) → 푸시 → **"화면에서 보일 차이 1개"를 알려주며 배포 확인 안내**. 게이트는 매핑 공백·MCP 인증 실패뿐 — `get_variable_defs` 빈 응답은 폴백이 있으니 멈추지 않는다 (`figma-bridge` §2·§4·§7)
-- **신규 화면**(디자인 확정 후): Figma 확정(⏸) → figma-implementer → design-reviewer + code-reviewer
+- **디자인 시스템 컴포넌트**(디자이너 바이브코딩): design-system-builder(Radix/shadcn 기반) → `/playground` 스토리 추가 → 빌드 1회 → 푸시 전 리뷰 1회(code-reviewer가 토큰·a11y·Figma 정합 겸함) → **바로 main 푸시. 여기서 끝** — 푸시하면 CI 자동 배포, 확인은 배포된 `/playground`. 테스트 작성·플랜 문서는 이 플로우 범위 밖(추후 test-writer 일괄)
+- **와이어프레임 초안**(디자인 전): 유저 플로우 → flow-reviewer → [⏸] → wireframe-builder(더미 데이터·저충실도) → 배포(⏸) → 피드백. ※ 토큰 검사 면제
+- **토큰 갱신**(디자이너가 Figma 값을 바꿨을 때 — 가장 빈번): figma-implementer가 분류 → `@theme static` 갱신 → **검산 3종**(`/playground` 스토리 라벨 갱신 · 대비 계산 · 빌드 후 산출물 토큰 emit 확인) → 푸시 → **"화면에서 보일 차이 1개"를 알려주며 배포 확인 안내**. 게이트는 매핑 공백·MCP 접근 실패뿐 — `get_variable_defs` 빈 응답은 폴백이 있으니 멈추지 않는다. **단 폴백은 MCP 안에서만**(REST 금지) (`figma-bridge` §0-0·§2·§4·§7)
+- **신규 화면**(디자인 확정 후): Figma 확정(⏸) → figma-implementer → code-reviewer
 - **Bug**: bug-investigator(수정X) → 구현 agent → code-reviewer
 - **전수검색**: auditor → 구현(일괄) → code-reviewer
 - 리뷰는 "리뷰해줘" 자연어로 트리거 (슬래시 커맨드 안 씀)
 
 ## 오케스트레이션 (병렬 실행 규약)
 
-- **독립 조사(읽기)는 병렬로** — explorer·auditor·리뷰어 동시 실행 OK. 같은 결론을 위해 순차로 기다리지 않는다.
+- **독립 조사(읽기)는 병렬로** — Explore·auditor·리뷰어 동시 실행 OK. 같은 결론을 위해 순차로 기다리지 않는다.
 - **쓰기는 소유 영역이 겹치지 않을 때만 병렬** — 예: `app/_components/`와 `app/prototype/` 동시 작업 OK, 같은 디렉토리 내 동시 쓰기 X. **`app/globals.css`는 토큰이 모여 있어 한 번에 한 agent만.**
 - **공유 파일(conventions·agent-roles 등 shared/)은 한 번에 한 agent만** 수정.
 - **구현과 리뷰는 컨텍스트 분리** — 구현한 agent가 자기 결과를 리뷰하지 않는다 (code-reviewer는 별도 컨텍스트).

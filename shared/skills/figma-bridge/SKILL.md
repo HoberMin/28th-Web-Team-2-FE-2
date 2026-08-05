@@ -1,6 +1,6 @@
 ---
 name: figma-bridge
-description: Figma MCP → 코드 변환 규율 + 디자이너가 Figma를 넘겼을 때의 실행 런북. 분류 판단, MCP 호출 순서와 실패 분기, 토큰 매핑, 대비 검산, 폐기된 규격 처리, 배포 확인까지. figma-implementer/design-system-builder/design-reviewer/code-reviewer가 참조.
+description: Figma MCP → 코드 변환 규율 + 디자이너가 Figma를 넘겼을 때의 실행 런북. **Figma 접근은 MCP 전용(REST·public API 금지)**, 분류 판단, MCP 실패 진단 순서, 토큰 매핑, 대비 검산, 폐기된 규격 처리, 프로젝트 구조 공통 정의, 배포 확인까지. figma-implementer/design-system-builder/code-reviewer/design-advisor가 참조.
 ---
 
 # Figma Bridge
@@ -9,6 +9,47 @@ description: Figma MCP → 코드 변환 규율 + 디자이너가 Figma를 넘�
 
 이 문서는 규율 + **실행 런북**이다. 디자이너가 Figma 링크를 던졌을 때 되묻지 않고 스스로 판단해 진행할 수 있어야 한다.
 
+## 0-0. Figma 접근은 **MCP 도구로만** (하드 룰 — 위반은 🔴 Critical)
+
+Figma 값을 가져오는 경로는 **MCP 도구 하나뿐이다.** 다음은 전부 금지:
+
+| ❌ 금지 | 왜 |
+|---|---|
+| Figma REST / public API (`api.figma.com`) | 토큰을 레포·환경변수에 심게 되고, MCP가 주는 변수 바인딩·시맨틱 alias 정보가 없어 hex만 긁다 오독한다 |
+| `curl`·`wget`·`WebFetch`로 Figma 호출 | 같은 이유. `.claude/settings.json`의 `deny`로 **실제로 차단**돼 있다 |
+| personal access token·`FIGMA_TOKEN` 류 발급·저장 | 시크릿 규칙 위반(conventions #7). MCP는 OAuth라 토큰이 필요 없다 |
+| 스크린샷만 보고 hex 옮기기 | 실측 8건 오독 (§2) |
+
+**MCP가 안 되면 REST로 우회하지 말고 멈추고 사용자에게 알린다.** 우회는 값 오류로 이어지고, 그 오류는 토큰이라 전 화면에 퍼진다.
+
+### MCP가 안 될 때 진단 순서 (이 순서 그대로)
+
+1. **도구가 목록에 아예 없다** → agent 설정 문제다. `tools` 필드는 **allowlist**이므로 거기에 MCP가 없으면 그 agent는 Figma를 못 본다. 메인 세션에서는 잘 되는데 agent에서만 안 되는 증상이 이것이다 → `shared/agent-roles.md` §도구 부여 규약대로 `tools`를 생략(상속)한다
+2. **`whoami`** 호출 — 인증된 계정·플랜·좌석이 나온다. 실패하면 **claude.ai Figma 커넥터 재인증**이 필요하다(사용자에게 안내, 레포에서 해결할 수 있는 일이 아니다)
+3. **파일 접근 권한** — 열려는 파일이 `whoami`가 보여준 플랜에 속하는지. 남의 팀 파일이면 권한 오류가 난다
+4. **레이트리밋** — 에러에 rate limit이 **명시될 때만** 의심한다. Dev/Full 좌석은 200회/일 이상이라 평소엔 걸리지 않는다. 단 **View/Collab 좌석 또는 Starter 플랜은 월 6회**이므로, 이 에러가 뜨면 좌석 승급이 답이고 우회로는 없다
+
+### 디자이너에게 안내할 때 (이 3줄만)
+
+1. **Figma 링크만 붙여넣으세요.** 노드를 선택한 상태의 링크면 더 정확합니다
+2. **API 키·토큰은 필요 없습니다.** 그걸 요구하는 답이 오면 잘못된 경로입니다
+3. 안 되면 이 말만 하세요 — **"Figma MCP 연결 확인해줘"**
+
+## 0-1. 쓸 수 있는 MCP 도구 (용도별)
+
+| 하려는 일 | 도구 |
+|---|---|
+| 정체 파악(이름·자식 구조) | `get_metadata` |
+| 토큰 값(변수 바인딩) | `get_variable_defs` |
+| 노드의 코드·텍스트 맥락 | `get_design_context` |
+| 렌더 이미지 | `get_screenshot` |
+| 파일에 붙은 라이브러리 목록 | `get_libraries` |
+| 라이브러리 안에서 규격 검색 | `search_design_system` |
+| 이미지·아이콘 내려받기 | `download_assets` |
+| 코드↔컴포넌트 매핑 확인 | `get_code_connect_map` |
+
+`get_libraries` → `search_design_system` 조합은 "이 규격이 라이브러리에 실제로 있나"를 확인하는 가장 싼 방법이다 — **"Figma에 있는 규격만 만든다"** 규칙(design-guide §1-1)을 검증할 때 쓴다.
+
 ## 0. 진실 소스 (2026-08-05)
 
 | 대상 | Figma | 코드 |
@@ -16,7 +57,7 @@ description: Figma MCP → 코드 변환 규율 + 디자이너가 Figma를 넘�
 | 컬러 | node `126-1092` — Raw Color 58 · Semantic Color 24 | `app/globals.css` `@theme static` |
 | 타이포 | node `171-3737` — title·body·caption 21종 | 같음 |
 | 레디어스 | node `126-1092` — Radius 5 | 같음 |
-| 컴포넌트 | **없음** (Design Library에 컴포넌트 규격 미존재) | `app/_components/` — 현재 디렉토리 자체 없음 |
+| 컴포넌트 | **없음** (Design Library에 컴포넌트 규격 미존재) | `app/_components/` — 아직 만들 게 없어 디렉토리 없음 (§8) |
 
 fileKey: `WfW1Nkx1oiOWBHNwrw48IL` (Design Library). 페이지는 `(공유) 스타일가이드` 하나뿐이다.
 **전신 프로젝트 파일 `TRXXVUvIwh8vh7FbBusXCO`(Looky-Design)는 진실 소스가 아니다** — 이 fileKey를 가리키는 규격을 새로 등록하지 말고, 발견하면 flag한다.
@@ -102,7 +143,25 @@ Figma가 스케일·컴포넌트를 지우면 코드에 남은 사용처를 옮�
 - 안 바뀌면 Vercel Deployments에서 최신 배포가 **Error**인지 확인하라고 안내
 - 로컬 `pnpm dev` 안내는 하지 않는다
 
+## 8. 프로젝트 구조 (agent 공통 — 여기가 진실 소스, agent 파일에 복붙하지 않는다)
+
+이전엔 이 블록이 figma-implementer·design-system-builder·code-reviewer 세 곳에 복붙돼 있었다. 값이 바뀌면 세 곳이 어긋나므로 **여기 하나만 둔다.**
+
+- **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다
+- `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(프로토타입 화면 — 실데이터 연동, **구조 유지 대상이니 삭제·대규모 개편 금지**) · `app/playground`(디자인 갤러리)
+- **디자인 토큰은 `app/globals.css`의 `@theme static` 블록 한 곳** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
+- 정식 공통 컴포넌트 자리는 `app/_components/`, 유틸은 `app/_lib/`다. **아직 없다** — Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고 이 상태가 정상이다. 규격이 올라오면 그때 생성한다. (프로토타입 전용 부품은 `app/prototype/_components/`에 이미 있고, 그건 정식 DS가 아니다)
+- **barrel export 예외 없음** (conventions #2)
+- 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
+
+### 디자이너가 올리는 것을 받는 방식 (UT 종료 · 상시 협업 단계)
+
+Figma로 오는 항목은 프로토타입 참고물이 아니라 **실 서비스의 디자인 가이드**다. 디자이너가 코드에 직접 주입할 수도 있다.
+
+**① 토큰** — 진실 소스는 Figma Variables, 반영 지점은 `@theme static` 한 곳. 매핑은 §3. 시맨틱은 raw를 `var()`로 참조(hex 복제 금지). 반영 후 검산 3종(§4)은 생략 불가.
+**② 컴포넌트** — **Figma에 규격이 올라온 뒤에만** 만든다(없는 걸 상상하지 않는다). `app/_components/<이름>.tsx` + `app/playground/_stories/<이름>.tsx` + `registry.ts` 한 줄. 값은 `@theme` 토큰만, 시맨틱 슬롯이 있으면 raw 팔레트보다 시맨틱 우선. **SEED와 혼용 금지**(design-guide §1-2).
+
 ## MCP 인증·호출 실패
 
-- 인증 실패 시 fallback 절차 → 그래도 안 되면 사용자에게. **임의 값 생성 금지**
+- **REST·public API로 우회하지 않는다** (§0-0). 진단 순서를 따르고, 그래도 안 되면 사용자에게. **임의 값 생성 금지**
 - 모든 디자인 값은 "Figma 노드에서 가져옴" / "추정"으로 구분. 추정이면 게이트

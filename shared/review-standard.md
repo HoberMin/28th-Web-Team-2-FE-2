@@ -1,6 +1,6 @@
 # 리뷰 기준 (단일 진실 소스 · 도구 무관)
 
-> code-reviewer / design-reviewer 가 따른다. 팀 전원·모든 도구가 **같은 잣대 + 같은 출력 형식**.
+> code-reviewer 가 따른다 (구 design-reviewer를 흡수해 디자인 정합도 겸한다). 팀 전원·모든 도구가 **같은 잣대 + 같은 출력 형식**.
 > **main 직접 푸시 체제라 리뷰가 유일한 게이트다 — 푸시 전 1회 필수** (`git-flow.md`).
 
 ## 출력 형식 (고정 템플릿 — 그대로 사용)
@@ -54,6 +54,11 @@
 - 토큰 화이트리스트 밖 raw 값·arbitrary value(`[13px]`) — `figma-bridge` 참조
 - **예외: 와이어프레임/초안 산출물은 디자인 토큰 검사 면제**(코드 규칙은 적용)
 - 새 공통 컴포넌트에 `/playground` 스토리 누락
+- **🔴 Figma를 MCP가 아닌 경로로 접근** (`figma-bridge` §0-0) — `api.figma.com`·`FIGMA_TOKEN`/`FIGMA_PAT`·figma 대상 `curl`/`fetch`/`WebFetch`. 값 신뢰성이 깨지고 시크릿 규칙(#7) 위반이라 즉시 Critical
+- **토큰 sync 회귀 3종** — `@theme static`이 `@theme`로 되돌아갔는지 / 값은 바뀌고 `/playground` 라벨은 그대로인지 / 대비가 나빠졌는지
+
+**프로토타입 보호**
+- **🔴 `app/prototype/*` 삭제·대규모 개편** — 구조 유지 대상이다. 요청에 없는 프로토타입 제거·재구성은 Critical
 
 ## 완료 증명 (Verification — "됐다"는 말이 아니라 증거)
 
@@ -78,3 +83,4 @@
 - `"use client"` → 각 파일에 인터랙션(핸들러·훅) 실재하는지 확인
 - `NEXT_PUBLIC_` → 비밀값 아닌지 확인
 - `fetch\(` (app/ 내) → `next:` 옵션 or `no-store` 명시 확인
+- `api\.figma\.com` / `FIGMA_TOKEN|FIGMA_PAT|figma.*token` → Figma REST 우회 (🔴)

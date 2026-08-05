@@ -1,6 +1,6 @@
 ---
 name: design-handoff
-description: 디자이너→프론트 핸드오프 규약. 디자인 토큰·스펙을 figma-implementer가 추측 없이 받도록 Figma Variables 그룹 구조·표기·체크리스트를 정의. design-handoff-advisor가 참조.
+description: 디자이너→프론트 핸드오프 규약. 디자인 토큰·스펙을 figma-implementer가 추측 없이 받도록 Figma Variables 그룹 구조·표기·체크리스트를 정의. design-advisor가 참조.
 ---
 
 # 디자이너 → 프론트 핸드오프 규약

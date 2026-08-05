@@ -6,7 +6,7 @@
 ## 반드시 지킬 규칙 (shared/conventions.md 요약)
 
 1. `any` 타입 금지
-2. Barrel export 금지 (직접 import — 예외: design-system 공개 진입점 1개)
+2. Barrel export 금지 (직접 import — **예외 없음**. 구 design-system 패키지 진입점 예외는 단일 루트 통합으로 소멸)
 3. 모바일 퍼스트 — 무프리픽스=모바일(sm), `md:` 데스크탑 (예: `p-4 md:p-6`)
 4. 요청한 것만 변경 (불필요한 리팩토링 금지)
 5. **모르면 추측 말고 질문.** 미정(TODO) 영역 건드리면 진행 전 묻고 `shared/domain.md`에 기록
@@ -25,6 +25,9 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 **백엔드 상상해서 만들지 말 것** — 스펙은 `shared/`·실제 API 문서 참조.
 디자인 검증은 `/playground` 갤러리 (스토리북 안 씀). 접근성 WCAG 2.2 AA.
 **Figma를 받았을 때**: 되묻지 말고 `get_metadata`로 정체를 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. 토큰 반영 지점은 `app/globals.css` `@theme static` 한 곳이고, 반영 후 검산 3종(`/playground` 스토리 라벨 갱신 · 대비 계산 · 산출물 토큰 emit 확인)은 생략 불가. 절차·실측 함정은 `shared/skills/figma-bridge/SKILL.md`가 진실 소스.
+**Figma 접근은 MCP 전용** — REST·public API(`api.figma.com`)·`curl`/`wget`·personal access token 금지. MCP가 안 되면 우회하지 말고 멈추고 알린다(진단 순서 `figma-bridge` §0-0).
+**`app/prototype/*`은 구조 유지 대상** — 삭제·대규모 개편 금지. 구조 변경은 사용자 확인.
+**하네스는 규격만 담는다** — 기획서 성격 문서(`shared/pages.md`·`detail-features.md` 등)의 내용을 agent 지침에 옮겨 적지 않는다. 필요하면 그때 읽는다.
 
 ## 페르소나 (힌트 — 차단 아님)
 
@@ -43,8 +46,10 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 
 ## 서브에이전트
 
-- `.codex/agents/*.toml` (총 16) — **생성 파일, 직접 편집 금지.** 상세 SSOT는 `.claude/agents/*.md`, 재생성은 `pnpm gen:codex`, 요약 카탈로그는 `shared/agent-roles.md`
-- 판단 밀도 티어: `model_reasoning_effort` high/medium/low (Claude 쪽 fable/sonnet/haiku와 매핑)
+- `.codex/agents/*.toml` (총 **13**) — **생성 파일, 직접 편집 금지.** 상세 SSOT는 `.claude/agents/*.md`, 재생성은 `pnpm gen:codex`, 요약 카탈로그는 `shared/agent-roles.md`
+- **2026-08-05 정리**: 16 → 13. `explorer` 삭제(빌트인 탐색으로 대체), `design-reviewer` → `code-reviewer` 흡수, `design-handoff-advisor`+`design-context-advisor` → `design-advisor` 통합
+- 판단 밀도 티어: `model_reasoning_effort` high/medium/low (Claude 쪽 **opus**/sonnet/haiku와 매핑 — 구 `fable`은 조직 가용성 문제로 `opus`로 내렸다). Claude 쪽 frontmatter에 `effort`가 있으면 그 값이 우선한다
+- **도구 부여**: Claude 쪽 `tools`는 allowlist라 명시하면 MCP 도구가 배제된다 — MCP가 필요한 agent는 `tools`를 생략하고 `disallowedTools`로 제한한다 (`agent-roles.md` §도구 부여 규약)
 - 오케스트레이션(동시성)은 `.codex/config.toml [agents]`
 - **agent 커스텀은 전원 개방** — `.claude/agents` 수정 → `pnpm gen:codex` → `agent-roles.md` 표 갱신을 한 커밋에
 

@@ -9,6 +9,7 @@ const OUT = path.join(ROOT, ".codex", "agents");
 
 // 판단 밀도 티어 매핑 (shared/agent-roles.md)
 const EFFORT = { fable: "high", opus: "high", sonnet: "medium", haiku: "low" };
+const VALID_EFFORT = new Set(["low", "medium", "high", "xhigh", "max"]);
 // 도구만으로 판정 불가한 예외 — diff-organizer는 Bash로 git 쓰기를 한다
 const SANDBOX_OVERRIDE = { "diff-organizer": "workspace-write" };
 
@@ -40,10 +41,16 @@ const files = readdirSync(SRC).filter((f) => f.endsWith(".md"));
 for (const file of files) {
   const { meta, body } = parseFrontmatter(readFileSync(path.join(SRC, file), "utf8"));
   const name = meta.name ?? file.replace(/\.md$/, "");
-  const tools = (typeof meta.tools === "string" ? meta.tools.split(",") : []).map((t) => t.trim());
-  const canWrite = tools.includes("Edit") || tools.includes("Write");
+  // tools 는 allowlist, 생략하면 전부 상속(MCP 포함) — agent-roles.md §도구 부여 규약
+  const toolsSpecified = typeof meta.tools === "string" && meta.tools.trim() !== "";
+  const tools = (toolsSpecified ? meta.tools.split(",") : []).map((t) => t.trim());
+  const denied = (typeof meta.disallowedTools === "string" ? meta.disallowedTools.split(",") : []).map((t) => t.trim());
+  const writeDenied = denied.includes("Edit") || denied.includes("Write");
+  // 생략(상속) = Edit/Write 를 가진다는 뜻이므로, disallowedTools 로 뺐는지만 본다
+  const canWrite = toolsSpecified ? tools.includes("Edit") || tools.includes("Write") : !writeDenied;
   const sandbox = SANDBOX_OVERRIDE[name] ?? (canWrite ? "workspace-write" : "read-only");
-  const effort = EFFORT[meta.model] ?? "medium";
+  // frontmatter effort 가 있으면 그걸 쓰고, 없으면 model 티어에서 유도
+  const effort = VALID_EFFORT.has(meta.effort) ? meta.effort : (EFFORT[meta.model] ?? "medium");
   const skills = Array.isArray(meta.skills) ? meta.skills : [];
 
   const skillNote = skills.length

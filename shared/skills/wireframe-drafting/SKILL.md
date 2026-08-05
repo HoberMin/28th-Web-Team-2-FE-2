@@ -30,4 +30,4 @@ description: 와이어프레임/초안 단계 규약. 디자인 가이드 없이
 - 배포는 외부로 나가는 작업 → 사용자 확인 게이트. diff-organizer/배포 절차를 따른다.
 
 ## 전이 (초안 → 정식)
-- 디자인 확정 시: figma-implementer가 토큰 기반 재구현, api-developer가 더미→실 API 교체, design-reviewer 검수.
+- 디자인 확정 시: figma-implementer가 토큰 기반 재구현, api-developer가 더미→실 API 교체, code-reviewer 검수.
