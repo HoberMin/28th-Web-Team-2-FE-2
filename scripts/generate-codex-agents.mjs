@@ -1,6 +1,6 @@
 // .claude/agents/*.md (역할 상세 SSOT) → .codex/agents/*.toml 생성기
 // 실행: pnpm gen:codex — agent를 수정한 커밋에는 이 생성기 실행 결과가 같이 들어가야 한다 (shared/agent-roles.md 동기화 규칙)
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.join(import.meta.dirname, "..");
@@ -37,6 +37,7 @@ function tomlString(s) {
 
 mkdirSync(OUT, { recursive: true });
 const files = readdirSync(SRC).filter((f) => f.endsWith(".md"));
+const seen = [];
 
 for (const file of files) {
   const { meta, body } = parseFrontmatter(readFileSync(path.join(SRC, file), "utf8"));
@@ -68,5 +69,43 @@ instructions = ${tomlString(body + skillNote)}
 `;
   writeFileSync(path.join(OUT, `${name}.toml`), toml);
   console.log(`✓ ${name}.toml (effort=${effort}, sandbox=${sandbox})`);
+  seen.push({ name, skills });
 }
 console.log(`총 ${files.length}개 생성 → .codex/agents/`);
+
+// --- drift 검사 (shared/agent-roles.md 표 ↔ frontmatter) -----------------
+// 표의 '든 스킬' 열이 실제와 어긋난 이력이 있어(13개 중 11개) 기계로 막는다.
+const ROLES = path.join(ROOT, "shared", "agent-roles.md");
+const roleLines = readFileSync(ROLES, "utf8").split("\n");
+const warn = [];
+for (const { name, skills } of seen) {
+  const row = roleLines.find(
+    (l) => l.startsWith("| ") && l.split("|")[1]?.trim().replace(/\*\*/g, "").replace(/\s*🆕$/, "").trim() === name,
+  );
+  if (!row) {
+    warn.push(`${name}: agent-roles.md 표에 행이 없다`);
+    continue;
+  }
+  const listed = row.split("|")[5]?.trim() ?? "";
+  const want = skills.length ? skills.join(", ") : "—";
+  if (listed !== want) warn.push(`${name}: 표"${listed}" ≠ 실제"${want}"`);
+}
+// 스킬이 실제로 존재하는지도 본다 (구 'domain'·'git-flow' 유령 참조 이력)
+for (const { name, skills } of seen) {
+  for (const s of skills) {
+    if (!existsSync(path.join(ROOT, "shared", "skills", s, "SKILL.md"))) {
+      warn.push(`${name}: 존재하지 않는 스킬 '${s}'`);
+    }
+  }
+}
+const rosterCount = (readFileSync(ROLES, "utf8").match(/## 로스터 \((\d+)\)/) ?? [])[1];
+if (rosterCount && Number(rosterCount) !== files.length) {
+  warn.push(`로스터 수 표기 ${rosterCount} ≠ 실제 ${files.length}`);
+}
+if (warn.length) {
+  console.error(`\n⚠️  agent-roles.md drift ${warn.length}건 — 커밋 전에 고쳐라:`);
+  for (const w of warn) console.error(`   - ${w}`);
+  process.exitCode = 1;
+} else {
+  console.log("✓ agent-roles.md 표·스킬 참조·로스터 수 일치");
+}

@@ -35,19 +35,19 @@
 
 | agent | 역할 | 읽기/쓰기 | 티어 | 든 스킬 | 핵심 경계·금지 |
 |---|---|---|---|---|---|
-| auditor | 누락 없는 전수 검색 | 읽기 | sonnet·high | domain | 수정 금지. 목록만. 빠른 탐색은 빌트인 Explore |
-| planner | 기획·기술 결정·계획 | 읽기 | opus·high | domain | 코드 작성 금지 |
-| flow-reviewer | 유저 플로우 검수 (CRUD·사용자 관점 누락) | 읽기 | opus·high | domain, flow-review | 코드 X 제품 플로우. 수정 금지, 갭 목록만 |
-| bug-investigator | 버그 근본원인 추적 | 읽기 | opus·high | domain, api-patterns | 수정 금지. 원인·위치만 |
-| api-developer | **BFF Route Handler + 외부 Spring 연동 + 캐싱 전략** | 쓰기 | sonnet | domain, api-patterns, backend-api-reference, data-fetching | **백엔드 상상 금지**. 스펙 없으면 멈춤. 시크릿은 서버까지만 |
-| frontend-dev | 페이지·화면 구현 (**RSC 기본, `"use client"`는 leaf만**) | 쓰기 | sonnet | domain, api-patterns, frontend-design, form-patterns, nextjs-app-router, data-fetching | BFF·API는 api-developer. 경계 전환은 리뷰 대상 |
+| auditor | 누락 없는 전수 검색 | 읽기 | sonnet·high | — | 수정 금지. 목록만. 빠른 탐색은 빌트인 Explore |
+| planner | 기획·기술 결정·계획 | 읽기 | opus·high | — | 코드 작성 금지 |
+| flow-reviewer | 유저 플로우 검수 (CRUD·사용자 관점 누락) | 읽기 | opus·high | flow-review | 코드 X 제품 플로우. 수정 금지, 갭 목록만 |
+| bug-investigator | 버그 근본원인 추적 | 읽기 | opus·high | api-patterns | 수정 금지. 원인·위치만 |
+| api-developer | **BFF Route Handler + 외부 Spring 연동 + 캐싱 전략** | 쓰기 | sonnet | api-patterns, backend-api-reference, data-fetching, typescript-strict | **백엔드 상상 금지**. 스펙 없으면 멈춤. 시크릿은 서버까지만 |
+| frontend-dev | 페이지·화면 구현 (**RSC 기본, `"use client"`는 leaf만**) | 쓰기 | sonnet | api-patterns, frontend-design, form-patterns, tailwind-v4, typescript-strict, nextjs-app-router, data-fetching, accessibility, web-performance | BFF·API는 api-developer. 경계 전환은 리뷰 대상 |
 | design-system-builder | **디자이너 바이브코딩** — `app/globals.css` `@theme static` 토큰 + `app/_components/` 공통 컴포넌트(Radix/shadcn). **현재 Figma에 컴포넌트 규격이 없어 토큰 작업이 주 업무** | 쓰기 (MCP 상속, `WebFetch` 차단) | sonnet·high | figma-bridge, frontend-design, tailwind-v4, accessibility, typescript-strict | **Figma는 MCP로만**. Radix 우선. 컴포넌트마다 `/playground` 스토리 필수. **빌드 1회→리뷰 1회→푸시로 종료** — 테스트·플랜 문서는 범위 밖(conventions #12) |
 | figma-implementer | Figma→코드 변환 + **토큰 sync**(Variables→`@theme static`) | 쓰기 (MCP 상속, `WebFetch` 차단) | **opus**·high | figma-bridge, frontend-design, tailwind-v4, accessibility | **토큰 화이트리스트만**. **REST·public API 금지**. **스크린샷 판독 금지**(2026-08-04 hex 8건 오독). sync 후 `/playground` 라벨 동반 갱신 |
 | design-advisor 🆕 | 디자이너 자문 **통합** — 핸드오프(토큰 넘기는 법) + 제품 맥락 + 내 디자인 점검 | 읽기 (MCP 상속) | opus·high | design-handoff, figma-bridge, tailwind-v4, frontend-design, flow-review | 코드 수정 X. 토큰 값을 문서에 넣지 않음. 미정은 "미정"이라 답함 |
-| wireframe-builder | 디자인 전 와이어프레임 초안 (더미 데이터·배포) | 쓰기 | sonnet | domain, wireframe-drafting, form-patterns | **디자인 가이드 없이**. 토큰 규칙 면제(초안 한정) |
-| test-writer | AI-native 테스트 (Vitest + Playwright + **스크린샷 회귀 + axe**) | 쓰기 | sonnet | domain, test-strategy | 구현 베끼는 동어반복 테스트 금지 |
-| code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) + **디자인 정합·토큰·a11y 겸함** | 읽기+자동수정 (MCP 상속) | opus·high | api-patterns, frontend-design, typescript-strict, accessibility, web-performance, nextjs-app-router, data-fetching, figma-bridge | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도·시크릿 클라 노출·Figma REST 우회 흔적 필수 체크** |
-| diff-organizer | 커밋 정리·푸시 (git-flow) | 쓰기(git) | haiku | git-flow | **main 직접 푸시 기본.** pull --rebase 충돌 시 사용자에게. main force 금지 |
+| wireframe-builder | 디자인 전 와이어프레임 초안 (더미 데이터·배포) | 쓰기 | sonnet | wireframe-drafting, nextjs-app-router, form-patterns, typescript-strict, accessibility | **디자인 가이드 없이**. 토큰 규칙 면제(초안 한정) |
+| test-writer | AI-native 테스트 (Vitest + Playwright + **스크린샷 회귀 + axe**) | 쓰기 | sonnet | test-strategy, playwright-e2e, vitest | 구현 베끼는 동어반복 테스트 금지 |
+| code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) + **디자인 정합·토큰·a11y 겸함** | 읽기+자동수정 (MCP 상속) | opus·high | api-patterns, frontend-design, typescript-strict, accessibility, web-performance, nextjs-app-router, data-fetching | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도·시크릿 클라 노출·Figma REST 우회 흔적 필수 체크** |
+| diff-organizer | 커밋 정리·푸시 (git-flow) | 쓰기(git) | haiku | — | **main 직접 푸시 기본.** pull --rebase 충돌 시 사용자에게. main force 금지 |
 
 > **빌트인 agent 활용**: 빠른 코드 탐색은 **Explore**(read-only 광범위 검색), 계획 초안은 **Plan**을 쓴다 — 같은 일을 하는 커스텀 agent를 두지 않는다.
 
