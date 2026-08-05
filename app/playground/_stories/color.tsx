@@ -104,7 +104,7 @@ const SEMANTIC: { name: string; cls: string; alias: string }[] = [
   { name: "background/secondary", cls: "bg-background-secondary", alias: "gray/50" },
   { name: "surface/primary", cls: "bg-surface-primary", alias: "common/white" },
   { name: "surface/secondary", cls: "bg-surface-secondary", alias: "gray/100" },
-  { name: "surface/elevated", cls: "bg-surface-elevated", alias: "gray/700 90% (구 surface/tertiary)" },
+  { name: "surface/elevated", cls: "bg-surface-elevated", alias: "gray/700 90%" },
   { name: "content/primary", cls: "bg-content-primary", alias: "gray/900" },
   { name: "content/secondary", cls: "bg-content-secondary", alias: "gray/600" },
   { name: "content/disabled", cls: "bg-content-disabled", alias: "gray/400" },
