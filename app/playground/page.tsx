@@ -85,13 +85,18 @@ export default function PlaygroundPage() {
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`${s.title} Figma 원본`}
+                          title={s.figma}
                           className="rounded-sm bg-action-tertiary-default px-1.5 py-0.5 text-caption-12-regular text-content-secondary hover:text-content-primary"
                         >
                           Figma 원본
                         </a>
                       ) : (
-                        <span className="rounded-sm bg-action-tertiary-default px-1.5 py-0.5 text-caption-12-regular text-content-secondary">
-                          Figma {s.figma}
+                        <span
+                          title={s.figma}
+                          aria-label={`${s.title} Figma 출처: ${s.figma}`}
+                          className="rounded-sm bg-action-tertiary-default px-1.5 py-0.5 text-caption-12-regular text-content-secondary"
+                        >
+                          Figma 원본
                         </span>
                       )}
                     </div>

@@ -15,8 +15,9 @@ function RadiusStory() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-caption-12-regular text-content-secondary">
-        Figma에 없는 `rounded`(기본값 4px)·`rounded-2xl`(기본값 16px)은 쓰지 않습니다. 지금 값이
-        같아 보여도 토큰을 거치지 않으면 나중에 Figma 값이 바뀌었을 때 반영되지 않습니다.
+        여기 있는 5가지 값만 써요. “rounded”(기본값 4px)·“rounded-2xl”(기본값 16px)처럼 지금은
+        값이 같아 보이는 것도 쓰지 않아요 — 토큰을 거치지 않으면 나중에 Figma 값이 바뀌었을 때
+        반영되지 않거든요.
       </p>
       <div className="flex flex-wrap gap-5">
         {RADII.map(({ cls, name, px }) => (
@@ -38,6 +39,6 @@ export const radiusStory: Story = {
   title: "Radius",
   group: "파운데이션",
   figma: "node 126-1092",
-  description: "Radius 컬렉션 5종입니다. Tailwind 기본 rounded-* 를 Figma 값으로 덮어쓴 결과를 확인할 수 있습니다.",
+  description: "모서리를 둥글게 만들 때 쓰는 5가지 값이에요.",
   Component: RadiusStory,
 };

@@ -2,9 +2,10 @@ import type { Story } from "./types";
 
 // Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05
 // (디자인_docs/variables/variables_2026-08-05_v01.json 기준 재sync).
-// 이 스토리의 목적은 "예쁘게 보여주기"가 아니라 **sync 검산**이다 —
-// 라벨에 Figma 변수명과 기대 hex를 같이 적어두어, 디자이너가 @theme에 값을 주입한 뒤
-// 화면과 라벨이 어긋나는지 눈으로 잡을 수 있게 한다(hex 오독이 두 번 발생한 이력이 있다).
+// 눈으로 색을 훑어보는 갤러리이면서, 동시에 sync 검산 도구이기도 하다(hex 오독이 두 번 발생한
+// 이력이 있어 만든 안전판) — 라벨에 Figma 변수명과 기대 hex를 같이 적어 화면과 라벨이 어긋나는지
+// 잡을 수 있게 한다. 화면 문구는 뷰어 관점(무엇을 언제 쓰는지)으로 쓰되, 검산 안내 한 줄은 유지한다
+// (design-guide.md §0).
 
 const RAW: { group: string; items: { name: string; cls: string; hex: string }[] }[] = [
   {
@@ -99,38 +100,148 @@ const RAW: { group: string; items: { name: string; cls: string; hex: string }[] 
 ];
 
 // 시맨틱 — Figma alias 그대로. raw를 직접 쓰지 말고 여기서 고르는 게 원칙이다.
-const SEMANTIC: { name: string; cls: string; alias: string }[] = [
-  { name: "background/primary", cls: "bg-background-primary", alias: "common/white" },
-  { name: "background/secondary", cls: "bg-background-secondary", alias: "gray/50" },
-  { name: "surface/primary", cls: "bg-surface-primary", alias: "common/white" },
-  { name: "surface/secondary", cls: "bg-surface-secondary", alias: "gray/100" },
-  { name: "surface/elevated", cls: "bg-surface-elevated", alias: "gray/700 90%" },
-  { name: "content/primary", cls: "bg-content-primary", alias: "gray/900" },
-  { name: "content/secondary", cls: "bg-content-secondary", alias: "gray/600" },
-  { name: "content/disabled", cls: "bg-content-disabled", alias: "gray/400" },
-  { name: "content/inverse", cls: "bg-content-inverse", alias: "gray/50" },
-  { name: "content/brand-light", cls: "bg-content-brand-light", alias: "green/600" },
-  { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700" },
-  { name: "content/brand-dark", cls: "bg-content-brand-dark", alias: "green/900" },
-  { name: "border/primary", cls: "bg-border-primary", alias: "gray/200" },
-  { name: "border/secondary", cls: "bg-border-secondary", alias: "gray/100" },
-  { name: "border/tertiary", cls: "bg-border-tertiary", alias: "gray/700" },
-  { name: "action-primary/default", cls: "bg-action-primary-default", alias: "green/500" },
-  { name: "action-primary/pressed", cls: "bg-action-primary-pressed", alias: "green/600" },
-  { name: "action-primary/disabled", cls: "bg-action-primary-disabled", alias: "gray/300" },
-  { name: "action-secondary/default", cls: "bg-action-secondary-default", alias: "gray/900" },
-  { name: "action-secondary/pressed", cls: "bg-action-secondary-pressed", alias: "gray/700" },
-  { name: "action-secondary/disabled", cls: "bg-action-secondary-disabled", alias: "gray/300" },
-  { name: "action-tertiary/default", cls: "bg-action-tertiary-default", alias: "gray/100" },
-  { name: "action-tertiary/pressed", cls: "bg-action-tertiary-pressed", alias: "gray/200" },
-  { name: "action-tertiary/disabled", cls: "bg-action-tertiary-disabled", alias: "gray/300" },
-  { name: "trend/up", cls: "bg-trend-up", alias: "red/600" },
-  { name: "trend/down", cls: "bg-trend-down", alias: "blue/600" },
-  { name: "trend/flat", cls: "bg-trend-flat", alias: "gray/400" },
-  { name: "overlay/dim", cls: "bg-overlay-dim", alias: "common/black50" },
+// usage는 화면에서 어디에 쓰는지 보여주는 안내 문구 — 토큰명에서 유추한 초안이라
+// 디자이너 확인 후 다듬을 수 있다.
+const SEMANTIC: {
+  group: string;
+  items: { name: string; cls: string; alias: string; usage: string }[];
+}[] = [
+  {
+    group: "background",
+    items: [
+      { name: "background/primary", cls: "bg-background-primary", alias: "common/white", usage: "페이지 기본 배경" },
+      { name: "background/secondary", cls: "bg-background-secondary", alias: "gray/50", usage: "배경 위 보조 영역" },
+    ],
+  },
+  {
+    group: "surface",
+    items: [
+      { name: "surface/primary", cls: "bg-surface-primary", alias: "common/white", usage: "카드·시트 등 콘텐츠 표면" },
+      { name: "surface/secondary", cls: "bg-surface-secondary", alias: "gray/100", usage: "표면 위 두 번째 레이어" },
+      {
+        name: "surface/elevated",
+        cls: "bg-surface-elevated",
+        alias: "gray/700 90%",
+        usage: "떠 있는 어두운 요소(툴팁·플로팅 버튼) · 글자는 content/inverse",
+      },
+    ],
+  },
+  {
+    group: "content",
+    items: [
+      { name: "content/primary", cls: "bg-content-primary", alias: "gray/900", usage: "기본 텍스트" },
+      { name: "content/secondary", cls: "bg-content-secondary", alias: "gray/600", usage: "보조 텍스트" },
+      { name: "content/disabled", cls: "bg-content-disabled", alias: "gray/400", usage: "비활성 텍스트" },
+      { name: "content/inverse", cls: "bg-content-inverse", alias: "gray/50", usage: "어두운 배경 위 텍스트" },
+      { name: "content/brand-light", cls: "bg-content-brand-light", alias: "green/600", usage: "브랜드 텍스트 · 밝게" },
+      { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700", usage: "브랜드 텍스트 · 중간" },
+      { name: "content/brand-dark", cls: "bg-content-brand-dark", alias: "green/900", usage: "브랜드 텍스트 · 진하게" },
+    ],
+  },
+  {
+    group: "border",
+    items: [
+      { name: "border/primary", cls: "bg-border-primary", alias: "gray/200", usage: "기본 구분선" },
+      { name: "border/secondary", cls: "bg-border-secondary", alias: "gray/100", usage: "옅은 구분선" },
+      { name: "border/tertiary", cls: "bg-border-tertiary", alias: "gray/700", usage: "진한 구분선" },
+    ],
+  },
+  {
+    group: "action-primary",
+    items: [
+      { name: "action-primary/default", cls: "bg-action-primary-default", alias: "green/500", usage: "주요 버튼" },
+      {
+        name: "action-primary/pressed",
+        cls: "bg-action-primary-pressed",
+        alias: "green/600",
+        usage: "주요 버튼 · 눌렸을 때",
+      },
+      {
+        name: "action-primary/disabled",
+        cls: "bg-action-primary-disabled",
+        alias: "gray/300",
+        usage: "주요 버튼 · 비활성",
+      },
+    ],
+  },
+  {
+    group: "action-secondary",
+    items: [
+      { name: "action-secondary/default", cls: "bg-action-secondary-default", alias: "gray/900", usage: "보조 버튼" },
+      {
+        name: "action-secondary/pressed",
+        cls: "bg-action-secondary-pressed",
+        alias: "gray/700",
+        usage: "보조 버튼 · 눌렸을 때",
+      },
+      {
+        name: "action-secondary/disabled",
+        cls: "bg-action-secondary-disabled",
+        alias: "gray/300",
+        usage: "보조 버튼 · 비활성",
+      },
+    ],
+  },
+  {
+    group: "action-tertiary",
+    items: [
+      {
+        name: "action-tertiary/default",
+        cls: "bg-action-tertiary-default",
+        alias: "gray/100",
+        usage: "약한 강조 버튼",
+      },
+      {
+        name: "action-tertiary/pressed",
+        cls: "bg-action-tertiary-pressed",
+        alias: "gray/200",
+        usage: "약한 강조 버튼 · 눌렸을 때",
+      },
+      {
+        name: "action-tertiary/disabled",
+        cls: "bg-action-tertiary-disabled",
+        alias: "gray/300",
+        usage: "약한 강조 버튼 · 비활성",
+      },
+    ],
+  },
+  {
+    group: "trend",
+    items: [
+      { name: "trend/up", cls: "bg-trend-up", alias: "red/600", usage: "시세 상승" },
+      { name: "trend/down", cls: "bg-trend-down", alias: "blue/600", usage: "시세 하락" },
+      {
+        name: "trend/flat",
+        cls: "bg-trend-flat",
+        alias: "gray/400",
+        usage: "시세 보합 · 배경·아이콘용(작은 글자는 대비 부족해 content/secondary 사용)",
+      },
+    ],
+  },
+  {
+    group: "overlay",
+    items: [
+      {
+        name: "overlay/dim",
+        cls: "bg-overlay-dim",
+        alias: "common/black50",
+        usage: "모달·시트 뒤 어둡게 깔리는 배경",
+      },
+    ],
+  },
 ];
 
-function Swatch({ cls, label, sub }: { cls: string; label: string; sub: string }) {
+function Swatch({
+  cls,
+  label,
+  sub,
+  usage,
+}: {
+  cls: string;
+  label: string;
+  sub: string;
+  usage?: string;
+}) {
   return (
     <div className="flex items-center gap-3">
       {/* 체커보드 배경 — alpha 토큰(black50·overlay/dim·surface/elevated)의 투명도가 보이게 */}
@@ -147,7 +258,8 @@ function Swatch({ cls, label, sub }: { cls: string; label: string; sub: string }
       </div>
       <div className="min-w-0">
         <p className="text-body-14-medium text-content-primary">{label}</p>
-        <p className="text-caption-12-regular tabular-nums text-content-secondary">{sub}</p>
+        {usage && <p className="text-caption-12-medium text-content-secondary">{usage}</p>}
+        <p className="text-caption-12-regular tabular-nums text-content-disabled">{sub}</p>
       </div>
     </div>
   );
@@ -157,24 +269,30 @@ function ColorStory() {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-caption-12-regular text-content-secondary">
-        라벨에 적힌 값이 Figma 원본입니다. 스와치 색상과 라벨이 다르면 `@theme` sync가 잘못된
-        것입니다.
+        색상 이름 옆에 실제 값과 어디에 쓰는지를 함께 적어뒀어요. 스와치와 옆에 적힌 값이 다르면
+        토큰 sync가 잘못된 거예요. (쓰임 설명은 초안이라 디자이너 확인 후 다듬을 수 있어요.)
       </p>
 
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Semantic Color — 화면에서는 이 중에서 고릅니다 (28)
+          Semantic Color — 실제 화면에서 쓰는 색이에요 (28)
         </h3>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {SEMANTIC.map(({ name, cls, alias }) => (
-            <Swatch key={name} cls={cls} label={name} sub={`→ ${alias}`} />
-          ))}
-        </div>
+        {SEMANTIC.map(({ group, items }) => (
+          <div key={group} className="flex flex-col gap-3">
+            <p className="text-caption-12-medium text-content-secondary">{group}</p>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {items.map(({ name, cls, alias, usage }) => (
+                <Swatch key={name} cls={cls} label={name} sub={`→ ${alias}`} usage={usage} />
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
 
       <section className="flex flex-col gap-5">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Raw Color — 팔레트 원재료입니다 (59). 시맨틱 슬롯이 있으면 직접 쓰지 않습니다
+          Raw Color — 팔레트의 원재료예요 (59). 시맨틱 컬러로 표현할 수 있으면 원색은 직접 쓰지
+          않아요.
         </h3>
         {RAW.map(({ group, items }) => (
           <div key={group} className="flex flex-col gap-3">
@@ -196,7 +314,6 @@ export const colorStory: Story = {
   title: "Color",
   group: "파운데이션",
   figma: "node 126-1092",
-  description:
-    "Raw Color 59종과 Semantic Color 28종입니다. 라벨에 Figma 원본 hex·alias를 함께 적어 sync 검산용으로 씁니다.",
+  description: "Raw Color 59종과 Semantic Color 28종을 모아뒀어요. 실제 값과 쓰임을 함께 보여드려요.",
   Component: ColorStory,
 };

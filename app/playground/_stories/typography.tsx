@@ -49,7 +49,7 @@ function TypographyStory() {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-caption-12-regular text-content-secondary">
-        Wanted Sans Variable (self-host · OFL) · 크기 · line-height · 자간 · weight 순
+        Wanted Sans · 스펙은 크기 · 줄 간격 · 자간 · 굵기 순이에요
       </p>
       {SPECS.map(({ group, note, items }) => (
         <section key={group} className="flex flex-col gap-3">
@@ -75,7 +75,6 @@ export const typographyStory: Story = {
   title: "Typography",
   group: "파운데이션",
   figma: "node 171-3737",
-  description:
-    "타이포 스케일 21종(title·body·caption)을 모두 담았습니다. Wanted Sans 1종을 self-host로 쓰며, Figma node 171-3737 최종본을 그대로 반영했습니다.",
+  description: "제목·본문·보조 텍스트에 쓰는 타이포 스케일 21종을 모두 모았어요.",
   Component: TypographyStory,
 };
