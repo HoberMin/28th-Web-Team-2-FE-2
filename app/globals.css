@@ -22,13 +22,20 @@
 @theme static {
   /*
    * 컬러 — Figma Design Library (fileKey WfW1Nkx1oiOWBHNwrw48IL) node 126-1092
-   *   Raw Color 58 + Semantic Color 24. **재검증 완료 2026-08-05** — 이전 sync(08-04)는 스크린샷
-   *   판독이라 hex 8건(gray/400·red/300·red/800·green/400·green/700·blue/200·blue/800·blue/900)이
-   *   틀려 있었고 이번에 Figma 원본 값으로 바로잡았다. 검산은 `/playground` Color 스토리에서.
+   *   Raw Color 59 + Semantic Color 28. **재sync 2026-08-05**
+   *   (디자인_docs/variables/variables_2026-08-05_v01.json, 사용자가 직접 전달한 원본 — MCP 없이 파일 전달).
+   *   Raw Color·Radius는 값 동일. Semantic은 border/tertiary·action-tertiary/disabled 신설,
+   *   content/brand가 light/medium/dark 3단계로 확장, surface/tertiary→surface/elevated로 리네임,
+   *   surface/secondary가 gray/900(어두움)→gray/100(밝음)으로 재정의(사용자 확인 완료, 2026-08-05).
+   *   기존에 surface/secondary를 어두운 배경 전제로 쓰던 곳(prototype 툴팁·사진 삭제 버튼)은
+   *   surface/elevated(값 그대로 gray/700 90%)로 옮겨 놓쳐 깨지는 대비 없이 정리했다.
+   *   검산은 `/playground` Color 스토리에서.
    * `color/kakao/500`은 이 라이브러리 밖의 별도 Variable(CTA_small fill 395-13199) — 유지.
    */
   --color-white: #ffffff;
   --color-black: #000000;
+  /* Figma `common/black5` — alpha 5% raw 토큰. */
+  --color-black-5: color-mix(in srgb, #000000 5%, transparent);
   /* Figma `common/black50` — alpha 50% raw 토큰. overlay/dim이 이걸 alias한다. */
   --color-black-50: color-mix(in srgb, #000000 50%, transparent);
 
@@ -96,20 +103,25 @@
 
   /*
    * 시맨틱 컬러 — Semantic Color 컬렉션. Figma alias 그대로 raw 토큰을 var()로 참조(중복 hex 방지).
-   * surface/tertiary, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
+   * surface/elevated, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
    */
   --color-background-primary: var(--color-white);
   --color-background-secondary: var(--color-gray-50);
   --color-surface-primary: var(--color-white);
-  --color-surface-secondary: var(--color-gray-900);
-  --color-surface-tertiary: color-mix(in srgb, var(--color-gray-700) 90%, transparent);
+  --color-surface-secondary: var(--color-gray-100);
+  /* Figma가 "surface/tertiary"를 "surface/elevated"로 리네임(값은 동일) — 2026-08-05 sync */
+  --color-surface-elevated: color-mix(in srgb, var(--color-gray-700) 90%, transparent);
   --color-content-primary: var(--color-gray-900);
   --color-content-secondary: var(--color-gray-600);
   --color-content-disabled: var(--color-gray-400);
   --color-content-inverse: var(--color-gray-50);
-  --color-content-brand: var(--color-green-600);
+  /* Figma가 content/brand를 단일값에서 light/medium/dark 3단계로 확장 — 2026-08-05 sync */
+  --color-content-brand-light: var(--color-green-600);
+  --color-content-brand-medium: var(--color-green-700);
+  --color-content-brand-dark: var(--color-green-900);
   --color-border-primary: var(--color-gray-200);
   --color-border-secondary: var(--color-gray-100);
+  --color-border-tertiary: var(--color-gray-700);
   --color-action-primary-default: var(--color-green-500);
   --color-action-primary-pressed: var(--color-green-600);
   --color-action-primary-disabled: var(--color-gray-300);
@@ -118,6 +130,7 @@
   --color-action-secondary-disabled: var(--color-gray-300);
   --color-action-tertiary-default: var(--color-gray-100);
   --color-action-tertiary-pressed: var(--color-gray-200);
+  --color-action-tertiary-disabled: var(--color-gray-300);
   --color-trend-up: var(--color-red-600);
   --color-trend-down: var(--color-blue-600);
   --color-trend-flat: var(--color-gray-400);

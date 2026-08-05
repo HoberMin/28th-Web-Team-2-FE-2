@@ -158,7 +158,7 @@ export function ReportForm({
                   type="button"
                   onClick={clearPhoto}
                   aria-label="사진 지우기"
-                  className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-surface-secondary text-content-inverse [&_svg]:size-4"
+                  className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-surface-elevated text-content-inverse [&_svg]:size-4"
                 >
                   <IconXmarkLine />
                 </button>

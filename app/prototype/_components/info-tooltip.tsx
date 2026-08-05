@@ -9,6 +9,7 @@ import IconILowercaseSerifCircleLine from "@karrotmarket/react-monochrome-icon/I
 //
 // 배경·글자는 토큰이다. 이전엔 #4a5667 / #f9f9fb 를 박아뒀는데, 주석은 "gray/700"이라 했지만
 // Seed의 gray-700은 #868b94 라서 근거가 어긋났다. 어두운 말풍선은 neutral-inverted 한 쌍이 맞다.
+// (2026-08-05: surface/secondary가 밝은 톤으로 재정의되면서 bg는 surface/elevated로 옮김 — 값은 그대로 어두운 gray/700 90%)
 
 export function InfoTooltip({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ export function InfoTooltip({ label, children }: { label: string; children: Reac
         <span
           id={tipId}
           role="tooltip"
-          className="absolute top-full left-0 z-20 mt-1.5 w-max max-w-56 rounded bg-surface-secondary px-2 py-1.5 text-caption-12-regular whitespace-normal text-content-inverse shadow-md"
+          className="absolute top-full left-0 z-20 mt-1.5 w-max max-w-56 rounded bg-surface-elevated px-2 py-1.5 text-caption-12-regular whitespace-normal text-content-inverse shadow-md"
         >
           {children}
         </span>

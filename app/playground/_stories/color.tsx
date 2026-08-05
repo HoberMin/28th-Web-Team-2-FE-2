@@ -1,6 +1,7 @@
 import type { Story } from "./types";
 
-// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05.
+// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05
+// (디자인_docs/variables/variables_2026-08-05_v01.json 기준 재sync).
 // 이 스토리의 목적은 "예쁘게 보여주기"가 아니라 **sync 검산**이다 —
 // 라벨에 Figma 변수명과 기대 hex를 같이 적어두어, 디자이너가 @theme에 값을 주입한 뒤
 // 화면과 라벨이 어긋나는지 눈으로 잡을 수 있게 한다(hex 오독이 두 번 발생한 이력이 있다).
@@ -10,6 +11,7 @@ const RAW: { group: string; items: { name: string; cls: string; hex: string }[] 
     group: "common",
     items: [
       { name: "white", cls: "bg-white", hex: "#FFFFFF" },
+      { name: "black5", cls: "bg-black-5", hex: "#000000 5%" },
       { name: "black50", cls: "bg-black-50", hex: "#000000 50%" },
       { name: "black", cls: "bg-black", hex: "#000000" },
     ],
@@ -101,15 +103,18 @@ const SEMANTIC: { name: string; cls: string; alias: string }[] = [
   { name: "background/primary", cls: "bg-background-primary", alias: "common/white" },
   { name: "background/secondary", cls: "bg-background-secondary", alias: "gray/50" },
   { name: "surface/primary", cls: "bg-surface-primary", alias: "common/white" },
-  { name: "surface/secondary", cls: "bg-surface-secondary", alias: "gray/900" },
-  { name: "surface/tertiary", cls: "bg-surface-tertiary", alias: "gray/700 90%" },
+  { name: "surface/secondary", cls: "bg-surface-secondary", alias: "gray/100" },
+  { name: "surface/elevated", cls: "bg-surface-elevated", alias: "gray/700 90% (구 surface/tertiary)" },
   { name: "content/primary", cls: "bg-content-primary", alias: "gray/900" },
   { name: "content/secondary", cls: "bg-content-secondary", alias: "gray/600" },
   { name: "content/disabled", cls: "bg-content-disabled", alias: "gray/400" },
   { name: "content/inverse", cls: "bg-content-inverse", alias: "gray/50" },
-  { name: "content/brand", cls: "bg-content-brand", alias: "green/600" },
+  { name: "content/brand-light", cls: "bg-content-brand-light", alias: "green/600" },
+  { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700" },
+  { name: "content/brand-dark", cls: "bg-content-brand-dark", alias: "green/900" },
   { name: "border/primary", cls: "bg-border-primary", alias: "gray/200" },
   { name: "border/secondary", cls: "bg-border-secondary", alias: "gray/100" },
+  { name: "border/tertiary", cls: "bg-border-tertiary", alias: "gray/700" },
   { name: "action-primary/default", cls: "bg-action-primary-default", alias: "green/500" },
   { name: "action-primary/pressed", cls: "bg-action-primary-pressed", alias: "green/600" },
   { name: "action-primary/disabled", cls: "bg-action-primary-disabled", alias: "gray/300" },
@@ -118,6 +123,7 @@ const SEMANTIC: { name: string; cls: string; alias: string }[] = [
   { name: "action-secondary/disabled", cls: "bg-action-secondary-disabled", alias: "gray/300" },
   { name: "action-tertiary/default", cls: "bg-action-tertiary-default", alias: "gray/100" },
   { name: "action-tertiary/pressed", cls: "bg-action-tertiary-pressed", alias: "gray/200" },
+  { name: "action-tertiary/disabled", cls: "bg-action-tertiary-disabled", alias: "gray/300" },
   { name: "trend/up", cls: "bg-trend-up", alias: "red/600" },
   { name: "trend/down", cls: "bg-trend-down", alias: "blue/600" },
   { name: "trend/flat", cls: "bg-trend-flat", alias: "gray/400" },
@@ -127,7 +133,7 @@ const SEMANTIC: { name: string; cls: string; alias: string }[] = [
 function Swatch({ cls, label, sub }: { cls: string; label: string; sub: string }) {
   return (
     <div className="flex items-center gap-3">
-      {/* 체커보드 배경 — alpha 토큰(black50·overlay/dim·surface/tertiary)의 투명도가 보이게 */}
+      {/* 체커보드 배경 — alpha 토큰(black50·overlay/dim·surface/elevated)의 투명도가 보이게 */}
       <div
         className="size-10 shrink-0 rounded-md border border-border-primary"
         style={{
@@ -156,7 +162,7 @@ function ColorStory() {
 
       <section className="flex flex-col gap-4">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Semantic Color — 화면에서는 이걸 고른다 (24)
+          Semantic Color — 화면에서는 이걸 고른다 (28)
         </h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {SEMANTIC.map(({ name, cls, alias }) => (
@@ -167,7 +173,7 @@ function ColorStory() {
 
       <section className="flex flex-col gap-5">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Raw Color — 팔레트 원재료 (58). 시맨틱 슬롯이 있으면 직접 쓰지 않는다
+          Raw Color — 팔레트 원재료 (59). 시맨틱 슬롯이 있으면 직접 쓰지 않는다
         </h3>
         {RAW.map(({ group, items }) => (
           <div key={group} className="flex flex-col gap-3">
@@ -190,6 +196,6 @@ export const colorStory: Story = {
   group: "파운데이션",
   figma: "node 126-1092",
   description:
-    "Raw Color 58 + Semantic Color 24. 라벨에 Figma 원본 hex·alias를 함께 적어 sync 검산용으로 쓴다.",
+    "Raw Color 59 + Semantic Color 28. 라벨에 Figma 원본 hex·alias를 함께 적어 sync 검산용으로 쓴다.",
   Component: ColorStory,
 };
