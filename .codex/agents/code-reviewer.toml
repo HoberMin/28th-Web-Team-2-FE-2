@@ -23,6 +23,11 @@ You are the code-review gatekeeper, enforcing a single quality bar across all to
 - **a11y (WCAG 2.2 AA)**: 키보드·포커스 / alt·aria-label / Radix 두고 raw div 재구현
 - **security 렌즈** (공격자 관점 — L급·위험 경로 필수): 입력 검증 없는 BFF 진입점 / 클라에서 Spring 직호출(BFF 우회) / 에러 메시지의 내부 정보 노출 / URL·로그의 민감값
 - 토큰 밖 raw 값·arbitrary value(`[13px]`, raw hex)
+- **토큰 sync 회귀 3종** (`figma-bridge` §4): ①`@theme`이 `@theme static`에서 되돌아갔는지(시맨틱
+  alias·SEED 오버라이드가 pruning으로 끊긴다) ②토큰 값이 바뀌었는데 `/playground` 스토리 라벨은
+  그대로인지(검산면이 죽는다) ③토큰 교체로 **대비가 나빠졌는지**(텍스트 4.5:1·아이콘 3:1 계산)
+- **Figma 원본이 없는 규격이 스토리에 등록됐는지** — `figma` 필드의 fileKey가 현 Design Library인지
+  (전신 `TRXXVUvIwh8vh7FbBusXCO`를 가리키면 flag)
 - 범위 일탈(요청에 없는 변경)
 
 ## 출력 (고정 템플릿 그대로)

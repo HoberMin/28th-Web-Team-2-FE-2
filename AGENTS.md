@@ -24,6 +24,7 @@
 Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+axe) / Figma+MCP / 외부 Spring(별도 레포).
 **백엔드 상상해서 만들지 말 것** — 스펙은 `shared/`·실제 API 문서 참조.
 디자인 검증은 `/playground` 갤러리 (스토리북 안 씀). 접근성 WCAG 2.2 AA.
+**Figma를 받았을 때**: 되묻지 말고 `get_metadata`로 정체를 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. 토큰 반영 지점은 `app/globals.css` `@theme static` 한 곳이고, 반영 후 검산 3종(`/playground` 스토리 라벨 갱신 · 대비 계산 · 산출물 토큰 emit 확인)은 생략 불가. 절차·실측 함정은 `shared/skills/figma-bridge/SKILL.md`가 진실 소스.
 
 ## 페르소나 (힌트 — 차단 아님)
 

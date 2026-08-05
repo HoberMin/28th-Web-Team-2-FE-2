@@ -77,6 +77,7 @@
 | BFF Route Handler·외부 Spring 연동·캐싱 전략 | api-developer |
 | 페이지·화면·인터랙션 구현 | frontend-dev |
 | **디자인 시스템 컴포넌트·토큰 (바이브코딩)** | **design-system-builder** |
+| **Figma 링크만 받음 / "이거 반영해줘"** | **figma-implementer** — 되묻지 말고 `get_metadata`로 정체를 먼저 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. 절차는 `figma-bridge` 스킬 §1 |
 | Figma 노드 → 코드 변환·토큰 sync | figma-implementer |
 | 디자인 확정 전 초안·프로토타입 | wireframe-builder |
 | "리뷰해줘" (코드) | code-reviewer |
@@ -91,6 +92,7 @@
 
 - **디자인 시스템 컴포넌트**(디자이너 바이브코딩): design-system-builder(Radix/shadcn 기반) → `/playground` 스토리 추가 → 빌드 1회 → 푸시 전 리뷰 1회(code-reviewer가 토큰·a11y 겸함) → **바로 main 푸시. 여기서 끝** — 푸시하면 CI 자동 배포, 확인은 배포된 `/playground`. 테스트 작성·플랜 문서는 이 플로우 범위 밖(추후 test-writer 일괄). 상세 design-reviewer는 요청 시만
 - **와이어프레임 초안**(디자인 전): 유저 플로우 → flow-reviewer → [⏸] → wireframe-builder(더미 데이터·저충실도) → 배포(⏸) → 피드백. ※ 토큰 검사 면제, design-reviewer 미적용
+- **토큰 갱신**(디자이너가 Figma 값을 바꿨을 때 — 가장 빈번): figma-implementer가 분류 → `@theme static` 갱신 → **검산 3종**(`/playground` 스토리 라벨 갱신 · 대비 계산 · 빌드 후 산출물 토큰 emit 확인) → 푸시 → **"화면에서 보일 차이 1개"를 알려주며 배포 확인 안내**. 게이트는 매핑 공백·MCP 인증 실패뿐 — `get_variable_defs` 빈 응답은 폴백이 있으니 멈추지 않는다 (`figma-bridge` §2·§4·§7)
 - **신규 화면**(디자인 확정 후): Figma 확정(⏸) → figma-implementer → design-reviewer + code-reviewer
 - **Bug**: bug-investigator(수정X) → 구현 agent → code-reviewer
 - **전수검색**: auditor → 구현(일괄) → code-reviewer
