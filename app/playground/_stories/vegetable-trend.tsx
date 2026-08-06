@@ -19,11 +19,6 @@ const CASES = [
 function VegetableTrendStory() {
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-caption-12-regular text-content-secondary">
-        Figma 규격: caption/12-medium + <strong>trend/down</strong> 색 고정. 아래 칸 너비는 Figma
-        격자 한 칸(111px)에 맞췄어요. 점선 네모는 아직 못 가져온 화살표 아이콘 자리예요.
-      </p>
-
       <div className="flex flex-wrap gap-6">
         {CASES.map(({ lines, amount, label }) => (
           <div key={label} className="flex flex-col gap-2">
@@ -38,26 +33,6 @@ function VegetableTrendStory() {
             <p className="text-caption-12-regular text-content-secondary">{label}</p>
           </div>
         ))}
-      </div>
-
-      <div className="flex flex-col gap-2 rounded-md bg-surface-secondary px-4 py-3">
-        <p className="text-body-14-semibold text-content-primary">디자이너 확인이 필요한 것</p>
-        <ul className="flex list-disc flex-col gap-1 pl-4 text-caption-12-regular text-content-secondary">
-          <li>
-            <strong>방향이 &ldquo;하락&rdquo; 하나뿐이에요.</strong> Figma 컴포넌트가 색을
-            trend/down에 고정 바인딩해 뒀고 상승·보합 변형이 없어서, 코드에도 방향 축을 만들지
-            않았어요. 토큰(trend/up·trend/flat)은 이미 있으니 Figma에 변형만 추가되면 바로 열 수
-            있어요.
-          </li>
-          <li>
-            <strong>대비 3.95:1</strong> — 12px 텍스트 기준(4.5:1)에 못 미쳐요. Figma 원본
-            값(trend/down = blue-600)을 그대로 뒀으니, 한 단계 진한 파랑으로 갈지 봐주세요.
-          </li>
-          <li>
-            상승/하락이 색으로만 구분되면 색각 이상 사용자가 놓쳐요. 화살표 아이콘이 방향을 같이
-            말해주도록 만들어 주세요.
-          </li>
-        </ul>
       </div>
     </div>
   );

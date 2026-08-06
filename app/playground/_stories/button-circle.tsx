@@ -85,23 +85,14 @@ const STATIC_COMBOS: {
 function ButtonCircleStory() {
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-caption-12-regular text-content-secondary">
-        Figma 규격: 48×48 흰 원 · radius/full(999px) · drop-shadow 0px 0px 3px
-        rgba(74,86,103,0.22) · 아이콘 24×24 슬롯. 색은 style(stroke·fill)이 아니라 state(normal·
-        pressed)가 정한다 — normal은 content/primary, pressed는 content/brand/light.
-      </p>
-
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">실제 동작 데모</p>
-        <p className="text-caption-12-regular text-content-secondary">
-          찜(좋아요) 토글이 이 컴포넌트의 본질이라 정적 나열보다 눌러보는 게 더 명확해요. 눌러
-          보세요.
-        </p>
+        <p className="text-caption-12-regular text-content-secondary">눌러 보세요.</p>
         <LikeToggleDemo />
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-body-14-semibold text-content-primary">정적 조합 (state별 색 확인용)</p>
+        <p className="text-body-14-semibold text-content-primary">여러 가지 모습</p>
         <div className="flex flex-wrap items-center gap-4">
           {STATIC_COMBOS.map(({ variant, state, label }) => (
             <div key={label} className="flex flex-col items-center gap-1.5">
@@ -115,25 +106,6 @@ function ButtonCircleStory() {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2 rounded-md bg-surface-secondary px-4 py-3">
-        <p className="text-body-14-semibold text-content-primary">알아두면 좋은 것</p>
-        <ul className="flex list-disc flex-col gap-1 pl-4 text-caption-12-regular text-content-secondary">
-          <li>
-            하트 아이콘은 진짜 Figma 아이콘이 아니라 이 스토리 파일 안에 임시로 그린
-            placeholder SVG예요. 디자이너가 실제 SVG를 주면 컴포넌트 호출부만 바꾸면 돼요 —
-            ButtonCircle 자체는 아이콘을 밖에서 받는 슬롯 구조라서요.
-          </li>
-          <li>
-            Figma엔 disabled 심볼이 없어서 만들지 않았어요. 눌리지 않게는 되지만(네이티브
-            disabled) 색은 안 바뀝니다.
-          </li>
-          <li>
-            대비: content/primary(normal) 13.5:1 · content/brand/light(pressed) 3.34:1 — 아이콘
-            기준(3:1) 둘 다 통과해요.
-          </li>
-        </ul>
       </div>
     </div>
   );
