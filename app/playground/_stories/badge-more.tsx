@@ -27,7 +27,7 @@ function BadgeMoreStory() {
           <BadgeMore count={7} />
         </div>
         <p className="text-caption-12-regular text-content-secondary">
-          야채 아이콘 줄 끝에 붙는 모습이에요.
+          야채 아이콘 줄 끝에 붙는 모습이에요. 회색 칸은 야채 그림이 들어갈 자리예요.
         </p>
       </div>
     </div>

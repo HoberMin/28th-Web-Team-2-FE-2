@@ -19,6 +19,10 @@ const CASES = [
 function VegetableTrendStory() {
   return (
     <div className="flex flex-col gap-6">
+      <p className="text-caption-12-regular text-content-secondary">
+        점선 네모는 방향 아이콘이 들어갈 자리예요.
+      </p>
+
       <div className="flex flex-wrap gap-6">
         {CASES.map(({ lines, amount, label }) => (
           <div key={label} className="flex flex-col gap-2">

@@ -32,6 +32,12 @@
 - **상태 3종 필수**: 로딩 / 에러 / 빈
 - **WCAG 2.2 AA 목표** (확정)
   - 예외: CTA `pressed`의 `blue/100` 배경과 흰색 텍스트 조합은 디자이너가 Figma 원형 유지로 승인함 (2026-07-14, 대비 약 1.31:1)
+  - `TODO(✍️):` 대비 미달 — 디자이너 확인 필요 (Figma 원본 값을 그대로 두고 코드로 옮긴 상태, 승인 아님. 2026-08-06/07 sync에서 실측):
+    - Button(node 160-2855) primary normal 2.43:1 · pressed 3.18:1 · tertiary normal 4.33:1 (본문 기준 4.5:1)
+    - Button outlined 테두리 1.23:1 (UI 컴포넌트 기준 3:1)
+    - TextField(node 237-8556) placeholder 안내 문구 1.74:1 (기준 4.5:1)
+    - Vegetable Price(node 224-7408) 단위 표기 1.92:1 (기준 4.5:1)
+    - Vegetable Trend(node 224-7405) 텍스트 3.95:1 (기준 4.5:1) — 상승/하락 방향을 색(`trend/down`)에만 의존해 표시 중이라 WCAG 1.4.1 위반이기도 함. 방향 아이콘이 아직 없어서(Figma 미확정) 색 외 구분 수단이 없음
 - `TODO(✍️):` 핵심 비주얼·타겟 톤 → `design-guide.md`
 
 ## 6. 개발 환경

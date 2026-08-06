@@ -22,6 +22,10 @@ const ITEMS = [
 function NavGnbStory() {
   return (
     <div className="flex flex-col gap-6">
+      <p className="text-caption-12-regular text-content-secondary">
+        점선 네모는 아이콘이 들어갈 자리예요.
+      </p>
+
       {ITEMS.filter((item) => item.href === "#gnb-home" || item.href === "#gnb-store").map(
         ({ href, label }) => (
           <div key={href} className="flex flex-col gap-2">

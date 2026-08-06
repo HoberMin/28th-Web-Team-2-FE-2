@@ -12,28 +12,24 @@ import type { Story } from "./types";
 // 문구를 전부 걷어냈다(디자이너 요청). 그런 정보가 다시 필요하면 이 파일의 git 이력이나
 // Figma 노드를 참고한다 — 화면엔 다시 노출하지 않는다.
 
-const COLOR_VARIANTS: { variant: ColorVariant; label: string }[] = [
-  { variant: "primary", label: "primary" },
-  { variant: "secondary", label: "secondary" },
-  { variant: "tertiary", label: "tertiary" },
-];
+const COLOR_VARIANTS: ColorVariant[] = ["primary", "secondary", "tertiary"];
 
 // Figma에 실제로 있는 state만 size별로 다르다 — medium은 3종, small은 normal만.
-const SIZES: { size: ButtonSize; label: string; states: ("normal" | "pressed" | "disabled")[] }[] = [
-  { size: "medium", label: "medium", states: ["normal", "pressed", "disabled"] },
-  { size: "small", label: "small", states: ["normal"] },
+const SIZES: { size: ButtonSize; states: ("normal" | "pressed" | "disabled")[] }[] = [
+  { size: "medium", states: ["normal", "pressed", "disabled"] },
+  { size: "small", states: ["normal"] },
 ];
 
 function ButtonStory() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-6">
-        {COLOR_VARIANTS.map(({ variant, label }) => (
+        {COLOR_VARIANTS.map((variant) => (
           <div key={variant} className="flex flex-col gap-3">
-            <p className="text-body-14-semibold text-content-primary">{label}</p>
-            {SIZES.map(({ size, label: sizeLabel, states }) => (
+            <p className="text-body-14-semibold text-content-primary">{variant}</p>
+            {SIZES.map(({ size, states }) => (
               <div key={size} className="flex flex-col gap-2">
-                <p className="text-caption-12-semibold text-content-secondary">{sizeLabel}</p>
+                <p className="text-caption-12-semibold text-content-secondary">{size}</p>
                 <div className="flex flex-wrap items-center gap-3">
                   {states.includes("normal") && (
                     <div className="flex flex-col items-center gap-1.5">
