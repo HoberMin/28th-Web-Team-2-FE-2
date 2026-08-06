@@ -146,6 +146,14 @@
   --radius-full: 999px;
 
   /*
+   * 그림자 — Figma Variables 컬렉션이 아니라 노드에 직접 걸린 Effect(drop shadow) 값.
+   * `button/circle`(node 350-17885, 2026-08-06 sync)의 흰 원형 버튼 하나가 현재 유일한 사용처.
+   * 원본 rgba(74,86,103,0.22)는 raw 팔레트의 gray/700과 같은 색이라 hex를 복제하지 않고
+   * color-mix로 참조한다(figma-bridge §3 매핑 규칙).
+   */
+  --shadow-floating: 0px 0px 3px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
+
+  /*
    * 타이포그래피 — Figma Variables (node 171-3737) sync 2026-08-05 · **최종본**
    *   패밀리는 전부 **Wanted Sans** 1종 (구 head1/head2 2종 체계 폐기).
    *   매핑 규칙: Figma `title/24-bold` → `--text-title-24-bold`

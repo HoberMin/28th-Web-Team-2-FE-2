@@ -1,5 +1,6 @@
 import { badgeMoreStory } from "./badge-more";
 import { buttonStory } from "./button";
+import { buttonCircleStory } from "./button-circle";
 import { colorStory } from "./color";
 import { filterChipStory } from "./filter-chip";
 import { navGnbStory } from "./nav-gnb";
@@ -25,6 +26,11 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //   · 기존 4종은 Figma 스펙 변화 없음 — 코드 그대로 유효하다.
 //     (grid/vegetable-price의 price=16pt 2종은 2차 때 이미 반영돼 있었다)
 //   · 새로 등록: nav/gnb(223-7003) · grid/vegetable-trend(224-7405) · badge/more(185-1912)
+//
+// 2026-08-06: Figma 링크 3개 반영 — "플레이그라운드 컴포넌트들 실제로 작동하게" 요청.
+//   · button/cta_md(160-2855) 재sync: size(medium·small) 축 + variant `outlined` 추가.
+//   · field/text(237-8556) 재sync: focused state 추가(실측 결과 normal과 시각 차이 없음).
+//   · button/circle(350-17885) 신규 등록 — 찜(좋아요) 토글 데모, 아이콘은 스토리 안 임시 placeholder.
 //
 // 아직 보류 중인 것과 그 이유(2026-08-05 3차 기준으로 갱신):
 //
@@ -55,6 +61,7 @@ export const stories: Story[] = [
   typographyStory,
   radiusStory,
   buttonStory,
+  buttonCircleStory,
   textFieldStory,
   filterChipStory,
   vegetablePriceStory,
