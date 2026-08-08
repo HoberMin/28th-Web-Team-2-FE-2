@@ -1,0 +1,10 @@
+<svg width="358" height="218" viewBox="0 0 358 218" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="recommended-store-background" x1="179" y1="0" x2="179" y2="218" gradientUnits="userSpaceOnUse">
+      <stop offset="8.653846%" stop-color="#F7FFF3"/>
+      <stop offset="70.673078%" stop-color="#E8FBD5"/>
+      <stop offset="100%" stop-color="#DBFBB9"/>
+    </linearGradient>
+  </defs>
+  <rect width="358" height="218" fill="url(#recommended-store-background)"/>
+</svg>
