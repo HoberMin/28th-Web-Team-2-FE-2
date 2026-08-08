@@ -4,7 +4,6 @@ import { TabBar } from "../../_components/tab-bar";
 import type { VegetableTrendState } from "../../_components/vegetable-trend";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
-import { StoreThumbnailSlot } from "./_components/asset-slots";
 import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
 import {
@@ -42,9 +41,8 @@ import {
 // ⑤ 하트 상태: Figma 가게 탭은 6행 중 5행이 빈 하트인데 찜 목록이므로 시안 실수로 보고
 //    **전부 채워진 하트**로 구현했다.
 //
-// 에셋: 야채 사진·하트·등락 아이콘은 디자이너가 export해 준 `public/figma/design-library/`
-//    원본을 그대로 쓴다. 가게 행 썸네일만 대응 에셋이 없어 자리표시로 남겼다
-//    (`_components/asset-slots.tsx`).
+// 에셋: 야채 사진·가게 사진·하트·등락 아이콘은 Figma MCP로 export한
+// `public/figma/design-library/` 원본을 그대로 쓴다.
 //
 // ⚠️ 남은 폭 이슈(보고 대상): 공통 컴포넌트 `GridVegetableItem`은 내부 사진·정보 폭이 110px로
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
@@ -57,6 +55,18 @@ function VegetablePhoto() {
       name="vegetable-grid.png"
       width={110}
       height={110}
+      className="size-full object-cover"
+    />
+  );
+}
+
+/** F04 가게 행 인스턴스(298-3598)의 image fill을 72×72로 MCP export한 원본. */
+function StorePhoto() {
+  return (
+    <FigmaImage
+      name="store-thumbnail.png"
+      width={72}
+      height={72}
       className="size-full object-cover"
     />
   );
@@ -174,7 +184,7 @@ function StoreTab({ stores }: { stores: SavedStore[] }) {
       {stores.map((store) => (
         <li key={store.id}>
           <RowSavedStore
-            thumbnail={<StoreThumbnailSlot />}
+            thumbnail={<StorePhoto />}
             name={store.name}
             distance={store.distance}
             openState={store.openState}
