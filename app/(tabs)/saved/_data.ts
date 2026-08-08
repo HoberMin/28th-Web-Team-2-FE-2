@@ -4,6 +4,7 @@
 // 가게명 풀에서 **읽기만** 해서 만든다 — 저 파일들은 이 작업에서 수정하지 않는다.
 // 등락·거리·영업시간은 대응하는 도메인 모듈이 없어(찜 화면 전용 표기) 여기 로컬 상수로 둔다.
 
+import type { VegetableTrendState } from "../../_components/vegetable-trend";
 import { formatWon } from "../../_lib/format";
 import {
   HAND_SEED_STORE_NAMES,
@@ -29,32 +30,43 @@ export interface SavedVegetable {
   price: string;
   /** 예: "/1kg" */
   unit: string;
-  /** 예: "100,000원" */
+  /** 등락 **방향**. 색·부호·방향 아이콘이 전부 이 값 하나에서 파생된다. */
+  trendState: VegetableTrendState;
+  /** 예: "100,000원". flat이면 빈 문자열 — Figma의 flat 심볼엔 값 텍스트가 없다. */
   trendAmount: string;
-  /** 예: "(-7.4%)" */
+  /** 예: "(-7.4%)". 부호는 `trendState`에서 파생시킨다(하드코딩하지 않는다). */
   trendPercent: string;
 }
 
-// ⚠️ 등락은 **하락만** 표현된다. 공통 컴포넌트 `GridVegetableItem`(F02와 공유)이 등락 방향
-//    (VegetableTrend의 state 축)을 props로 열어 두지 않아 항상 down으로 그려지기 때문이다.
-//    이 화면에서 그 컴포넌트를 고치지 않는 게 이번 작업의 경계라, 더미도 하락 값만 넣어
-//    화면과 데이터가 어긋나지 않게 맞췄다. (F02 쪽과 함께 볼 항목으로 보고했다)
-const SAVED_VEGETABLE_SEED: { id: string; trendAmount: number; trendPercent: string }[] = [
-  { id: "cucumber", trendAmount: 100_000, trendPercent: "(-7.4%)" },
-  { id: "onion", trendAmount: 320, trendPercent: "(-8.1%)" },
-  { id: "potato", trendAmount: 210, trendPercent: "(-5.2%)" },
-  { id: "tomato", trendAmount: 540, trendPercent: "(-9.6%)" },
-  { id: "carrot", trendAmount: 180, trendPercent: "(-4.4%)" },
-  { id: "garlic", trendAmount: 760, trendPercent: "(-6.3%)" },
-  { id: "sweet-potato", trendAmount: 230, trendPercent: "(-3.1%)" },
-  { id: "bell-pepper", trendAmount: 410, trendPercent: "(-7.9%)" },
-  { id: "spinach", trendAmount: 150, trendPercent: "(-2.8%)" },
+// 등락은 **방향을 데이터로** 들고, 부호·색·아이콘은 그 방향에서 파생시킨다.
+// (이전에는 `trendPercent`에 "(-7.4%)"처럼 부호를 박아 두고 방향은 넘기지 않아,
+//  같은 야채가 F02에서는 상승인데 F04에서는 하락(파랑)으로 보이는 모순이 있었다.)
+// 세 방향이 화면에 다 보이도록 더미에 상승·보합을 섞는다.
+const SAVED_VEGETABLE_SEED: {
+  id: string;
+  trendState: VegetableTrendState;
+  /** 등락 금액(원). flat이면 쓰이지 않는다. */
+  diff: number;
+  /** 등락률(%). 부호 없이 크기만 둔다 — 부호는 방향에서 붙인다. flat이면 쓰이지 않는다. */
+  pct: number;
+}[] = [
+  { id: "cucumber", trendState: "down", diff: 100_000, pct: 7.4 },
+  { id: "onion", trendState: "up", diff: 320, pct: 8.1 },
+  { id: "potato", trendState: "flat", diff: 0, pct: 0 },
+  { id: "tomato", trendState: "down", diff: 540, pct: 9.6 },
+  { id: "carrot", trendState: "up", diff: 180, pct: 4.4 },
+  { id: "garlic", trendState: "down", diff: 760, pct: 6.3 },
+  { id: "sweet-potato", trendState: "up", diff: 230, pct: 3.1 },
+  { id: "bell-pepper", trendState: "flat", diff: 0, pct: 0 },
+  { id: "spinach", trendState: "down", diff: 150, pct: 2.8 },
 ];
 
 export const SAVED_VEGETABLES: SavedVegetable[] = SAVED_VEGETABLE_SEED.flatMap(
-  ({ id, trendAmount, trendPercent }) => {
+  ({ id, trendState, diff, pct }) => {
     const vegetable = getVegetable(id);
     if (!vegetable) return [];
+
+    const hasChange = trendState !== "flat";
 
     return [
       {
@@ -62,8 +74,10 @@ export const SAVED_VEGETABLES: SavedVegetable[] = SAVED_VEGETABLE_SEED.flatMap(
         name: vegetable.name,
         price: formatWon(getBaselineDummy(id).current),
         unit: `/${vegetable.unit}`,
-        trendAmount: formatWon(trendAmount),
-        trendPercent,
+        trendState,
+        trendAmount: hasChange ? formatWon(diff) : "",
+        // 방향을 색에만 맡기지 않도록 부호를 문자열에 담는다(WCAG 1.4.1).
+        trendPercent: hasChange ? `(${trendState === "up" ? "+" : "-"}${pct}%)` : "",
       },
     ];
   },

@@ -1,7 +1,10 @@
+import type { ReactNode } from "react";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
 import { TabBar } from "../../_components/tab-bar";
+import type { VegetableTrendState } from "../../_components/vegetable-trend";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
-import { HeartFillSlot, StoreThumbnailSlot, VegetablePhotoSlot } from "./_components/asset-slots";
+import { StoreThumbnailSlot } from "./_components/asset-slots";
 import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
 import {
@@ -39,9 +42,42 @@ import {
 // ⑤ 하트 상태: Figma 가게 탭은 6행 중 5행이 빈 하트인데 찜 목록이므로 시안 실수로 보고
 //    **전부 채워진 하트**로 구현했다.
 //
+// 에셋: 야채 사진·하트·등락 아이콘은 디자이너가 export해 준 `public/figma/design-library/`
+//    원본을 그대로 쓴다. 가게 행 썸네일만 대응 에셋이 없어 자리표시로 남겼다
+//    (`_components/asset-slots.tsx`).
+//
 // ⚠️ 남은 폭 이슈(보고 대상): 공통 컴포넌트 `GridVegetableItem`은 내부 사진·정보 폭이 110px로
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
 //    3열 칸이 넓어져도 카드가 110px에 머무르고 칸 오른쪽에 여백이 남는다. 390 기준으로는 정확하다.
+
+/** 야채 카드 사진(110×110). 품목명은 옆 텍스트가 담당하므로 장식 이미지로 둔다. */
+function VegetablePhoto() {
+  return (
+    <FigmaImage
+      name="vegetable-grid.png"
+      width={110}
+      height={110}
+      className="size-full object-cover"
+    />
+  );
+}
+
+/**
+ * 등락 방향 아이콘. 원본 SVG가 방향별 색(trend/down·up·flat)을 이미 품고 있어 currentColor로
+ * 바꾸지 않고 그대로 쓴다. 방향을 색에만 의존해 전달하지 않도록 sr-only 라벨을 함께 낸다
+ * (WCAG 1.4.1).
+ */
+const TREND_ICON: Record<VegetableTrendState, ReactNode> = {
+  down: <FigmaIcon name="trend-down" width={16} />,
+  up: <FigmaIcon name="trend-up" width={16} />,
+  flat: <FigmaIcon name="trend-flat" width={16} />,
+};
+
+const TREND_LABEL: Record<VegetableTrendState, string> = {
+  down: "어제보다 내림",
+  up: "어제보다 오름",
+  flat: "어제와 같음",
+};
 
 interface SavedPageProps {
   searchParams: Promise<{ tab?: string; empty?: string }>;
@@ -52,7 +88,8 @@ export default async function SavedPage({ searchParams }: SavedPageProps) {
   const activeTab = parseSavedTab(tab);
 
   // ⚠️ 임시(더미 데이터 기간 한정): 시안 없는 빈 상태를 배포된 화면에서 눈으로 확인할 수단이
-  //    없어 `?empty=1`을 열어 뒀다. 실제 찜 데이터가 붙는 순간 이 분기는 삭제한다.
+  //    `?empty=1`밖에 없어 열어 뒀다. **삭제 조건은 코드 주석이 아니라 `shared/product-spec.md`의
+  //    `TODO(✍️)` 항목이 들고 있다** — 주석은 사람이 안 읽으면 영영 남기 때문이다.
   const showEmpty = empty === "1";
   const vegetables = showEmpty ? [] : SAVED_VEGETABLES;
   const stores = showEmpty ? [] : SAVED_STORES;
@@ -98,14 +135,21 @@ function VegetableTab({ vegetables }: { vegetables: SavedVegetable[] }) {
       {vegetables.map((vegetable) => (
         <li key={vegetable.id}>
           <GridVegetableItem
-            visual={<VegetablePhotoSlot />}
+            visual={<VegetablePhoto />}
             name={vegetable.name}
             price={vegetable.price}
             unit={vegetable.unit}
             trendAmount={vegetable.trendAmount}
             trendPercent={vegetable.trendPercent}
+            trendState={vegetable.trendState}
+            trendIcon={
+              <>
+                {TREND_ICON[vegetable.trendState]}
+                <span className="sr-only">{TREND_LABEL[vegetable.trendState]}</span>
+              </>
+            }
             favorite
-            favoriteIcon={<HeartFillSlot size="24" />}
+            favoriteIcon={<FigmaIcon name="heart-fill-grid-24" width={24} />}
           />
         </li>
       ))}
@@ -136,7 +180,7 @@ function StoreTab({ stores }: { stores: SavedStore[] }) {
             openState={store.openState}
             openLabel={store.openLabel}
             hours={store.hours}
-            favoriteIcon={<HeartFillSlot size="23" />}
+            favoriteIcon={<FigmaIcon name="heart-fill" width={23} />}
           />
         </li>
       ))}

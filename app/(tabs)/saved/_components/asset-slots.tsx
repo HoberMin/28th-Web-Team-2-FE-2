@@ -1,41 +1,21 @@
-// F04 화면에서 쓰는 **에셋 자리표시**.
+// F04 화면에서 **대응 에셋이 아직 없는 자리**만 남긴 자리표시.
 //
-// Figma의 사진·아이콘 SVG는 코드로 가져올 수 없다 — `download_assets`가 바이트가 아니라
-// figma.com 서명 URL을 돌려주고 그 URL을 받는 경로(REST)는 정책상 차단돼 있다(figma-bridge §0-0).
-// 그래서 **임의 아이콘을 그리지 않고** `/playground` nav-gnb 스토리와 같은 점선 자리로 둔다.
-// 디자이너가 SVG를 레포로 전달하면 이 파일의 내용만 교체하면 된다.
+// 야채 사진·야채 카드 하트·가게 행 하트는 디자이너가 Figma Plugin API로 export해 전달한
+// `public/figma/design-library/` 에셋으로 교체했다(`@/app/_lib/figma-asset`).
 //
-// 필요한 에셋 목록:
-//   · 야채 사진 110×110      (F04_찜_야채 그리드 썸네일)
-//   · icon/heart-fill 24×24  (야채 카드 찜 표시 — 338-8936)
-//   · 가게 사진 72×72        (F04_찜_가게 행 썸네일)
-//   · icon/heart-fill 23×23  (가게 행 찜 표시 — 가게 행은 23px로 배치돼 있다)
-
-export function VegetablePhotoSlot() {
-  return (
-    <span className="flex size-full items-center justify-center text-caption-12-regular text-content-disabled">
-      사진
-    </span>
-  );
-}
+// 남은 자리: **가게 행 썸네일 72×72**. Design Library에 가게 사진 에셋이 없다.
+// `images/story-thumbnail.png`가 크기상 가장 가깝지만 스토리 카드용 이미지라 가게 사진 규격이
+// 아니어서 억지로 쓰지 않았다. 디자이너가 가게 사진 에셋을 전달하면 이 파일을 지우고 호출부를
+// `FigmaImage`로 바꾸면 된다.
+//
+// (참고: 과거 주석의 "`download_assets`가 정책상 차단돼 있다"는 서술은 사실이 아니다.
+//  MCP 도구 자체는 정상이고, 도구가 돌려주는 figma.com 서명 URL을 내려받는 `curl` 경로가
+//  deny 규칙에 걸린다 — figma-bridge §0-0. 이번엔 디자이너가 직접 export해 레포로 전달했다.)
 
 export function StoreThumbnailSlot() {
   return (
     <span className="flex size-full items-center justify-center text-caption-12-regular text-content-disabled">
       사진
     </span>
-  );
-}
-
-/** 채워진 하트가 들어갈 자리. 찜 목록이므로 언제나 "찜함" 상태다. */
-export function HeartFillSlot({ size }: { size: "23" | "24" }) {
-  return (
-    <span
-      className={
-        size === "24"
-          ? "block size-6 rounded-sm border border-border-primary border-dashed"
-          : "block size-5.75 rounded-sm border border-border-primary border-dashed"
-      }
-    />
   );
 }
