@@ -17,10 +17,10 @@ function ImageGrassStory() {
 
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">카드 바닥에 놓인 모습</p>
-        <div className="bg-recommended-store relative flex w-89.5 flex-col overflow-hidden rounded-xl px-5 pt-5 pb-8">
+        <div className="bg-recommended-store relative flex w-89.5 flex-col overflow-hidden rounded-xl px-5 pt-5 pb-12">
           <p className="text-body-16-semibold text-content-primary">카드 내용이 여기 들어가요</p>
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-            <ImageGrass />
+            <ImageGrass height={48} />
           </div>
         </div>
       </div>

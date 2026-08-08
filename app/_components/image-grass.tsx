@@ -20,6 +20,8 @@ import { cn } from "../_lib/cn";
 // 순수 장식이라 스크린리더에서 통째로 숨긴다(WCAG 1.1.1 — 장식 이미지).
 
 export interface ImageGrassProps {
+  /** 표시 높이. 기본 30은 Figma 원본, 48은 추천 가게 카드 피드백 반영 크기다. */
+  height?: 30 | 48;
   /** 왼쪽 풀 그림 슬롯(81×30). 안의 그림이 칸보다 크면 잘린다. */
   left?: ReactNode;
   /** 오른쪽 풀 그림 슬롯(80×30). */
@@ -27,7 +29,12 @@ export interface ImageGrassProps {
   className?: string;
 }
 
-export function ImageGrass({ left, right, className }: ImageGrassProps) {
+const HEIGHT = {
+  30: "h-7.5",
+  48: "h-12",
+} as const;
+
+export function ImageGrass({ height = 30, left, right, className }: ImageGrassProps) {
   if (left === undefined && right === undefined) {
     return (
       <Image
@@ -37,7 +44,7 @@ export function ImageGrass({ left, right, className }: ImageGrassProps) {
         height={30}
         unoptimized
         aria-hidden="true"
-        className={cn("h-7.5 w-89.5 shrink-0", className)}
+        className={cn(HEIGHT[height], "w-89.5 shrink-0", className)}
       />
     );
   }

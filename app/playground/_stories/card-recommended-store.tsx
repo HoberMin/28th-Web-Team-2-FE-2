@@ -37,7 +37,7 @@ function CardRecommendedStoreStory() {
           trailingIcon={<ChevronRightIcon />}
           vegetables={VEGETABLES}
           moreCount={7}
-          grass={<ImageGrass />}
+          grass={<ImageGrass height={48} />}
         />
       </div>
 
@@ -51,7 +51,7 @@ function CardRecommendedStoreStory() {
           summaryValue="5가지"
           trailingIcon={<ChevronRightIcon />}
           vegetables={VEGETABLES.slice(0, 3)}
-          grass={<ImageGrass />}
+          grass={<ImageGrass height={48} />}
         />
       </div>
     </div>

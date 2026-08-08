@@ -15,6 +15,10 @@ import { cn } from "../_lib/cn";
 //            → absolute bottom-0 left-1/2 -translate-x-1/2
 //   안쪽 두 줄은 이미 구현된 RowRecommendedStore·RowStoreVegetables를 그대로 재사용한다.
 //
+// 사용자 피드백(2026-08-08): 카드 안에서는 30px 잔디가 너무 작아 보여 48px로 확대한다.
+// 내용과 겹치지 않도록 grass가 있을 때만 하단 여백도 32px → 48px로 함께 늘린다.
+// 독립 `image/grass` 컴포넌트의 Figma 원본 크기(358×30)는 유지하고 호출부에서만 덮어쓴다.
+//
 // 카드 배경은 Variable 바인딩이 없는 Figma 원본 그라데이션이므로 토큰을 추정하지 않고,
 // 루트 fill의 stop/transform을 그대로 SVG 에셋으로 export해 배경 이미지로 사용한다.
 //
@@ -47,7 +51,8 @@ export function CardRecommendedStore({
   return (
     <div
       className={cn(
-        "bg-recommended-store relative flex w-full flex-col items-center overflow-hidden rounded-xl bg-cover px-5 pt-5 pb-8",
+        "bg-recommended-store relative flex w-full flex-col items-center overflow-hidden rounded-xl bg-cover px-5 pt-5",
+        grass ? "pb-12" : "pb-8",
         className,
       )}
     >

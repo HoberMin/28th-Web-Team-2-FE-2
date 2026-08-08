@@ -70,7 +70,7 @@ export function SectionRecommendedStore({ store }: SectionRecommendedStoreProps)
             visual: <VegetableImage />,
           }))}
           moreCount={store.moreCount}
-          grass={<ImageGrass />}
+          grass={<ImageGrass height={48} />}
         />
       ) : (
         <SectionEmpty
