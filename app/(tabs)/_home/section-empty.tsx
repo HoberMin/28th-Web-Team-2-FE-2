@@ -10,7 +10,9 @@
 //   · 세로 패딩 py-10, 가운데 정렬, 문구 2줄(제목 + 보조)
 //   · 색은 대비를 통과하는 조합만 썼다 — content/primary 13.51:1 · content/secondary 4.79:1.
 //     content/disabled(1.92:1)는 본문에 쓰면 AA 미달이라 쓰지 않았다.
-//   · 그림·일러스트는 넣지 않았다(에셋 경로 차단 — figma-bridge §0-0).
+//   · 그림·일러스트는 넣지 않았다. 에셋을 못 가져와서가 아니라 **빈 상태용 그림이 Figma에 없어서**다
+//     (있는 에셋은 `public/figma/design-library/`에 다 들어와 있다). 임의로 다른 화면의 그림을
+//     끌어다 쓰지 않는다.
 
 export interface SectionEmptyProps {
   title: string;

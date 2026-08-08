@@ -1,6 +1,11 @@
 import { ListLowestVegetable } from "../../_components/list-lowest-vegetable";
-import type { HomeLowestVegetable } from "./_data";
-import { AssetSlot } from "./_slots";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import {
+  formatTrendAmount,
+  formatTrendPercent,
+  type HomeLowestVegetable,
+  type HomeTrendDirection,
+} from "./_data";
 import { LowestVegetableList } from "./lowest-vegetable-list";
 import { SectionEmpty } from "./section-empty";
 
@@ -26,6 +31,47 @@ import { SectionEmpty } from "./section-empty";
 
 const LIST_ID = "home-lowest-vegetables";
 
+/** 방향 → Figma 아이콘 파일 이름(`icon/trend-*` 477-9119·9120·9121). */
+const TREND_ICON: Record<HomeTrendDirection, string> = {
+  down: "trend-down",
+  up: "trend-up",
+  flat: "trend-flat",
+};
+
+/**
+ * 방향 → 화면에 안 보이는 대체 텍스트. 삼각형 모양과 색만으로 오름/내림을 알리면
+ * WCAG 1.4.1(색 단독 의존)에 걸리고, 스크린리더에서는 방향 자체가 사라진다.
+ */
+const TREND_LABEL: Record<HomeTrendDirection, string> = {
+  down: "지난주보다 내림",
+  up: "지난주보다 오름",
+  flat: "지난주와 같음",
+};
+
+/**
+ * 등락 방향 아이콘 + 대체 텍스트(16×16 슬롯).
+ *
+ * `VegetableTrend`의 아이콘 슬롯은 aria-hidden이 아니라서 여기 넣은 `sr-only`가 그대로 읽힌다.
+ * (`sr-only`는 화면에서 1px로 잘려 있어 16px 칸의 레이아웃을 건드리지 않는다.)
+ */
+function TrendIcon({ direction }: { direction: HomeTrendDirection }) {
+  return (
+    <>
+      <FigmaIcon name={TREND_ICON[direction]} width={16} />
+      <span className="sr-only">{TREND_LABEL[direction]}</span>
+    </>
+  );
+}
+
+/**
+ * 야채 그림(40×40). Figma 샘플 에셋이 양파 하나뿐이라 모든 행이 같은 그림을 쓴다 —
+ * 품목별 그림이 올라오면 여기서 이름 → 파일 매핑만 갈아 끼우면 된다.
+ * `/playground` list-lowest-vegetable 스토리와 같은 크기·같은 처리다.
+ */
+function VegetableImage() {
+  return <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />;
+}
+
 export interface SectionLowestVegetablesProps {
   items: HomeLowestVegetable[];
   collapsedCount: number;
@@ -39,6 +85,12 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
   // (b) ImageVegetableOnion 기본값이 48px이라 40px로 줄이려면 className으로 size를 덮어야 하는데
   //     app/_lib/cn.ts는 tailwind-merge가 없어서(그 파일 주석 참고) size-12와 size-10이 둘 다 남고
   //     결과가 CSS 선언 순서에 의존하게 된다. 그 경로를 피했다.
+  //     → `/playground` list-lowest-vegetable 스토리도 같은 이유로 FigmaImage를 직접 넘긴다.
+  //
+  // 등락 색은 `trendState`로 방향을 따라간다. `ListLowestVegetable`에 `trendState`가 뚫려 있어
+  // `VegetableTrend`의 `state` 축까지 그대로 통과한다(`GridVegetableItem`과 같은 처리).
+  // 이걸 넘기지 않으면 `VegetableTrend`의 기본값이 "down"이라 오름·보합 행도 글자색만 파랑으로
+  // 그려지고, flat 행은 값 텍스트가 숨겨지지 않아 "0원 (0.0%)"가 그대로 보인다.
   const rows = items.map((item, index) => (
     <ListLowestVegetable
       key={item.id}
@@ -47,11 +99,12 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       storeName={item.storeName}
       price={item.price}
       unit={item.unit}
-      trendAmount={item.trendAmount}
-      trendPercent={item.trendPercent}
-      visual={<AssetSlot className="size-10" />}
-      storeIcon={<AssetSlot className="size-4" />}
-      trendIcon={<AssetSlot className="size-4" />}
+      trendState={item.trend}
+      trendAmount={formatTrendAmount(item)}
+      trendPercent={formatTrendPercent(item)}
+      visual={<VegetableImage />}
+      storeIcon={<FigmaIcon name="store-stroke-lowest-16" width={16} />}
+      trendIcon={<TrendIcon direction={item.trend} />}
     />
   ));
 

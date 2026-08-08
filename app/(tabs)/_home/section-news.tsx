@@ -1,6 +1,6 @@
 import { CardNews } from "../../_components/card-news";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { HomeNewsItem } from "./_data";
-import { AssetSlot } from "./_slots";
 import { SectionEmpty } from "./section-empty";
 
 // F01 홈 3번 섹션 「최근 시세 뉴스」 — Figma 298:3501 / 298:3534.
@@ -25,12 +25,29 @@ import { SectionEmpty } from "./section-empty";
 // → 카드를 <a>로 감싸고 외부 링크라 `target="_blank"` + `rel="noopener noreferrer"`를 붙였다.
 //   (Figma에 새 탭 여부 정의는 없다 — 외부 도메인이라 코드 판단으로 새 탭을 골랐다.)
 //
-// ⚠️ 썸네일은 슬롯이다(에셋 다운로드 차단 — figma-bridge §0-0).
+// 썸네일은 Figma 샘플 에셋(`images/news-thumbnail.png`)을 쓴다. 실제 기사마다 이미지가 달라지므로
+// CardNews의 슬롯 구조는 그대로 두고 여기서 그림만 꽂는다 — 기사 이미지 URL이 붙으면 이 자리를
+// 기사별 <Image>로 바꾸면 된다.
 // ⚠️ 대비: 날짜 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 → 14px 기준 4.5:1 미달.
 //    card/news 원본 규격 그대로라 여기서 바꾸지 않는다(figma-bridge §4).
 
 export interface SectionNewsProps {
   items: HomeNewsItem[];
+}
+
+/**
+ * 카드 썸네일(200×108). Figma 샘플 에셋을 카드 폭에 꽉 채워 자른다 —
+ * `/playground` card-news 스토리와 같은 크기·같은 처리다.
+ */
+function NewsThumbnail() {
+  return (
+    <FigmaImage
+      name="news-thumbnail.png"
+      width={200}
+      height={108}
+      className="size-full object-cover"
+    />
+  );
 }
 
 export function SectionNews({ items }: SectionNewsProps) {
@@ -51,7 +68,7 @@ export function SectionNews({ items }: SectionNewsProps) {
                 className="block rounded-md focus-visible:outline-2 focus-visible:outline-content-primary focus-visible:outline-offset-2"
               >
                 <CardNews
-                  thumbnail={<AssetSlot className="size-full" />}
+                  thumbnail={<NewsThumbnail />}
                   title={item.title}
                   date={item.date}
                 />

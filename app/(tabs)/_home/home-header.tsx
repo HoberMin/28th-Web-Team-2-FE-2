@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
-import { AssetSlot } from "./_slots";
 
 // F01 홈 헤더 — 위치 칩 + 검색 버튼.
 // Figma F01_홈 298:3480(위치 칩) · 298:3483(검색), F01_홈_더보기 298:3541 · 298:3544.
@@ -17,7 +17,15 @@ import { AssetSlot } from "./_slots";
 //   · Status Bar(298:3478)는 iOS 목업이라 구현 대상이 아니다. 그래서 Figma의 top-64도 옮기지 않고
 //     헤더를 스크롤 영역 맨 위에 둔다.
 //
+// 아이콘은 디자이너가 Figma Plugin API로 export해 준 원본 SVG를 그대로 쓴다
+// (`public/figma/design-library/icons/`). 둘 다 색이 SVG 안에 박혀 있어 currentColor로 바꾸지 않는다:
+//   map-pin-fill  fill #ff850a (orange/500)
+//   search        stroke #262f3c (= content/primary)
+//
 // 대비: 지역명 content/primary on 흰 배경 13.51:1 → 통과.
+// ⚠️ 위치 핀 아이콘 #ff850a on 흰 배경 = 2.44:1 → UI 컴포넌트 기준 3:1 미달. 다만 바로 옆
+//    지역명 텍스트가 같은 정보를 글자로 들고 있어 아이콘 단독으로 의미를 나르진 않는다.
+//    Figma 원본 값을 유지하고 사실만 기록한다(figma-bridge §4).
 
 export interface HomeHeaderProps {
   /** 현재 지역명. 예: "광진구" */
@@ -32,7 +40,7 @@ export function HomeHeader({ region }: HomeHeaderProps) {
         지역 변경 흐름이 생기면 button/Link로 감싸면 된다(내부 구조는 그대로).
       */}
       <div className="flex h-12 items-center gap-0.5 p-2">
-        <AssetSlot className="size-6" />
+        <FigmaIcon name="map-pin-fill" width={24} className="shrink-0" />
         <p className="whitespace-nowrap text-title-18-semibold text-content-primary">{region}</p>
       </div>
 
@@ -48,7 +56,7 @@ export function HomeHeader({ region }: HomeHeaderProps) {
         aria-label="야채 검색"
         className="flex size-12 items-center justify-center py-2"
       >
-        <AssetSlot className="size-6" />
+        <FigmaIcon name="search" width={24} className="shrink-0" />
       </Link>
     </header>
   );

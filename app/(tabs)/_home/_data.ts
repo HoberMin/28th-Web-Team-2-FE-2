@@ -24,6 +24,12 @@ export interface HomeRecommendedStore {
   moreCount: number;
 }
 
+/**
+ * 등락 방향. `text/vegetable-trend`(477-5291)의 state 축과 같은 이름을 쓴다 —
+ * 색·아이콘·부호가 전부 이 한 값에서 파생되도록 두기 위해서다.
+ */
+export type HomeTrendDirection = "down" | "up" | "flat";
+
 /** 우리 동네 최저가 야채 한 줄(list/lowest-vegetable). */
 export interface HomeLowestVegetable {
   id: string;
@@ -33,10 +39,36 @@ export interface HomeLowestVegetable {
   price: string;
   /** 예: "/100kg" */
   unit: string;
-  /** 예: "100,000원" */
+  /** 등락 방향. 부호(`-`/`+`)·아이콘·대체 텍스트가 전부 여기서 파생된다. */
+  trend: HomeTrendDirection;
+  /** 등락 금액의 **크기**(부호 없음). 예: "100,000원" */
   trendAmount: string;
-  /** 예: "(-7.4%)" */
-  trendPercent: string;
+  /** 등락률의 **크기**(부호 없음, 퍼센트 수치). 예: 7.4 */
+  trendRate: number;
+}
+
+/** 방향별 표시 부호. flat은 붙일 부호가 없다. */
+const TREND_SIGN: Record<HomeTrendDirection, string> = {
+  down: "-",
+  up: "+",
+  flat: "",
+};
+
+/**
+ * 등락률 표시 문자열. **부호를 데이터에 박아 두지 않고 방향에서 파생한다** —
+ * 예전에는 `trendPercent: "(-7.4%)"`처럼 문자열에 부호가 들어 있어서, 데이터가 상승으로 바뀌어도
+ * 부호는 하락인 채로 남을 수 있었다.
+ */
+export function formatTrendPercent(item: HomeLowestVegetable): string {
+  // flat은 Figma 심볼에 값 텍스트가 아예 없다 — 금액·증감률 둘 다 빈 문자열로 낸다.
+  // (F04 saved/_data.ts와 같은 계약. 실 API가 붙어도 두 화면이 갈리지 않게 맞춰 뒀다.)
+  if (item.trend === "flat") return "";
+  return `(${TREND_SIGN[item.trend]}${item.trendRate.toFixed(1)}%)`;
+}
+
+/** 등락 금액. flat이면 표시하지 않는다(위 formatTrendPercent와 같은 이유). */
+export function formatTrendAmount(item: HomeLowestVegetable): string {
+  return item.trend === "flat" ? "" : item.trendAmount;
 }
 
 /** 최근 시세 뉴스 카드(card/news) 한 장. */
@@ -65,9 +97,9 @@ export const HOME_RECOMMENDED_STORE: HomeRecommendedStore | null = {
  * 최저가 목록. 접힌 상태에서 5행, "더보기"를 누르면 10행까지 보인다
  * (Figma F01_홈 298:3477 = 5행 / F01_홈_더보기 298:3509 = 10행).
  *
- * ⚠️ 등락은 전부 하락(내림)으로만 채웠다 — `grid/vegetable-trend`(224-7405)에 아직 down 변형밖에
- *    없어서 상승 데이터를 넣으면 파란 하락색으로 잘못 그려진다. 디자이너가 방향 Variant를 추가하면
- *    그때 상승 더미를 섞는다.
+ * 등락은 세 방향을 섞어 뒀다. 예전에는 전부 하락뿐이었는데, 그건 `text/vegetable-trend`에
+ * down 변형밖에 없던 시절의 제약이었다 — 지금은 state 축(down·up·flat)과 방향 아이콘
+ * (`icon/trend-down`·`trend-up`·`trend-flat`)이 모두 Figma에 등록돼 있다.
  */
 export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
   // 1행만 Figma 시안 값 그대로.
@@ -77,8 +109,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "농협하나로마트",
     price: "24,900원",
     unit: "/100kg",
+    trend: "down",
     trendAmount: "100,000원",
-    trendPercent: "(-7.4%)",
+    trendRate: 7.4,
   },
   {
     id: "cabbage",
@@ -86,8 +119,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "광진시장 청과",
     price: "3,180원",
     unit: "/1포기",
+    trend: "up",
     trendAmount: "420원",
-    trendPercent: "(-11.7%)",
+    trendRate: 11.7,
   },
   {
     id: "napa",
@@ -95,8 +129,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "자양동 새벽채소",
     price: "2,450원",
     unit: "/1단",
-    trendAmount: "180원",
-    trendPercent: "(-6.8%)",
+    trend: "flat",
+    trendAmount: "0원",
+    trendRate: 0,
   },
   {
     id: "tomato",
@@ -104,8 +139,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "구의동 하나청과물상회",
     price: "8,900원",
     unit: "/1kg",
+    trend: "down",
     trendAmount: "1,100원",
-    trendPercent: "(-11.0%)",
+    trendRate: 11,
   },
   {
     id: "mushroom",
@@ -113,8 +149,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "중곡제일시장 버섯나라",
     price: "2,980원",
     unit: "/1팩",
+    trend: "up",
     trendAmount: "220원",
-    trendPercent: "(-6.9%)",
+    trendRate: 6.9,
   },
   {
     id: "chili-powder",
@@ -122,8 +159,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "능동 로데오 반찬가게",
     price: "12,400원",
     unit: "/1kg",
+    trend: "down",
     trendAmount: "900원",
-    trendPercent: "(-6.8%)",
+    trendRate: 6.8,
   },
   {
     id: "spinach",
@@ -131,8 +169,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "화양동 채소마당",
     price: "3,600원",
     unit: "/1단",
-    trendAmount: "540원",
-    trendPercent: "(-13.0%)",
+    trend: "flat",
+    trendAmount: "0원",
+    trendRate: 0,
   },
   {
     id: "garlic",
@@ -140,8 +179,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "농협하나로마트",
     price: "9,750원",
     unit: "/1kg",
+    trend: "up",
     trendAmount: "610원",
-    trendPercent: "(-5.9%)",
+    trendRate: 5.9,
   },
   {
     id: "carrot",
@@ -149,8 +189,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "군자동 알뜰상회",
     price: "2,240원",
     unit: "/1kg",
+    trend: "down",
     trendAmount: "160원",
-    trendPercent: "(-6.7%)",
+    trendRate: 6.7,
   },
   {
     id: "cucumber",
@@ -158,8 +199,9 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "광장동 그린마트",
     price: "1,180원",
     unit: "/1개",
+    trend: "down",
     trendAmount: "170원",
-    trendPercent: "(-12.6%)",
+    trendRate: 12.6,
   },
 ];
 
