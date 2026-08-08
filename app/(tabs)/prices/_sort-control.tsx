@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SheetSort } from "../../_components/sheet-sort";
 import type { SheetSortOption } from "../../_components/sheet-sort";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { buildPricesHref } from "./_href";
-import { CheckIcon, ChevronDownIcon } from "./_icons";
 
 // Figma 정렬 트리거(298-3443 프레임) + 정렬시트(298-3575).
 //
@@ -17,6 +17,12 @@ import { CheckIcon, ChevronDownIcon } from "./_icons";
 //   · **min-h-11(44px)을 줬다.** Figma 실측 높이는 38px로 권장 터치 타겟에 미달한다.
 //     이 화면에서 유일하게 시트를 여는 조작이라 원본 높이 대신 터치 타겟을 택했다.
 //     → 이 때문에 정렬 행 전체 높이가 38 → 44로 6px 커진다. 디자이너 확인 필요.
+//
+// 아이콘은 Figma 원본 SVG(`public/figma/design-library/icons/`)를 쓴다:
+//   icon/chevron-down 16×16 — 이 인스턴스(298-3446)는 get_variable_defs가 `content/secondary`를
+//     돌려준다. 라이브러리 원본 SVG는 content/primary(#262f3c)로 export돼 있으므로 그대로 두면
+//     시안보다 진해진다 → currentColor로 받아 트리거의 content/secondary를 그대로 입힌다.
+//   icon/check 20×20 — 선택 행의 색(content/brand/light)을 SheetSort가 정하므로 역시 currentColor.
 //
 // ⚠️ 대비: content/secondary(#697383) on 흰 배경 5.34:1 → 통과.
 
@@ -49,9 +55,7 @@ export function PricesSortControl({ options, value, label, query, group }: Price
         className="flex min-h-11 shrink-0 items-center gap-1 p-2 text-body-14-medium text-content-secondary"
       >
         <span>{label}</span>
-        <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-          <ChevronDownIcon />
-        </span>
+        <FigmaIcon name="chevron-down" width={16} currentColor />
       </button>
       <SheetSort
         open={open}
@@ -59,7 +63,7 @@ export function PricesSortControl({ options, value, label, query, group }: Price
         options={options}
         value={value}
         onSelect={select}
-        checkIcon={<CheckIcon />}
+        checkIcon={<FigmaIcon name="check" width={20} currentColor />}
       />
     </>
   );

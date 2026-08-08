@@ -3,11 +3,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatAsOfLabel } from "../../_lib/format";
 import { ROUTES } from "../../_lib/routes";
 import { VEGETABLE_GROUPS } from "../../_lib/vegetables";
 import { PricesGroupChips } from "./_group-chips";
-import { HeartOutlineIcon, TrendDownIcon, TrendFlatIcon, TrendUpIcon } from "./_icons";
 import {
   DEFAULT_PRICES_SORT,
   PRICES_SORT_OPTIONS,
@@ -31,6 +31,12 @@ import { PricesSortControl } from "./_sort-control";
 //
 // GNB(nav/gnb)는 여기서 그리지 않는다 — `app/(tabs)/layout.tsx`가 소유한다.
 //
+// 아이콘·사진은 전부 **Figma 원본 에셋**이다(`public/figma/design-library/`, 디자이너가 Figma
+// Plugin API로 export해 레포에 전달). 이 화면이 한동안 들고 있던 임시 SVG 글리프 7종은 폐기했다.
+// (그때 남긴 "에셋 다운로드가 정책상 차단돼 있다"는 서술은 사실이 아니었다 — `download_assets`
+//  도구 자체는 정상이고, 그 도구가 돌려주는 figma.com URL을 받아오는 `curl` 경로가 deny에
+//  걸리는 것이다. figma-bridge §0-0.)
+//
 // Figma 좌표 → 세로 리듬 (390×844 기준):
 //   status bar 44 | 검색 필드 y=68 → pt-6 | 칩 행 y=136 → mt-4 | 정렬 행 y=182 → mt-2
 //   | 그리드 y=228 → mt-2
@@ -49,6 +55,11 @@ import { PricesSortControl } from "./_sort-control";
 //     끝나 다른 섹션(374)과 4px 어긋난다. 컨테이너 px-4 안에서 우측 정렬로 잡았다.
 //   · 카드는 아직 어디로도 링크되지 않는다 — 시세 상세 화면이 Figma 미확정이다.
 //
+// 찜 하트: 사진 위에 얹히는 자리라 그리드 전용 원본 2종(`icon/heart-stroke-grid-24` ·
+//   `icon/heart-fill-grid-24`)을 쓴다. 흰 아웃라인 + drop shadow(찜 전), 빨강 #fd364d(찜 후)가
+//   **원본 SVG에 이미 들어 있으므로 currentColor로 덮지 않는다** — 예전엔 currentColor 글리프를
+//   넘겨 놓고 슬롯에 색 클래스가 없어 본문색(#171717)을 상속, 사진 위에서 검은 하트로 보였다.
+//
 // ⚠️ 상태 3종: 데이터가 동기 더미라 로딩·에러 경로가 없다. **빈 상태(검색 결과 없음)만**
 //    구현했고, 시안이 없어 임시 구현이다(아래 EmptyResult 주석). 실 API가 붙으면 loading.tsx·
 //    error.tsx가 함께 필요하다.
@@ -61,11 +72,15 @@ export const metadata: Metadata = {
   title: "야채 시세",
 };
 
-/** Figma가 등락 방향을 색(trend/down·up·flat)으로 구분하므로, 색 외 수단으로 아이콘을 함께 낸다. */
+/**
+ * Figma가 등락 방향을 색(trend/down·up·flat)으로 구분하므로, 색 외 수단으로 아이콘을 함께 낸다.
+ * 세 원본(`icon/trend-*` 477-9119~9121)은 색이 박힌 채 export돼 있어(down #217cf9 · up #ed2c42 ·
+ * flat #b4bbcb = trend 토큰과 동일) currentColor로 덮지 않고 원본 색 그대로 쓴다.
+ */
 const TREND_ICON: Record<TrendState, ReactNode> = {
-  down: <TrendDownIcon />,
-  up: <TrendUpIcon />,
-  flat: <TrendFlatIcon />,
+  down: <FigmaIcon name="trend-down" width={16} />,
+  up: <FigmaIcon name="trend-up" width={16} />,
+  flat: <FigmaIcon name="trend-flat" width={16} />,
 };
 
 const TREND_LABEL: Record<TrendState, string> = {
@@ -74,9 +89,21 @@ const TREND_LABEL: Record<TrendState, string> = {
   flat: "어제와 같음",
 };
 
+/**
+ * 카드 사진(110×110).
+ *
+ * 품목 일러스트가 있는 8종은 그걸 쓰고, 나머지는 Figma 카드 사진(`vegetable-grid.png`)으로 채운다.
+ * 예전엔 이모지 + `text-6xl`(Figma 규격이 아닌 Tailwind 기본 스케일)로 때웠는데, Figma 원본이
+ * 들어왔으므로 임의 표현을 버렸다.
+ *
+ * ⚠️ **`vegetable-grid.png`는 Figma 시안의 샘플 사진(오이)이다.** 시안(298-3421)이 모든 카드에
+ *    같은 오이 사진을 깔아 둔 자리표시라 품목별 사진은 아직 없다 → 일러스트가 없는 품목은 이름과
+ *    사진이 어긋난다. **품목별 사진 확보는 디자이너 확인 필요.**
+ *
+ * 품목명은 옆 텍스트가 담당하므로 사진은 장식(빈 alt)으로 둔다.
+ */
 function VegetableVisual({ row }: { row: PriceRow }) {
   if (row.image) {
-    // 품목명은 옆 텍스트가 담당하므로 장식 이미지로 둔다.
     return (
       <Image
         src={row.image}
@@ -87,12 +114,13 @@ function VegetableVisual({ row }: { row: PriceRow }) {
       />
     );
   }
-  // 일러스트가 없는 품목의 이모지 폴백(46종 중 8종만 일러스트가 있다).
-  // text-6xl은 Figma 규격이 아니라 Tailwind 기본 스케일이다 — 일러스트가 채워지면 사라질 경로.
   return (
-    <span aria-hidden="true" className="flex size-full items-center justify-center text-6xl leading-none">
-      {row.emoji}
-    </span>
+    <FigmaImage
+      name="vegetable-grid.png"
+      width={110}
+      height={110}
+      className="size-full object-cover"
+    />
   );
 }
 
@@ -198,8 +226,14 @@ export default async function PricesPage({
                       <span className="sr-only">{TREND_LABEL[row.trendState]}</span>
                     </>
                   }
-                  favorite={false}
-                  favoriteIcon={<HeartOutlineIcon />}
+                  favorite={row.favorite}
+                  favoriteIcon={
+                    row.favorite ? (
+                      <FigmaIcon name="heart-fill-grid-24" width={24} />
+                    ) : (
+                      <FigmaIcon name="heart-stroke-grid-24" width={24} />
+                    )
+                  }
                 />
               </li>
             ))}

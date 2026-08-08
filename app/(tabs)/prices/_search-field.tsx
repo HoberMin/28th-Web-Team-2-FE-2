@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TextField } from "../../_components/text-field";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { buildPricesHref } from "./_href";
-import { CloseFillIcon, SearchIcon } from "./_icons";
 
 // Figma `field/text`(298-3433/298-3461) 재사용 — 실측이 기존 컴포넌트와 완전히 일치해
 // (h-13 · px-4 py-2 · rounded-lg · surface/secondary) 새로 만들지 않았다.
@@ -14,6 +14,12 @@ import { CloseFillIcon, SearchIcon } from "./_icons";
 // 검색어를 로컬 상태가 아니라 **URL 쿼리**로 올린다 — 목록을 서버에서 완성해야 해서다.
 // 글자마다 라우팅하면 과하므로 250ms 멈춘 뒤에 한 번만 replace한다(push가 아니라 replace라
 // 뒤로가기 히스토리가 글자 수만큼 쌓이지 않는다).
+//
+// 아이콘은 **Figma 원본 SVG**를 그대로 쓴다(`public/figma/design-library/icons/`, 디자이너가
+// Figma Plugin API로 export해 전달). 두 원본 모두 색이 박혀 있어 currentColor로 덮지 않는다:
+//   icon/search     stroke #262f3c = content/primary   ← 예전에 코드가 content/disabled를 씌우고
+//                                                        있었는데 원본과 다른 색이라 바로잡았다
+//   icon/close-fill fill   #697383 = content/secondary (X 획은 surface/secondary)
 //
 // ⚠️ 대비: placeholder content/disabled(#b4bbcb) on surface/secondary(#f2f3f8) = 1.74:1
 //    (기준 4.5:1) → 미달. Figma 원본 값을 유지하고 사실만 기록한다.
@@ -62,14 +68,12 @@ export function PricesSearchField({ query, group, sort }: PricesSearchFieldProps
               type="button"
               aria-label="검색어 지우기"
               onClick={() => setValue("")}
-              className="flex size-6 items-center justify-center text-content-disabled"
+              className="flex size-6 items-center justify-center"
             >
-              <CloseFillIcon />
+              <FigmaIcon name="close-fill" width={24} />
             </button>
           ) : (
-            <span aria-hidden="true" className="text-content-disabled">
-              <SearchIcon />
-            </span>
+            <FigmaIcon name="search" width={24} />
           )
         }
       />

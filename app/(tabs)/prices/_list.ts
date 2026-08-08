@@ -9,6 +9,7 @@ import { getDailyTrend } from "../../_lib/trend";
 import type { VegetableGroup } from "../../_lib/types";
 import {
   DEFAULT_DISTRICT,
+  SEED_FAVORITES,
   VEGETABLES,
   VEGETABLE_GROUPS,
   getBaselineDummy,
@@ -55,8 +56,14 @@ export interface PriceRow {
   id: string;
   name: string;
   image?: string;
-  emoji: string;
   group: VegetableGroup;
+  /**
+   * 찜 여부. Figma 기본 프레임(298-3421)의 3번째 카드가 찜 상태라 화면에 두 모습이 다 나와야 한다.
+   * 값은 `app/_lib/favorites-store`의 서버 스냅샷과 같은 시드(`SEED_FAVORITES`)를 읽는다 —
+   * 실제 찜은 localStorage(클라)라 RSC에서는 이 시드가 곧 첫 렌더 상태다.
+   * ⚠️ 이 화면의 카드는 아직 **표시 전용**이다(토글 버튼 없음 — Figma에 조작 정의가 없다).
+   */
+  favorite: boolean;
   /** "2,490원" */
   price: string;
   /** "/1kg" */
@@ -118,8 +125,8 @@ export function buildPriceRows(): PriceRowsResult {
       id: vegetable.id,
       name: vegetable.name,
       image: vegetable.image,
-      emoji: vegetable.emoji,
       group: getVegetableGroup(vegetable.id),
+      favorite: SEED_FAVORITES.includes(vegetable.id),
       price: formatWon(baseline.current),
       unit: `/${vegetable.unit}`,
       trendState,
