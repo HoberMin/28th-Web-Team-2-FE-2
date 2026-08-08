@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { VegetablePrice } from "./vegetable-price";
-import { VegetableTrend } from "./vegetable-trend";
+import { VegetableTrend, type VegetableTrendState } from "./vegetable-trend";
 import { cn } from "../_lib/cn";
 
 // Figma `grid/vegetable-item` — Design Library node 237-11384 / 417-24374 (프레임 417-24373,
@@ -55,6 +55,12 @@ export interface GridVegetableItemProps {
   trendPercent: string;
   /** Figma의 방향 아이콘 슬롯(16×16). */
   trendIcon?: ReactNode;
+  /**
+   * 등락 방향. `VegetableTrend`의 state 축을 그대로 통과시킨다.
+   * 이 prop이 없던 동안 카드가 항상 down(파랑)으로만 그려져서 오르는 야채가 하락색으로
+   * 표시됐다(F01·F02·F04 화면 구현에서 각각 걸렸다). 기본값 "down"은 기존 호출부 호환용.
+   */
+  trendState?: VegetableTrendState;
   /** Figma의 favorite 축. 찜 여부. */
   favorite?: boolean;
   /**
@@ -73,6 +79,7 @@ export function GridVegetableItem({
   trendAmount,
   trendPercent,
   trendIcon,
+  trendState = "down",
   favorite = false,
   favoriteIcon,
   className,
@@ -97,6 +104,7 @@ export function GridVegetableItem({
             amount={trendAmount}
             percent={trendPercent}
             lines={1}
+            state={trendState}
             icon={trendIcon}
           />
         </div>
