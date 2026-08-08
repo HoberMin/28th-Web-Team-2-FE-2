@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { BadgeMapLocation } from "../../_components/badge-map-location";
 import { ButtonCircle } from "../../_components/button-circle";
 import { MarkerStoreMap, type MarkerStoreMapType } from "../../_components/marker-store-map";
 import { TextField } from "../../_components/text-field";
 import type { MapStore } from "./_data";
-import { IconSlot } from "./_icon-slot";
 import { MapCanvas } from "./_map-canvas";
 import { StoreSheet } from "./_store-sheet";
 
@@ -44,6 +44,40 @@ import { StoreSheet } from "./_store-sheet";
 // BFF가 붙으면 그때 추가한다. 빈 상태는 **시안이 없어 임시 구현**이다(아래 EmptyOverlay).
 // 찜 필터는 반드시 "찜 0개"를 거치는 진입점이라 빈 상태 없이는 화면이 비어 버린다.
 
+// ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────
+// 색을 이 화면이 정해야 하는 자리만 `currentColor`로 넘긴다. 원본 색이 곧 정답인 자리는
+// 그대로 둔다 — 어느 쪽인지는 SVG의 fill/stroke를 보고 정했다.
+
+/** 마커 type=icon의 가게 핀. Figma 실측 24×23(정사각형이 아니다).
+ *  원본이 `fill="white"`이고 마커 배경이 content/brand/light라 색을 덮지 않는다. */
+function MarkerStorePinIcon() {
+  return <FigmaIcon name="store-fill-marker-24" width={24} height={23} />;
+}
+
+/** 마커 type=favorite의 하트. 원본이 이미 #05a163(content/brand/light)이라 그대로 쓴다. */
+function MarkerFavoriteHeartIcon() {
+  return <FigmaIcon name="heart-fill-marker-16" width={16} />;
+}
+
+/** 검색 필드 trailing. Figma field/text의 normal 상태 아이콘이다(typing 상태의 close-fill은
+ *  지우기 동작이 생길 때 붙인다 — 이번 범위 밖). 원본 색 그대로. */
+function SearchIcon() {
+  return <FigmaIcon name="search" width={24} />;
+}
+
+/** 지역 배지의 핀. 원본은 주황(#ff850a)이지만 배지가 아이콘 색(content/inverse)을 정하므로
+ *  currentColor로 넘긴다 — `/playground` badge/map-location 스토리와 같은 처리다. */
+function MapPinIcon() {
+  return <FigmaIcon name="map-pin-fill" width={16} currentColor />;
+}
+
+/** 찜 필터 버튼의 하트. `ButtonCircle`이 state에 따라 글자색을 바꾸므로 currentColor다.
+ *  Figma 실측(298:3637 normal · 298:3650 pressed) — 두 프레임 다 **외곽선 글리프**이고
+ *  달라지는 건 색뿐이다(#262f3c → #05a163). 그래서 글리프는 바꾸지 않는다. */
+function FilterHeartIcon() {
+  return <FigmaIcon name="heart-stroke-regular" width={24} currentColor />;
+}
+
 /** 빈 상태 — ⚠️ Figma 시안 없음, 임시 구현. 디자이너 확인 항목. */
 function EmptyOverlay({ title, description }: { title: string; description: string }) {
   return (
@@ -63,6 +97,10 @@ export interface StoresMapViewProps {
 }
 
 export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapViewProps) {
+  // 시트가 닫힐 때 돌아갈 자리가 사라져 있으면(마커가 걸러져 사라진 경우) 포커스가 body로
+  // 떨어진다. 그때 착지할 곳으로 이 지도 영역을 넘긴다 — 이름표가 붙어 있어 보조기기가
+  // "동네 가게 지도"를 읽어 준다.
+  const mapRootRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(initialFavoriteIds);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
@@ -85,35 +123,69 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
     );
   };
 
+  // 마커 모습의 우선순위: **찜 > 선택 > 기본**.
+  //
+  // Figma 298:3617 → 298:3630 전환의 핵심이 "시트에서 하트를 누르면 선택된 마커가
+  // name(3628 w=108)에서 favorite(3641 w=128, 하트+이름)으로 바뀐다"이다. 선택을 찜보다
+  // 먼저 보면 이 전환이 재현되지 않아 순서를 뒤집었다.
+  //
+  // ⚠️ **선택되지 않은 찜 가게의 모습은 Figma에 없다**(미확인 · 디자이너 확인 항목).
+  //    여기서는 "찜은 선택과 독립"으로 정했다 — 근거는 298:3643(찜 필터 켠 화면)이 선택된
+  //    가게 없이도 마커 4개를 전부 favorite(w=128)로 그린다는 점이다. 즉 favorite은 선택의
+  //    부산물이 아니라 찜 그 자체의 표시다. 그래서 필터가 꺼져 있어도 찜한 가게는 하트가
+  //    붙은 이름표로 보인다.
+  //    이 규칙이 annotation 298:3650("찜버튼 클릭시 … favorite으로 속성 변경")도 함께 만족한다 —
+  //    필터를 켜면 남는 가게가 전부 찜한 가게라 자동으로 favorite이 된다.
   const markerType = (store: MapStore): MarkerStoreMapType => {
-    if (favoriteOnly) return "favorite"; // annotation 298:3650
+    if (favoriteIds.includes(store.id)) return "favorite"; // annotation 298:3650
     return store.id === selectedId ? "name" : "icon"; // annotation 298:3628
   };
 
   const noFavorites = favoriteOnly && favoriteIds.length === 0;
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      ref={mapRootRef}
+      role="region"
+      aria-label="동네 가게 지도"
+      tabIndex={-1}
+      className="relative h-full w-full overflow-hidden focus-visible:outline-none"
+    >
       <MapCanvas />
 
       {/* 마커 오버레이 — 중심 앵커. 컨테이너는 탭을 가로막지 않고 마커만 받는다. */}
       <div className="pointer-events-none absolute inset-0 z-10">
-        {visibleStores.map((store) => (
-          <button
-            key={store.id}
-            type="button"
-            onClick={() => setSelectedId(store.id)}
-            aria-label={`${store.name} 가게 정보 보기`}
-            className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${store.x}%`, top: `${store.y}%` }}
-          >
-            <MarkerStoreMap
-              type={markerType(store)}
-              label={store.name}
-              icon={<IconSlot size={markerType(store) === "icon" ? 24 : 16} />}
-            />
-          </button>
-        ))}
+        {visibleStores.map((store) => {
+          const type = markerType(store);
+          // 🔴 찜 여부는 **여기 aria-label에 넣어야** 한다. `MarkerStoreMap`은 favorite일 때
+          //    안쪽에 `sr-only` "찜한 가게"를 넣지만, 감싼 버튼의 aria-label이 접근 가능한
+          //    이름을 통째로 대체해서 그 텍스트가 통째로 삼켜진다(WCAG 1.1.1 — 시각 사용자만
+          //    하트를 보고 찜 여부를 알게 되는 상태였다).
+          const label = `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
+
+          return (
+            <button
+              key={store.id}
+              type="button"
+              onClick={() => setSelectedId(store.id)}
+              aria-label={label}
+              className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${store.x}%`, top: `${store.y}%` }}
+            >
+              <MarkerStoreMap
+                type={type}
+                label={store.name}
+                icon={
+                  type === "icon" ? (
+                    <MarkerStorePinIcon />
+                  ) : type === "favorite" ? (
+                    <MarkerFavoriteHeartIcon />
+                  ) : undefined
+                }
+              />
+            </button>
+          );
+        })}
       </div>
 
       {noFavorites ? (
@@ -138,14 +210,14 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
           placeholder="가게를 검색하세요"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          trailing={<IconSlot size={24} className="text-content-disabled" />}
+          trailing={<SearchIcon />}
         />
         {/* items-start가 맞다 — 30px 배지가 48px 버튼과 **위쪽**으로 정렬된다(행 높이는 버튼이 정한다). */}
         <div className="flex items-start justify-between">
           <BadgeMapLocation
             className="pointer-events-auto"
             label={region}
-            icon={<IconSlot size={16} />}
+            icon={<MapPinIcon />}
           />
           <ButtonCircle
             className="pointer-events-auto"
@@ -154,7 +226,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
             // 토글이라 호출부가 aria-pressed를 직접 넘긴다 (button-circle.tsx의 결론).
             aria-pressed={favoriteOnly}
             aria-label="찜한 가게만 보기"
-            icon={<IconSlot size={24} />}
+            icon={<FilterHeartIcon />}
             onClick={() => {
               setFavoriteOnly((prev) => !prev);
               setSelectedId(null);
@@ -174,6 +246,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
             isFavorite={favoriteIds.includes(selectedStore.id)}
             onToggleFavorite={() => toggleFavorite(selectedStore.id)}
             onClose={() => setSelectedId(null)}
+            fallbackFocusRef={mapRootRef}
           />
         </div>
       ) : null}
