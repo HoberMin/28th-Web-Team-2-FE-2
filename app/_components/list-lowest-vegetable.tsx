@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { VegetablePrice } from "./vegetable-price";
-import { VegetableTrend } from "./vegetable-trend";
+import { VegetableTrend, type VegetableTrendState } from "./vegetable-trend";
 import { cn } from "../_lib/cn";
 
 // Figma `list/lowest-vegetable` — Design Library node 227-3463 (fileKey WfW1Nkx1oiOWBHNwrw48IL), sync 2026-08-08.
@@ -54,6 +54,12 @@ export interface ListLowestVegetableProps {
   trendPercent: string;
   /** Figma의 방향 아이콘 슬롯(16×16). */
   trendIcon?: ReactNode;
+  /**
+   * 등락 방향. `VegetableTrend`의 state 축을 그대로 통과시킨다.
+   * 이 prop이 없던 동안 홈 최저가 목록이 항상 down(파랑)으로만 그려져서, 아이콘은 상승인데
+   * 글자는 하락색인 모순이 났다. `GridVegetableItem`과 같은 처리다.
+   */
+  trendState?: VegetableTrendState;
   className?: string;
 }
 
@@ -68,6 +74,7 @@ export function ListLowestVegetable({
   trendAmount,
   trendPercent,
   trendIcon,
+  trendState = "down",
   className,
 }: ListLowestVegetableProps) {
   return (
@@ -105,6 +112,7 @@ export function ListLowestVegetable({
           amount={trendAmount}
           percent={trendPercent}
           lines={1}
+          state={trendState}
           icon={trendIcon}
         />
       </div>
