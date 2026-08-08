@@ -14,13 +14,13 @@ import { cn } from "../_lib/cn";
 // 어떤 너비에서도 양끝에 붙어 더 편하지만, Figma가 명시한 건 고정 간격이라 원본 값을 그대로 옮겼다
 // (임의 디자인 결정 금지). 너비가 358이 아닌 곳에 쓰려면 호출부가 className으로 조정한다.
 //
-// Figma MCP Plugin API에서 원본 벡터를 SVG로 export해
-// `public/figma/design-library/images/grass.svg`에 저장했다.
+// Figma MCP Plugin API에서 왼쪽·오른쪽 원본 벡터를 각각 SVG로 export했다.
+// 카드 확대판은 두 묶음을 개별 확대해야 전체 캔버스만 커지고 풀잎은 작게 남는 문제가 없다.
 //
 // 순수 장식이라 스크린리더에서 통째로 숨긴다(WCAG 1.1.1 — 장식 이미지).
 
 export interface ImageGrassProps {
-  /** 표시 높이. 기본 30은 Figma 원본, 48은 추천 가게 카드 피드백 반영 크기다. */
+  /** 표시 높이. 기본 30은 Figma 원본, 48은 추천 가게 카드에서 두 풀 묶음을 1.6배 확대한다. */
   height?: 30 | 48;
   /** 왼쪽 풀 그림 슬롯(81×30). 안의 그림이 칸보다 크면 잘린다. */
   left?: ReactNode;
@@ -30,32 +30,46 @@ export interface ImageGrassProps {
 }
 
 const HEIGHT = {
-  30: "h-7.5",
-  48: "h-12",
+  30: {
+    root: "h-7.5 w-89.5 gap-48",
+    left: "h-7.5 w-20.25",
+    right: "h-7.5 w-20",
+  },
+  48: {
+    root: "h-12 w-full justify-between",
+    left: "h-12 w-32.5",
+    right: "h-12 w-32",
+  },
 } as const;
 
 export function ImageGrass({ height = 30, left, right, className }: ImageGrassProps) {
-  if (left === undefined && right === undefined) {
-    return (
-      <Image
-        src="/figma/design-library/images/grass.svg"
-        alt=""
-        width={358}
-        height={30}
-        unoptimized
-        aria-hidden="true"
-        className={cn(HEIGHT[height], "w-89.5 shrink-0", className)}
-      />
-    );
-  }
+  const size = HEIGHT[height];
 
   return (
-    <div aria-hidden="true" className={cn("flex w-89.5 items-center gap-48", className)}>
-      <span className="relative flex h-7.5 w-20.25 shrink-0 items-center justify-center overflow-hidden">
-        {left}
+    <div aria-hidden="true" className={cn("flex shrink-0 items-end", size.root, className)}>
+      <span className={cn("relative flex shrink-0 items-end overflow-hidden", size.left)}>
+        {left ?? (
+          <Image
+            src="/figma/design-library/images/grass-left.svg"
+            alt=""
+            width={81}
+            height={30}
+            unoptimized
+            className="size-full"
+          />
+        )}
       </span>
-      <span className="relative flex h-7.5 w-20 shrink-0 items-center justify-center">
-        {right}
+      <span className={cn("relative flex shrink-0 items-end", size.right)}>
+        {right ?? (
+          <Image
+            src="/figma/design-library/images/grass-right.svg"
+            alt=""
+            width={80}
+            height={30}
+            unoptimized
+            className="size-full"
+          />
+        )}
       </span>
     </div>
   );

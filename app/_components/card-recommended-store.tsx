@@ -15,7 +15,8 @@ import { cn } from "../_lib/cn";
 //            → absolute bottom-0 left-1/2 -translate-x-1/2
 //   안쪽 두 줄은 이미 구현된 RowRecommendedStore·RowStoreVegetables를 그대로 재사용한다.
 //
-// 사용자 피드백(2026-08-08): 카드 안에서는 30px 잔디가 너무 작아 보여 48px로 확대한다.
+// 사용자 피드백(2026-08-08): 카드 안에서는 30px 잔디가 너무 작아 보여 양쪽 풀 묶음을
+// 각각 약 130×48px로 확대하고 카드 양끝에 고정한다.
 // 내용과 겹치지 않도록 grass가 있을 때만 하단 여백도 32px → 48px로 함께 늘린다.
 // 독립 `image/grass` 컴포넌트의 Figma 원본 크기(358×30)는 유지하고 호출부에서만 덮어쓴다.
 //
@@ -61,7 +62,7 @@ export function CardRecommendedStore({
         <RowStoreVegetables items={vegetables} moreCount={moreCount} />
       </div>
       {grass ? (
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">{grass}</div>
+        <div className="absolute bottom-0 left-0 w-full">{grass}</div>
       ) : null}
     </div>
   );
