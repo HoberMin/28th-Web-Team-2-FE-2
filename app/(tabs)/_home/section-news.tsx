@@ -20,6 +20,11 @@ import { SectionEmpty } from "./section-empty";
 //     늘어놓은 의도를 살려 `-mx-4 px-4 overflow-x-auto snap-x`로 화면 밖까지 흐르게 하고,
 //     스크롤바는 이미 있는 `@utility no-scrollbar`로 숨긴다(globals.css 수정 아님 — 사용만).
 //     `-mx-4 px-4`는 페이지의 좌우 여백(px-4)을 뚫고 나가되 첫 카드가 여백선에 맞게 서기 위한 것.
+//     ⚠️ **`scroll-px-4`가 반드시 같이 있어야 한다.** `snap-start`는 아이템 시작 모서리를
+//        "스크롤포트 시작 + scroll-padding"에 맞추는데, scroll-padding이 0이면 브라우저가
+//        왼쪽 패딩 16px만큼 스크롤을 밀어버려 첫 카드가 컨테이너 끝에 붙는다(패딩은 적용돼
+//        있는데 스냅이 그 위로 스크롤한 상태다). 실제로 이 증상이 배포본에서 발견됐다.
+//        `scroll-px-4`로 스냅 기준선을 패딩선과 일치시킨다.
 //
 // Figma 개발 주석(298:3537): "카드 클릭 시 뉴스로 이동(링크)" + 참고용 외부 기사 URL 2개.
 // → 카드를 <a>로 감싸고 외부 링크라 `target="_blank"` + `rel="noopener noreferrer"`를 붙였다.
@@ -58,7 +63,7 @@ export function SectionNews({ items }: SectionNewsProps) {
       {items.length > 0 ? (
         // self-stretch가 필요하다: 섹션이 `items-start`라 자식이 늘어나지 않는데, 이 목록은
         // 폭이 컨테이너에 맞아야(그리고 -mx-4로 좌우 16씩 더 뻗어야) 가로 스크롤이 성립한다.
-        <ul className="-mx-4 flex snap-x gap-4 self-stretch overflow-x-auto px-4 no-scrollbar">
+        <ul className="-mx-4 flex snap-x scroll-px-4 gap-4 self-stretch overflow-x-auto px-4 no-scrollbar">
           {items.map((item) => (
             <li key={item.id} className="shrink-0 snap-start">
               <a
