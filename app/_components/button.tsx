@@ -108,11 +108,30 @@ const TEXT: Record<ButtonVariant, Record<ButtonSize, string>> = {
   outlined: { medium: "text-body-16-semibold", small: "text-body-14-medium" },
 };
 
+// ⚠️ Figma가 **secondary의 pressed 배경만 size마다 다른 토큰**에 바인딩해 두었다
+//    (medium 477-5174 → `content/secondary` gray-600 #697383 /
+//     small  477-5069 → `action-secondary/pressed` gray-700 #4a5667).
+//    시맨틱상 둘 다 action-secondary/pressed여야 자연스럽지만 원본을 그대로 옮긴다(figma-bridge §4).
+//    2026-08-08 이전 코드는 medium 값(content/secondary)을 두 size에 함께 쓰고 있어서
+//    **small이 Figma와 달랐다** — 이번에 size별로 갈랐다.
+//    디자이너가 "둘 다 action-secondary/pressed"로 정리해 주면 이 두 맵은 지우고 합칠 수 있다.
+//    (Tailwind가 클래스 문자열을 정적으로 스캔하므로 `active:${...}` 조립 대신 리터럴로 둔다.)
+const SECONDARY_PRESSED_BG: Record<ButtonSize, string> = {
+  medium: "bg-content-secondary",
+  small: "bg-action-secondary-pressed",
+};
+
+const SECONDARY_ACTIVE_BG: Record<ButtonSize, string> = {
+  medium: "active:bg-content-secondary",
+  small: "active:bg-action-secondary-pressed",
+};
+
 const NORMAL: Record<ColorVariant, string> = {
   primary:
     "bg-action-primary-default text-content-inverse active:bg-action-primary-pressed disabled:bg-action-primary-disabled",
+  // secondary의 active 배경은 size 의존이라 아래 SECONDARY_ACTIVE_BG가 따로 붙인다.
   secondary:
-    "bg-action-secondary-default text-content-inverse active:bg-content-secondary disabled:bg-action-secondary-disabled",
+    "bg-action-secondary-default text-content-inverse disabled:bg-action-secondary-disabled",
   tertiary:
     "bg-action-tertiary-default text-content-secondary active:bg-action-tertiary-pressed disabled:bg-action-tertiary-disabled",
 };
@@ -122,7 +141,8 @@ const NORMAL: Record<ColorVariant, string> = {
 const PRESSED: Record<ColorVariant, string> = {
   primary:
     "bg-action-primary-pressed text-content-inverse disabled:bg-action-primary-disabled",
-  secondary: "bg-content-secondary text-content-inverse disabled:bg-action-secondary-disabled",
+  // 배경은 size 의존이라 SECONDARY_PRESSED_BG가 따로 붙인다.
+  secondary: "text-content-inverse disabled:bg-action-secondary-disabled",
   tertiary:
     "bg-action-tertiary-pressed text-content-secondary disabled:bg-action-tertiary-disabled",
 };
@@ -175,10 +195,26 @@ export function Button({
           ? PRESSED[variant]
           : NORMAL[variant];
 
+  // secondary만 pressed 배경이 size에 따라 다르다 (위 SECONDARY_*_BG 주석 참고).
+  // loading일 때는 눌림 표현 자체가 없으므로 붙이지 않는다.
+  const secondaryPressedBg =
+    variant === "secondary" && !isLoading
+      ? state === "pressed"
+        ? SECONDARY_PRESSED_BG[size]
+        : SECONDARY_ACTIVE_BG[size]
+      : null;
+
   return (
     <button
       type={type}
-      className={cn(BASE, SIZE[size], TEXT[variant][size], colorClasses, className)}
+      className={cn(
+        BASE,
+        SIZE[size],
+        TEXT[variant][size],
+        colorClasses,
+        secondaryPressedBg,
+        className,
+      )}
       aria-busy={isLoading || undefined}
       aria-disabled={isLoading || undefined}
       onClick={isLoading ? undefined : onClick}

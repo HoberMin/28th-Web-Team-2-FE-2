@@ -170,6 +170,15 @@
   /* button/circle size=36(477-3372·3375·3378·3381)의 같은 Effect를 0.75배 스케일한 값. */
   --shadow-floating-sm: 0px 0px 2.25px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
   /*
+   * 같은 `button/circle`의 **size=36** 심볼(477-5185·5189·5193·5197, 2026-08-08 sync)이 쓰는 값.
+   * Figma 원본 `0px 0px 2.25px rgba(74,86,103,0.22)` — 색·오프셋·투명도는 floating과 같고
+   * **blur만 2.25px**(= 3px × 36/48)이다. 48px 심볼을 36px로 축소하며 따라 줄어든 값이라
+   * 별도 디자인 의도라기보다 스케일 산물에 가깝다 — 그래도 Figma 원본이므로 그대로 둔다.
+   * (`marker/store-map`은 또 3.273px라 세 번째 값이 된다. 그림자 스케일 규칙을 Figma에서
+   *  정리해 주면 토큰 1개로 합칠 수 있다 — 디자이너 확인 대기.)
+   */
+  --shadow-floating-sm: 0px 0px 2.25px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
+  /*
    * `sheet/store-detail`(node 392-12707, 2026-08-08 sync)의 바텀시트가 위로 드리우는 그림자.
    * Figma 원본 rgba(74,86,103,0.2) — floating과 같은 gray/700 계열이지만 **오프셋·블러·투명도가 달라**
    * (0 -4px 6px / 20% vs 0 0 3px / 22%) 같은 토큰으로 합칠 수 없다. 그래서 별도로 둔다.
