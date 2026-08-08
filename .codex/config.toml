@@ -3,8 +3,12 @@
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
-[agents]
 # 서브에이전트 정의 = .codex/agents/*.toml (생성 파일 — pnpm gen:codex)
 # 병렬 규약은 CLAUDE.md·AGENTS.md 오케스트레이션 절과 동일하게 따른다:
 # 독립 조사만 병렬 / 쓰기는 소유 영역 비겹침만 / 공유 파일은 단일 agent
-max_concurrency = 4
+#
+# ⚠️ 2026-08-08: 여기 있던 `[agents]` 테이블 + `max_concurrency = 4`를 제거했다.
+# Codex의 `agents` 설정 키는 동시성 같은 옵션이 아니라 "이름 → AgentRoleToml 구조체"
+# 맵이라 정수 값을 넣으면 파싱 자체가 실패한다("invalid type: integer `4`,
+# expected struct AgentRoleToml"). 병렬 동시성을 실제로 제한하고 싶으면 Codex가
+# 지원하는 올바른 키를 확인해서 다시 추가할 것 — 지금은 위 주석의 규약만 문서로 남긴다.
