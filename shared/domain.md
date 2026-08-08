@@ -38,6 +38,7 @@
     - TextField(node 237-8556) placeholder 안내 문구 1.74:1 (기준 4.5:1)
     - Vegetable Price(node 224-7408) 단위 표기 1.92:1 (기준 4.5:1)
     - Vegetable Trend(node 224-7405) 텍스트 3.95:1 (기준 4.5:1) — 상승/하락 방향을 색(`trend/down`)에만 의존해 표시 중이라 WCAG 1.4.1 위반이기도 함. 방향 아이콘이 아직 없어서(Figma 미확정) 색 외 구분 수단이 없음
+    - Semantic Color `content/accent`(orange/700, v02 sync 신설) 흰 배경 4.45:1 (기준 4.5:1) — 아직 컴포넌트 적용 전, `/playground` Color 스토리 라벨에만 기록된 상태
 - `TODO(✍️):` 핵심 비주얼·타겟 톤 → `design-guide.md`
 
 ## 6. 개발 환경

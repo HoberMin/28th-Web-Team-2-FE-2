@@ -1,7 +1,7 @@
 import type { Story } from "./types";
 
-// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05
-// (디자인_docs/variables/variables_2026-08-05_v01.json 기준 재sync).
+// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05 v02
+// (디자인_docs/variables/variables_2026-08-05_v02.json 기준 재sync).
 // 눈으로 색을 훑어보는 갤러리이면서, 동시에 sync 검산 도구이기도 하다(hex 오독이 두 번 발생한
 // 이력이 있어 만든 안전판) — 라벨에 Figma 변수명과 기대 hex를 같이 적어 화면과 라벨이 어긋나는지
 // 잡을 수 있게 한다. 화면 문구는 뷰어 관점(무엇을 언제 쓰는지)으로 쓰되, 검산 안내 한 줄은 유지한다
@@ -124,6 +124,30 @@ const SEMANTIC: {
         alias: "gray/700 90%",
         usage: "떠 있는 어두운 요소(툴팁·플로팅 버튼) · 글자는 content/inverse",
       },
+      {
+        name: "surface/inverse",
+        cls: "bg-surface-inverse",
+        alias: "gray/1000 90%",
+        usage: "가장 어두운 반전 표면(스낵바·하단 안내) · 글자는 content/inverse",
+      },
+      {
+        name: "surface/accent-subtle",
+        cls: "bg-surface-accent-subtle",
+        alias: "orange/50",
+        usage: "강조 영역의 옅은 배경(안내 박스·선택된 칩)",
+      },
+      {
+        name: "surface/accent",
+        cls: "bg-surface-accent",
+        alias: "orange/100",
+        usage: "강조 영역의 배경 · subtle보다 한 단계 진하게",
+      },
+      {
+        name: "surface/brand",
+        cls: "bg-surface-brand",
+        alias: "green/50",
+        usage: "브랜드 색 영역의 옅은 배경",
+      },
     ],
   },
   {
@@ -136,6 +160,12 @@ const SEMANTIC: {
       { name: "content/brand-light", cls: "bg-content-brand-light", alias: "green/600", usage: "브랜드 텍스트 · 밝게" },
       { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700", usage: "브랜드 텍스트 · 중간" },
       { name: "content/brand-dark", cls: "bg-content-brand-dark", alias: "green/900", usage: "브랜드 텍스트 · 진하게" },
+      {
+        name: "content/accent",
+        cls: "bg-content-accent",
+        alias: "orange/700",
+        usage: "강조 텍스트·숫자 · 흰 배경에서 대비 4.45:1로 기준(4.5:1)에 살짝 못 미쳐요",
+      },
     ],
   },
   {
@@ -144,6 +174,12 @@ const SEMANTIC: {
       { name: "border/primary", cls: "bg-border-primary", alias: "gray/200", usage: "기본 구분선" },
       { name: "border/secondary", cls: "bg-border-secondary", alias: "gray/100", usage: "옅은 구분선" },
       { name: "border/tertiary", cls: "bg-border-tertiary", alias: "gray/700", usage: "진한 구분선" },
+      {
+        name: "border/img",
+        cls: "bg-border-img",
+        alias: "common/black5",
+        usage: "사진 가장자리에 얹는 아주 옅은 선 · 밝은 사진과 흰 배경의 경계용(장식)",
+      },
     ],
   },
   {
@@ -275,7 +311,7 @@ function ColorStory() {
 
       <section className="flex flex-col gap-6">
         <h3 className="text-caption-12-semibold text-content-secondary">
-          Semantic Color — 실제 화면에서 쓰는 색이에요 (28)
+          Semantic Color — 실제 화면에서 쓰는 색이에요 (34)
         </h3>
         {SEMANTIC.map(({ group, items }) => (
           <div key={group} className="flex flex-col gap-3">
@@ -314,6 +350,6 @@ export const colorStory: Story = {
   title: "Color",
   group: "파운데이션",
   figma: "node 126-1092",
-  description: "Raw Color 59종과 Semantic Color 28종을 모아뒀어요. 실제 값과 쓰임을 함께 보여드려요.",
+  description: "Raw Color 59종과 Semantic Color 34종을 모아뒀어요. 실제 값과 쓰임을 함께 보여드려요.",
   Component: ColorStory,
 };

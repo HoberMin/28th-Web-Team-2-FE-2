@@ -22,9 +22,12 @@
 @theme static {
   /*
    * 컬러 — Figma Design Library (fileKey WfW1Nkx1oiOWBHNwrw48IL) node 126-1092
-   *   Raw Color 59 + Semantic Color 28. **재sync 2026-08-05**
-   *   (디자인_docs/variables/variables_2026-08-05_v01.json, 사용자가 직접 전달한 원본 — MCP 없이 파일 전달).
-   *   Raw Color·Radius는 값 동일. Semantic은 border/tertiary·action-tertiary/disabled 신설,
+   *   Raw Color 59 + Semantic Color 34. **재sync 2026-08-05 v02**
+   *   (디자인_docs/variables/variables_2026-08-05_v02.json, 사용자가 직접 전달한 원본 — MCP 없이 파일 전달).
+   *   v02에서 Semantic 6개 신설: surface/inverse(gray/1000 90%)·surface/accent-subtle(orange/50)·
+   *   surface/accent(orange/100)·surface/brand(green/50)·content/accent(orange/700)·border/img(common/black5).
+   *   Raw Color는 값 동일, Radius는 2xl(20)·3xl(24) 신설. overlay/dim은 JSON 안 위치만 이동(값 동일).
+   *   ── v01(2026-08-05) 이력: Semantic에 border/tertiary·action-tertiary/disabled 신설,
    *   content/brand가 light/medium/dark 3단계로 확장, surface/tertiary→surface/elevated로 리네임,
    *   surface/secondary가 gray/900(어두움)→gray/100(밝음)으로 재정의(사용자 확인 완료, 2026-08-05).
    *   기존에 surface/secondary를 어두운 배경 전제로 쓰던 곳(prototype 툴팁·사진 삭제 버튼)은
@@ -103,7 +106,7 @@
 
   /*
    * 시맨틱 컬러 — Semantic Color 컬렉션. Figma alias 그대로 raw 토큰을 var()로 참조(중복 hex 방지).
-   * surface/elevated, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
+   * surface/elevated, surface/inverse, overlay/dim은 Figma에서 alpha < 100%로 등록돼 color-mix로 재현.
    */
   --color-background-primary: var(--color-white);
   --color-background-secondary: var(--color-gray-50);
@@ -111,6 +114,11 @@
   --color-surface-secondary: var(--color-gray-100);
   /* Figma가 "surface/tertiary"를 "surface/elevated"로 리네임(값은 동일) — 2026-08-05 sync */
   --color-surface-elevated: color-mix(in srgb, var(--color-gray-700) 90%, transparent);
+  /* v02 신설 — Figma 원본 rgba(20, 26, 36, 0.9)는 raw gray/1000 90%와 정확히 일치한다. */
+  --color-surface-inverse: color-mix(in srgb, var(--color-gray-1000) 90%, transparent);
+  --color-surface-accent-subtle: var(--color-orange-50);
+  --color-surface-accent: var(--color-orange-100);
+  --color-surface-brand: var(--color-green-50);
   --color-content-primary: var(--color-gray-900);
   --color-content-secondary: var(--color-gray-600);
   --color-content-disabled: var(--color-gray-400);
@@ -119,9 +127,13 @@
   --color-content-brand-light: var(--color-green-600);
   --color-content-brand-medium: var(--color-green-700);
   --color-content-brand-dark: var(--color-green-900);
+  /* v02 신설 */
+  --color-content-accent: var(--color-orange-700);
   --color-border-primary: var(--color-gray-200);
   --color-border-secondary: var(--color-gray-100);
   --color-border-tertiary: var(--color-gray-700);
+  /* v02 신설 — 이미지 위에 얹는 아주 옅은 테두리(흰 사진과 흰 배경의 경계용). */
+  --color-border-img: var(--color-black-5);
   --color-action-primary-default: var(--color-green-500);
   --color-action-primary-pressed: var(--color-green-600);
   --color-action-primary-disabled: var(--color-gray-300);
@@ -137,12 +149,15 @@
   --color-overlay-dim: var(--color-black-50);
 
   /*
-   * 레디어스 — Radius 컬렉션 sync 2026-08-04
+   * 레디어스 — Radius 컬렉션 sync 2026-08-05 v02 (2xl·3xl 신설, 나머지는 값 동일).
+   *   ⚠️ 2xl은 Tailwind 기본값(16px)과 다른 20px다 — 반드시 이 토큰을 거쳐야 한다.
    */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
   --radius-full: 999px;
 
   /*
