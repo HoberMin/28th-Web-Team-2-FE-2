@@ -1,3 +1,4 @@
+import { badgeMapLocationStory } from "./badge-map-location";
 import { badgeMoreStory } from "./badge-more";
 import { badgeReportDateStory } from "./badge-report-date";
 import { badgeStoreStatStory } from "./badge-store-stat";
@@ -25,7 +26,9 @@ import { rowRecommendedStoreStory } from "./row-recommended-store";
 import { rowStoreVegetablesStory } from "./row-store-vegetables";
 import { rowStoryStory } from "./row-story";
 import { sectionRecentReportStory } from "./section-recent-report";
+import { sheetSortStory } from "./sheet-sort";
 import { sheetStoreDetailStory } from "./sheet-store-detail";
+import { tabBarStory } from "./tab-bar";
 import type { Story } from "./types";
 import { textFieldStory } from "./text-field";
 import { typographyStory } from "./typography";
@@ -76,18 +79,69 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //     shadow-floating과 색 계열은 같지만 오프셋·블러·투명도가 달라 합칠 수 없었다.
 //   + header/store-detail·section/recent-report·sheet/store-detail은 조합 규칙이라 group="패턴".
 //
-// 2026-08-08 에셋 후속 sync:
+// ── 2026-08-08 (2차): `(공유) Component` 페이지(477-9098) 전수 실측 → **코드와 다른 곳을 맞췄다.** ──
+//
+//   Figma가 진실 소스이므로, 어긋난 곳은 전부 Figma 쪽으로 맞췄다:
+//   · `text/vegetable-trend`(477-5291) — **state 축(down·up·flat) 신설**. 기존 코드는 down 고정에
+//     색이 `trend/down` 하드코딩이었다. flat은 Figma 원본에 값 텍스트가 없어 아이콘만 렌더한다.
+//     (lines=2 × flat 심볼은 Figma에 없어 만들지 않았다.)
+//   · `button/circle`(477-5182) — **size 축(36·48) 신설**. 아래 남은 이슈 ③ 해소.
+//     36px 그림자 blur가 2.25px이라 `--shadow-floating-sm` 토큰을 신설했다.
+//   · `button/base`(477-5003) — secondary의 **pressed 배경이 size별로 다른 토큰**에 바인딩돼 있는데
+//     (medium `content/secondary` / small `action-secondary/pressed`) 코드가 medium 값을 두 size에
+//     함께 쓰고 있었다. size별로 갈랐다.
+//   · 정렬 시트 계열 — 아래 남은 이슈 ④ 해소. **`sheet-sort.tsx` 한 파일에 합쳐 구현**했다
+//     (핸들·행·목록을 내부에 인라인). Design Library는 이 넷을 각각의 규격으로 두지만
+//     (sheet/sort 318-15278 · list/sort-option 318-15246 · row/sort-option 477-5419 ·
+//      sheet/handle 318-15226), 셋은 정렬 시트 밖에서 단독으로 쓰이지 않아 쪼개지 않았다.
+//     ⚠️ 구현의 출처가 Design Library가 아니라 **화면GUI 파일(d5j7K9BNpSXxVUu3fmZfY4)의
+//        F02 정렬시트(298-3546)**다 — 같은 규격이 두 파일에 있고 아직 라이브러리로 승격되지
+//        않았다. 승격되면 node id를 Design Library 쪽으로 갱신할 것. **사용자 확인 항목.**
+//
+//   실측했지만 **코드를 바꾸지 않은 것**(Figma 원본 유지 + 사실만 기록, figma-bridge §4):
+//   · `icon/heart-stroke-regular`만 23×23px(다른 17종은 24×24) → 코드는 24px 그리드로 정규화
+//   · 16px 아이콘 내부 도형이 24px 원본의 스케일 축소본이라 소수점(`radius/sm`이 2.667px로 나온다)
+//   · `text/vegetable-price`·`text/vegetable-trend`의 111.333px vs 담는 그릇 112px (코드는 w-full)
+//   · 그림자 3종(3px · 2.25px · 3.273px) · 시트 상하 패딩 불일치 · badge 계열 py 2 vs 4
+//   · 대비 미달 다수(아래 각 컴포넌트 파일 주석에 수치 기록)
+//
+// ── 2026-08-08 에셋 후속 sync (원격 반영분 — 위 2차 작업과 합쳤다) ──
 //   · Figma Plugin API로 아이콘 18종과 컨텍스트 오버라이드 아이콘 10종을 SVG export.
 //   · story/news/vegetable/onion 래스터와 loading 원본 GIF, image/grass SVG를 public에 저장.
 //   · card/recommended-store의 Variable 미바인딩 gradient fill도 원본 stop/transform 그대로 SVG화.
-//   · 플레이그라운드의 임시 도형·자리표시를 전부 원본 에셋으로 교체.
+//   · 플레이그라운드의 임시 도형·자리표시를 전부 원본 에셋으로 교체 — 스토리는 `figma-asset.tsx`의
+//     `FigmaIcon`/`FigmaImage`로 `public/figma/design-library/`를 가리킨다.
+//     2차 작업분(button-circle 하트 · vegetable-trend 방향 · sheet-sort 체크 · badge-map-location 핀)도
+//     같은 방식으로 원본 에셋에 맞췄다.
 //
-//   · button/circle size=36 축과 전용 2.25px shadow 토큰까지 추가.
+// 남은 이슈 (구현은 끝났고, 디자이너 확인이 필요한 것들):
 //
-// 남은 이슈:
+// ① ~~아이콘·일러스트 에셋을 코드로 가져올 수 없다~~ → **해소.** Plugin API export로 원본 SVG·래스터가
+//    `public/figma/design-library/`에 들어왔다. 컴포넌트는 여전히 `ReactNode` 슬롯을 유지하고
+//    (에셋을 하드코딩하지 않는다), 스토리가 원본 에셋을 꽂아 검산한다.
+//    남은 미확보: 아이콘 세트(477-9106) 중 export되지 않은 나머지 — 필요해질 때 추가 export.
 //
-// ① 아직 구현하지 않은 규격: sheet/sort(318-15278) 계열(list/sort-option·row/sort-option·
-//    sheet/handle). 아이콘 세트(sec/icon 436-28079)는 에셋 export만 완료했다.
+// ② card/recommended-store 배경 그라데이션 — **미해결(⛔).** Figma 원본
+//    `#f7fff3 → #e8fbd5 → #dbfbb9`가 어느 Variable에도 바인딩돼 있지 않고 우리 팔레트에도 없다.
+//    추측 매핑도 raw hex 삽입도 금지라 배경을 비워 뒀다(figma-bridge §3). 디자이너가 Variable로
+//    등록하거나 기존 토큰 대체를 승인해야 닫힌다.
+//
+// ③ ~~button/circle size=36~~ → **2026-08-08 (2차)에 해소.** size 축을 추가했다.
+//
+// ④ ~~sheet/sort 계열 미구현~~ → **2026-08-08 (2차)에 해소.** `sheet-sort.tsx` 한 파일로 구현했다.
+//    아이콘 세트(477-9106, 18종)는 별도 스토리로 등록하지 않았지만 SVG는 export돼 있어(위 ① 참고)
+//    각 컴포넌트 스토리에서 원본 그대로 쓰고 있다.
+//
+// ⑤ 토큰 이름이 Figma에서 바뀌었다 — **값은 같고 이름만 다르다**(렌더 영향 없음):
+//      Figma `content/accent/badge`        ↔ 코드 `--color-content-accent`        (둘 다 orange-700)
+//      Figma `surface/accent/orange`       ↔ 코드 `--color-surface-accent`        (둘 다 orange-100)
+//      Figma `surface/accent/orange-subtle`↔ 코드 `--color-surface-accent-subtle` (둘 다 orange-50)
+//    `content/accent/**badge**`는 시맨틱 토큰에 컴포넌트명이 들어간 형태라(배지 밖에선 못 쓴다)
+//    이름을 그대로 따라가는 게 옳은지 판단이 필요하다. **디자이너 확인 전까지 코드는 그대로 둔다** —
+//    지금 리네임하면 사용처를 다 바꾼 뒤 되돌려야 할 수 있다.
+//
+// (구 ③ "합성 컴포넌트는 에셋 때문에 옮길 수 없다"는 보류 사유는 **해소됐다** — 에셋을 슬롯으로
+//  분리하는 방식으로 전부 구현했다. 위 ①이 그 대체 설명이다.)
 export const stories: Story[] = [
   // 파운데이션
   colorStory,
@@ -105,7 +159,9 @@ export const stories: Story[] = [
   badgeMoreStory,
   badgeReportDateStory,
   badgeStoreStatStory,
+  badgeMapLocationStory,
   navGnbStory,
+  tabBarStory,
 
   // 컴포넌트 — 값 표시
   vegetablePriceStory,
@@ -136,4 +192,5 @@ export const stories: Story[] = [
   headerStoreDetailStory,
   sectionRecentReportStory,
   sheetStoreDetailStory,
+  sheetSortStory,
 ];
