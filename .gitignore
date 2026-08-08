@@ -18,6 +18,9 @@ next-env.d.ts
 .claude/agent-memory/
 **/.claude/agent-memory/
 
+# Claude Code 로컬 전용 설정 (팀 공유 정책이 아님 — 커밋 X)
+.claude/settings.local.json
+
 # 구 apps/web/.gitignore에서 흡수 (루트 단일 프로젝트로 통합)
 *.pem
 .pnp
