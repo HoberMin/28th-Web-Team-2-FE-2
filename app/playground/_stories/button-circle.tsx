@@ -7,7 +7,7 @@ import {
   type ButtonCircleState,
   type ButtonCircleVariant,
 } from "../../_components/button-circle";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `button/circle` node 477-5182 (구 350-17885), 재sync 2026-08-08 — **size 축(36·48) 추가**.

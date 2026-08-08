@@ -1,5 +1,5 @@
 import { RowStoreVegetables } from "../../_components/row-store-vegetables";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/store-vegetables` node 185-2042, sync 2026-08-08. 신규 컴포넌트. Variant 없음.

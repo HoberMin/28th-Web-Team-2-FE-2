@@ -1,5 +1,5 @@
 import { RowRecommendedStore } from "../../_components/row-recommended-store";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/recommended-store` node 185-2117, sync 2026-08-08. Variant 없음.

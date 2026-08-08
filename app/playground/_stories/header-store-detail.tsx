@@ -1,5 +1,5 @@
 import { HeaderStoreDetail } from "../../_components/header-store-detail";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `header/store-detail` node 392-12144, sync 2026-08-08. Variant 없음.

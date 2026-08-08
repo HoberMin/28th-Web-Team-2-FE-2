@@ -1,6 +1,6 @@
 import { CardStoryList } from "../../_components/card-story-list";
 import { RowStory } from "../../_components/row-story";
-import { FigmaIcon, FigmaImage } from "./figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `card/story-list` node 186-3233, sync 2026-08-08. Variant 없음.

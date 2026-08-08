@@ -1,5 +1,5 @@
 import { RowRecentReport } from "../../_components/row-recent-report";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/recent-report` node 359-18537, sync 2026-08-08. 신규 컴포넌트.

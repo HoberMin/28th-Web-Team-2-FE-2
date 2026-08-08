@@ -1,5 +1,5 @@
 import { BadgeMapLocation } from "../../_components/badge-map-location";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `badge/map-location` — `화면GUI` F03 인스턴스 298-3611 (main component 298-3315), sync 2026-08-08.

@@ -2,7 +2,7 @@ import { HeaderStoreDetail } from "../../_components/header-store-detail";
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
 import { SheetStoreDetail } from "../../_components/sheet-store-detail";
-import { FigmaIcon, FigmaImage } from "./figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `sheet/store-detail` node 392-12707, sync 2026-08-08. Variant 없음.

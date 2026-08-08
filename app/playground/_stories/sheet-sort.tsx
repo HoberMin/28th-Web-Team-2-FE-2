@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { SheetSort, SheetSortPanel } from "../../_components/sheet-sort";
 import type { SheetSortOption } from "../../_components/sheet-sort";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `sheet/sort` — 화면GUI F02 정렬시트(298-3546)의 인스턴스 298-3575, sync 2026-08-08.

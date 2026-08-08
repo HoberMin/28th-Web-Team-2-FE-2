@@ -1,6 +1,6 @@
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `section/recent-report` node 392-12708, sync 2026-08-08.

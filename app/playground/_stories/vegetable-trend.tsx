@@ -3,7 +3,7 @@ import {
   type VegetableTrendLines,
   type VegetableTrendState,
 } from "../../_components/vegetable-trend";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `text/vegetable-trend` node 477-5291 (구 `grid/vegetable-trend` 224-7405).

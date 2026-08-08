@@ -1,5 +1,5 @@
 import { TextField } from "../../_components/text-field";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `field/text` node 237-8556, sync 2026-08-05 → **재sync 2026-08-06**: Property 1에

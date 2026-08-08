@@ -1,5 +1,5 @@
 import { MarkerStoreMap } from "../../_components/marker-store-map";
-import { FigmaIcon } from "./figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `marker/store-map` node 439-7518, sync 2026-08-08. 신규 컴포넌트.

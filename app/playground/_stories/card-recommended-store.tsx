@@ -1,6 +1,6 @@
 import { CardRecommendedStore } from "../../_components/card-recommended-store";
 import { ImageGrass } from "../../_components/image-grass";
-import { FigmaIcon, FigmaImage } from "./figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `card/recommended-store` node 185-2359, sync 2026-08-08. Variant 없음.

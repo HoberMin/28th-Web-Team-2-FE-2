@@ -1,5 +1,5 @@
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
-import { FigmaIcon, FigmaImage } from "./figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `grid/vegetable-item` node 237-11384, sync 2026-08-08. 신규 컴포넌트.

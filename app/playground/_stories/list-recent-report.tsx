@@ -1,6 +1,6 @@
 import { ListRecentReport } from "../../_components/list-recent-report";
 import { RowRecentReport } from "../../_components/row-recent-report";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `list/recent-report` node 392-11786, sync 2026-08-08. 신규 컴포넌트. Variant 없음.

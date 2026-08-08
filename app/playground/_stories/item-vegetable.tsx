@@ -1,5 +1,5 @@
 import { ItemVegetable } from "../../_components/item-vegetable";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `item/vegetable` node 185-1520, sync 2026-08-08. 신규 컴포넌트. Variant 없음.

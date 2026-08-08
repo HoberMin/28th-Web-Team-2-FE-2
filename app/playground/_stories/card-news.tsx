@@ -1,5 +1,5 @@
 import { CardNews } from "../../_components/card-news";
-import { FigmaImage } from "./figma-asset";
+import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `card/news` node 253-2136, sync 2026-08-08. Variant 없음.

@@ -1,5 +1,5 @@
 import { ListLowestVegetable } from "../../_components/list-lowest-vegetable";
-import { FigmaIcon, FigmaImage } from "./figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
 // Figma `list/lowest-vegetable` node 227-3463, sync 2026-08-08. 신규 컴포넌트. Variant 없음.
@@ -16,14 +16,39 @@ function StoreIcon() {
   return <FigmaIcon name="store-stroke-lowest-16" width={16} />;
 }
 
-function TrendDownIcon() {
-  return <FigmaIcon name="trend-down" width={16} />;
-}
+const TREND_ICON = {
+  down: <FigmaIcon name="trend-down" width={16} />,
+  up: <FigmaIcon name="trend-up" width={16} />,
+  flat: <FigmaIcon name="trend-flat" width={16} />,
+} as const;
 
+// state 축(down·up·flat)은 `text/vegetable-trend`(477-5291)에서 오고, 이 컴포넌트가 통과시킨다.
+// flat 심볼에는 값 텍스트가 아예 없어서 금액·증감률을 빈 문자열로 넘긴다.
 const ROWS = [
-  { name: "양파", storeName: "농협하나로마트", price: "24,900원" },
-  { name: "대추방울토마토", storeName: "행복슈퍼마켓", price: "8,500원" },
-  { name: "고춧가루(중국산)", storeName: "우리동네청과", price: "132,000원" },
+  {
+    name: "양파",
+    storeName: "농협하나로마트",
+    price: "24,900원",
+    trend: "down" as const,
+    trendAmount: "100,000원",
+    trendPercent: "(-7.4%)",
+  },
+  {
+    name: "대추방울토마토",
+    storeName: "행복슈퍼마켓",
+    price: "8,500원",
+    trend: "up" as const,
+    trendAmount: "420원",
+    trendPercent: "(+5.2%)",
+  },
+  {
+    name: "고춧가루(중국산)",
+    storeName: "우리동네청과",
+    price: "132,000원",
+    trend: "flat" as const,
+    trendAmount: "",
+    trendPercent: "",
+  },
 ];
 
 function ListLowestVegetableStory() {
@@ -42,14 +67,17 @@ function ListLowestVegetableStory() {
               storeName={row.storeName}
               price={row.price}
               unit="/100kg"
-              trendAmount="100,000원"
-              trendPercent="(-7.4%)"
-              trendIcon={<TrendDownIcon />}
+              trendAmount={row.trendAmount}
+              trendPercent={row.trendPercent}
+              trendState={row.trend}
+              trendIcon={TREND_ICON[row.trend]}
             />
           ))}
         </div>
         <p className="text-caption-12-regular text-content-secondary">
           야채 이름이나 가게 이름이 길면 한 줄에서 …로 줄어들고, 오른쪽 값 자리는 흔들리지 않아요.
+          등락은 내림(파랑)·오름(빨강)·변동없음(회색) 세 가지예요 — 변동없음은 막대만 보이고
+          금액은 표시하지 않아요.
         </p>
       </div>
     </div>
