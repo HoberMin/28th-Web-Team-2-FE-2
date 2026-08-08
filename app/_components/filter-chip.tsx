@@ -26,7 +26,7 @@ export interface FilterChipProps extends ComponentPropsWithoutRef<"button"> {
 export function FilterChip({
   label,
   count,
-  selected = false,
+  selected = true,
   className,
   type = "button",
   ...rest

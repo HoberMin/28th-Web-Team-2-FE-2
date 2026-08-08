@@ -14,7 +14,14 @@ export default function SavedError({ reset }: { error: Error; reset: () => void 
       <p className="text-body-14-regular text-content-secondary">
         잠시 뒤에 다시 시도해 주세요.
       </p>
-      <Button className="mt-2" variant="secondary" size="small" onClick={reset}>
+      <Button
+        className="mt-2"
+        variant="secondary"
+        size="small"
+        leading={false}
+        trailing={false}
+        onClick={reset}
+      >
         다시 시도
       </Button>
     </div>

@@ -17,7 +17,7 @@ function FilterChipStory() {
         <div className="flex flex-col gap-2">
           <p className="text-body-14-semibold text-content-primary">normal</p>
           <div className="flex flex-wrap gap-2">
-            <FilterChip label="감자·뿌리" count={5} />
+            <FilterChip label="감자·뿌리" count={5} selected={false} />
           </div>
         </div>
 
@@ -25,9 +25,9 @@ function FilterChipStory() {
           <p className="text-body-14-semibold text-content-primary">여러 개를 나란히 놓으면</p>
           <div className="flex flex-wrap gap-2">
             <FilterChip label="전체" count={46} selected />
-            <FilterChip label="감자·뿌리" count={5} />
-            <FilterChip label="잎채소" count={12} />
-            <FilterChip label="열매채소" count={9} />
+            <FilterChip label="감자·뿌리" count={5} selected={false} />
+            <FilterChip label="잎채소" count={12} selected={false} />
+            <FilterChip label="열매채소" count={9} selected={false} />
           </div>
         </div>
       </div>

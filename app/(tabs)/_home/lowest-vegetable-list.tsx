@@ -50,6 +50,8 @@ export function LowestVegetableList({ rows, collapsedCount, listId }: LowestVege
         <Button
           variant="tertiary"
           size="medium"
+          leading={false}
+          trailing={false}
           className="w-full"
           aria-expanded={expanded}
           aria-controls={listId}

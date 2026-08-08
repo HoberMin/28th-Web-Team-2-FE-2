@@ -60,7 +60,13 @@ export function SheetStoreDetail({
         {header}
         {children}
       </div>
-      <Button variant="secondary" size="medium" className="w-full">
+      <Button
+        variant="secondary"
+        size="medium"
+        leading={false}
+        trailing={false}
+        className="w-full"
+      >
         {actionLabel}
       </Button>
     </div>

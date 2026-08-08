@@ -15,28 +15,52 @@ export interface LoadingCircularProps {
    * 버튼 안처럼 바깥에 이미 `aria-busy`가 있는 자리에서는 생략한다.
    */
   label?: string;
+  /** 버튼처럼 문맥의 글자색을 따라야 할 때 원본 에셋을 마스크로 사용한다. */
+  currentColor?: boolean;
   className?: string;
 }
 
-export function LoadingCircular({ animate = false, label, className }: LoadingCircularProps) {
+export function LoadingCircular({
+  animate = false,
+  label,
+  currentColor = false,
+  className,
+}: LoadingCircularProps) {
+  const src = animate
+    ? "/figma/design-library/loading/circular-animated.gif"
+    : "/figma/design-library/loading/circular-static.svg";
+
   return (
     <span
       className={cn("inline-flex size-4.5 shrink-0 items-center justify-center", className)}
       role={label ? "status" : undefined}
       aria-hidden={label ? undefined : "true"}
     >
-      <Image
-        src={
-          animate
-            ? "/figma/design-library/loading/circular-animated.gif"
-            : "/figma/design-library/loading/circular-static.svg"
-        }
-        alt=""
-        width={18}
-        height={18}
-        unoptimized
-        aria-hidden="true"
-      />
+      {currentColor ? (
+        <span
+          aria-hidden="true"
+          className="size-4.5 bg-current"
+          style={{
+            WebkitMaskImage: `url("${src}")`,
+            maskImage: `url("${src}")`,
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+          }}
+        />
+      ) : (
+        <Image
+          src={src}
+          alt=""
+          width={18}
+          height={18}
+          unoptimized
+          aria-hidden="true"
+        />
+      )}
       {label ? <span className="sr-only">{label}</span> : null}
     </span>
   );

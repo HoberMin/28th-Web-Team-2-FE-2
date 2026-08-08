@@ -47,7 +47,13 @@ export function CardStoryList({
     >
       <div className="flex w-full flex-col items-start gap-3">
         <ListStory label={label}>{children}</ListStory>
-        <Button variant="primary" size="medium" className="w-full">
+        <Button
+          variant="primary"
+          size="medium"
+          leading={false}
+          trailing={false}
+          className="w-full"
+        >
           {actionLabel}
         </Button>
       </div>

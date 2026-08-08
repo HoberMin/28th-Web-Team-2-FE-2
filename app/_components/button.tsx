@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../_lib/cn";
+import { FigmaIcon } from "../_lib/figma-asset";
 import { LoadingCircular } from "./loading-circular";
 
 // Figma `button/cta_md` — Design Library node 160-2855 (fileKey WfW1Nkx1oiOWBHNwrw48IL).
@@ -166,9 +167,13 @@ export interface ButtonProps extends ComponentPropsWithoutRef<"button"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   state?: ButtonState;
-  /** Figma의 Leading Icon 슬롯(16×16). 비우면 아이콘 없이 렌더된다. */
+  /** Figma Boolean property. 기본값은 true다. */
+  leading?: boolean;
+  /** Figma의 Leading Icon 슬롯(16×16). 비우면 원본 기본 Shape를 렌더한다. */
   leadingIcon?: ReactNode;
-  /** Figma의 Trailing Icon 슬롯(16×16). */
+  /** Figma Boolean property. 기본값은 true다. */
+  trailing?: boolean;
+  /** Figma의 Trailing Icon 슬롯(16×16). 비우면 원본 기본 Shape를 렌더한다. */
   trailingIcon?: ReactNode;
 }
 
@@ -176,7 +181,9 @@ export function Button({
   variant = "primary",
   size = "medium",
   state = "normal",
+  leading = true,
   leadingIcon,
+  trailing = true,
   trailingIcon,
   className,
   type = "button",
@@ -222,21 +229,21 @@ export function Button({
     >
       {isLoading ? (
         <span className="absolute inset-0 flex items-center justify-center">
-          <LoadingCircular animate />
+          <LoadingCircular animate currentColor />
         </span>
       ) : null}
       <span
         className={cn("inline-flex items-center justify-center", GAP[size], isLoading && "invisible")}
       >
-        {leadingIcon ? (
+        {leading ? (
           <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-            {leadingIcon}
+            {leadingIcon ?? <FigmaIcon name="button-shape" width={16} currentColor />}
           </span>
         ) : null}
         {children}
-        {trailingIcon ? (
+        {trailing ? (
           <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-            {trailingIcon}
+            {trailingIcon ?? <FigmaIcon name="button-shape" width={16} currentColor />}
           </span>
         ) : null}
       </span>
