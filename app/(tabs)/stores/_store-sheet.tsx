@@ -105,11 +105,11 @@ export function StoreSheet({
 
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const fallback = fallbackFocusRef?.current ?? null;
     sheetRef.current?.focus();
 
     return () => {
       const restore = restoreRef.current;
-      const fallback = fallbackFocusRef?.current ?? null;
 
       // 🔴 시트를 연 마커가 **사라지면서** 시트가 닫히는 경로가 있다(시트 안에서 찜을 풀어
       //    찜 필터에서 걸러지는 경우 등). 그때 `restore`는 이미 DOM에서 빠진 노드라

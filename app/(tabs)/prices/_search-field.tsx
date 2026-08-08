@@ -35,13 +35,14 @@ export interface PricesSearchFieldProps {
 }
 
 export function PricesSearchField({ query, group, sort }: PricesSearchFieldProps) {
+  // URL 검색어가 바뀌면 key가 바뀌어 draft도 새 값으로 초기화된다.
+  // effect 안의 동기 setState 없이 뒤로가기·칩 선택을 입력창에 반영한다.
+  return <PricesSearchFieldDraft key={query} query={query} group={group} sort={sort} />;
+}
+
+function PricesSearchFieldDraft({ query, group, sort }: PricesSearchFieldProps) {
   const router = useRouter();
   const [value, setValue] = useState(query);
-
-  // URL이 바깥에서 바뀌면(칩 선택·초기화·뒤로가기) 입력값도 따라간다.
-  useEffect(() => {
-    setValue(query);
-  }, [query]);
 
   useEffect(() => {
     const next = value.trim();

@@ -88,7 +88,12 @@ export function ButtonCircle({
   ...rest
 }: ButtonCircleProps) {
   return (
-    <button type={type} className={cn(BASE, SIZE[size], COLOR[state], className)} {...rest}>
+    <button
+      type={type}
+      data-variant={variant}
+      className={cn(BASE, SIZE[size], COLOR[state], className)}
+      {...rest}
+    >
       <span
         aria-hidden="true"
         className={cn("flex shrink-0 items-center justify-center", ICON_SIZE[size])}
