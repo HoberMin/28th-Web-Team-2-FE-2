@@ -25,9 +25,9 @@ import { TabNav } from "./_tab-nav";
 // 인스턴스가 제각각(detach 의심) 들어가 있는 문제를 코드에서는 구조적으로 막는다.
 export default function TabsLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-dvh justify-center bg-surface-secondary">
-      <div className="flex h-full w-full max-w-97.5 flex-col bg-surface-primary">
-        <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+    <div className="flex h-dvh overflow-hidden justify-center bg-surface-secondary">
+      <div className="flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">{children}</main>
         {/*
           하단 safe area는 이 층이 소유한다. 루트 layout이 `viewportFit: "cover"`를 켜서
           뷰포트가 home indicator 영역까지 확장되므로, 화면 최하단 요소인 GNB가 그만큼을

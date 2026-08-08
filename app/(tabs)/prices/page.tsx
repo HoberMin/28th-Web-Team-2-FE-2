@@ -168,7 +168,7 @@ export default async function PricesPage({
   const sortParam = sort === DEFAULT_PRICES_SORT ? undefined : sort;
 
   return (
-    <div className="h-full overflow-y-auto overscroll-y-contain pt-6 pb-20">
+    <div className="pt-6 pb-20">
       <h1 className="sr-only">야채 시세</h1>
 
       <div className="px-4">
