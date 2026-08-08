@@ -1,24 +1,35 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../_lib/cn";
+import { LoadingCircular } from "./loading-circular";
 
 // Figma `button/cta_md` — Design Library node 160-2855 (fileKey WfW1Nkx1oiOWBHNwrw48IL).
-// sync 2026-08-05 → **재sync 2026-08-06**: size(medium·small) 축 + variant `outlined` 추가.
-// 지금 Figma 프레임엔 심볼 14개: Variant(Primary·Secondary·Tertiary·Outlined) ×
-// Size(Medium·Small) × State(Normal·Pressed·Disabled, outlined는 Normal만).
+// sync 2026-08-05 → 재sync 2026-08-06: size(medium·small) 축 + variant `outlined` 추가.
+//              → **재sync 2026-08-08: state `loading` 추가.**
+// 지금 Figma 프레임엔 심볼 **28개**: Variant(Primary·Secondary·Tertiary·Outlined) ×
+// Size(Medium·Small) × State(Normal·Pressed·Disabled·Loading, outlined는 Normal·Loading만).
+//   primary/secondary/tertiary  4 state × 2 size = 24
+//   outlined                    2 state × 2 size = 4
+//
+// ⚠️ 2026-08-06 sync 때는 small에 normal 심볼밖에 없었는데, 이번에 다시 읽어 보니
+//    **small에도 pressed·disabled가 생겼다**(예: primary small pressed 436-25249 ·
+//    disabled 436-25261, secondary 436-25273·25285, tertiary 436-25297·25309).
+//    코드는 원래부터 size와 무관하게 state를 지원하고 있어 구현 변경은 없고,
+//    `/playground` 스토리에서 "small은 normal뿐"이라고 좁혀 두었던 목록만 넓혔다.
 //
 // Figma의 State 축은 코드에서 이렇게 나뉜다:
 //   Normal   → 기본
 //   Pressed  → `:active` (CSS가 자동 처리)   + 갤러리 고정용 `state="pressed"`
 //   Disabled → 네이티브 `disabled` 속성 (`disabled:` 변형)
+//   Loading  → `state="loading"` (아래 별도 설명)
 // hover는 Figma에 정의가 없어 만들지 않았다 (임의 추가 금지).
 //
 // ⚠️ Secondary의 pressed 배경은 Figma가 `action-secondary/pressed`(gray-700)가 아니라
 //    `content/secondary`(gray-600)에 바인딩해 두었다. 원본 그대로 옮겼다 —
 //    시맨틱상 어색하므로 Figma에서 의도한 값인지 확인이 필요하다.
 //
-// ⚠️ `outlined`는 Figma에 normal 심볼만 있다(medium 390-20833 · small 417-23114) —
-//    pressed·disabled 심볼이 없어서 만들지 않았다. `state`·네이티브 `disabled`를 넘겨도
-//    outlined는 항상 normal 스타일로 렌더된다.
+// ⚠️ `outlined`는 Figma에 normal·loading 심볼만 있다(normal: medium 390-20833 · small 417-23114,
+//    loading: medium 436-25784 · small 436-25796) — pressed·disabled 심볼이 없어서 만들지 않았다.
+//    `state="pressed"`나 네이티브 `disabled`를 넘겨도 outlined는 항상 normal 스타일로 렌더된다.
 //
 // size는 get_design_context로 실측 확인(2026-08-06):
 //   medium primary(160-2855 계열) — px-7 py-3 gap-2 rounded-lg(12) text-body-16-semibold (기존값 그대로)
@@ -33,21 +44,61 @@ import { cn } from "../_lib/cn";
 // 하나의 요소에 font-weight 유틸이 두 개 붙어 cn()의 클래스 선언 순서에 의존하는 걸 피하기 위함
 // (app/_lib/cn.ts는 tailwind-merge 없는 단순 join이라 중복 유틸리티의 결과가 @theme 선언 순서에
 // 우연히 의존하게 된다 — 그 경로 자체를 없앤다).
+//
+// ── loading (2026-08-08 신규) ────────────────────────────────────────────────
+// Figma 심볼 8개를 get_design_context로 실측: medium 436-25334(primary)·25650(secondary)·
+// 25664(tertiary)·25784(outlined), small 436-25678·25684·25690·25796.
+//
+// 실측에서 확인한 것:
+//   1) **배경·테두리·패딩·radius는 normal과 완전히 동일하다.** 예를 들어 primary medium loading은
+//      `bg action-primary/default` + `px-28 py-12` + `radius/lg` — normal과 같은 값이다.
+//      즉 loading은 색 상태가 아니라 "내용만 바뀌는" 상태다.
+//   2) 라벨은 사라지지 않고 **마스크로 가려진다**(Figma가 mask-size의 높이를 0으로 export).
+//      레이아웃 상자는 남아 있어서 버튼 크기가 로딩 전후로 흔들리지 않는다.
+//      → 코드에서는 라벨 래퍼에 `invisible`을 걸어 같은 효과를 낸다(자리는 차지하고 안 보임).
+//   3) 스피너는 그 상자 위에 **절대배치로 가운데** 얹힌다(Figma: Loading 레이어가 inset-0 + center).
+//   4) 스피너 색은 variant별로 다르지만 **언제나 그 variant의 글자색과 같다** — 심볼 4종을 렌더로
+//      대조해 확인했다(primary·secondary=밝은 색, tertiary·outlined=어두운 색). 그래서 색을 따로
+//      매핑하지 않고 LoadingCircular의 `currentColor`가 버튼의 text color를 그대로 상속하게 뒀다.
+//      Figma에 스피너 색 Variable 바인딩이 없어(빈 응답) 임의 hex를 만들지 않으려는 목적도 있다.
+//
+// a11y — Figma에 정의가 없어 코드 판단으로 채운 부분(시각에는 영향 없음):
+//   `aria-busy="true"`로 진행 중임을 알리고, `aria-disabled="true"` + **onClick을 넘기지 않는 것**으로
+//   중복 제출을 막는다.
+//   네이티브 `disabled`를 쓰지 않는 이유: 그러면 `disabled:bg-action-*-disabled`가 발동해 배경이
+//   회색으로 바뀌는데, Figma의 loading 심볼은 **normal과 같은 배경**이라 원본과 어긋나기 때문이다.
+//   `aria-disabled`는 포커스를 유지해서 로딩 중 버튼을 잃어버리지 않는 이점도 있다.
+//
+//   ⚠️ onClick을 `undefined`로 **떨어뜨리는** 방식이지 preventDefault로 삼키는 방식이 아니다.
+//      이 컴포넌트는 Server Component에서도 렌더돼야 해서(conventions #10) 여기서 새 함수를
+//      만들 수 없기 때문이다 — 실제로 처음엔 preventDefault 핸들러를 넣었다가
+//      "Event handlers cannot be passed to Client Component props"로 /playground 프리렌더가
+//      깨졌다(2026-08-08 빌드에서 확인).
+//      부작용: `type="submit"`로 폼 안에 놓인 버튼은 로딩 중에도 브라우저 기본 동작으로 제출된다.
+//      제출까지 막아야 하면 호출부가 `disabled`를 함께 넘긴다. 이때 **배경은 회색으로 바뀌지 않는다** —
+//      아래 LOADING 클래스에는 `disabled:` 변형이 없어서 loading 배경(=normal과 같은 색)이 그대로
+//      유지된다. Figma의 loading 심볼이 normal 배경이라 일부러 그렇게 뒀다.
 
-const BASE = "inline-flex items-center justify-center";
+const BASE = "relative inline-flex items-center justify-center";
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "outlined";
 export type ButtonSize = "medium" | "small";
 
-/** Figma State 축. 기본 `normal`이면 눌림은 `:active`로 자동 적용된다. outlined엔 적용되지 않는다. */
-export type ButtonState = "normal" | "pressed";
+/** Figma State 축. 기본 `normal`이면 눌림은 `:active`로 자동 적용된다. pressed는 outlined엔 적용되지 않는다. */
+export type ButtonState = "normal" | "pressed" | "loading";
 
 /** 색 상태가 있는 3종(primary·secondary·tertiary) 전용 타입 — outlined는 아래에서 별도 처리한다. */
 export type ColorVariant = "primary" | "secondary" | "tertiary";
 
+/** 레이아웃(패딩·radius)만. gap은 내용 래퍼가 들고 있다 — loading일 때 래퍼째 숨기기 위함. */
 const SIZE: Record<ButtonSize, string> = {
-  medium: "gap-2 rounded-lg px-7 py-3",
-  small: "gap-1 rounded-md px-5 py-2",
+  medium: "rounded-lg px-7 py-3",
+  small: "rounded-md px-5 py-2",
+};
+
+const GAP: Record<ButtonSize, string> = {
+  medium: "gap-2",
+  small: "gap-1",
 };
 
 const TEXT: Record<ButtonVariant, Record<ButtonSize, string>> = {
@@ -76,7 +127,16 @@ const PRESSED: Record<ColorVariant, string> = {
     "bg-action-tertiary-pressed text-content-secondary disabled:bg-action-tertiary-disabled",
 };
 
-// outlined는 상태 축이 없어 NORMAL/PRESSED 밖에 고정 클래스로 둔다.
+// loading은 Figma상 배경이 normal과 같다 — 다만 `:active`·`disabled:` 변형은 떼어 낸다.
+// 로딩 중에는 눌러도 반응하지 않아야 하고(그게 aria-disabled의 뜻), 회색 disabled 배경으로
+// 넘어가서도 안 되기 때문이다.
+const LOADING: Record<ColorVariant, string> = {
+  primary: "bg-action-primary-default text-content-inverse",
+  secondary: "bg-action-secondary-default text-content-inverse",
+  tertiary: "bg-action-tertiary-default text-content-secondary",
+};
+
+// outlined는 상태 축이 없어 NORMAL/PRESSED/LOADING 밖에 고정 클래스로 둔다.
 // 대비 참고: content/secondary(#697383) on surface/primary(#fff) ≈ 4.79:1 (텍스트 AA 통과),
 // border/primary(#e5e8ef) on 흰 배경 ≈ 1.23:1 (UI 컴포넌트 3:1 기준 미달) — Figma 원본 그대로 두고
 // 스토리에 미달 사실을 남긴다(임의로 진한 색으로 바꾸지 않음).
@@ -101,32 +161,49 @@ export function Button({
   className,
   type = "button",
   children,
+  onClick,
   ...rest
 }: ButtonProps) {
+  const isLoading = state === "loading";
+
   const colorClasses =
     variant === "outlined"
       ? OUTLINED
-      : state === "pressed"
-        ? PRESSED[variant]
-        : NORMAL[variant];
+      : isLoading
+        ? LOADING[variant]
+        : state === "pressed"
+          ? PRESSED[variant]
+          : NORMAL[variant];
 
   return (
     <button
       type={type}
       className={cn(BASE, SIZE[size], TEXT[variant][size], colorClasses, className)}
+      aria-busy={isLoading || undefined}
+      aria-disabled={isLoading || undefined}
+      onClick={isLoading ? undefined : onClick}
       {...rest}
     >
-      {leadingIcon ? (
-        <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-          {leadingIcon}
+      {isLoading ? (
+        <span className="absolute inset-0 flex items-center justify-center">
+          <LoadingCircular animate />
         </span>
       ) : null}
-      {children}
-      {trailingIcon ? (
-        <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-          {trailingIcon}
-        </span>
-      ) : null}
+      <span
+        className={cn("inline-flex items-center justify-center", GAP[size], isLoading && "invisible")}
+      >
+        {leadingIcon ? (
+          <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
+            {leadingIcon}
+          </span>
+        ) : null}
+        {children}
+        {trailingIcon ? (
+          <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
+            {trailingIcon}
+          </span>
+        ) : null}
+      </span>
     </button>
   );
 }
