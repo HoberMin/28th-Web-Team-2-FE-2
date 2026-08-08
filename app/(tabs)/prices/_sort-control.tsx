@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SheetSort } from "../../_components/sheet-sort";
-import type { SheetSortOption } from "../../_components/sheet-sort";
+import type { SortOption } from "../../_components/list-sort-option";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { buildPricesHref } from "./_href";
 
@@ -27,7 +27,7 @@ import { buildPricesHref } from "./_href";
 // ⚠️ 대비: content/secondary(#697383) on 흰 배경 5.34:1 → 통과.
 
 export interface PricesSortControlProps {
-  options: readonly SheetSortOption[];
+  options: readonly SortOption[];
   value: string;
   label: string;
   query: string;

@@ -16,6 +16,7 @@ import { imageVegetableOnionStory } from "./image-vegetable-onion";
 import { itemVegetableStory } from "./item-vegetable";
 import { listLowestVegetableStory } from "./list-lowest-vegetable";
 import { listRecentReportStory } from "./list-recent-report";
+import { listSortOptionStory } from "./list-sort-option";
 import { listStoryStory } from "./list-story";
 import { loadingCircularStory } from "./loading-circular";
 import { markerStoreMapStory } from "./marker-store-map";
@@ -24,9 +25,11 @@ import { radiusStory } from "./radius";
 import { rowRecentReportStory } from "./row-recent-report";
 import { rowRecommendedStoreStory } from "./row-recommended-store";
 import { rowStoreVegetablesStory } from "./row-store-vegetables";
+import { rowSortOptionStory } from "./row-sort-option";
 import { rowStoryStory } from "./row-story";
 import { sectionRecentReportStory } from "./section-recent-report";
 import { sheetSortStory } from "./sheet-sort";
+import { sheetHandleStory } from "./sheet-handle";
 import { sheetStoreDetailStory } from "./sheet-store-detail";
 import { tabBarStory } from "./tab-bar";
 import type { Story } from "./types";
@@ -90,13 +93,9 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //   · `button/base`(477-5003) — secondary의 **pressed 배경이 size별로 다른 토큰**에 바인딩돼 있는데
 //     (medium `content/secondary` / small `action-secondary/pressed`) 코드가 medium 값을 두 size에
 //     함께 쓰고 있었다. size별로 갈랐다.
-//   · 정렬 시트 계열 — 아래 남은 이슈 ④ 해소. **`sheet-sort.tsx` 한 파일에 합쳐 구현**했다
-//     (핸들·행·목록을 내부에 인라인). Design Library는 이 넷을 각각의 규격으로 두지만
-//     (sheet/sort 318-15278 · list/sort-option 318-15246 · row/sort-option 477-5419 ·
-//      sheet/handle 318-15226), 셋은 정렬 시트 밖에서 단독으로 쓰이지 않아 쪼개지 않았다.
-//     ⚠️ 구현의 출처가 Design Library가 아니라 **화면GUI 파일(d5j7K9BNpSXxVUu3fmZfY4)의
-//        F02 정렬시트(298-3546)**다 — 같은 규격이 두 파일에 있고 아직 라이브러리로 승격되지
-//        않았다. 승격되면 node id를 Design Library 쪽으로 갱신할 것. **사용자 확인 항목.**
+//   · 정렬 시트 계열 — 아래 남은 이슈 ④ 해소. Design Library의 네 규격을 각각 분리 구현했다:
+//     sheet/sort(318-15278) · list/sort-option(318-15246) · row/sort-option(318-14915) ·
+//     sheet/handle(318-15226). 화면GUI 복제본이 아니라 Design Library를 정본으로 삼는다.
 //
 //   실측했지만 **코드를 바꾸지 않은 것**(Figma 원본 유지 + 사실만 기록, figma-bridge §4):
 //   · `icon/heart-stroke-regular`만 23×23px(다른 17종은 24×24) → 코드는 24px 그리드로 정규화
@@ -154,6 +153,7 @@ export const stories: Story[] = [
   textFieldStory,
   filterChipStory,
   loadingCircularStory,
+  sheetHandleStory,
 
   // 컴포넌트 — 배지·칩·내비
   badgeMoreStory,
@@ -175,6 +175,8 @@ export const stories: Story[] = [
   listLowestVegetableStory,
   rowRecentReportStory,
   listRecentReportStory,
+  rowSortOptionStory,
+  listSortOptionStory,
   rowRecommendedStoreStory,
 
   // 컴포넌트 — 격자·카드·마커
