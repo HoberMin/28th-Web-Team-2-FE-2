@@ -17,14 +17,8 @@ import { cn } from "../_lib/cn";
 //               맞아떨어지는 높이다. 처음엔 한 줄 `truncate`로 옮겼다가 렌더 대조에서 잡았다.)
 //   trailing   icon/chevron-right 16×16                  → size-4 슬롯
 //
-// ⚠️ 썸네일 이미지와 chevron 아이콘은 슬롯으로 비워 뒀다 — 둘 다 `download_assets`로만 받을 수 있는
-//    에셋이고 그 경로가 레포 정책상 차단돼 있다(figma-bridge §0-0).
-//
-// ⚠️ chevron 색은 **정하지 않고 상속에 맡겼다**(슬롯 래퍼에 text 색 클래스를 걸지 않는다).
-//    렌더를 보면 옅은 회색인데, 이 아이콘은 Variable 바인딩이 없는 SVG 에셋이라 어떤 토큰인지
-//    (content/disabled인지 gray/300인지) 특정할 수 없다. 스크린샷에서 hex를 읽어 옮기는 건
-//    금지돼 있어(figma-bridge §2 — 그 방식으로 과거 8건이 틀렸다) 임의로 고르지 않았다.
-//    디자이너가 확정해 주면 여기에 색 클래스를 넣는다.
+// 썸네일과 컨텍스트 색이 적용된 16px chevron은 `public/figma/design-library/`에 export했다.
+// 다양한 소식 데이터를 받을 수 있도록 두 자리는 ReactNode 슬롯으로 유지한다.
 //
 // ⚠️ 이 컴포넌트는 **프레젠테이션 전용**이다. chevron이 "누르면 이동"을 암시하지만 Figma 심볼에
 //    버튼·링크 정의가 없어서 임의로 <a>·<button>으로 만들지 않았다. 실제로 누를 수 있게 쓸 때는

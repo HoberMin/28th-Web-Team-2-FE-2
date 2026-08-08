@@ -24,9 +24,8 @@ import { cn } from "../_lib/cn";
 //   반올림 흔적으로 보인다. 새 토큰을 만드는 대신 기존 `shadow-floating`을 재사용했다.
 //   (Figma는 drop-shadow 필터, 여기선 box-shadow — 알약 모양이라 결과는 같다.)
 //
-// ⚠️ 가게 핀(icon/store-fill 185-2134)과 하트(icon/heart-fill 338-8936)는 슬롯으로 비워 뒀다 —
-//    에셋 다운로드가 정책상 차단돼 있다(figma-bridge §0-0). `icon` 슬롯은 currentColor를 쓰는
-//    SVG를 넘겨받는다고 가정하고, type=icon일 때는 이 컴포넌트가 글자색을 흰색으로 잡아 준다.
+// 가게 핀과 하트의 컨텍스트별 원본은 public에 export했다. `icon` 슬롯은 currentColor를 쓰는
+// SVG도 받을 수 있고, type=icon일 때는 이 컴포넌트가 글자색을 흰색으로 잡아 준다.
 //
 // ⚠️ 대비 계산:
 //      icon  흰 글리프 on content/brand/light(#05a163)  = 3.34:1 → 아이콘 기준 3:1 통과

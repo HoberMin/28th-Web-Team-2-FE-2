@@ -15,7 +15,7 @@ import { cn } from "../_lib/cn";
 //   자식   item/vegetable(185-1520) 5개 + badge/more(185-1912) 1개 — 둘 다 이미 구현돼 있어 재사용한다.
 //          Figma 샘플이 5개일 뿐 개수는 고정이 아니라 `items` 배열로 받는다.
 //
-// ⚠️ 야채 그림은 ItemVegetable의 `visual` 슬롯으로 그대로 넘어간다(에셋 다운로드 차단 — figma-bridge §0-0).
+// 야채 그림은 ItemVegetable의 `visual` 슬롯으로 그대로 넘긴다. Figma 샘플 양파는 public에 export했다.
 
 export interface RowStoreVegetablesItem {
   /** 야채 그림 슬롯(48×48). */

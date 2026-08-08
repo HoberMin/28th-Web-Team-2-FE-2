@@ -11,10 +11,8 @@ import { cn } from "../_lib/cn";
 //   이름    caption/12-medium · content/secondary · text-center
 //           max-h-[36px] · min-w-full                → max-h-9 (12px×1.45 = 17.4px → 정확히 2줄까지)
 //
-// ⚠️ 야채 그림은 슬롯으로 비워 뒀다 — Figma에서 이 자리는 `slot/visual`이라는 **빈 슬롯**이고
-//    (샘플에서는 `image/vegetable-onion` 185-1654가 꽂혀 있다), 그 그림 자체는 `download_assets`로만
-//    받을 수 있는 이미지 에셋인데 그 경로가 레포 정책상 차단돼 있다(figma-bridge §0-0).
-//    button-circle.tsx·vegetable-trend.tsx와 같은 처리다.
+// Figma의 `slot/visual` 구조는 유지한다. 샘플의 image/vegetable-onion 원본은
+// `public/figma/design-library/images/onion.png`에 export했다.
 //
 // 대비: content/secondary(#697383) on 흰 배경 = 4.79:1 → 12px 텍스트 AA(4.5:1) 통과.
 

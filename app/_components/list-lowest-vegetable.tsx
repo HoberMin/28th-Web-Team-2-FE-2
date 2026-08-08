@@ -26,8 +26,7 @@ import { cn } from "../_lib/cn";
 //     등락      text/vegetable-trend lines=1
 //   → 가격·등락은 이미 구현된 VegetablePrice·VegetableTrend를 그대로 재사용한다.
 //
-// ⚠️ 야채 그림과 가게 아이콘(icon/store-stroke)은 슬롯으로 비워 뒀다 — 에셋 다운로드가 정책상
-//    차단돼 있다(figma-bridge §0-0).
+// 샘플 양파와 16px icon/store-stroke 원본은 public에 export했다. 데이터 교체를 위해 슬롯은 유지한다.
 //
 // ⚠️ 대비 (기존에 이미 기록된 미달이 그대로 따라온다 — Figma 원본 유지):
 //      단위 표기 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 (기준 4.5:1) → 미달

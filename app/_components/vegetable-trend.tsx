@@ -11,9 +11,8 @@ import { cn } from "../_lib/cn";
 //    있지만 컴포넌트 규격이 down 하나뿐이라 임의로 축을 늘리지 않았다(임의 디자인 결정 금지).
 //    디자이너가 방향 Variant를 추가하면 그때 prop으로 연다.
 //
-// ⚠️ 화살표 아이콘(16×16)은 Figma 안에서 이름 없는 벡터라 코드로 가져오지 못했다 —
-//    에셋 바이트를 받으려면 figma.com URL을 내려받아야 하는데 레포 정책상 차단돼 있다
-//    (figma-bridge §0-0). 그래서 `icon` 슬롯으로 열어 뒀다. text-field의 trailing 슬롯과 같은 처리다.
+// 방향 아이콘 원본은 `public/figma/design-library/icons/trend-*.svg`로 export했다.
+// 향후 up/flat 변형을 같은 레이아웃에 넣을 수 있도록 `icon` 슬롯은 유지한다.
 //
 // ⚠️ 대비: trend/down(blue-600 #217cf9)은 흰 배경에서 3.95:1이라 12px 텍스트 기준(4.5:1)에
 //    미달한다. Figma 원본 값을 그대로 유지하고 사실만 남긴다(figma-bridge §4).

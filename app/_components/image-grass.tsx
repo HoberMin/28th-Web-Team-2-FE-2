@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { cn } from "../_lib/cn";
 
@@ -13,8 +14,8 @@ import { cn } from "../_lib/cn";
 // 어떤 너비에서도 양끝에 붙어 더 편하지만, Figma가 명시한 건 고정 간격이라 원본 값을 그대로 옮겼다
 // (임의 디자인 결정 금지). 너비가 358이 아닌 곳에 쓰려면 호출부가 className으로 조정한다.
 //
-// ⚠️ 풀 그림(SVG 2개)은 `download_assets`로만 받을 수 있고 그 경로가 레포 정책상 차단돼 있다
-//    (figma-bridge §0-0). 그래서 좌·우 각각 슬롯으로 비워 뒀다.
+// Figma MCP Plugin API에서 원본 벡터를 SVG로 export해
+// `public/figma/design-library/images/grass.svg`에 저장했다.
 //
 // 순수 장식이라 스크린리더에서 통째로 숨긴다(WCAG 1.1.1 — 장식 이미지).
 
@@ -27,6 +28,20 @@ export interface ImageGrassProps {
 }
 
 export function ImageGrass({ left, right, className }: ImageGrassProps) {
+  if (left === undefined && right === undefined) {
+    return (
+      <Image
+        src="/figma/design-library/images/grass.svg"
+        alt=""
+        width={358}
+        height={30}
+        unoptimized
+        aria-hidden="true"
+        className={cn("h-7.5 w-89.5 shrink-0", className)}
+      />
+    );
+  }
+
   return (
     <div aria-hidden="true" className={cn("flex w-89.5 items-center gap-48", className)}>
       <span className="relative flex h-7.5 w-20.25 shrink-0 items-center justify-center overflow-hidden">

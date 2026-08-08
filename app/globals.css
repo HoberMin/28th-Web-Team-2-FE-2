@@ -162,11 +162,13 @@
 
   /*
    * 그림자 — Figma Variables 컬렉션이 아니라 노드에 직접 걸린 Effect(drop shadow) 값.
-   * `button/circle`(node 350-17885, 2026-08-06 sync)의 흰 원형 버튼 하나가 현재 유일한 사용처.
+   * `button/circle`(node 350-17885 · size=36 nodes 477-3372/3375/3378/3381)의 흰 원형 버튼.
    * 원본 rgba(74,86,103,0.22)는 raw 팔레트의 gray/700과 같은 색이라 hex를 복제하지 않고
    * color-mix로 참조한다(figma-bridge §3 매핑 규칙).
    */
   --shadow-floating: 0px 0px 3px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
+  /* button/circle size=36(477-3372·3375·3378·3381)의 같은 Effect를 0.75배 스케일한 값. */
+  --shadow-floating-sm: 0px 0px 2.25px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
   /*
    * `sheet/store-detail`(node 392-12707, 2026-08-08 sync)의 바텀시트가 위로 드리우는 그림자.
    * Figma 원본 rgba(74,86,103,0.2) — floating과 같은 gray/700 계열이지만 **오프셋·블러·투명도가 달라**
@@ -333,6 +335,12 @@ body {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* Figma card/recommended-store(185:2359)의 Variable 미바인딩 그라데이션.
+   토큰을 추정하지 않고 MCP로 읽은 원본 fill을 SVG 에셋으로 export했다. */
+@utility bg-recommended-store {
+  background-image: url("/figma/design-library/images/recommended-store-background.svg");
 }
 
 /* 프로토타입 온보딩 모션 — 소개 화면(F00-0) 히어로 야채가 느리게 둥실거린다.

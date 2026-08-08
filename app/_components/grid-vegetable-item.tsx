@@ -24,9 +24,8 @@ import { cn } from "../_lib/cn";
 //     trend     text/vegetable-trend lines=1
 //   → 가격·등락은 이미 구현된 VegetablePrice·VegetableTrend를 재사용한다.
 //
-// ⚠️ 사진과 하트 아이콘은 슬롯으로 비워 뒀다 — 둘 다 에셋 다운로드가 정책상 차단돼 있다
-//    (figma-bridge §0-0). 디자이너가 heart-stroke-regular(338-8937)·heart-fill(338-8936) SVG를
-//    주면 `favoriteIcon`에 그대로 꽂으면 된다.
+// Figma 샘플 사진과 favorite별 하트 원본은 `public/figma/design-library/`에 export했다.
+// 실제 데이터에 따라 사진과 찜 상태가 바뀌므로 두 자리는 슬롯으로 유지한다.
 //
 // ⚠️ 이 컴포넌트는 **프레젠테이션 전용**이다. Figma 심볼의 favorite 자리에는 버튼 정의가 없어
 //    <button>으로 만들지 않았다. 찜을 실제로 토글하려면 `button/circle`(ButtonCircle)을 쓰거나

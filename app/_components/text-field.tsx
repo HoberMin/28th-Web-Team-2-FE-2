@@ -10,9 +10,8 @@ import { cn } from "../_lib/cn";
 //   typing  → 입력값(content/primary)       + trailing에 icon/close-fill
 // 그래서 trailing은 슬롯으로 열어 두고 호출자가 상황에 맞는 아이콘을 넣는다.
 //
-// ⚠️ 아이콘(icon/search·icon/close-fill)은 아직 코드에 없다 — Figma 아이콘 SVG를 받으려면
-//    figma.com 에셋 URL을 내려받아야 하는데 레포 정책상 차단돼 있다(figma-bridge §0-0).
-//    디자이너가 SVG를 따로 전달하면 그때 아이콘 컴포넌트를 추가한다.
+// icon/search·icon/close-fill 원본은 `public/figma/design-library/icons/`에 export했다.
+// 입력값 소유권은 호출부에 있으므로 trailing 슬롯은 유지하고 상태에 맞는 에셋을 넘긴다.
 //
 // ⚠️ Figma의 텍스트 스타일 `body/16-medium`이 이 노드에서는 구 Pretendard 메트릭
 //    (lineHeight 1.5 / letterSpacing -3%)으로 잡혀 있다. 현재 토큰(Wanted Sans, 1.55 / -2%)이

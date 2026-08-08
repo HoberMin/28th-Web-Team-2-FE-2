@@ -16,8 +16,8 @@ import { cn } from "../_lib/cn";
 // 제목 길이가 제각각이면 높이가 흔들리므로, Figma가 잡아 둔 overflow-hidden + ellipsis의 의도를
 // 살려 **두 줄에서 자른다**(line-clamp-2). row/story에서 확인한 것과 같은 처리다.
 //
-// ⚠️ 썸네일 이미지는 슬롯이다 — `download_assets`로만 받을 수 있고 그 경로가 레포 정책상 차단돼 있다
-//    (figma-bridge §0-0). `thumbnail`에 <img>든 next/image든 넘기면 된다.
+// Figma 샘플 썸네일은 `public/figma/design-library/images/news-thumbnail.png`로 export했다.
+// 실제 뉴스마다 이미지가 달라지므로 `thumbnail` 슬롯은 유지한다.
 //
 // ⚠️ 대비: 날짜 content/disabled(#b4bbcb) on 흰 배경 = **1.92:1** (14px 기준 4.5:1) → 미달.
 //    Figma 원본 유지 + 사실만 기록한다(figma-bridge §4). 제목은 13.51:1로 통과.

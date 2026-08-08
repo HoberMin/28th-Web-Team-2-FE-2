@@ -24,7 +24,7 @@ import { cn } from "../_lib/cn";
 // list/recent-report 심볼 안의 두 행이 각각 date=today / date=yesterday라서,
 // 배지의 today·yesterday 두 값이 실제로 이 행에서 쓰이는 것을 확인했다.
 //
-// ⚠️ 야채 그림은 슬롯으로 비워 뒀다 — 에셋 다운로드가 정책상 차단돼 있다(figma-bridge §0-0).
+// 샘플 양파 원본은 public에 export했고, 실제 제보의 야채가 바뀌므로 visual 슬롯은 유지한다.
 //
 // ⚠️ 대비: 단위 표기 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 (기준 4.5:1) → 미달.
 //    배지 자체의 미달값은 badge-report-date.tsx에 기록했다. 모두 Figma 원본 유지다.

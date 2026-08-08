@@ -25,7 +25,7 @@ import { cn } from "../_lib/cn";
 // 그대로 쓰도록**(`bg-current`, 거리 묶음이 content/secondary를 들고 있다) 처리했다 —
 // 임의 토큰 선택을 피하면서 원본과 가장 가깝다.
 //
-// ⚠️ 가게 아이콘과 chevron은 슬롯이다(에셋 다운로드 차단 — figma-bridge §0-0).
+// 가게 아이콘과 chevron 원본은 public에 export했고, 행의 조합 가능성을 위해 슬롯은 유지한다.
 //
 // ⚠️ 프레젠테이션 전용이다. chevron이 이동을 암시하지만 Figma 심볼에 버튼·링크 정의가 없어
 //    <a>·<button>으로 만들지 않았다. row/story와 같은 처리 — 호출부가 감싼다.
