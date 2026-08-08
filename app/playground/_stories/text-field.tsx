@@ -1,4 +1,5 @@
 import { TextField } from "../../_components/text-field";
+import { FigmaIcon } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `field/text` node 237-8556, sync 2026-08-05 → **재sync 2026-08-06**: Property 1에
@@ -14,12 +15,20 @@ function TextFieldStory() {
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <p className="text-body-14-semibold text-content-primary">normal (비어 있을 때)</p>
-          <TextField placeholder="찾는 야채 있으신가요?" aria-label="야채 검색" />
+          <TextField
+            placeholder="찾는 야채 있으신가요?"
+            aria-label="야채 검색"
+            trailing={<FigmaIcon name="search" width={24} />}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
           <p className="text-body-14-semibold text-content-primary">typing (값이 있을 때)</p>
-          <TextField defaultValue="당근당근" aria-label="야채 검색" />
+          <TextField
+            defaultValue="당근당근"
+            aria-label="야채 검색"
+            trailing={<FigmaIcon name="close-fill" width={24} />}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -27,7 +36,11 @@ function TextFieldStory() {
           <p className="text-caption-12-regular text-content-secondary">
             아래 칸을 탭 또는 클릭해서 포커스 링을 확인하세요.
           </p>
-          <TextField placeholder="찾는 야채 있으신가요?" aria-label="야채 검색 (포커스 확인용)" />
+          <TextField
+            placeholder="찾는 야채 있으신가요?"
+            aria-label="야채 검색 (포커스 확인용)"
+            trailing={<FigmaIcon name="search" width={24} />}
+          />
         </div>
       </div>
     </div>

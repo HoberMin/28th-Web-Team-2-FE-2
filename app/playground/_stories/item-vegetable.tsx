@@ -1,17 +1,12 @@
 import { ItemVegetable } from "../../_components/item-vegetable";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `item/vegetable` node 185-1520, sync 2026-08-08. 신규 컴포넌트. Variant 없음.
 //
-// ⚠️ 아래 회색 동그라미는 야채 그림이 들어갈 자리를 표시한 임시 표시다. 실제 그림은
-// Figma에서 코드로 가져올 수 없어(에셋 다운로드 차단) 슬롯으로 비워 뒀다 —
-// 디자이너가 그림을 주면 그대로 꽂으면 된다.
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-12 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={48} height={48} className="size-12 object-contain" />
   );
 }
 
@@ -24,7 +19,7 @@ function ItemVegetableStory() {
         <p className="text-body-14-semibold text-content-primary">이름 길이에 따라</p>
         <div className="flex flex-wrap items-start gap-6">
           {NAMES.map((name) => (
-            <ItemVegetable key={name} visual={<VisualPlaceholder />} name={name} />
+            <ItemVegetable key={name} visual={<VegetableImage />} name={name} />
           ))}
         </div>
         <p className="text-caption-12-regular text-content-secondary">

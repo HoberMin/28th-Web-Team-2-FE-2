@@ -1,38 +1,24 @@
 import { CardStoryList } from "../../_components/card-story-list";
 import { RowStory } from "../../_components/row-story";
+import { FigmaIcon, FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `card/story-list` node 186-3233, sync 2026-08-08. Variant 없음.
 // 심볼 안에는 행이 2개지만 그건 샘플 개수라 바꿀 수 있게 만들었다.
 //
-// ⚠️ 썸네일·화살표는 Figma 에셋을 코드로 가져올 수 없어 자리표시로 대신했다.
-// 화살표 색이 Figma(옅은 회색)보다 진한 것도 row/story와 같은 이유다 — 색 토큰이 특정되지 않아
-// 컴포넌트가 색을 정하지 않고 상속에 맡기고 있다.
-
-function ThumbnailPlaceholder() {
+function StoryThumbnail() {
   return (
-    <span className="flex size-12 items-center justify-center bg-surface-secondary text-caption-12-regular text-content-disabled">
-      사진
-    </span>
+    <FigmaImage
+      name="story-thumbnail.png"
+      width={48}
+      height={48}
+      className="size-full object-cover"
+    />
   );
 }
 
 function ChevronRightIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="16"
-      height="16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m6 3 5 5-5 5" />
-    </svg>
-  );
+  return <FigmaIcon name="chevron-right-row-story-16" width={16} />;
 }
 
 const TITLES = [
@@ -49,7 +35,7 @@ function CardStoryListStory() {
           {TITLES.map((title) => (
             <RowStory
               key={title}
-              thumbnail={<ThumbnailPlaceholder />}
+              thumbnail={<StoryThumbnail />}
               title={title}
               trailingIcon={<ChevronRightIcon />}
             />
@@ -63,7 +49,7 @@ function CardStoryListStory() {
           {[
             <RowStory
               key="only"
-              thumbnail={<ThumbnailPlaceholder />}
+              thumbnail={<StoryThumbnail />}
               title="양파 값, 한달 새 12% 내렸어요"
               trailingIcon={<ChevronRightIcon />}
             />,

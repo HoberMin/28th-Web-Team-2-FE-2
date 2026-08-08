@@ -2,6 +2,7 @@ import { HeaderStoreDetail } from "../../_components/header-store-detail";
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
 import { SheetStoreDetail } from "../../_components/sheet-store-detail";
+import { FigmaIcon, FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `sheet/store-detail` node 392-12707, sync 2026-08-08. Variant 없음.
@@ -9,7 +10,6 @@ import type { Story } from "./types";
 //
 // 시트 자체는 지도 위로 올라오는 화면이라, 회색 판 위에 얹어 그림자와 위쪽 둥근 모서리가 보이게 뒀다.
 //
-// ⚠️ 아이콘·야채 그림은 Figma 에셋을 코드로 가져올 수 없어 자리표시·임시 도형으로 대신했다.
 // ⚠️ 여닫는 동작(드래그·바깥 누르면 닫기·포커스 가두기)은 이 규격 밖이다 — 화면에 붙일 때 추가한다.
 
 function ActionButton({
@@ -33,45 +33,16 @@ function ActionButton({
 }
 
 function HeartOutlineIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.5 5c2 0 3.4 1.1 4.5 2.6C11.1 6.1 12.5 5 14.5 5 18 5 19.4 8.6 22 11.9 19.5 16.4 12 21 12 21Z" />
-    </svg>
-  );
+  return <FigmaIcon name="heart-stroke-header-20" width={20} />;
 }
 
 function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <path d="M6 6l12 12M18 6 6 18" />
-    </svg>
-  );
+  return <FigmaIcon name="close-header-20" width={20} />;
 }
 
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
   );
 }
 
@@ -115,7 +86,7 @@ function SheetStoreDetailStory() {
               {ROWS.map((row) => (
                 <RowRecentReport
                   key={row.name}
-                  visual={<VisualPlaceholder />}
+                  visual={<VegetableImage />}
                   name={row.name}
                   reportDate={row.reportDate}
                   price={row.price}

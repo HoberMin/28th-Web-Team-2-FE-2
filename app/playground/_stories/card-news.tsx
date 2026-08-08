@@ -1,16 +1,18 @@
 import { CardNews } from "../../_components/card-news";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `card/news` node 253-2136, sync 2026-08-08. Variant 없음.
 // 가로 캐러셀에 놓이는 카드라, 여러 장을 나란히 둔 모습까지 함께 본다.
 //
-// ⚠️ 썸네일 사진은 Figma 에셋을 코드로 가져올 수 없어(에셋 다운로드 차단) 자리표시로 대신했다.
-
-function ThumbnailPlaceholder() {
+function NewsThumbnail() {
   return (
-    <span className="flex size-full items-center justify-center bg-surface-secondary text-caption-12-regular text-content-disabled">
-      사진
-    </span>
+    <FigmaImage
+      name="news-thumbnail.png"
+      width={200}
+      height={108}
+      className="size-full object-cover"
+    />
   );
 }
 
@@ -28,7 +30,7 @@ function CardNewsStory() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">기본</p>
-        <CardNews thumbnail={<ThumbnailPlaceholder />} title={NEWS[0].title} date={NEWS[0].date} />
+        <CardNews thumbnail={<NewsThumbnail />} title={NEWS[0].title} date={NEWS[0].date} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -37,7 +39,7 @@ function CardNewsStory() {
           {NEWS.map((news) => (
             <CardNews
               key={news.title}
-              thumbnail={<ThumbnailPlaceholder />}
+              thumbnail={<NewsThumbnail />}
               title={news.title}
               date={news.date}
             />

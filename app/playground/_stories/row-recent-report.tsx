@@ -1,16 +1,13 @@
 import { RowRecentReport } from "../../_components/row-recent-report";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/recent-report` node 359-18537, sync 2026-08-08. 신규 컴포넌트.
 // Variant 축은 배지가 붙느냐 마느냐 하나라 그 두 모습을 나열한다.
 //
-// ⚠️ 회색 동그라미는 야채 그림이 들어갈 자리다(에셋 다운로드 차단).
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
   );
 }
 
@@ -20,7 +17,7 @@ function RowRecentReportStory() {
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">오늘 들어온 제보</p>
         <RowRecentReport
-          visual={<VisualPlaceholder />}
+          visual={<VegetableImage />}
           name="양파"
           reportDate="today"
           price="99,900원"
@@ -31,7 +28,7 @@ function RowRecentReportStory() {
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">어제 들어온 제보</p>
         <RowRecentReport
-          visual={<VisualPlaceholder />}
+          visual={<VegetableImage />}
           name="대추방울토마토"
           reportDate="yesterday"
           price="8,500원"
@@ -42,7 +39,7 @@ function RowRecentReportStory() {
       <div className="flex flex-col gap-2">
         <p className="text-body-14-semibold text-content-primary">배지 없이</p>
         <RowRecentReport
-          visual={<VisualPlaceholder />}
+          visual={<VegetableImage />}
           name="고춧가루(중국산)"
           price="132,000원"
           unit="/100kg"

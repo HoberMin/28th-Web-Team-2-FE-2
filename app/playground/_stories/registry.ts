@@ -51,7 +51,7 @@ import { vegetableTrendStory } from "./vegetable-trend";
 // 2026-08-06: Figma 링크 3개 반영 — "플레이그라운드 컴포넌트들 실제로 작동하게" 요청.
 //   · button/cta_md(160-2855) 재sync: size(medium·small) 축 + variant `outlined` 추가.
 //   · field/text(237-8556) 재sync: focused state 추가(실측 결과 normal과 시각 차이 없음).
-//   · button/circle(350-17885) 신규 등록 — 찜(좋아요) 토글 데모, 아이콘은 스토리 안 임시 placeholder.
+//   · button/circle(350-17885) 신규 등록 — 찜(좋아요) 토글 데모.
 //
 // ── 2026-08-08: `컴포넌트` 섹션(부모 437-28228) 미구현분을 **2배치로 나눠 전부 반영**했다. ──
 //
@@ -76,27 +76,18 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //     shadow-floating과 색 계열은 같지만 오프셋·블러·투명도가 달라 합칠 수 없었다.
 //   + header/store-detail·section/recent-report·sheet/store-detail은 조합 규칙이라 group="패턴".
 //
-// 남은 이슈 (구현은 끝났고, 디자이너 확인이 필요한 것들):
+// 2026-08-08 에셋 후속 sync:
+//   · Figma Plugin API로 아이콘 18종과 컨텍스트 오버라이드 아이콘 10종을 SVG export.
+//   · story/news/vegetable/onion 래스터와 loading 원본 GIF, image/grass SVG를 public에 저장.
+//   · card/recommended-store의 Variable 미바인딩 gradient fill도 원본 stop/transform 그대로 SVG화.
+//   · 플레이그라운드의 임시 도형·자리표시를 전부 원본 에셋으로 교체.
 //
-// ① 아이콘·일러스트 에셋 — **여전히 코드로 가져올 수 없다.** `download_assets`가 SVG 바이트가
-//    아니라 figma.com 서명 URL을 돌려주고, 그 URL을 받으려면 REST 접근이 필요한데
-//    `.claude/settings.json`의 deny가 그걸 막는다(figma-bridge §0-0). 팀 정책이라 유지한다.
-//    → 그래서 모든 아이콘·사진·일러스트 자리는 `ReactNode` 슬롯으로 열어 두었고, 스토리에서는
-//      임시 도형/자리표시로 대신 보여 준다. 디자이너가 SVG를 레포로 직접 전달하면 그대로 꽂힌다.
+//   · button/circle size=36 축과 전용 2.25px shadow 토큰까지 추가.
 //
-// ② card/recommended-store 배경 그라데이션 — **미해결(⛔).** Figma 원본
-//    `#f7fff3 → #e8fbd5 → #dbfbb9`가 어느 Variable에도 바인딩돼 있지 않고 우리 팔레트에도 없다.
-//    추측 매핑도 raw hex 삽입도 금지라 배경을 비워 뒀다(figma-bridge §3). 디자이너가 Variable로
-//    등록하거나 기존 토큰 대체를 승인해야 닫힌다.
+// 남은 이슈:
 //
-// ③ button/circle에 size=36 변형이 생겼다(477-3372·3375·3378·3381). 우리 button-circle.tsx는
-//    48px 하나만 지원한다 — size 축 추가가 필요하다(이번 배치 범위 밖).
-//
-// ④ 아직 구현하지 않은 규격: sheet/sort(318-15278) 계열(list/sort-option·row/sort-option·
-//    sheet/handle)과 아이콘 세트(sec/icon 436-28079). 정렬 시트는 별도 흐름이라 다음 배치로 남긴다.
-//
-// (구 ③ "합성 컴포넌트는 에셋 때문에 옮길 수 없다"는 보류 사유는 **해소됐다** — 에셋을 슬롯으로
-//  분리하는 방식으로 전부 구현했다. 위 ①이 그 대체 설명이다.)
+// ① 아직 구현하지 않은 규격: sheet/sort(318-15278) 계열(list/sort-option·row/sort-option·
+//    sheet/handle). 아이콘 세트(sec/icon 436-28079)는 에셋 export만 완료했다.
 export const stories: Story[] = [
   // 파운데이션
   colorStory,

@@ -1,56 +1,35 @@
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
+import { FigmaIcon, FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `grid/vegetable-item` node 237-11384, sync 2026-08-08. 신규 컴포넌트.
 // Figma 심볼은 2개(favorite=false · favorite=true)라 그 2개를 나열하고, 격자에 깔린 모습도 함께 본다.
 //
-// ⚠️ 사진과 하트는 Figma 에셋을 코드로 가져올 수 없어(에셋 다운로드 차단) 임시 표시로 대신했다.
-// 하트는 button/circle 스토리와 같은 임시 도형이다 — 디자이너가 실제 아이콘을 주면 교체한다.
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-full items-center justify-center text-caption-12-regular text-content-disabled">
-      사진
-    </span>
+    <FigmaImage
+      name="vegetable-grid.png"
+      width={110}
+      height={110}
+      className="size-full object-cover"
+    />
   );
 }
 
 function HeartOutlineIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="23"
-      height="23"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.5 5c2 0 3.4 1.1 4.5 2.6C11.1 6.1 12.5 5 14.5 5 18 5 19.4 8.6 22 11.9 19.5 16.4 12 21 12 21Z" />
-    </svg>
-  );
+  return <FigmaIcon name="heart-stroke-grid-24" width={24} />;
 }
 
 function HeartFillIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-      <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.5 5c2 0 3.4 1.1 4.5 2.6C11.1 6.1 12.5 5 14.5 5 18 5 19.4 8.6 22 11.9 19.5 16.4 12 21 12 21Z" />
-    </svg>
-  );
+  return <FigmaIcon name="heart-fill-grid-24" width={24} />;
 }
 
 function TrendDownIcon() {
-  return (
-    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-      <path d="M8 12 3.5 6h9L8 12Z" />
-    </svg>
-  );
+  return <FigmaIcon name="trend-down" width={16} />;
 }
 
 const SHARED = {
-  visual: <VisualPlaceholder />,
+  visual: <VegetableImage />,
   price: "249,090원",
   unit: "/100kg",
   trendAmount: "100,000원",

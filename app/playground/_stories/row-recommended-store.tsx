@@ -1,35 +1,15 @@
 import { RowRecommendedStore } from "../../_components/row-recommended-store";
+import { FigmaIcon } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/recommended-store` node 185-2117, sync 2026-08-08. Variant 없음.
 //
-// ⚠️ 가게 아이콘·화살표는 Figma 에셋을 코드로 가져올 수 없어 임시 도형으로 대신했다.
-
 function StoreIcon() {
-  return (
-    <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor" aria-hidden="true">
-      <path d="M2.5 3.5h15l.9 3.6a2.7 2.7 0 0 1-5.1.7 2.7 2.7 0 0 1-5 0 2.7 2.7 0 0 1-5.1-.7l.9-3.6Z" />
-      <path d="M3.8 9.4V17h12.4V9.4a3.9 3.9 0 0 1-2.5-.5 3.9 3.9 0 0 1-5 0 3.9 3.9 0 0 1-4.9.5Z" />
-    </svg>
-  );
+  return <FigmaIcon name="store-fill-recommended-20" width={20} />;
 }
 
 function ChevronRightIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m7.5 4 6 6-6 6" />
-    </svg>
-  );
+  return <FigmaIcon name="chevron-right-recommended-20" width={20} />;
 }
 
 function RowRecommendedStoreStory() {

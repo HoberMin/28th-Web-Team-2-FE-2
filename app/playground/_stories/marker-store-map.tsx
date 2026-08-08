@@ -1,30 +1,19 @@
 import { MarkerStoreMap } from "../../_components/marker-store-map";
+import { FigmaIcon } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `marker/store-map` node 439-7518, sync 2026-08-08. 신규 컴포넌트.
 // Figma 심볼은 3개(type=name · favorite · icon)라 그 3개만 나열한다.
 //
-// ⚠️ 가게 핀과 하트는 Figma 에셋을 코드로 가져올 수 없어(에셋 다운로드 차단) 임시 도형으로
-// 대신했다 — 디자이너가 실제 아이콘을 주면 교체한다.
-//
 // 배경 규약(design-guide §1-1)상 스토리 배경은 흰색 고정이라, 지도 위에 놓인 느낌은
 // 회색 판을 깔아 대신 보여 준다. 마커 자체의 색은 바꾸지 않았다.
 
 function StorePinIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
-      <path d="M3 4h18l1.1 4.3a3.2 3.2 0 0 1-6.1.9 3.2 3.2 0 0 1-6 0 3.2 3.2 0 0 1-6.1-.9L3 4Z" />
-      <path d="M4.5 11.2V20h15v-8.8a4.7 4.7 0 0 1-3-.6 4.7 4.7 0 0 1-6 0 4.7 4.7 0 0 1-6 .6Z" />
-    </svg>
-  );
+  return <FigmaIcon name="store-fill-marker-24" width={24} height={23} />;
 }
 
 function HeartFillIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-      <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.5 5c2 0 3.4 1.1 4.5 2.6C11.1 6.1 12.5 5 14.5 5 18 5 19.4 8.6 22 11.9 19.5 16.4 12 21 12 21Z" />
-    </svg>
-  );
+  return <FigmaIcon name="heart-fill-marker-16" width={16} />;
 }
 
 function MarkerStoreMapStory() {

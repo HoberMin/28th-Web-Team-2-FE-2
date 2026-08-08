@@ -1,18 +1,15 @@
 import { ListRecentReport } from "../../_components/list-recent-report";
 import { RowRecentReport } from "../../_components/row-recent-report";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `list/recent-report` node 392-11786, sync 2026-08-08. 신규 컴포넌트. Variant 없음.
 // Figma 심볼 안에는 오늘·어제 행이 하나씩 들어 있고 **행 사이 간격이 0**이다
 // (`list/story`와 다르니 주의). 개수는 샘플일 뿐이라 바꿀 수 있게 만들었다.
 //
-// ⚠️ 회색 동그라미는 야채 그림이 들어갈 자리다(에셋 다운로드 차단).
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
   );
 }
 
@@ -31,7 +28,7 @@ function ListRecentReportStory() {
           {ROWS.map((row) => (
             <RowRecentReport
               key={row.name}
-              visual={<VisualPlaceholder />}
+              visual={<VegetableImage />}
               name={row.name}
               reportDate={row.reportDate}
               price={row.price}

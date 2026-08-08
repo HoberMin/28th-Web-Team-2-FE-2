@@ -1,5 +1,6 @@
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `section/recent-report` node 392-12708, sync 2026-08-08.
@@ -8,13 +9,9 @@ import type { Story } from "./types";
 //
 // **빈 상태가 Figma에 실제로 있는 드문 경우다** — 우리가 지어낸 게 아니라 원본 심볼 그대로다.
 //
-// ⚠️ 야채 그림은 Figma 에셋을 코드로 가져올 수 없어 자리표시로 대신했다.
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
   );
 }
 
@@ -32,7 +29,7 @@ function SectionRecentReportStory() {
           {ROWS.map((row) => (
             <RowRecentReport
               key={row.name}
-              visual={<VisualPlaceholder />}
+              visual={<VegetableImage />}
               name={row.name}
               reportDate={row.reportDate}
               price={row.price}

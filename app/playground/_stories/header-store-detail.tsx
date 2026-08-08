@@ -1,4 +1,5 @@
 import { HeaderStoreDetail } from "../../_components/header-store-detail";
+import { FigmaIcon } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `header/store-detail` node 392-12144, sync 2026-08-08. Variant 없음.
@@ -7,7 +8,6 @@ import type { Story } from "./types";
 // ⚠️ 오른쪽 위 동그란 버튼 2개는 컴포넌트가 아니라 **슬롯**이다. Figma가 이 자리에서
 // button/circle을 회색 배경·36px로 덮어쓰고 있어 우리 ButtonCircle(흰 배경·48px)과 다르기 때문이다.
 // 그래서 여기 스토리에서 그 회색 원형 버튼을 직접 조립해 보여 준다.
-// 하트·닫기 아이콘은 Figma 에셋을 가져올 수 없어 임시 도형으로 대신했다.
 
 function ActionButton({
   label,
@@ -30,38 +30,11 @@ function ActionButton({
 }
 
 function HeartOutlineIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12 21s-7.5-4.6-10-9.1C.6 8.6 2 5 5.5 5c2 0 3.4 1.1 4.5 2.6C11.1 6.1 12.5 5 14.5 5 18 5 19.4 8.6 22 11.9 19.5 16.4 12 21 12 21Z" />
-    </svg>
-  );
+  return <FigmaIcon name="heart-stroke-header-20" width={20} />;
 }
 
 function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <path d="M6 6l12 12M18 6 6 18" />
-    </svg>
-  );
+  return <FigmaIcon name="close-header-20" width={20} />;
 }
 
 function Actions() {

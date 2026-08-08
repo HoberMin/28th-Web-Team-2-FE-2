@@ -2,18 +2,6 @@ import { ImageVegetableOnion } from "../../_components/image-vegetable-onion";
 import type { Story } from "./types";
 
 // Figma `image/vegetable-onion` node 185-1654, sync 2026-08-08. Variant 없음.
-// 그림을 담는 최소 래퍼라서, 실제 그림 대신 자리표시를 넣어 크기와 잘림만 보여 준다.
-//
-// ⚠️ 실제 양파 그림은 Figma 에셋을 코드로 가져올 수 없어(에셋 다운로드 차단) 비워 뒀다.
-
-function Placeholder() {
-  return (
-    <span className="flex size-full items-center justify-center bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
-  );
-}
-
 const SIZES = [
   { className: "size-12", label: "48 (기본)" },
   { className: "size-10", label: "40" },
@@ -27,9 +15,7 @@ function ImageVegetableOnionStory() {
         <div className="flex flex-wrap items-end gap-6">
           {SIZES.map(({ className, label }) => (
             <div key={label} className="flex flex-col items-center gap-1.5">
-              <ImageVegetableOnion className={className}>
-                <Placeholder />
-              </ImageVegetableOnion>
+              <ImageVegetableOnion className={className} />
               <span className="text-caption-12-regular text-content-secondary">{label}</span>
             </div>
           ))}

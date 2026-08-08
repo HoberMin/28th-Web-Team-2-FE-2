@@ -1,23 +1,20 @@
 import { RowStoreVegetables } from "../../_components/row-store-vegetables";
+import { FigmaImage } from "./figma-asset";
 import type { Story } from "./types";
 
 // Figma `row/store-vegetables` node 185-2042, sync 2026-08-08. 신규 컴포넌트. Variant 없음.
 // Figma 샘플은 야채 5개 + "+7" 배지지만 개수는 고정이 아니라 바꿀 수 있게 만들었다.
 //
-// ⚠️ 회색 동그라미는 야채 그림이 들어갈 자리다(에셋 다운로드 차단).
-
-function VisualPlaceholder() {
+function VegetableImage() {
   return (
-    <span className="flex size-12 items-center justify-center rounded-full bg-surface-secondary text-caption-12-regular text-content-disabled">
-      그림
-    </span>
+    <FigmaImage name="onion.png" width={48} height={48} className="size-12 object-contain" />
   );
 }
 
 const NAMES = ["양파", "대추방울토마토", "얼갈이배추", "새송이버섯", "고춧가루(중국산)"];
 
 function toItems(names: string[]) {
-  return names.map((name) => ({ name, visual: <VisualPlaceholder /> }));
+  return names.map((name) => ({ name, visual: <VegetableImage /> }));
 }
 
 function RowStoreVegetablesStory() {
