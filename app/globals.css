@@ -167,6 +167,13 @@
    * color-mix로 참조한다(figma-bridge §3 매핑 규칙).
    */
   --shadow-floating: 0px 0px 3px color-mix(in srgb, var(--color-gray-700) 22%, transparent);
+  /*
+   * `sheet/store-detail`(node 392-12707, 2026-08-08 sync)의 바텀시트가 위로 드리우는 그림자.
+   * Figma 원본 rgba(74,86,103,0.2) — floating과 같은 gray/700 계열이지만 **오프셋·블러·투명도가 달라**
+   * (0 -4px 6px / 20% vs 0 0 3px / 22%) 같은 토큰으로 합칠 수 없다. 그래서 별도로 둔다.
+   * 이것도 Variables 컬렉션이 아니라 노드에 직접 걸린 Effect 값이다(shadow-floating과 같은 출처 유형).
+   */
+  --shadow-sheet: 0px -4px 6px color-mix(in srgb, var(--color-gray-700) 20%, transparent);
 
   /*
    * 타이포그래피 — Figma Variables (node 171-3737) sync 2026-08-05 · **최종본**
