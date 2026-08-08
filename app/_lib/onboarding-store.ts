@@ -5,6 +5,7 @@
 
 import { useSyncExternalStore } from "react";
 import { setDistrict } from "./location";
+import { ROUTES } from "./routes";
 
 const STORAGE_KEY = "veg-onboarding-v1";
 const listeners = new Set<() => void>();
@@ -167,7 +168,10 @@ export function readOnboarding(): OnboardingState {
  * 카카오 인증을 이미 마친 사람에게 인증을 다시 시키지 않는 게 이 함수의 존재 이유다.
  */
 export function nextOnboardingRoute(state: OnboardingState): string | null {
-  if (!state.authProvider) return "/prototype/intro";
-  if (!state.completed) return "/prototype/onboarding";
+  // ⚠️ 프로토타입 제거(2026-08-08)로 두 단계가 한 경로로 합쳐졌다. 온보딩·로그인 화면은
+  //    Figma 미확정이라 `/onboarding`이 아직 존재하지 않는다 — 이 함수는 현재 호출부가 없다.
+  //    시안이 나오면 인증/동네선택 단계를 다시 분리한다.
+  if (!state.authProvider) return ROUTES.onboarding;
+  if (!state.completed) return ROUTES.onboarding;
   return null;
 }

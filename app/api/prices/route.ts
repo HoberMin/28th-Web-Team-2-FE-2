@@ -1,5 +1,5 @@
-import { getBaselinePrice } from "../../prototype/_lib/kamis";
-import { getVegetable } from "../../prototype/_lib/vegetables";
+import { getBaselinePrice } from "@/app/_lib/kamis";
+import { getVegetable } from "@/app/_lib/vegetables";
 
 // 시세 BFF — 외부 KAMIS 앞단 프록시(conventions #7). 인증키는 서버(kamis.ts)에만 존재하고
 // 클라이언트 번들·응답에 노출되지 않는다. 캐싱·정규화도 여기(서버)까지.

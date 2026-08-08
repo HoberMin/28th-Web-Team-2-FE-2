@@ -5,7 +5,7 @@
 // 위치 기반 개인화 조회라 항상 최신 좌표로 조회한다 — 라우트 전체를 동적으로 선언(no-store).
 export const dynamic = "force-dynamic";
 
-import { getFallbackNearbyStores, type NearbyStore } from "../../prototype/_lib/nearby-stores";
+import { getFallbackNearbyStores, type NearbyStore } from "@/app/_lib/nearby-stores";
 
 interface KakaoKeywordDoc {
   id?: string;
