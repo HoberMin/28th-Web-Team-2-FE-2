@@ -286,7 +286,7 @@ function NeighborhoodPricesSheet({
       onClick={(event) => {
         if (event.target === dialogRef.current) onOpenChange(false);
       }}
-      className="mx-auto mt-auto mb-0 max-h-[66dvh] w-full max-w-97.5 overflow-hidden rounded-t-3xl border-0 bg-transparent p-0 backdrop:bg-overlay-dim"
+      className="mx-auto mt-auto mb-0 max-h-[66dvh] w-full max-w-97.5 overflow-hidden rounded-t-3xl border-0 bg-transparent p-0 outline-none backdrop:bg-overlay-dim"
     >
       <div className="flex max-h-[66dvh] flex-col items-center rounded-t-3xl bg-surface-primary px-4 pt-2 pb-8">
         <SheetHandle />
