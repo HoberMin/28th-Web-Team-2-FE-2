@@ -89,7 +89,7 @@ export function PriceSectionNav() {
   return (
     <nav
       aria-label="시세 상세 섹션"
-      className="sticky top-0 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4"
+      className="sticky top-0 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4 shadow-[0_2px_3px_rgba(0,0,0,0.04)]"
     >
       {DETAIL_SECTIONS.map(({ id, label }) => (
         <a
@@ -210,7 +210,7 @@ function SortButton({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`min-h-10 flex-1 rounded-md border border-border-secondary p-2 text-body-14-semibold ${selected ? "bg-surface-primary text-content-primary" : "bg-surface-secondary text-content-secondary"}`}
+      className={`min-h-10 flex-1 rounded-md border border-border-secondary p-2 ${selected ? "bg-surface-primary text-body-14-bold text-content-primary" : "bg-surface-secondary text-body-14-semibold text-content-secondary"}`}
     >
       {children}
     </button>
