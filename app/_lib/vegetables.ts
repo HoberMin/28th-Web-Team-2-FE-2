@@ -642,7 +642,7 @@ export function getNeighborhoodSeedReports(district: string): Report[] {
     if (authored.has(veg.id)) continue;
     const base = BASE_PRICE[veg.id] ?? 3000;
     const seed = hashSeed(`${regionId}-${veg.id}`);
-    const count = 2 + (seed % 2); // 품목마다 2~3건
+    const count = 4 + (seed % 2); // 기본 3건 + 더보기에서 1~2건 노출
     for (let i = 0; i < count; i++) {
       // 기준가 대비 -10~+10% 편차 · 최근 2주 내 날짜 (모두 seed로 결정)
       const price = round10(base * (1 + (((seed + i * 37) % 21) - 10) / 100));
