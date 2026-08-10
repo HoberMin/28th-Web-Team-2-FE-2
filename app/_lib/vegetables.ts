@@ -562,7 +562,8 @@ const NEIGHBOR_NICKNAME_POOL = [
 
 /**
  * 손으로 작성한 동네 이웃 제보 시드(mine=false).
- * potato/삼성동 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원) — 자동 생성이 덮지 않게 별도 보존.
+ * potato/삼성동 첫 3건은 Figma "동네 제보가"와 정합(2000·2380·2290원), 나머지 2건은
+ * 더보기 바텀시트 검증용이다 — 자동 생성이 덮지 않게 별도 보존.
  * place는 가게 축(F09 가게 상세)이 비지 않도록 삼성동 실제 상권 이름으로 채운다.
  * 함수인 이유: createdAt이 `daysAgoAt`(오늘 기준 상대값)이라 호출 시점마다 다시 계산해야 한다.
  */
@@ -571,6 +572,8 @@ function buildHandSeedReports(): Report[] {
     { id: "seed-potato-1", vegetableId: "potato", district: "삼성동", place: "우리농산물가락직판장", weightKg: 1, price: 2000, pricePerKg: 2000, createdAt: daysAgoAt(0, "09:00:00"), method: "photo", mine: false, purchased: true, nickname: "선릉이웃" },
     { id: "seed-potato-2", vegetableId: "potato", district: "삼성동", place: "행복청과", weightKg: 1, price: 2380, pricePerKg: 2380, createdAt: daysAgoAt(2, "18:20:00"), method: "manual", mine: false, purchased: true, nickname: "알뜰장보기" },
     { id: "seed-potato-3", vegetableId: "potato", district: "삼성동", place: "이마트 강남점", weightKg: 1, price: 2290, pricePerKg: 2290, createdAt: daysAgoAt(4, "11:05:00"), method: "photo", mine: false, purchased: true, nickname: "동네한바퀴" },
+    { id: "seed-potato-4", vegetableId: "potato", district: "삼성동", place: "제일마트", weightKg: 1, price: 2150, pricePerKg: 2150, createdAt: daysAgoAt(6, "16:40:00"), method: "manual", mine: false, purchased: true, nickname: "냉장고파먹기" },
+    { id: "seed-potato-5", vegetableId: "potato", district: "삼성동", place: "선릉시장 3번가게", weightKg: 1, price: 2450, pricePerKg: 2450, createdAt: daysAgoAt(8, "12:10:00"), method: "photo", mine: false, purchased: true, nickname: "주말장보기" },
     { id: "seed-onion-1", vegetableId: "onion", district: "삼성동", place: "우리농산물가락직판장", weightKg: 2, price: 3600, pricePerKg: 1800, createdAt: daysAgoAt(1, "14:30:00"), method: "manual", mine: false, purchased: true, nickname: "세아이엄마" },
     { id: "seed-carrot-1", vegetableId: "carrot", district: "삼성동", place: "행복청과", weightKg: 1, price: 2700, pricePerKg: 2700, createdAt: daysAgoAt(3, "10:15:00"), method: "photo", mine: false, purchased: true, nickname: "장바구니요정" },
   ];

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
+import { SheetHandle } from "@/app/_components/sheet-handle";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import type { PricePeriod, PricePoint } from "@/app/_lib/types";
@@ -108,7 +109,7 @@ export function PriceSectionNav() {
 
 export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
   const [sort, setSort] = useState<ReportSort>("recent");
-  const [expanded, setExpanded] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const sorted = useMemo(
     () =>
       reports.toSorted((a, b) =>
@@ -116,7 +117,7 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
       ),
     [reports, sort],
   );
-  const visible = expanded ? sorted : sorted.slice(0, 3);
+  const visible = sorted.slice(0, 3);
 
   return (
     <section id="neighborhood-prices" className="scroll-mt-12 px-4 py-8">
@@ -134,47 +135,7 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
       </div>
 
       {visible.length > 0 ? (
-        <ul className="mt-3">
-          {visible.map((report, index) => {
-            const direction = report.diff < 0 ? "down" : report.diff > 0 ? "up" : "flat";
-            const signedPercent = `${report.diffPercent > 0 ? "+" : "-"}${Math.abs(report.diffPercent).toFixed(1)}%`;
-
-            return (
-              <li
-                key={report.id}
-                className={index === visible.length - 1 ? "" : "border-b border-border-secondary"}
-              >
-                <div className="flex min-h-19 items-start justify-between px-2 py-4">
-                  <p className="min-w-0 truncate text-body-16-medium text-content-primary">
-                    {report.place}
-                    <span aria-hidden="true" className="mx-1 text-content-disabled">·</span>
-                    <span className="text-caption-12-medium text-content-disabled">{report.age}</span>
-                  </p>
-                  <div className="flex w-41 shrink-0 flex-col items-end gap-0.5">
-                    <p className="flex items-center gap-1 whitespace-nowrap">
-                      <span className="text-body-16-bold text-content-primary">
-                        {formatWon(report.price)}
-                      </span>
-                      <span className="text-caption-12-regular text-content-disabled">
-                        /{report.unit}
-                      </span>
-                    </p>
-                    {direction === "flat" ? (
-                      <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
-                    ) : (
-                      <span
-                        className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}
-                      >
-                        <FigmaIcon name={`trend-${direction}`} width={16} />
-                        {formatWon(Math.abs(report.diff))}({signedPercent})
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <NeighborhoodReportList reports={visible} className="mt-3" />
       ) : (
         <p className="py-10 text-center text-body-14-medium text-content-secondary">
           아직 이 동네의 제보가 없어요.
@@ -185,14 +146,114 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
         <button
           type="button"
           className="mt-1 flex min-h-9.5 w-full items-center justify-center rounded-md border border-border-primary px-5 py-2 text-body-14-medium text-content-secondary"
-          aria-expanded={expanded}
-          aria-disabled={reports.length <= 3 || undefined}
-          onClick={reports.length > 3 ? () => setExpanded((value) => !value) : undefined}
+          aria-haspopup="dialog"
+          aria-expanded={sheetOpen}
+          onClick={() => setSheetOpen(true)}
         >
-          {expanded ? "접기" : "더보기"}
+          더보기
         </button>
       ) : null}
+
+      <NeighborhoodPricesSheet
+        open={sheetOpen}
+        reports={sorted}
+        onOpenChange={setSheetOpen}
+      />
     </section>
+  );
+}
+
+function NeighborhoodReportList({
+  reports,
+  className,
+}: {
+  reports: PriceDetailReport[];
+  className?: string;
+}) {
+  return (
+    <ul className={className}>
+      {reports.map((report, index) => {
+        const direction = report.diff < 0 ? "down" : report.diff > 0 ? "up" : "flat";
+        const signedPercent = `${report.diffPercent > 0 ? "+" : "-"}${Math.abs(report.diffPercent).toFixed(1)}%`;
+
+        return (
+          <li
+            key={report.id}
+            className={index === reports.length - 1 ? "" : "border-b border-border-secondary"}
+          >
+            <div className="flex min-h-19 items-start justify-between px-2 py-4">
+              <p className="min-w-0 truncate text-body-16-medium text-content-primary">
+                {report.place}
+                <span aria-hidden="true" className="mx-1 text-content-disabled">·</span>
+                <span className="text-caption-12-medium text-content-disabled">{report.age}</span>
+              </p>
+              <div className="flex w-41 shrink-0 flex-col items-end gap-0.5">
+                <p className="flex items-center gap-1 whitespace-nowrap">
+                  <span className="text-body-16-bold text-content-primary">
+                    {formatWon(report.price)}
+                  </span>
+                  <span className="text-caption-12-regular text-content-disabled">
+                    /{report.unit}
+                  </span>
+                </p>
+                {direction === "flat" ? (
+                  <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
+                ) : (
+                  <span
+                    className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}
+                  >
+                    <FigmaIcon name={`trend-${direction}`} width={16} />
+                    {formatWon(Math.abs(report.diff))}({signedPercent})
+                  </span>
+                )}
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function NeighborhoodPricesSheet({
+  open,
+  reports,
+  onOpenChange,
+}: {
+  open: boolean;
+  reports: PriceDetailReport[];
+  onOpenChange: (open: boolean) => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      onClose={() => onOpenChange(false)}
+      onClick={(event) => {
+        if (event.target === dialogRef.current) onOpenChange(false);
+      }}
+      className="mx-auto mt-auto mb-0 max-h-[66dvh] w-full max-w-97.5 overflow-hidden rounded-t-3xl border-0 bg-transparent p-0 backdrop:bg-overlay-dim"
+    >
+      <div className="flex max-h-[66dvh] flex-col items-center rounded-t-3xl bg-surface-primary px-4 pt-2 pb-8">
+        <SheetHandle />
+        <div className="mt-4 flex min-h-0 w-full flex-1 flex-col">
+          <h2 id={titleId} className="shrink-0 text-title-18-semibold text-content-primary">
+            동네 제보가
+          </h2>
+          <NeighborhoodReportList reports={reports} className="mt-2 min-h-0 flex-1 overflow-y-auto" />
+        </div>
+      </div>
+    </dialog>
   );
 }
 
