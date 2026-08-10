@@ -31,6 +31,10 @@ export interface KakaoMapsApi {
     yAnchor?: number;
     clickable?: boolean;
   }) => KakaoCustomOverlay;
+  event: {
+    addListener(target: KakaoMap, type: "click", handler: () => void): void;
+    removeListener(target: KakaoMap, type: "click", handler: () => void): void;
+  };
   load(callback: () => void): void;
 }
 

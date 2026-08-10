@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadKakaoSdk, type MapLoadStatus } from "@/app/_lib/kakao-map";
+import {
+  loadKakaoSdk,
+  type KakaoMap,
+  type KakaoMapsApi,
+  type MapLoadStatus,
+} from "@/app/_lib/kakao-map";
 
 // F03 가게 탭의 지역 배지가 광진구로 고정돼 있으므로 지도도 같은 지역 중심에서 시작한다.
 // 실가게 API가 붙으면 사용자 좌표와 응답 마커 범위에 맞춰 center/level을 갱신한다.
@@ -13,7 +18,11 @@ const GWANGJIN_CENTER = { lat: 37.5384, lng: 127.0822 } as const;
  * 지도는 화면 전체를 채우고 검색·필터·마커·바텀시트는 `_map-view.tsx`가 위에 겹친다.
  * JavaScript 키가 없거나 SDK 로드가 실패해도 컨트롤 영역은 유지하고 실패 안내만 표시한다.
  */
-export function MapCanvas() {
+export interface MapCanvasProps {
+  onMapClick?: () => void;
+}
+
+export function MapCanvas({ onMapClick }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<MapLoadStatus>("idle");
 
@@ -22,6 +31,8 @@ export function MapCanvas() {
     if (!container) return;
 
     let cancelled = false;
+    let kakaoMaps: KakaoMapsApi | null = null;
+    let map: KakaoMap | null = null;
     setStatus("loading");
 
     void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
@@ -33,7 +44,9 @@ export function MapCanvas() {
         }
 
         const center = new kakao.maps.LatLng(GWANGJIN_CENTER.lat, GWANGJIN_CENTER.lng);
-        new kakao.maps.Map(container, { center, level: 4 });
+        kakaoMaps = kakao.maps;
+        map = new kakao.maps.Map(container, { center, level: 4 });
+        if (onMapClick) kakao.maps.event.addListener(map, "click", onMapClick);
         setStatus("ready");
       })
       .catch(() => {
@@ -42,12 +55,19 @@ export function MapCanvas() {
 
     return () => {
       cancelled = true;
+      if (map && kakaoMaps && onMapClick) {
+        kakaoMaps.event.removeListener(map, "click", onMapClick);
+      }
       container.replaceChildren();
     };
-  }, []);
+  }, [onMapClick]);
 
   return (
-    <div aria-hidden="true" className="absolute inset-0 bg-surface-secondary">
+    <div
+      aria-hidden="true"
+      onClick={status === "ready" ? undefined : onMapClick}
+      className="absolute inset-0 bg-surface-secondary"
+    >
       <div ref={containerRef} className="absolute inset-0" />
 
       {status !== "ready" ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { BadgeMapLocation } from "../../_components/badge-map-location";
 import { ButtonCircle } from "../../_components/button-circle";
@@ -105,6 +105,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
   const [favoriteIds, setFavoriteIds] = useState<string[]>(initialFavoriteIds);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [query, setQuery] = useState("");
+  const closeSelectedStore = useCallback(() => setSelectedId(null), []);
 
   const keyword = query.trim();
   const visibleStores = stores.filter(
@@ -151,7 +152,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
       tabIndex={-1}
       className="relative h-full w-full overflow-hidden focus-visible:outline-none"
     >
-      <MapCanvas />
+      <MapCanvas onMapClick={closeSelectedStore} />
 
       {/* 마커 오버레이 — 중심 앵커. 컨테이너는 탭을 가로막지 않고 마커만 받는다. */}
       <div className="pointer-events-none absolute inset-0 z-10">
@@ -237,7 +238,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
 
       {/* 바텀시트. ⚠️ Figma는 시트(442~844)가 GNB(765~844)를 완전히 덮지만, 여기서는 GNB 위에
           올린다 — GNB는 (tabs)/layout.tsx가 소유하고 이 화면 바깥에 있으며, 시안에 드래그
-          핸들이 없어 닫는 길이 X 버튼 하나뿐이라 탭 이동까지 막으면 사용자가 갇힌다.
+          핸들이 없어 X·지도 빈 영역·Esc로 닫을 수 있다. 탭 이동까지 막으면 사용자가 갇힌다.
           감사에서 미결로 남은 항목이다(디자이너 확인 필요). */}
       {selectedStore ? (
         <div className="absolute inset-x-0 bottom-0 z-30">
@@ -245,7 +246,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
             store={selectedStore}
             isFavorite={favoriteIds.includes(selectedStore.id)}
             onToggleFavorite={() => toggleFavorite(selectedStore.id)}
-            onClose={() => setSelectedId(null)}
+            onClose={closeSelectedStore}
             fallbackFocusRef={mapRootRef}
           />
         </div>
