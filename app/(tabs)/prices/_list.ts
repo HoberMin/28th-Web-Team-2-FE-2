@@ -16,6 +16,7 @@ import {
   getNeighborhoodSeedReports,
   getVegetableGroup,
 } from "../../_lib/vegetables";
+import { PRICE_VEGETABLE_IMAGE_BY_ID } from "./_images";
 
 /**
  * Figma 정렬시트(298-3546)의 옵션 3종. 라벨은 Figma 문구 그대로.
@@ -55,7 +56,7 @@ export type TrendState = "up" | "down" | "flat";
 export interface PriceRow {
   id: string;
   name: string;
-  image?: string;
+  image: string;
   group: VegetableGroup;
   /**
    * 찜 여부. Figma 기본 프레임(298-3421)의 3번째 카드가 찜 상태라 화면에 두 모습이 다 나와야 한다.
@@ -124,7 +125,7 @@ export function buildPriceRows(): PriceRowsResult {
     return {
       id: vegetable.id,
       name: vegetable.name,
-      image: vegetable.image,
+      image: PRICE_VEGETABLE_IMAGE_BY_ID[vegetable.id],
       group: getVegetableGroup(vegetable.id),
       favorite: SEED_FAVORITES.includes(vegetable.id),
       price: formatWon(baseline.current),

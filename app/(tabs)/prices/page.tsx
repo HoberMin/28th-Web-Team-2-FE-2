@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
-import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatAsOfLabel } from "../../_lib/format";
 import { ROUTES } from "../../_lib/routes";
 import { VEGETABLE_GROUPS } from "../../_lib/vegetables";
@@ -31,8 +31,9 @@ import { PricesSortControl } from "./_sort-control";
 //
 // GNB(nav/gnb)는 여기서 그리지 않는다 — `app/(tabs)/layout.tsx`가 소유한다.
 //
-// 아이콘·사진은 전부 **Figma 원본 에셋**이다(`public/figma/design-library/`, 디자이너가 Figma
-// Plugin API로 export해 레포에 전달). 이 화면이 한동안 들고 있던 임시 SVG 글리프 7종은 폐기했다.
+// 아이콘은 **Figma 원본 에셋**이다(`public/figma/design-library/`, 디자이너가 Figma Plugin API로
+// export해 레포에 전달). 품목 사진은 `public/vegetables/coupang/`의 로컬 쿠팡 대표 이미지다.
+// 이 화면이 한동안 들고 있던 임시 SVG 글리프 7종은 폐기했다.
 // (그때 남긴 "에셋 다운로드가 정책상 차단돼 있다"는 서술은 사실이 아니었다 — `download_assets`
 //  도구 자체는 정상이고, 그 도구가 돌려주는 figma.com URL을 받아오는 `curl` 경로가 deny에
 //  걸리는 것이다. figma-bridge §0-0.)
@@ -92,34 +93,19 @@ const TREND_LABEL: Record<TrendState, string> = {
 /**
  * 카드 사진(110×110).
  *
- * 품목 일러스트가 있는 8종은 그걸 쓰고, 나머지는 Figma 카드 사진(`vegetable-grid.png`)으로 채운다.
- * 예전엔 이모지 + `text-6xl`(Figma 규격이 아닌 Tailwind 기본 스케일)로 때웠는데, Figma 원본이
- * 들어왔으므로 임의 표현을 버렸다.
- *
- * ⚠️ **`vegetable-grid.png`는 Figma 시안의 샘플 사진(오이)이다.** 시안(298-3421)이 모든 카드에
- *    같은 오이 사진을 깔아 둔 자리표시라 품목별 사진은 아직 없다 → 일러스트가 없는 품목은 이름과
- *    사진이 어긋난다. **품목별 사진 확보는 디자이너 확인 필요.**
+ * 시세 카탈로그 46종 각각에 대응하는 쿠팡 상품 대표 이미지를 로컬 에셋으로 사용한다.
+ * 외부 CDN을 런타임에 호출하지 않아 화면 로딩과 원격 이미지 정책에 영향을 받지 않는다.
  *
  * 품목명은 옆 텍스트가 담당하므로 사진은 장식(빈 alt)으로 둔다.
  */
 function VegetableVisual({ row }: { row: PriceRow }) {
-  if (row.image) {
-    return (
-      <Image
-        src={row.image}
-        alt=""
-        width={110}
-        height={110}
-        className="size-full object-contain"
-      />
-    );
-  }
   return (
-    <FigmaImage
-      name="vegetable-grid.png"
+    <Image
+      src={row.image}
+      alt=""
       width={110}
       height={110}
-      className="size-full object-cover"
+      className="size-full object-contain"
     />
   );
 }
