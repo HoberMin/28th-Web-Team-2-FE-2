@@ -118,11 +118,11 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
               {online?.prices.map((price) => {
                 const comparison = latestReport ? price.price - latestReport.pricePerKg : null;
                 return (
-                  <li key={price.mall} className="border-b border-border-secondary py-4">
+                  <li key={price.mall} className="border-b border-border-secondary py-4 last:border-b-0">
                     <div className="flex items-center justify-between">
                       <div className="flex min-w-0 items-center gap-2">
                         <MallLogo mall={price.mall} />
-                        <div className="min-w-0">
+                        <div className="w-[102px] min-w-0 shrink-0">
                           <p className="truncate text-body-16-medium text-content-primary">{price.mall}</p>
                           <p className="truncate text-caption-12-medium text-content-disabled">
                             {price.channel}{price.channelNote ? ` · ${price.channelNote}` : ""}
