@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PRICE_VEGETABLE_IMAGE_BY_ID } from "@/app/(tabs)/prices/_images";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
@@ -41,6 +43,11 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   const latestReport = reports[0];
   const online = getOnlinePrices(vegetable.id);
+  const previousPublicPrice = baseline.series.week.at(-2)?.price ?? baseline.current;
+  const publicPriceDiff = baseline.current - previousPublicPrice;
+  const publicPriceDiffPercent = previousPublicPrice > 0
+    ? (publicPriceDiff / previousPublicPrice) * 100
+    : 0;
   const averageWeightNote = vegetable.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
   const detailReports: PriceDetailReport[] = reports.map((report) => ({
     id: report.id,
@@ -65,6 +72,16 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           <h1 className="sr-only">{vegetable.name} 야채 시세 상세</h1>
+          <PriceSummary
+            name={vegetable.name}
+            unit={vegetable.unit}
+            image={PRICE_VEGETABLE_IMAGE_BY_ID[vegetable.id] ?? vegetable.image}
+            latestReportPrice={latestReport?.pricePerKg}
+            publicPrice={baseline.current}
+            publicPriceDiff={publicPriceDiff}
+            publicPriceDiffPercent={publicPriceDiffPercent}
+          />
+          <div className="h-2 bg-border-secondary" />
           <PriceSectionNav />
 
           <NeighborhoodPrices reports={detailReports} />
@@ -144,6 +161,71 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         </footer>
       </div>
     </div>
+  );
+}
+
+interface PriceSummaryProps {
+  name: string;
+  unit: string;
+  image?: string;
+  latestReportPrice?: number;
+  publicPrice: number;
+  publicPriceDiff: number;
+  publicPriceDiffPercent: number;
+}
+
+function PriceSummary({
+  name,
+  unit,
+  image,
+  latestReportPrice,
+  publicPrice,
+  publicPriceDiff,
+  publicPriceDiffPercent,
+}: PriceSummaryProps) {
+  const direction = publicPriceDiff < 0 ? "down" : publicPriceDiff > 0 ? "up" : "flat";
+
+  return (
+    <section aria-label={`${name} 가격 요약`} className="flex gap-5 px-4 pt-6 pb-7.75">
+      <div className="relative size-31 shrink-0 overflow-hidden rounded-xl border border-border-img bg-background-secondary">
+        {image ? (
+          <Image src={image} alt={name} fill sizes="124px" className="object-cover" priority />
+        ) : (
+          <span className="flex size-full items-center justify-center text-5xl" aria-hidden="true">
+            🥬
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1 whitespace-nowrap text-content-primary">
+          <strong className="text-title-20-bold">{name}</strong>
+          <span className="text-title-18-medium">{unit}</span>
+        </p>
+        <div className="mt-0.5 flex items-center justify-between border-b border-border-secondary py-2">
+          <span className="text-body-16-medium text-content-secondary">최근 동네 제보가</span>
+          <strong className="text-title-18-semibold text-content-primary">
+            {latestReportPrice === undefined ? "제보 없음" : formatWon(latestReportPrice)}
+          </strong>
+        </div>
+        <div className="mt-2 flex flex-col gap-0.5">
+          <p className="flex items-center justify-between">
+            <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
+            <span className="text-body-14-medium text-content-secondary">{formatWon(publicPrice)}</span>
+          </p>
+          <p className="flex items-center justify-between">
+            <span className="text-caption-12-medium text-content-disabled">어제 대비</span>
+            {direction === "flat" ? (
+              <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
+            ) : (
+              <span className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}>
+                <FigmaIcon name={`trend-${direction}`} width={16} />
+                {formatWon(Math.abs(publicPriceDiff))}({publicPriceDiffPercent > 0 ? "+" : "-"}{Math.abs(publicPriceDiffPercent).toFixed(1)}%)
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
