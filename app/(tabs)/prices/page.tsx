@@ -54,7 +54,7 @@ import { PricesSortControl } from "./_sort-control";
 //     여백은 가림 보정이 아니라 스크롤 끝 숨통이다.
 //   · **정렬 영역의 절대좌표를 버렸다.** Figma는 x=213 절대배치라 텍스트 우측 끝이 370에서
 //     끝나 다른 섹션(374)과 4px 어긋난다. 컨테이너 px-4 안에서 우측 정렬로 잡았다.
-//   · 카드는 아직 어디로도 링크되지 않는다 — 시세 상세 화면이 Figma 미확정이다.
+//   · 카드는 F03 시세 상세(`/prices/[itemId]`)로 연결한다.
 //
 // 찜 하트: 사진 위에 얹히는 자리라 그리드 전용 원본 2종(`icon/heart-stroke-grid-24` ·
 //   `icon/heart-fill-grid-24`)을 쓴다. 흰 아웃라인 + drop shadow(찜 전), 빨강 #fd364d(찜 후)가
@@ -198,29 +198,34 @@ export default async function PricesPage({
           <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
             {visible.map((row) => (
               <li key={row.id}>
-                <GridVegetableItem
-                  visual={<VegetableVisual row={row} />}
-                  name={row.name}
-                  price={row.price}
-                  unit={row.unit}
-                  trendAmount={row.trendAmount}
-                  trendPercent={row.trendPercent}
-                  trendState={row.trendState}
-                  trendIcon={
-                    <>
-                      {TREND_ICON[row.trendState]}
-                      <span className="sr-only">{TREND_LABEL[row.trendState]}</span>
-                    </>
-                  }
-                  favorite={row.favorite}
-                  favoriteIcon={
-                    row.favorite ? (
-                      <FigmaIcon name="heart-fill-grid-24" width={24} />
-                    ) : (
-                      <FigmaIcon name="heart-stroke-grid-24" width={24} />
-                    )
-                  }
-                />
+                <Link
+                  href={ROUTES.priceDetail(row.id)}
+                  className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+                >
+                  <GridVegetableItem
+                    visual={<VegetableVisual row={row} />}
+                    name={row.name}
+                    price={row.price}
+                    unit={row.unit}
+                    trendAmount={row.trendAmount}
+                    trendPercent={row.trendPercent}
+                    trendState={row.trendState}
+                    trendIcon={
+                      <>
+                        {TREND_ICON[row.trendState]}
+                        <span className="sr-only">{TREND_LABEL[row.trendState]}</span>
+                      </>
+                    }
+                    favorite={row.favorite}
+                    favoriteIcon={
+                      row.favorite ? (
+                        <FigmaIcon name="heart-fill-grid-24" width={24} />
+                      ) : (
+                        <FigmaIcon name="heart-stroke-grid-24" width={24} />
+                      )
+                    }
+                  />
+                </Link>
               </li>
             ))}
           </ul>

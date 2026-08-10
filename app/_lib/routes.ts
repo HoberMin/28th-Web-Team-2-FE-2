@@ -18,7 +18,7 @@ export const ROUTES = {
   /** F05 마이페이지 — Figma 미확정 */
   mypage: "/mypage",
 
-  /** 시세 상세 — GNB 없는 풀스크린. Figma 미확정 */
+  /** F03 시세 상세 — GNB 없는 풀스크린 */
   priceDetail: (itemId: string) => `/prices/${itemId}`,
   /** 제보 흐름 — Figma 미확정 */
   report: "/report",

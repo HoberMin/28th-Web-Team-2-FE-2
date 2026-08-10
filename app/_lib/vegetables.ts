@@ -337,12 +337,13 @@ const ONLINE_PRICES: Record<string, MallEntry[]> = {
 /**
  * `ONLINE_PRICES`에 수기 엔트리가 없는 나머지 품목(30여 종)을 채우는 폴백 —
  * 온라인 섹션이 "있다 없다" 하면 디자이너가 규격을 하나로 못 잡는다(백로그 F03 #11).
- * 컬리·쿠팡·G마켓 3개 채널을 `BASE_PRICE` 대비 배율로 합성한다(전부 더미 — measured: false).
+ * 컬리·쿠팡·G마켓·B마트 4개 채널을 `BASE_PRICE` 대비 배율로 합성한다(전부 더미 — measured: false).
  */
 const FALLBACK_MALL_PROFILE: { mall: OnlineMall; channel: OnlineChannelKind; mult: number; note?: string }[] = [
   { mall: "컬리", channel: "새벽배송", mult: 1.2 },
   { mall: "쿠팡", channel: "새벽배송", mult: 1.0, note: "와우회원가" },
   { mall: "G마켓", channel: "오픈마켓", mult: 0.82, note: "배송비 별도" },
+  { mall: "B마트", channel: "즉시배송", mult: 1.35, note: "배달비 별도" },
 ];
 
 function buildFallbackOnlineEntries(veg: Vegetable): MallEntry[] {
@@ -416,14 +417,20 @@ export interface OnlinePriceSet {
 }
 
 /**
- * 품목의 온라인 판매가 묶음(기준 단위 환산). 수기 엔트리가 없으면 `buildFallbackOnlineEntries`로
- * 채워 **전 품목**에 섹션이 뜨게 한다(백로그 F03 #11 — 품목마다 있다 없다 하면 규격이 안 잡힌다).
+ * 품목의 온라인 판매가 묶음(기준 단위 환산). 수기 엔트리에 없는 채널은
+ * `buildFallbackOnlineEntries`로 채워 **전 품목 × 4채널**에 섹션이 뜨게 한다
+ * (백로그 F03 #11 — 품목마다 있다 없다 하면 규격이 안 잡힌다).
  * 온라인은 여전히 보조 기준이라 화면 위계는 올리지 않는다.
  */
 export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined {
   const veg = getVegetable(vegetableId);
   if (!veg) return undefined;
-  const entries = ONLINE_PRICES[vegetableId] ?? buildFallbackOnlineEntries(veg);
+  const authored = ONLINE_PRICES[vegetableId] ?? [];
+  const authoredMalls = new Set(authored.map((entry) => entry.mall));
+  const entries = [
+    ...authored,
+    ...buildFallbackOnlineEntries(veg).filter((entry) => !authoredMalls.has(entry.mall)),
+  ];
   if (entries.length === 0) return undefined;
 
   const prices: MartPrice[] = entries
