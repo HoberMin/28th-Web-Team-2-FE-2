@@ -1,34 +1,66 @@
-// 지도 캔버스 — **이번 사이클은 플레이스홀더다.**
-//
-// Figma의 `Rectangle 24/25`(y 132~765)는 실제 지도 영역이 아니라 지도 스크린샷 PNG를 깐
-// 사각형이다. 파란 현위치 점도 그 PNG에 구워져 있어서, 코드에서는 배경과 점을 각각 그려야 한다.
-//
-// ⚠️ **전체화면으로 깐다 — 디자이너 확인 대기 항목이다.**
-//    Figma의 y 132~765(633px)는 어긋난 값이 아니라 정확히 계산된 구획이다:
-//    844 − 44(Status Bar) − 88(흰 검색 헤더) − 79(GNB) = 633. 즉 밴드로 만들어도
-//    위아래에 흰 띠가 남지 않는다(예전 주석의 "흰 띠가 남는다"는 서술은 사실이 아니라 지웠다).
-//    그럼에도 전체화면으로 가는 이유는 두 가지다 — ① 카카오맵 SDK를 붙이는 표준 형태가
-//    컨테이너를 꽉 채우고 컨트롤을 그 위에 띄우는 것이고, ② 그래야 지도 면적이 넓어져
-//    핀치·드래그로 실제 탐색이 되는 화면이 된다.
-//    Figma 구획을 그대로 따를지(밴드) 지도 면적을 벌지(전체화면)는 디자이너 결정 사항이다.
-//
-// ⚠️ 실제 SDK는 붙이지 않았다. 붙일 때는 `app/_lib/kakao-map.ts`의 `loadKakaoSdk(appKey)`를
-//    이 컴포넌트 안에서 부르면 된다 — 키가 없거나 로드가 실패하면 `null`을 돌려주므로
-//    이 플레이스홀더가 그대로 폴백이 된다. 앱키는 도메인 제한이 걸린 공개 키(NEXT_PUBLIC_)이지
-//    시크릿이 아니다(conventions #7 대상 아님).
-//
-// ⚠️ 현위치 점은 **Figma에 규격이 없다**(래스터에 구워져 있어 색·크기를 잴 수 없다).
-//    토큰 안에서 가장 가까운 값(blue/500 + 흰 테두리)으로 임시 구현했다 — 디자이너 확인 항목.
+"use client";
 
+import { useEffect, useRef, useState } from "react";
+import { loadKakaoSdk, type MapLoadStatus } from "@/app/_lib/kakao-map";
+
+// F03 가게 탭의 지역 배지가 광진구로 고정돼 있으므로 지도도 같은 지역 중심에서 시작한다.
+// 실가게 API가 붙으면 사용자 좌표와 응답 마커 범위에 맞춰 center/level을 갱신한다.
+const GWANGJIN_CENTER = { lat: 37.5384, lng: 127.0822 } as const;
+
+/**
+ * 카카오 지도 캔버스.
+ *
+ * 지도는 화면 전체를 채우고 검색·필터·마커·바텀시트는 `_map-view.tsx`가 위에 겹친다.
+ * JavaScript 키가 없거나 SDK 로드가 실패해도 컨트롤 영역은 유지하고 실패 안내만 표시한다.
+ */
 export function MapCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [status, setStatus] = useState<MapLoadStatus>("idle");
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let cancelled = false;
+    setStatus("loading");
+
+    void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
+      .then((kakao) => {
+        if (cancelled) return;
+        if (!kakao) {
+          setStatus("failed");
+          return;
+        }
+
+        const center = new kakao.maps.LatLng(GWANGJIN_CENTER.lat, GWANGJIN_CENTER.lng);
+        new kakao.maps.Map(container, { center, level: 4 });
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("failed");
+      });
+
+    return () => {
+      cancelled = true;
+      container.replaceChildren();
+    };
+  }, []);
+
   return (
     <div aria-hidden="true" className="absolute inset-0 bg-surface-secondary">
-      {/* 지도 타일이 들어올 자리. 실제 SDK가 붙으면 이 요소가 지도 컨테이너가 된다. */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <p className="text-body-14-regular text-content-disabled">지도 준비 중</p>
-      </div>
-      {/* 현위치 — 지도 중심. 임시 구현(위 ⚠️ 참고). */}
-      <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+      <div ref={containerRef} className="absolute inset-0" />
+
+      {status !== "ready" ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+          <p className="text-body-14-regular text-content-disabled">
+            {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
+          </p>
+        </div>
+      ) : null}
+
+      {status === "ready" ? (
+        <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+      ) : null}
     </div>
   );
 }
