@@ -124,21 +124,10 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
     );
   };
 
-  // 마커 모습의 우선순위: **찜 > 선택 > 기본**.
-  //
-  // Figma 298:3617 → 298:3630 전환의 핵심이 "시트에서 하트를 누르면 선택된 마커가
-  // name(3628 w=108)에서 favorite(3641 w=128, 하트+이름)으로 바뀐다"이다. 선택을 찜보다
-  // 먼저 보면 이 전환이 재현되지 않아 순서를 뒤집었다.
-  //
-  // ⚠️ **선택되지 않은 찜 가게의 모습은 Figma에 없다**(미확인 · 디자이너 확인 항목).
-  //    여기서는 "찜은 선택과 독립"으로 정했다 — 근거는 298:3643(찜 필터 켠 화면)이 선택된
-  //    가게 없이도 마커 4개를 전부 favorite(w=128)로 그린다는 점이다. 즉 favorite은 선택의
-  //    부산물이 아니라 찜 그 자체의 표시다. 그래서 필터가 꺼져 있어도 찜한 가게는 하트가
-  //    붙은 이름표로 보인다.
-  //    이 규칙이 annotation 298:3650("찜버튼 클릭시 … favorite으로 속성 변경")도 함께 만족한다 —
-  //    필터를 켜면 남는 가게가 전부 찜한 가게라 자동으로 favorite이 된다.
+  // 하트 필터가 켜졌을 때만 보이는 모든 마커를 favorite(하트 + 이름)으로 표시한다.
+  // 필터가 꺼진 기본 지도에서는 찜 여부를 마커에 드러내지 않고, 선택한 가게만 name으로 바꾼다.
   const markerType = (store: MapStore): MarkerStoreMapType => {
-    if (favoriteIds.includes(store.id)) return "favorite"; // annotation 298:3650
+    if (favoriteOnly) return "favorite"; // annotation 298:3650
     return store.id === selectedId ? "name" : "icon"; // annotation 298:3628
   };
 
