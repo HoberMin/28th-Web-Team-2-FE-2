@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent } from "react";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import type { PricePeriod, PricePoint } from "@/app/_lib/types";
@@ -40,20 +41,50 @@ export function PriceSectionNav() {
     const scroller = sections[0]?.closest("main");
     if (!scroller) return;
 
+    const nav = scroller.querySelector<HTMLElement>('nav[aria-label="시세 상세 섹션"]');
+    const activationOffset = Math.max(nav?.offsetHeight ?? 44, scroller.clientHeight * 0.45);
+    const scrollerTop = scroller.getBoundingClientRect().top;
+    const sectionTop = (section: HTMLElement) =>
+      section.getBoundingClientRect().top - scrollerTop + scroller.scrollTop;
+
     const updateActiveSection = () => {
-      if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) {
-        setActive("online-prices");
-        return;
-      }
-      const reached = sections.filter((section) => section.getBoundingClientRect().top <= 52).at(-1);
+      const reached = sections
+        .filter((section) => sectionTop(section) <= scroller.scrollTop + activationOffset)
+        .at(-1);
       setActive(
         (reached?.id ?? sections[0]?.id ?? "neighborhood-prices") as (typeof DETAIL_SECTIONS)[number]["id"],
       );
     };
+
+    const hashId = window.location.hash.slice(1);
+    const hashSection = sections.find((section) => section.id === hashId);
+    if (hashSection) {
+      scroller.scrollTo({ top: sectionTop(hashSection) - (nav?.offsetHeight ?? 44) });
+    }
     updateActiveSection();
     scroller.addEventListener("scroll", updateActiveSection, { passive: true });
     return () => scroller.removeEventListener("scroll", updateActiveSection);
   }, []);
+
+  const moveToSection = (
+    event: MouseEvent<HTMLAnchorElement>,
+    id: (typeof DETAIL_SECTIONS)[number]["id"],
+  ) => {
+    event.preventDefault();
+    const section = document.getElementById(id);
+    const scroller = section?.closest("main");
+    const nav = scroller?.querySelector<HTMLElement>('nav[aria-label="시세 상세 섹션"]');
+    if (!section || !scroller) return;
+
+    const top =
+      section.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      (nav?.offsetHeight ?? 44);
+    setActive(id);
+    window.history.replaceState(null, "", `#${id}`);
+    scroller.scrollTo({ top, behavior: "smooth" });
+  };
 
   return (
     <nav
@@ -65,8 +96,8 @@ export function PriceSectionNav() {
           key={id}
           href={`#${id}`}
           aria-current={active === id ? "location" : undefined}
-          onClick={() => setActive(id)}
-          className={`flex h-full items-center border-b-2 pt-1 text-body-16-medium ${active === id ? "border-border-tertiary text-body-16-bold text-content-primary" : "border-transparent text-content-disabled"}`}
+          onClick={(event) => moveToSection(event, id)}
+          className={`flex h-full items-center border-b-2 pt-1 text-body-16-medium focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary ${active === id ? "border-border-tertiary text-body-16-bold text-content-primary" : "border-transparent text-content-disabled"}`}
         >
           {label}
         </a>

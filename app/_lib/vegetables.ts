@@ -249,14 +249,13 @@ const BASE_PRICE: Record<string, number> = {
 };
 
 /**
- * 온라인 판매가 스냅샷 — 컬리는 실측(api.kurly.com, 2026-07-24), **쿠팡·G마켓·B마트는 더미**다.
+ * 온라인 판매가 스냅샷 — 컬리는 실측(api.kurly.com, 2026-07-24), **오아시스·GS SHOP·11번가는 더미**다.
  * ⚠️ 크롤링 미연결 상태라 실측이 아닌 값은 화면에서 "예시"로 밝힌다.
  *
  * 채널 성격을 반드시 함께 담는다(types §OnlineChannelKind):
  *   컬리 = 새벽배송·프리미엄 → 대체로 비쌈(의도된 포지셔닝)
- *   쿠팡 = 새벽/당일·회원가 전제
- *   G마켓 = 오픈마켓·판매자 편차 큼·배송비 별도
- *   B마트 = 즉시배송·소량 → 단가가 구조적으로 높음
+ *   오아시스 = 새벽배송·회원가 전제
+ *   GS SHOP·11번가 = 오픈마켓·판매자 편차 큼·배송비 별도
  * 기준 단위 환산이 불가한 SKU는 엔트리를 두지 않는다(억지 환산이 더 위험하다).
  */
 interface MallEntry {
@@ -272,78 +271,78 @@ interface MallEntry {
 const ONLINE_PRICES: Record<string, MallEntry[]> = {
   potato: [
     { mall: "컬리", price: 4990, productName: "[팜송] 왕감자 1kg", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 3680, productName: "곰곰 감자 2kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "G마켓", price: 3200, productName: "포슬포슬 감자 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
-    { mall: "B마트", price: 5400, productName: "감자 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "오아시스", price: 3680, productName: "감자 2kg (1kg 환산)", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "GS SHOP", price: 3200, productName: "포슬포슬 감자 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "11번가", price: 5400, productName: "감자 1kg", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   onion: [
     { mall: "컬리", price: 2660, productName: "양파 1.5kg (1kg 환산)", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 2290, productName: "곰곰 양파 3kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "G마켓", price: 1890, productName: "국내산 양파 10kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
-    { mall: "B마트", price: 3200, productName: "양파 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "오아시스", price: 2290, productName: "양파 3kg (1kg 환산)", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "GS SHOP", price: 1890, productName: "국내산 양파 10kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "11번가", price: 3200, productName: "양파 1kg", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   garlic: [
     { mall: "컬리", price: 12900, productName: "깐마늘 1kg (26년 햇)", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 11900, productName: "깐마늘 1kg", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "G마켓", price: 9800, productName: "깐마늘 2kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "오아시스", price: 11900, productName: "깐마늘 1kg", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "GS SHOP", price: 9800, productName: "깐마늘 2kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   "sweet-potato": [
     { mall: "컬리", price: 4990, productName: "한입 꿀고구마 1kg", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 4180, productName: "꿀고구마 2kg (1kg 환산)", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "G마켓", price: 3490, productName: "베니하루카 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "오아시스", price: 4180, productName: "꿀고구마 2kg (1kg 환산)", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "GS SHOP", price: 3490, productName: "베니하루카 5kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   carrot: [
     { mall: "컬리", price: 4290, productName: "흙당근 1kg", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 3480, productName: "곰곰 당근 1kg", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "B마트", price: 4600, productName: "당근 1kg", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "오아시스", price: 3480, productName: "당근 1kg", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "11번가", price: 4600, productName: "당근 1kg", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   tomato: [
     { mall: "컬리", price: 7990, productName: "완숙토마토 1kg", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 6980, productName: "완숙토마토 1kg", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "B마트", price: 8400, productName: "완숙토마토 700g (1kg 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "오아시스", price: 6980, productName: "완숙토마토 1kg", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "11번가", price: 8400, productName: "완숙토마토 700g (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   paprika: [
     { mall: "컬리", price: 1690, productName: "파프리카 2입 (100g 환산)", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 1380, productName: "파프리카 1kg (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "오아시스", price: 1380, productName: "파프리카 1kg (100g 환산)", channel: "새벽배송", channelNote: "회원가" },
   ],
   spinach: [
     { mall: "컬리", price: 1490, productName: "시금치 200g (100g 환산)", channel: "새벽배송", measured: true },
-    { mall: "B마트", price: 1900, productName: "시금치 200g (100g 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "11번가", price: 1900, productName: "시금치 200g (100g 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   "welsh-onion": [
     { mall: "컬리", price: 4290, productName: "손질대파 1kg", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 3690, productName: "손질대파 1kg", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "G마켓", price: 2980, productName: "흙대파 3kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
+    { mall: "오아시스", price: 3690, productName: "손질대파 1kg", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "GS SHOP", price: 2980, productName: "흙대파 3kg (1kg 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   broccoli: [
     { mall: "컬리", price: 3290, productName: "브로콜리 1개", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 2680, productName: "브로콜리 2입 (1개 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "오아시스", price: 2680, productName: "브로콜리 2입 (1개 환산)", channel: "새벽배송", channelNote: "회원가" },
   ],
   cabbage: [
     { mall: "컬리", price: 5490, productName: "양배추 1포기", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 4680, productName: "양배추 1포기", channel: "새벽배송", channelNote: "와우회원가" },
-    { mall: "B마트", price: 5900, productName: "양배추 1/2포기 (1포기 환산)", channel: "즉시배송", channelNote: "배달비 별도" },
+    { mall: "오아시스", price: 4680, productName: "양배추 1포기", channel: "새벽배송", channelNote: "회원가" },
+    { mall: "11번가", price: 5900, productName: "양배추 1/2포기 (1포기 환산)", channel: "오픈마켓", channelNote: "배송비 별도" },
   ],
   "enoki-mushroom": [
     { mall: "컬리", price: 690, productName: "팽이버섯 300g (100g 환산)", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 530, productName: "팽이버섯 5봉 (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "오아시스", price: 530, productName: "팽이버섯 5봉 (100g 환산)", channel: "새벽배송", channelNote: "회원가" },
   ],
   strawberry: [
     { mall: "컬리", price: 3990, productName: "설향 딸기 500g (100g 환산)", channel: "새벽배송", measured: true },
-    { mall: "쿠팡", price: 3480, productName: "설향 딸기 750g (100g 환산)", channel: "새벽배송", channelNote: "와우회원가" },
+    { mall: "오아시스", price: 3480, productName: "설향 딸기 750g (100g 환산)", channel: "새벽배송", channelNote: "회원가" },
   ],
 };
 
 /**
  * `ONLINE_PRICES`에 수기 엔트리가 없는 나머지 품목(30여 종)을 채우는 폴백 —
  * 온라인 섹션이 "있다 없다" 하면 디자이너가 규격을 하나로 못 잡는다(백로그 F03 #11).
- * 컬리·쿠팡·G마켓·B마트 4개 채널을 `BASE_PRICE` 대비 배율로 합성한다(전부 더미 — measured: false).
+ * 컬리·오아시스·GS SHOP·11번가 4개 채널을 `BASE_PRICE` 대비 배율로 합성한다(전부 더미 — measured: false).
  */
 const FALLBACK_MALL_PROFILE: { mall: OnlineMall; channel: OnlineChannelKind; mult: number; note?: string }[] = [
   { mall: "컬리", channel: "새벽배송", mult: 1.2 },
-  { mall: "쿠팡", channel: "새벽배송", mult: 1.0, note: "와우회원가" },
-  { mall: "G마켓", channel: "오픈마켓", mult: 0.82, note: "배송비 별도" },
-  { mall: "B마트", channel: "즉시배송", mult: 1.35, note: "배달비 별도" },
+  { mall: "오아시스", channel: "새벽배송", mult: 1.0, note: "회원가" },
+  { mall: "GS SHOP", channel: "오픈마켓", mult: 0.82, note: "배송비 별도" },
+  { mall: "11번가", channel: "오픈마켓", mult: 1.35, note: "배송비 별도" },
 ];
 
 function buildFallbackOnlineEntries(veg: Vegetable): MallEntry[] {

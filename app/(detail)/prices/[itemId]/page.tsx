@@ -2,11 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { FigmaIcon } from "@/app/_lib/figma-asset";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
 import { ROUTES } from "@/app/_lib/routes";
 import { getDailyTrend } from "@/app/_lib/trend";
+import type { OnlineMall } from "@/app/_lib/types";
 import {
   DEFAULT_DISTRICT,
   getNeighborhoodSeedReports,
@@ -177,20 +178,21 @@ function HeaderTrend({ trend }: { trend: ReturnType<typeof getDailyTrend> }) {
   );
 }
 
-function MallLogo({ mall }: { mall: string }) {
-  const style =
-    mall === "컬리"
-      ? "text-content-primary italic"
-      : mall === "쿠팡"
-        ? "text-red-500"
-        : mall === "G마켓"
-          ? "text-green-600"
-          : "text-content-brand-light";
-  const label = mall === "컬리" ? "Kurly" : mall === "쿠팡" ? "쿠팡" : mall === "G마켓" ? "G" : "B";
+const MALL_IMAGE: Record<OnlineMall, string> = {
+  컬리: "online-kurly.svg",
+  오아시스: "online-oasis.svg",
+  "GS SHOP": "online-gs-shop.svg",
+  "11번가": "online-11st.svg",
+};
+
+function MallLogo({ mall }: { mall: OnlineMall }) {
   return (
-    <span aria-hidden="true" className={`flex size-12 shrink-0 items-center justify-center rounded-full border border-border-primary bg-white text-caption-12-medium ${style}`}>
-      {label}
-    </span>
+    <FigmaImage
+      name={MALL_IMAGE[mall]}
+      width={48}
+      height={48}
+      className="size-12 shrink-0 rounded-full"
+    />
   );
 }
 
