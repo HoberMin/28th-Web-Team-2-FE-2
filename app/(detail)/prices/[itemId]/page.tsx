@@ -21,6 +21,7 @@ import {
   PublicPriceChart,
   type PriceDetailReport,
 } from "./_price-detail-client";
+import { PriceDetailBackButton } from "./_back-button";
 
 interface PriceDetailPageProps {
   params: Promise<{ itemId: string }>;
@@ -58,6 +59,13 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
       <div className="flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
+        <header className="flex h-12.25 shrink-0 items-center justify-between border-b border-border-secondary px-1">
+          <PriceDetailBackButton />
+          <p className="text-body-16-semibold text-content-primary">
+            {vegetable.name} {vegetable.unit}
+          </p>
+          <span aria-hidden="true" className="size-12 shrink-0" />
+        </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-4">
           <h1 className="sr-only">{vegetable.name} 야채 시세 상세</h1>
 
