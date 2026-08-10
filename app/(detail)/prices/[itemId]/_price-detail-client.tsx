@@ -163,6 +163,50 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
   );
 }
 
+export function OnlinePriceNotice() {
+  const [open, setOpen] = useState(false);
+  const descriptionId = useId();
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center gap-1">
+        <p className="text-body-14-bold text-content-primary">
+          온라인 사이트마다 배송 조건이 달라요
+        </p>
+        <button
+          type="button"
+          aria-label="온라인 가격 비교 안내 보기"
+          aria-expanded={open}
+          aria-controls={descriptionId}
+          onClick={() => setOpen((value) => !value)}
+          className="flex size-6 items-center justify-center rounded-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+        >
+          <FigmaIcon name="information-circle" width={20} />
+        </button>
+      </div>
+      {open ? (
+        <div
+          id={descriptionId}
+          className="mt-2 flex items-start justify-between gap-2 rounded-md border border-border-secondary bg-surface-primary p-3 shadow-[0_2px_8px_rgba(38,47,60,0.08)]"
+        >
+          <p className="text-body-14-medium text-content-secondary">
+            <span className="block">배송 조건이 달라 비교가 어려울 수 있어요.</span>
+            <span className="block">오프라인 동네 가격을 기준으로, 온라인은 참고만 해주세요.</span>
+          </p>
+          <button
+            type="button"
+            aria-label="온라인 가격 비교 안내 닫기"
+            onClick={() => setOpen(false)}
+            className="flex size-6 shrink-0 items-center justify-center"
+          >
+            <FigmaIcon name="close-header-20" width={20} />
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function NeighborhoodReportList({
   reports,
   className,

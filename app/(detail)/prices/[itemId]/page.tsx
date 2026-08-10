@@ -16,6 +16,7 @@ import {
 } from "@/app/_lib/vegetables";
 import {
   NeighborhoodPrices,
+  OnlinePriceNotice,
   PriceSectionNav,
   PublicPriceChart,
   type PriceDetailReport,
@@ -107,7 +108,8 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                 </div>
               ) : null}
             </div>
-            <div className="mt-3 flex flex-col gap-2">
+            <OnlinePriceNotice />
+            <div className="mt-2 flex flex-col gap-2">
               <ul>
                 {online?.prices.map((price) => {
                   const comparison = latestReport ? price.price - latestReport.pricePerKg : null;
@@ -143,10 +145,6 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                   );
                 })}
               </ul>
-              <p className="text-caption-12-medium text-content-disabled">
-                <span className="block">배송 조건이 달라 온라인 최저가만으로는 비교가 어려워요.</span>
-                <span className="block">오프라인 동네 가격을 기준으로, 온라인은 참고만 해주세요.</span>
-              </p>
             </div>
           </section>
         </main>
