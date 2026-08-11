@@ -115,7 +115,7 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
           우리 동네 최저가 야채
         </h2>
         <p className="shrink-0 text-right text-caption-12-medium text-content-secondary">
-          일주일 간 · 이웃 제보
+          최근 7일간 · 이웃 제보
         </p>
       </div>
 
