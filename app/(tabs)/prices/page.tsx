@@ -1,9 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { GridVegetableItem } from "../../_components/grid-vegetable-item";
-import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatAsOfLabel } from "../../_lib/format";
 import { ROUTES } from "../../_lib/routes";
 import { VEGETABLE_GROUPS } from "../../_lib/vegetables";
@@ -19,7 +15,7 @@ import {
   normalizeSort,
   sortRows,
 } from "./_list";
-import type { PriceRow, TrendState } from "./_list";
+import { PriceVegetableCard } from "./_price-vegetable-card";
 import { PricesSearchField } from "./_search-field";
 import { PricesSortControl } from "./_sort-control";
 
@@ -72,43 +68,6 @@ import { PricesSortControl } from "./_sort-control";
 export const metadata: Metadata = {
   title: "야채 시세",
 };
-
-/**
- * Figma가 등락 방향을 색(trend/down·up·flat)으로 구분하므로, 색 외 수단으로 아이콘을 함께 낸다.
- * 세 원본(`icon/trend-*` 477-9119~9121)은 색이 박힌 채 export돼 있어(down #217cf9 · up #ed2c42 ·
- * flat #b4bbcb = trend 토큰과 동일) currentColor로 덮지 않고 원본 색 그대로 쓴다.
- */
-const TREND_ICON: Record<TrendState, ReactNode> = {
-  down: <FigmaIcon name="trend-down" width={16} />,
-  up: <FigmaIcon name="trend-up" width={16} />,
-  flat: <FigmaIcon name="trend-flat" width={16} />,
-};
-
-const TREND_LABEL: Record<TrendState, string> = {
-  down: "어제보다 내림",
-  up: "어제보다 오름",
-  flat: "어제와 같음",
-};
-
-/**
- * 카드 사진(110×110).
- *
- * 시세 카탈로그 46종 각각에 대응하는 쿠팡 상품 대표 이미지를 로컬 에셋으로 사용한다.
- * 외부 CDN을 런타임에 호출하지 않아 화면 로딩과 원격 이미지 정책에 영향을 받지 않는다.
- *
- * 품목명은 옆 텍스트가 담당하므로 사진은 장식(빈 alt)으로 둔다.
- */
-function VegetableVisual({ row }: { row: PriceRow }) {
-  return (
-    <Image
-      src={row.image}
-      alt=""
-      width={110}
-      height={110}
-      className="size-full object-contain"
-    />
-  );
-}
 
 /**
  * 검색·필터 결과가 0건일 때. **Figma에 시안이 없어 임시 구현이다** — 문구·삽화·버튼 위계 전부
@@ -198,34 +157,16 @@ export default async function PricesPage({
           <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
             {visible.map((row) => (
               <li key={row.id}>
-                <Link
-                  href={ROUTES.priceDetail(row.id)}
-                  className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-                >
-                  <GridVegetableItem
-                    visual={<VegetableVisual row={row} />}
-                    name={row.name}
-                    price={row.price}
-                    unit={row.unit}
-                    trendAmount={row.trendAmount}
-                    trendPercent={row.trendPercent}
-                    trendState={row.trendState}
-                    trendIcon={
-                      <>
-                        {TREND_ICON[row.trendState]}
-                        <span className="sr-only">{TREND_LABEL[row.trendState]}</span>
-                      </>
-                    }
-                    favorite={row.favorite}
-                    favoriteIcon={
-                      row.favorite ? (
-                        <FigmaIcon name="heart-fill-grid-24" width={24} />
-                      ) : (
-                        <FigmaIcon name="heart-stroke-grid-24" width={24} />
-                      )
-                    }
-                  />
-                </Link>
+                <PriceVegetableCard
+                  id={row.id}
+                  name={row.name}
+                  image={row.image}
+                  price={row.price}
+                  unit={row.unit}
+                  trendState={row.trendState}
+                  trendAmount={row.trendAmount}
+                  trendPercent={row.trendPercent}
+                />
               </li>
             ))}
           </ul>

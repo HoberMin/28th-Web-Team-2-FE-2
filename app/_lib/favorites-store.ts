@@ -40,14 +40,18 @@ function getServerSnapshot(): string[] {
 }
 
 function persist(next: string[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // 저장소가 차단되거나 용량을 초과해도 현재 화면의 찜 상태는 갱신한다.
+  }
   cache = next;
   listeners.forEach((l) => l());
 }
 
 /** 찜 토글 — 있으면 제거, 없으면 추가. */
 export function toggleFavorite(vegetableId: string): void {
-  const current = readLocal();
+  const current = getSnapshot();
   const next = current.includes(vegetableId)
     ? current.filter((id) => id !== vegetableId)
     : [vegetableId, ...current];

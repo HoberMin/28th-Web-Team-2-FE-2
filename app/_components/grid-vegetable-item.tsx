@@ -27,10 +27,9 @@ import { cn } from "../_lib/cn";
 // Figma 샘플 사진과 favorite별 하트 원본은 `public/figma/design-library/`에 export했다.
 // 실제 데이터에 따라 사진과 찜 상태가 바뀌므로 두 자리는 슬롯으로 유지한다.
 //
-// ⚠️ 이 컴포넌트는 **프레젠테이션 전용**이다. Figma 심볼의 favorite 자리에는 버튼 정의가 없어
-//    <button>으로 만들지 않았다. 찜을 실제로 토글하려면 `button/circle`(ButtonCircle)을 쓰거나
-//    호출부가 버튼으로 감싼다. 그때 주의: Figma의 36×36은 권장 터치 타겟 44×44보다 작다.
-//    (색·아이콘 모양만으로 찜 여부를 전달하지 않도록, 아래에서 sr-only 텍스트를 함께 낸다 — WCAG 1.4.1)
+// ⚠️ 이 컴포넌트 자체는 **프레젠테이션 전용**이고 루트를 버튼으로 만들지 않는다. 실제 찜 토글은
+//    `favoriteIcon` 슬롯에 호출부가 버튼을 넣는다. 그때 주의: Figma의 36×36은 권장 터치 타겟
+//    44×44보다 작다. 색·아이콘 모양만으로 찜 여부를 전달하지 않도록 아래에 sr-only 상태도 둔다.
 //
 // ⚠️ 대비 (Figma 원본 유지):
 //      단위 표기 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 (기준 4.5:1) → 미달
@@ -64,8 +63,8 @@ export interface GridVegetableItemProps {
   /** Figma의 favorite 축. 찜 여부. */
   favorite?: boolean;
   /**
-   * 찜 하트 아이콘 슬롯(36×36 자리). `favorite` 값에 맞는 글리프
-   * (false=heart-stroke-regular, true=heart-fill)를 호출부가 골라 넘긴다.
+   * 찜 하트 슬롯(36×36 자리). 표시 전용 아이콘이나 접근 가능한 토글 버튼을 받을 수 있다.
+   * `favorite` 값에 맞는 글리프(false=heart-stroke-regular, true=heart-fill)를 호출부가 고른다.
    */
   favoriteIcon?: ReactNode;
   className?: string;
@@ -88,10 +87,7 @@ export function GridVegetableItem({
     <div className={cn("flex flex-col items-start gap-2", className)}>
       <div className="relative size-27.5 shrink-0 overflow-hidden rounded-lg border border-border-img bg-background-secondary">
         {visual}
-        <span
-          aria-hidden="true"
-          className="absolute -top-px -right-px flex size-9 items-center justify-center"
-        >
+        <span className="absolute -top-px -right-px flex size-9 items-center justify-center">
           {favoriteIcon}
         </span>
         <span className="sr-only">{favorite ? "찜한 야채" : "찜하지 않은 야채"}</span>
