@@ -228,10 +228,10 @@ function PriceSummary({
 }
 
 const MALL_IMAGE: Record<OnlineMall, string> = {
-  컬리: "online-kurly.svg",
-  오아시스: "online-oasis.svg",
-  "GS SHOP": "online-gs-shop.svg",
-  "11번가": "online-11st.svg",
+  컬리: "online-kurly.png",
+  오아시스: "online-oasis.png",
+  "GS SHOP": "online-gs-shop.png",
+  "11번가": "online-11st.png",
 };
 
 function MallLogo({ mall }: { mall: OnlineMall }) {
