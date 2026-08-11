@@ -1,19 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { GridVegetableItem } from "../../_components/grid-vegetable-item";
 import { TabBar } from "../../_components/tab-bar";
-import type { VegetableTrendState } from "../../_components/vegetable-trend";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
-import { PRICE_VEGETABLE_IMAGE_BY_ID } from "../prices/_images";
 import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
+import { SavedVegetableList } from "./_components/saved-vegetable-list";
 import {
   SAVED_STORES,
   SAVED_VEGETABLES,
   type SavedStore,
-  type SavedVegetable,
   parseSavedTab,
 } from "./_data";
 
@@ -51,19 +46,6 @@ import {
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
 //    3열 칸이 넓어져도 카드가 110px에 머무르고 칸 오른쪽에 여백이 남는다. 390 기준으로는 정확하다.
 
-/** 시세 탭과 동일한 품목별 쿠팡 대표 이미지. 품목명은 옆 텍스트가 담당하므로 장식 이미지로 둔다. */
-function VegetablePhoto({ id }: { id: string }) {
-  return (
-    <Image
-      src={PRICE_VEGETABLE_IMAGE_BY_ID[id]}
-      alt=""
-      width={110}
-      height={110}
-      className="size-full object-contain"
-    />
-  );
-}
-
 /** F04 가게 행 인스턴스(298-3598)의 image fill을 72×72로 MCP export한 원본. */
 function StorePhoto() {
   return (
@@ -75,23 +57,6 @@ function StorePhoto() {
     />
   );
 }
-
-/**
- * 등락 방향 아이콘. 원본 SVG가 방향별 색(trend/down·up·flat)을 이미 품고 있어 currentColor로
- * 바꾸지 않고 그대로 쓴다. 방향을 색에만 의존해 전달하지 않도록 sr-only 라벨을 함께 낸다
- * (WCAG 1.4.1).
- */
-const TREND_ICON: Record<VegetableTrendState, ReactNode> = {
-  down: <FigmaIcon name="trend-down" width={16} />,
-  up: <FigmaIcon name="trend-up" width={16} />,
-  flat: <FigmaIcon name="trend-flat" width={16} />,
-};
-
-const TREND_LABEL: Record<VegetableTrendState, string> = {
-  down: "어제보다 내림",
-  up: "어제보다 오름",
-  flat: "어제와 같음",
-};
 
 interface SavedPageProps {
   searchParams: Promise<{ tab?: string; empty?: string }>;
@@ -124,55 +89,11 @@ export default async function SavedPage({ searchParams }: SavedPageProps) {
       />
 
       {activeTab === "vegetable" ? (
-        <VegetableTab vegetables={vegetables} />
+        <SavedVegetableList vegetables={vegetables} />
       ) : (
         <StoreTab stores={stores} />
       )}
     </div>
-  );
-}
-
-function VegetableTab({ vegetables }: { vegetables: SavedVegetable[] }) {
-  if (vegetables.length === 0) {
-    return (
-      <SavedEmpty
-        title="찜한 야채가 없어요"
-        description="시세 화면에서 하트를 누르면 여기에 모여요."
-        actionHref={ROUTES.prices}
-        actionLabel="야채 시세 보러 가기"
-      />
-    );
-  }
-
-  return (
-    <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
-      {vegetables.map((vegetable) => (
-        <li key={vegetable.id}>
-          <Link
-            href={ROUTES.priceDetail(vegetable.id)}
-            className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-          >
-            <GridVegetableItem
-              visual={<VegetablePhoto id={vegetable.id} />}
-              name={vegetable.name}
-              price={vegetable.price}
-              unit={vegetable.unit}
-              trendAmount={vegetable.trendAmount}
-              trendPercent={vegetable.trendPercent}
-              trendState={vegetable.trendState}
-              trendIcon={
-                <>
-                  {TREND_ICON[vegetable.trendState]}
-                  <span className="sr-only">{TREND_LABEL[vegetable.trendState]}</span>
-                </>
-              }
-              favorite
-              favoriteIcon={<FigmaIcon name="heart-fill-grid-24" width={24} />}
-            />
-          </Link>
-        </li>
-      ))}
-    </ul>
   );
 }
 
