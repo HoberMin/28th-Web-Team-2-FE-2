@@ -279,9 +279,14 @@ export function StoreDetailClient({ store, detail }: StoreDetailClientProps) {
           <StoreComments storeName={store.name} />
         </main>
         <footer className="absolute right-0 bottom-0 left-0 z-20 flex h-18.25 items-center gap-4 border-t border-border-secondary bg-surface-primary px-4 pb-[env(safe-area-inset-bottom)]">
-          <button type="button" aria-label={favorite ? "가게 찜 해제" : "가게 찜하기"} aria-pressed={favorite} onClick={() => setFavorite((current) => !current)} className="flex w-10 shrink-0 flex-col items-center text-content-secondary">
-            <FigmaIcon name={favorite ? "heart-fill" : "heart-stroke-bold"} width={24} currentColor />
-            <span className="text-caption-12-semibold">999+</span>
+          <button type="button" aria-label={favorite ? "가게 찜 해제" : "가게 찜하기"} aria-pressed={favorite} onClick={() => setFavorite((current) => !current)} className="flex w-13 shrink-0 flex-col items-center justify-center text-content-primary">
+            <FigmaIcon
+              name={favorite ? "heart-fill" : "heart-stroke-bold"}
+              width={24}
+              currentColor
+              className={favorite ? "text-red-500" : undefined}
+            />
+            <span className="text-body-14-medium">999+</span>
           </button>
           <Link href={`${ROUTES.report}?store=${encodeURIComponent(store.id)}`} className="flex flex-1 items-center justify-center rounded-lg bg-action-secondary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-content-secondary">
             가게에 제보하기
