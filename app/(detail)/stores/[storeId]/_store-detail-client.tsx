@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
-import IconPersonFill from "@karrotmarket/react-monochrome-icon/IconPersonFill";
 import type { MapStore } from "@/app/(tabs)/stores/_data";
+import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
+import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
+import { ItemComment } from "@/app/_components/item-comment";
+import type { ReporterTone } from "@/app/_components/image-profile-reporter";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { addComment, useComments, type Comment } from "@/app/_lib/comments-store";
 import { ROUTES } from "@/app/_lib/routes";
@@ -19,23 +22,16 @@ interface StoreDetailClientProps {
 interface FigmaComment {
   id: string;
   nickname: string;
-  rank: string;
+  rank: ReporterRank;
   age: string;
   body: string;
-  tone: "green" | "orange" | "blue" | "gray";
+  tone: ReporterTone;
 }
-
-const COMMENT_TONES: Record<FigmaComment["tone"], string> = {
-  green: "bg-green-50 text-green-600",
-  orange: "bg-orange-50 text-orange-600",
-  blue: "bg-blue-50 text-blue-600",
-  gray: "bg-surface-secondary text-content-tertiary",
-};
 
 const FIGMA_COMMENTS: FigmaComment[] = Array.from({ length: 15 }, (_, index) => ({
   id: `figma-comment-${index + 1}`,
   nickname: "떡볶이킬러",
-  rank: ["새싹", "제보 초보", "제보 고수", "제보왕"][index % 4],
+  rank: (["sprout", "rookie", "expert", "king"] as const)[index % 4],
   age: `${index + 3}시간 전`,
   body: "사장님이 친절해요~ 사장님이 친절해요~ 사장님이 친절해요~ 사장님이 친절해요~",
   tone: (["green", "orange", "blue", "gray"] as const)[index % 4],
@@ -55,13 +51,7 @@ function StoreHero({ imageName, storeName }: { imageName?: string; storeName: st
   }
 
   return (
-    <div className="flex h-55 w-full flex-col items-center justify-center gap-2 bg-surface-secondary text-content-tertiary">
-      <div className="relative">
-        <FigmaIcon name="store-fill" width={38} currentColor />
-        <span className="absolute -top-1 -right-2 size-3 rounded-sm border-2 border-surface-secondary bg-content-disabled" />
-      </div>
-      <p className="text-caption-12-medium">가게 사진을 준비 중이에요</p>
-    </div>
+    <ImageStorePlaceholder />
   );
 }
 
@@ -196,29 +186,11 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
   );
 }
 
-function CommentRow({ comment }: { comment: FigmaComment }) {
-  return (
-    <article className="flex gap-3 py-3">
-      <div className={`flex size-11 shrink-0 items-center justify-center rounded-full ${COMMENT_TONES[comment.tone]}`}>
-        <IconPersonFill aria-hidden="true" className="size-6" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <h3 className="text-caption-12-semibold text-content-primary">{comment.nickname}</h3>
-          <span className="text-caption-12-semibold text-content-brand-light">{comment.rank}</span>
-          <span className="text-caption-12-regular text-content-disabled">{comment.age}</span>
-        </div>
-        <p className="mt-1 text-caption-12-regular leading-4.5 text-content-secondary">{comment.body}</p>
-      </div>
-    </article>
-  );
-}
-
 function toFigmaComment(comment: Comment, index: number): FigmaComment {
   return {
     id: comment.id,
     nickname: comment.nickname,
-    rank: "새싹",
+    rank: "sprout",
     age: "방금 전",
     body: comment.body,
     tone: (["green", "orange", "blue", "gray"] as const)[index % 4],
@@ -247,8 +219,17 @@ function StoreComments({ storeName }: { storeName: string }) {
         <input id="store-comment" value={value} onChange={(event) => setValue(event.target.value)} placeholder="댓글을 입력하세요" className="min-w-0 flex-1 bg-transparent text-caption-12-medium text-content-primary outline-none placeholder:text-content-disabled" />
         <button type="submit" disabled={!value.trim()} className="rounded-sm bg-action-primary-default px-2 py-1 text-caption-12-semibold text-content-inverse disabled:bg-action-primary-disabled">등록</button>
       </form>
-      <div className="mt-1 divide-y divide-border-secondary">
-        {comments.slice(0, visibleCount).map((comment) => <CommentRow key={comment.id} comment={comment} />)}
+      <div className="mt-1">
+        {comments.slice(0, visibleCount).map((comment) => (
+          <ItemComment
+            key={comment.id}
+            nickname={comment.nickname}
+            rank={comment.rank}
+            age={comment.age}
+            body={comment.body}
+            profileColor={comment.tone}
+          />
+        ))}
       </div>
       {visibleCount < comments.length && (
         <button type="button" onClick={() => setVisibleCount((count) => count + 5)} className="mt-2 h-9.5 w-full rounded-md bg-surface-secondary text-caption-12-semibold text-content-secondary">댓글 더보기</button>

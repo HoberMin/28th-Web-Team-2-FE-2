@@ -1,6 +1,7 @@
 import { badgeMapLocationStory } from "./badge-map-location";
 import { badgeMoreStory } from "./badge-more";
 import { badgeReportDateStory } from "./badge-report-date";
+import { badgeReporterRankStory } from "./badge-reporter-rank";
 import { badgeStoreStatStory } from "./badge-store-stat";
 import { buttonStory } from "./button";
 import { buttonCircleStory } from "./button-circle";
@@ -12,8 +13,11 @@ import { filterChipStory } from "./filter-chip";
 import { gridVegetableItemStory } from "./grid-vegetable-item";
 import { headerStoreDetailStory } from "./header-store-detail";
 import { imageGrassStory } from "./image-grass";
+import { imageProfileReporterStory } from "./image-profile-reporter";
+import { imageStorePlaceholderStory } from "./image-store-placeholder";
 import { imageVegetableOnionStory } from "./image-vegetable-onion";
 import { itemVegetableStory } from "./item-vegetable";
+import { itemCommentStory } from "./item-comment";
 import { listLowestVegetableStory } from "./list-lowest-vegetable";
 import { listRecentReportStory } from "./list-recent-report";
 import { listSortOptionStory } from "./list-sort-option";
@@ -158,6 +162,7 @@ export const stories: Story[] = [
   // 컴포넌트 — 배지·칩·내비
   badgeMoreStory,
   badgeReportDateStory,
+  badgeReporterRankStory,
   badgeStoreStatStory,
   badgeMapLocationStory,
   navGnbStory,
@@ -169,6 +174,7 @@ export const stories: Story[] = [
 
   // 컴포넌트 — 아이템·행·목록
   itemVegetableStory,
+  itemCommentStory,
   rowStoryStory,
   listStoryStory,
   rowStoreVegetablesStory,
@@ -189,6 +195,8 @@ export const stories: Story[] = [
   // 컴포넌트 — 에셋 래퍼
   imageVegetableOnionStory,
   imageGrassStory,
+  imageProfileReporterStory,
+  imageStorePlaceholderStory,
 
   // 패턴
   headerStoreDetailStory,
