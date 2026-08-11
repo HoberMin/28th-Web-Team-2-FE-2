@@ -6,7 +6,9 @@ import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import type { MapStore } from "@/app/(tabs)/stores/_data";
 import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
+import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
 import { ItemComment } from "@/app/_components/item-comment";
+import { SheetHandle } from "@/app/_components/sheet-handle";
 import type { ReporterTone } from "@/app/_components/image-profile-reporter";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { addComment, useComments, type Comment } from "@/app/_lib/comments-store";
@@ -97,20 +99,39 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
   );
 }
 
-function PriceRow({ item, compact = false }: { item: StoreDetailPrice; compact?: boolean }) {
+function PriceRow({ item }: { item: StoreDetailPrice }) {
   return (
-    <div className={`flex w-full items-center gap-3 ${compact ? "h-14.5" : "min-h-19.25"}`}>
-      <FigmaImage name="onion.png" width={compact ? 28 : 40} height={compact ? 28 : 40} className={compact ? "size-7 object-contain" : "size-10 object-contain"} />
+    <div className="flex min-h-19.25 w-full items-center gap-3">
+      <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
       <div className="min-w-0 flex-1">
-        <p className={compact ? "text-body-14-semibold text-content-primary" : "text-body-16-semibold text-content-primary"}>{item.name}</p>
+        <p className="text-body-16-semibold text-content-primary">{item.name}</p>
         <p className="text-caption-12-regular text-content-tertiary">{item.age}</p>
       </div>
       <div className="shrink-0 text-right">
-        <p className={compact ? "text-body-14-semibold text-content-primary" : "text-body-16-semibold text-content-primary"}>
+        <p className="text-body-16-semibold text-content-primary">
           {item.price}<span className="ml-1 text-caption-12-regular text-content-disabled">{item.unit}</span>
         </p>
-        {!compact && <p className="text-caption-12-medium text-trend-down">{item.trend}</p>}
+        <p className="text-caption-12-medium text-trend-down">{item.trend}</p>
       </div>
+    </div>
+  );
+}
+
+function SheetPriceRow({ item }: { item: StoreDetailPrice }) {
+  return (
+    <div className="flex h-14.5 w-full items-center justify-between border-b border-border-secondary px-2 last:border-b-0">
+      <div className="flex w-42 items-center gap-1">
+        <ImageVegetableOnion className="size-6" />
+        <div className="flex min-w-0 items-center gap-1">
+          <p className="truncate text-body-14-medium text-content-primary">{item.name}</p>
+          <span aria-hidden="true" className="size-0.5 shrink-0 rounded-full bg-content-disabled" />
+          <p className="shrink-0 text-caption-12-medium text-content-disabled">{item.age}</p>
+        </div>
+      </div>
+      <p className="flex w-41 shrink-0 items-center justify-end gap-1 whitespace-nowrap text-body-16-bold text-content-primary">
+        {item.price}
+        <span className="text-caption-12-regular text-content-disabled">{item.unit}</span>
+      </p>
     </div>
   );
 }
@@ -125,21 +146,23 @@ function PriceSheet({ prices, onClose }: { prices: StoreDetailPrice[]; onClose: 
   }, [onClose]);
 
   return (
-    <div className="absolute inset-0 z-30 flex items-end bg-black/45" onClick={onClose}>
+    <div className="absolute inset-0 z-30 flex items-end bg-overlay-dim" onClick={onClose}>
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="제보된 저렴한 야채 전체 목록"
+        aria-label="제보된 저렴한 야채 목록"
         onClick={(event) => event.stopPropagation()}
-        className="max-h-[65.6%] w-full overflow-hidden rounded-t-3xl bg-surface-primary"
+        className="flex w-full flex-col items-center gap-4 rounded-t-3xl bg-surface-primary px-4 pt-2 pb-8"
       >
-        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-content-disabled" />
-        <div className="flex items-center justify-between px-4 pt-5 pb-2">
-          <h2 className="text-body-16-bold text-content-primary">제보된 저렴한 야채</h2>
-          <p className="text-caption-12-regular text-content-tertiary">최근 30일간 · 최신 순</p>
-        </div>
-        <div className="max-h-[522px] overflow-y-auto px-4 pb-4">
-          {prices.map((item) => <PriceRow key={item.id} item={item} compact />)}
+        <SheetHandle />
+        <div className="flex w-full flex-col gap-4">
+          <div className="flex h-7 items-center justify-between">
+            <h2 className="text-title-18-semibold text-content-primary">제보된 저렴한 야채</h2>
+            <p className="w-28 text-right text-caption-12-medium text-content-secondary">최근 30일간 · 최신 순</p>
+          </div>
+          <div className="w-full">
+            {prices.slice(0, 5).map((item) => <SheetPriceRow key={item.id} item={item} />)}
+          </div>
         </div>
       </section>
     </div>
