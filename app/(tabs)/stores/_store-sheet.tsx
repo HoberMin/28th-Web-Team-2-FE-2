@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useRouter } from "next/navigation";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { ROUTES } from "@/app/_lib/routes";
 import { HeaderStoreDetail } from "../../_components/header-store-detail";
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
@@ -100,6 +102,7 @@ export function StoreSheet({
   onClose,
   fallbackFocusRef,
 }: StoreSheetProps) {
+  const router = useRouter();
   const sheetRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
 
@@ -151,6 +154,7 @@ export function StoreSheet({
       className="rounded-t-3xl bg-surface-primary"
     >
       <SheetStoreDetail
+        onAction={() => router.push(ROUTES.storeDetail(store.id))}
         header={
           <HeaderStoreDetail
             name={store.name}

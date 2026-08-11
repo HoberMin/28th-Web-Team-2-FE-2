@@ -40,6 +40,8 @@ export interface SheetStoreDetailProps {
   children?: ReactNode;
   /** CTA 문구. 기본값은 Figma 심볼의 문구. */
   actionLabel?: string;
+  /** CTA 동작. 지도 시트에서는 가게 상세 화면으로 이동한다. */
+  onAction?: () => void;
   className?: string;
 }
 
@@ -47,6 +49,7 @@ export function SheetStoreDetail({
   header,
   children,
   actionLabel = "가게 상세 보기",
+  onAction,
   className,
 }: SheetStoreDetailProps) {
   return (
@@ -66,6 +69,7 @@ export function SheetStoreDetail({
         leading={false}
         trailing={false}
         className="w-full"
+        onClick={onAction}
       >
         {actionLabel}
       </Button>
