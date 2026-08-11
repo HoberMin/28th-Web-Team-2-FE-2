@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
 import { TabBar } from "../../_components/tab-bar";
@@ -144,23 +145,28 @@ function VegetableTab({ vegetables }: { vegetables: SavedVegetable[] }) {
     <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
       {vegetables.map((vegetable) => (
         <li key={vegetable.id}>
-          <GridVegetableItem
-            visual={<VegetablePhoto />}
-            name={vegetable.name}
-            price={vegetable.price}
-            unit={vegetable.unit}
-            trendAmount={vegetable.trendAmount}
-            trendPercent={vegetable.trendPercent}
-            trendState={vegetable.trendState}
-            trendIcon={
-              <>
-                {TREND_ICON[vegetable.trendState]}
-                <span className="sr-only">{TREND_LABEL[vegetable.trendState]}</span>
-              </>
-            }
-            favorite
-            favoriteIcon={<FigmaIcon name="heart-fill-grid-24" width={24} />}
-          />
+          <Link
+            href={ROUTES.priceDetail(vegetable.id)}
+            className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+          >
+            <GridVegetableItem
+              visual={<VegetablePhoto />}
+              name={vegetable.name}
+              price={vegetable.price}
+              unit={vegetable.unit}
+              trendAmount={vegetable.trendAmount}
+              trendPercent={vegetable.trendPercent}
+              trendState={vegetable.trendState}
+              trendIcon={
+                <>
+                  {TREND_ICON[vegetable.trendState]}
+                  <span className="sr-only">{TREND_LABEL[vegetable.trendState]}</span>
+                </>
+              }
+              favorite
+              favoriteIcon={<FigmaIcon name="heart-fill-grid-24" width={24} />}
+            />
+          </Link>
         </li>
       ))}
     </ul>
@@ -183,15 +189,20 @@ function StoreTab({ stores }: { stores: SavedStore[] }) {
     <ul className="flex flex-col">
       {stores.map((store) => (
         <li key={store.id}>
-          <RowSavedStore
-            thumbnail={<StorePhoto />}
-            name={store.name}
-            distance={store.distance}
-            openState={store.openState}
-            openLabel={store.openLabel}
-            hours={store.hours}
-            favoriteIcon={<FigmaIcon name="heart-fill" width={23} />}
-          />
+          <Link
+            href={ROUTES.storeDetail(store.id)}
+            className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+          >
+            <RowSavedStore
+              thumbnail={<StorePhoto />}
+              name={store.name}
+              distance={store.distance}
+              openState={store.openState}
+              openLabel={store.openLabel}
+              hours={store.hours}
+              favoriteIcon={<FigmaIcon name="heart-fill" width={23} />}
+            />
+          </Link>
         </li>
       ))}
     </ul>
