@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
@@ -5,6 +6,7 @@ import { TabBar } from "../../_components/tab-bar";
 import type { VegetableTrendState } from "../../_components/vegetable-trend";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
+import { PRICE_VEGETABLE_IMAGE_BY_ID } from "../prices/_images";
 import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
 import {
@@ -49,14 +51,15 @@ import {
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
 //    3열 칸이 넓어져도 카드가 110px에 머무르고 칸 오른쪽에 여백이 남는다. 390 기준으로는 정확하다.
 
-/** 야채 카드 사진(110×110). 품목명은 옆 텍스트가 담당하므로 장식 이미지로 둔다. */
-function VegetablePhoto() {
+/** 시세 탭과 동일한 품목별 쿠팡 대표 이미지. 품목명은 옆 텍스트가 담당하므로 장식 이미지로 둔다. */
+function VegetablePhoto({ id }: { id: string }) {
   return (
-    <FigmaImage
-      name="vegetable-grid.png"
+    <Image
+      src={PRICE_VEGETABLE_IMAGE_BY_ID[id]}
+      alt=""
       width={110}
       height={110}
-      className="size-full object-cover"
+      className="size-full object-contain"
     />
   );
 }
@@ -150,7 +153,7 @@ function VegetableTab({ vegetables }: { vegetables: SavedVegetable[] }) {
             className="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
           >
             <GridVegetableItem
-              visual={<VegetablePhoto />}
+              visual={<VegetablePhoto id={vegetable.id} />}
               name={vegetable.name}
               price={vegetable.price}
               unit={vegetable.unit}
