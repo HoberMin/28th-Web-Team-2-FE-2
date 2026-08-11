@@ -13,6 +13,8 @@ export const ROUTES = {
   prices: "/prices",
   /** F03 동네 가게 (전체화면 지도) */
   stores: "/stores",
+  /** F03 가게 상세 — GNB 없는 풀스크린 */
+  storeDetail: (storeId: string) => `/stores/${storeId}`,
   /** F04 찜 (야채 · 가게 2탭) */
   saved: "/saved",
   /** F05 마이페이지 — Figma 미확정 */
