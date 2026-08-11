@@ -13,8 +13,8 @@ import { cn } from "../_lib/cn";
 // 실사용 인스턴스는 크기를 바꿔 쓴다(item/vegetable 48 · list/lowest-vegetable 40 ·
 // row/recent-report 40). 그래서 기본 48로 두고 `className`으로 크기를 덮을 수 있게 했다.
 //
-// Figma MCP 스크린샷 export로 컴포넌트의 크롭 결과를
-// `public/figma/design-library/images/onion.png`에 저장했다.
+// Figma MCP에서 2배(96×96) PNG로 export한 컴포넌트의 크롭 결과를
+// `public/figma/design-library/images/onion.png`에 저장하고 화면에서는 최대 48×48로 표시한다.
 
 export interface ImageVegetableOnionProps {
   /** 야채 그림. 칸보다 크면 넘치는 부분이 잘린다(Figma 원본 동작). */

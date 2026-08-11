@@ -2,14 +2,51 @@ import Image from "next/image";
 import { cn } from "../_lib/cn";
 
 // Figma `badge/reporter-rank` — Design Library node 671:9967, sync 2026-08-11.
-// 텍스트와 심볼을 합친 원본 export라 글자·아이콘 간격까지 Figma와 동일하다.
+// 등급명은 프로젝트와 같은 Wanted Sans body/14-semibold로 렌더하고, 등급별 심볼만
+// Figma 하위 노드(671:7101·7256·7251·6700)에서 SVG로 export해 사용한다.
+// 전체 배지를 1배 PNG로 쓰면 텍스트까지 래스터화돼 브라우저 글자보다 흐려진다.
 export type ReporterRank = "sprout" | "rookie" | "expert" | "king";
 
-const RANK_ASSET: Record<ReporterRank, { src: string; width: number }> = {
-  sprout: { src: "/figma/design-library/images/badge-reporter-sprout.png", width: 40 },
-  rookie: { src: "/figma/design-library/images/badge-reporter-rookie.png", width: 67 },
-  expert: { src: "/figma/design-library/images/badge-reporter-expert.png", width: 67 },
-  king: { src: "/figma/design-library/images/badge-reporter-king.png", width: 52 },
+const RANK: Record<ReporterRank, {
+  label: string;
+  icon: string;
+  iconWidth: number;
+  iconHeight: number;
+  iconSlotClassName: string;
+  textClassName: string;
+}> = {
+  sprout: {
+    label: "새싹",
+    icon: "/figma/design-library/icons/badge-reporter-sprout.svg",
+    iconWidth: 14,
+    iconHeight: 9,
+    iconSlotClassName: "h-[9px] w-3.5",
+    textClassName: "text-content-disabled",
+  },
+  rookie: {
+    label: "제보 초보",
+    icon: "/figma/design-library/icons/badge-reporter-rookie.svg",
+    iconWidth: 14,
+    iconHeight: 12,
+    iconSlotClassName: "h-3 w-3.5",
+    textClassName: "text-content-secondary",
+  },
+  expert: {
+    label: "제보 고수",
+    icon: "/figma/design-library/icons/badge-reporter-expert.svg",
+    iconWidth: 12,
+    iconHeight: 12,
+    iconSlotClassName: "size-3.5",
+    textClassName: "text-content-brand-medium",
+  },
+  king: {
+    label: "제보왕",
+    icon: "/figma/design-library/icons/badge-reporter-king.svg",
+    iconWidth: 14,
+    iconHeight: 10,
+    iconSlotClassName: "h-2.5 w-3.5",
+    textClassName: "text-content-accent",
+  },
 };
 
 export interface BadgeReporterRankProps {
@@ -18,16 +55,22 @@ export interface BadgeReporterRankProps {
 }
 
 export function BadgeReporterRank({ rank = "sprout", className }: BadgeReporterRankProps) {
-  const asset = RANK_ASSET[rank];
+  const value = RANK[rank];
   return (
-    <Image
-      src={asset.src}
-      alt=""
-      aria-hidden="true"
-      width={asset.width}
-      height={22}
-      unoptimized
-      className={cn("h-5.5 shrink-0 object-contain", className)}
-    />
+    <span className={cn("inline-flex shrink-0 items-center gap-0.5", className)}>
+      <span className={cn("text-body-14-semibold whitespace-nowrap", value.textClassName)}>
+        {value.label}
+      </span>
+      <span className={cn("flex shrink-0 items-center justify-center", value.iconSlotClassName)}>
+        <Image
+          src={value.icon}
+          alt=""
+          aria-hidden="true"
+          width={value.iconWidth}
+          height={value.iconHeight}
+          unoptimized
+        />
+      </span>
+    </span>
   );
 }

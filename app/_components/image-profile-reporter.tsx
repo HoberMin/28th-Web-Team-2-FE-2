@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "../_lib/cn";
 
 // Figma `image-profile` — Design Library node 671:9932, sync 2026-08-11.
-// color 4종 심볼을 MCP로 각각 export한 44×44 PNG를 그대로 사용한다.
+// color 4종 심볼을 MCP로 각각 2배(88×88) PNG export하고 44×44로 표시한다.
 export type ReporterTone = "green" | "orange" | "gray" | "blue";
 
 const PROFILE_ASSET: Record<ReporterTone, string> = {

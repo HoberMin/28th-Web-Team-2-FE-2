@@ -33,7 +33,7 @@ export function getStoreDetailData(store: MapStore): StoreDetailData {
   if (store.id === "nh-haniro") {
     return {
       address: "강원도 속초시 대포항희망길 83 대포항수산시장 D동 7호",
-      imageName: "store-thumbnail.png",
+      imageName: "store-detail-hero.png",
       hours: [
         "매일",
         "10:30 - 21:00",
@@ -46,7 +46,7 @@ export function getStoreDetailData(store: MapStore): StoreDetailData {
 
   return {
     address: DEFAULT_ADDRESS,
-    imageName: store.id === "uri-cheonggwa" ? undefined : "store-thumbnail.png",
+    imageName: undefined,
     hours: ["매일", store.openHours.replace(/^수\s*/, "")],
     prices: store.reports.map((report, index) => ({
       id: `${report.id}-detail`,

@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "../_lib/cn";
 
 // Figma `image/store-placeholder` — Design Library node 703:13594, sync 2026-08-11.
-// 가게·말풍선 벡터와 안내 문구가 합쳐진 390×220 원본 export다.
+// 가게·말풍선 벡터와 안내 문구가 합쳐진 2배(780×440) PNG를 390×220로 표시한다.
 export interface ImageStorePlaceholderProps {
   className?: string;
 }
