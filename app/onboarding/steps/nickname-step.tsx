@@ -44,11 +44,16 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
         onSubmit={handleSubmit}
         onPointerDown={handleBackgroundPointerDown}
       >
-        <div className="flex-1 px-4 pt-10">
-          <h1 className="text-title-24-semibold text-content-primary">
-            <span className="flex items-center gap-1.5">
+        <div className="flex-1 px-4 pt-21">
+          <h1 className="flex flex-col gap-0.5 text-title-24-semibold text-content-primary">
+            <span className="flex items-center gap-1">
               반가워요!
-              <Image src="/veg/onion.svg" alt="" width={28} height={28} unoptimized />
+              <Image
+                src="/figma/design-library/images/onboarding-nickname-onion@2x.png"
+                alt=""
+                width={28}
+                height={28}
+              />
             </span>
             <span className="block">
               사용할 <strong className="font-bold text-content-brand-medium">닉네임</strong>을 알려주세요
@@ -65,7 +70,6 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
               type="text"
               value={nickname}
               autoComplete="nickname"
-              autoFocus
               aria-invalid={Boolean(describedBy)}
               aria-describedby={describedBy}
               placeholder="이름 또는 별명"
@@ -84,7 +88,7 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
           </div>
         </div>
 
-        <footer className="sticky bottom-0 shrink-0 bg-surface-primary px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
+        <footer className="sticky bottom-0 h-18.25 shrink-0 bg-surface-primary px-4 pb-3 pt-3">
           <Button
             type="submit"
             className="h-12.25 w-full"

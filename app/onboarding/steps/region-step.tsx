@@ -27,31 +27,29 @@ function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
     <li>
       <button
         type="button"
-        className="flex h-12.25 w-full items-center justify-between gap-3 text-left"
+        className="flex h-12.25 w-full items-center justify-between text-left"
         aria-pressed={selected}
         onClick={() => onSelect(region)}
       >
-        <span
-          className={`min-w-0 truncate ${
-            selected
-              ? "text-body-16-bold text-content-primary"
-              : "text-body-16-medium text-content-secondary"
-          }`}
-        >
-          {region.label}
-        </span>
-        <span className="flex shrink-0 items-center gap-3">
+        <span className="flex min-w-0 items-center gap-1">
+          <span
+            className={`truncate ${
+              selected ? "text-body-16-bold" : "text-body-16-medium"
+            } text-content-primary`}
+          >
+            {region.label}
+          </span>
           {current ? (
             <span className="rounded-sm bg-surface-brand px-2 py-0.5 text-body-12-semibold text-content-brand-medium">
               현재 위치
             </span>
           ) : null}
-          {selected ? (
-            <span className="text-content-brand-light">
-              <FigmaIcon name="check" width={20} currentColor />
-            </span>
-          ) : null}
         </span>
+        {selected ? (
+          <span className="shrink-0 text-content-brand-light">
+            <FigmaIcon name="check" width={20} currentColor />
+          </span>
+        ) : null}
       </button>
     </li>
   );
@@ -81,7 +79,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
         onSubmit={handleSubmit}
         onPointerDown={handleBackgroundPointerDown}
       >
-        <div className="shrink-0 px-4 pt-10">
+        <div className="shrink-0 px-4 pt-21">
           <h1 className="text-title-24-semibold text-content-primary">
             평소 어디에서
             <br />
@@ -132,11 +130,11 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
 
           {visibleRegions.length > 0 ? (
             <ul>
-              {visibleRegions.map((region) => (
+              {visibleRegions.map((region, index) => (
                 <RegionRow
                   key={region.id}
                   region={region}
-                  current={!isSearching && Boolean(defaultValue) && region.label === defaultValue}
+                  current={!isSearching && index === 0}
                   selected={region.label === selected}
                   onSelect={(next) => setSelected(next.label)}
                 />
@@ -149,7 +147,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
           )}
         </section>
 
-        <footer className="shrink-0 bg-surface-primary px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-2">
+        <footer className="h-20.25 shrink-0 bg-surface-primary px-5 pb-6 pt-2">
           <Button
             type="submit"
             className="h-12.25 w-full"
