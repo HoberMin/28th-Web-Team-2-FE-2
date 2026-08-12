@@ -15,7 +15,7 @@ const MAX_DISTRICTS = 3;
 
 /**
  * 로그인 수단 — `""`는 아직 F00-0(서비스 소개·로그인)을 통과하지 않은 상태다.
- * `guest`는 「먼저 둘러볼게요」로 들어온 비회원(동네만 정하고 시세 조회까지 허용).
+ * `guest`는 이전 시안의 「먼저 둘러볼게요」로 들어온 저장값과의 호환을 위해서만 유지한다.
  * 프로토타입이라 실제 카카오 OAuth 대신 목업 인증을 쓴다(`kakao-auth.ts`).
  */
 export type AuthProvider = "" | "kakao" | "guest";
@@ -168,9 +168,8 @@ export function readOnboarding(): OnboardingState {
  * 카카오 인증을 이미 마친 사람에게 인증을 다시 시키지 않는 게 이 함수의 존재 이유다.
  */
 export function nextOnboardingRoute(state: OnboardingState): string | null {
-  // ⚠️ 프로토타입 제거(2026-08-08)로 두 단계가 한 경로로 합쳐졌다. 온보딩·로그인 화면은
-  //    Figma 미확정이라 `/onboarding`이 아직 존재하지 않는다 — 이 함수는 현재 호출부가 없다.
-  //    시안이 나오면 인증/동네선택 단계를 다시 분리한다.
+  // Figma의 소개·닉네임·지역 선택은 한 경로 안에서 상태로 전환한다. 각 단계의 입력은 통과 즉시
+  // 저장되므로 어느 미완료 상태든 `/onboarding`에서 저장값에 맞는 단계부터 이어진다.
   if (!state.authProvider) return ROUTES.onboarding;
   if (!state.completed) return ROUTES.onboarding;
   return null;

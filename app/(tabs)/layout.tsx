@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { TabNav } from "./_tab-nav";
+import { OnboardingGate } from "./_onboarding-gate";
 
 // GNB가 유지되는 5개 탭의 공통 껍데기 (Figma `화면GUI` 298:3420 — 모든 탭 프레임 하단에
 // nav/gnb가 고정으로 붙어 있다).
@@ -26,7 +27,8 @@ import { TabNav } from "./_tab-nav";
 export default function TabsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-dvh overflow-hidden justify-center bg-surface-secondary">
-      <div className="flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
+      <div className="relative flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
+        <OnboardingGate />
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">{children}</main>
         {/*
           하단 safe area는 이 층이 소유한다. 루트 layout이 `viewportFit: "cover"`를 켜서

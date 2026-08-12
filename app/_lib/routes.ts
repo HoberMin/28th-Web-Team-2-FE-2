@@ -24,7 +24,7 @@ export const ROUTES = {
   priceDetail: (itemId: string) => `/prices/${itemId}`,
   /** 제보 흐름 — Figma 미확정 */
   report: "/report",
-  /** 온보딩·로그인 — Figma 미확정 */
+  /** F00 온보딩·로그인 — 소개 → 닉네임 → 지역 선택 */
   onboarding: "/onboarding",
 } as const;
 
