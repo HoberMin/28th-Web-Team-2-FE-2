@@ -35,9 +35,8 @@
 - **좌측 목차** — registry에 등록하면 자동으로 좌측(모바일은 상단) 목차에 잡힌다.
 - 스토리 내용 = 그 규격의 **모든 variant·state 나열** (타이포는 전 스케일, 컴포넌트는 variant × hover/disabled/loading 등).
 
-> **현재 인벤토리 (2026-08-05)**: `Color`·`Typography`·`Radius` **3종뿐이다.** Figma Design Library에 있는 규격이 토큰 3개 컬렉션뿐이라 이게 전부가 맞다.
-> 이전에 있던 컴포넌트 스토리 7종(CTA·CTA Small·CTA Insta·Text Field·Text Field Set·Survey Button·Indicator Bar)은 **삭제했다** — 전신 프로젝트(Looky) Figma 파일에서 온 규격이고 현 라이브러리에 원본이 없어 위 "Figma에 있는 규격만 등록" 규칙 위반이었다. 딸린 구현(`app/_components/*`)과 유틸(`app/_lib/cn.ts`), 의존성(`class-variance-authority`·`clsx`·`tailwind-merge`)도 함께 걷어냈다.
-> **컴포넌트가 없는 상태는 정상이다.** Figma에 규격이 올라오는 대로 하나씩 추가한다.
+> **현재 인벤토리 (2026-08-13 갱신)**: `_stories/registry.ts` 기준 **39종** — 파운데이션 3(Color·Typography·Radius) + 컴포넌트 32 + 패턴 4(header-store-detail·section-recent-report·sheet-store-detail·sheet-sort). Design Library `(공유) Component` 페이지(node 437-28228 / 477-9098) 전수 실측을 반영한 대규모 sync는 2026-08-08. 이후로도 개별 컴포넌트가 계속 추가되는 중(예: marker-store-map 클러스터링, badge-reporter-rank 등) — **이 인벤토리는 스냅샷이다, 최신 목록은 항상 `registry.ts`가 진실 소스.**
+> 이전에 있던 컴포넌트 스토리 7종(CTA·CTA Small·CTA Insta·Text Field·Text Field Set·Survey Button·Indicator Bar)은 2026-08-05에 **삭제했다** — 전신 프로젝트(Looky) Figma 파일에서 온 규격이고 당시 라이브러리에 원본이 없어 위 "Figma에 있는 규격만 등록" 규칙 위반이었다. 딸린 구현(`app/_components/*`)과 유틸(`app/_lib/cn.ts`), 의존성(`class-variance-authority`·`clsx`·`tailwind-merge`)도 함께 걷어냈다 — 이후 같은 이름들이 Figma 원본 규격으로 다시 등록된 것은 별개다.
 
 ## 1-2. 외부 디자인 시스템 — Seed Design (프로토타입 탐색용, 2026-07-23 도입)
 
