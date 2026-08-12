@@ -15,13 +15,14 @@ import {
 } from "./_map-canvas";
 import { StoreSheet } from "./_store-sheet";
 
-// F03 동네가게 — 지도 화면 전체. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643)
+// F03 동네가게 — 검색 헤더 아래 지도. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643,
+// `F03_가게_기본_축소` 774:10912)
 //
 // 이 화면의 인터랙션이 전부 여기 모여 있어서 **여기가 유일한 client leaf**다
 // (선택된 가게 · 찜 목록 · 찜 필터 · 검색어). 데이터는 서버(page.tsx)에서 내려온다.
 //
 // ── 레이어 (아래 → 위) ─────────────────────────────────────────────
-//   z-0   지도 캔버스 (absolute inset-0)
+//   z-0   지도 캔버스 (검색 헤더 아래, absolute inset-x-0 top-22 bottom-0)
 //   z-10  마커 오버레이 — **중심 앵커**
 //   z-20  상단 플로팅(검색 필드 + 배지/찜 필터 행)
 //   z-30  바텀시트
@@ -39,6 +40,9 @@ import { StoreSheet } from "./_store-sheet";
 //      · 검색 필드 아래 간격 = 161 − 116 = 45 → **44로 정리** → `gap-11`
 //      · 좌우 = 16 → `px-4`
 //    Status Bar 44는 OS 것이라 코드에 없다 — 본문 좌표계는 Figma y에서 44를 뺀 값이다.
+// 🔴 지도는 Figma y=132에서 시작한다. OS Status Bar 44를 빼면 앱 본문 y=88(`top-22`)이고,
+//    검색 필드 하단(y=72)과 지도 사이에는 16px의 흰 여백이 남는다. 카카오맵이 반환하는
+//    containerPoint 좌표와 마커가 어긋나지 않도록 지도·마커 오버레이는 같은 컨테이너를 쓴다.
 // 🔴 마커는 **중심 앵커**(`-translate-x/y-1/2`)로 고정한다. icon(48) → name(108) →
 //    favorite(128)은 서로 다른 부품이 아니라 같은 `marker/store-map`의 type 변형이고,
 //    Figma의 좌표 변화(Δx=−40=−(128−48)/2 등)가 전부 "중심 보존"의 결과였다. 좌상단 기준으로
@@ -184,76 +188,81 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
       role="region"
       aria-label="동네 가게 지도"
       tabIndex={-1}
-      className="relative h-full w-full overflow-hidden focus-visible:outline-none"
+      className="relative h-full w-full overflow-hidden bg-surface-primary focus-visible:outline-none"
     >
-      <MapCanvas
-        stores={stores}
-        onMapClick={closeSelectedStore}
-        onViewportChange={handleViewportChange}
-        focusRequest={focusRequest}
-      />
+      {/* Figma y=132 - OS Status Bar 44 = 앱 본문 y=88. 지도와 마커는 반드시 같은
+          containing block을 써야 Kakao containerPoint 좌표가 그대로 맞는다. */}
+      <div className="absolute inset-x-0 top-22 bottom-0">
+        <MapCanvas
+          stores={stores}
+          onMapClick={closeSelectedStore}
+          onViewportChange={handleViewportChange}
+          focusRequest={focusRequest}
+        />
 
-      {/* 마커 오버레이 — 중심 앵커. 컨테이너는 탭을 가로막지 않고 마커만 받는다. */}
-      <div className="pointer-events-none absolute inset-0 z-10">
-        {markerClusters.map((cluster) => {
-          const isCluster = cluster.stores.length > 1;
-          const store = cluster.stores[0];
-          const type = isCluster || (compactMarkers && !favoriteOnly) ? "icon" : markerType(store);
-          // 🔴 찜 여부는 **여기 aria-label에 넣어야** 한다. `MarkerStoreMap`은 favorite일 때
-          //    안쪽에 `sr-only` "찜한 가게"를 넣지만, 감싼 버튼의 aria-label이 접근 가능한
-          //    이름을 통째로 대체해서 그 텍스트가 통째로 삼켜진다(WCAG 1.1.1 — 시각 사용자만
-          //    하트를 보고 찜 여부를 알게 되는 상태였다).
-          const label = isCluster
-            ? `가게 ${cluster.stores.length}곳 확대해서 보기`
-            : `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
+        {/* 마커 오버레이 — 중심 앵커. 컨테이너는 탭을 가로막지 않고 마커만 받는다. */}
+        <div className="pointer-events-none absolute inset-0 z-10">
+          {markerClusters.map((cluster) => {
+            const isCluster = cluster.stores.length > 1;
+            const store = cluster.stores[0];
+            const type =
+              isCluster || (compactMarkers && !favoriteOnly) ? "icon" : markerType(store);
+            // 🔴 찜 여부는 **여기 aria-label에 넣어야** 한다. `MarkerStoreMap`은 favorite일 때
+            //    안쪽에 `sr-only` "찜한 가게"를 넣지만, 감싼 버튼의 aria-label이 접근 가능한
+            //    이름을 통째로 대체해서 그 텍스트가 통째로 삼켜진다(WCAG 1.1.1 — 시각 사용자만
+            //    하트를 보고 찜 여부를 알게 되는 상태였다).
+            const label = isCluster
+              ? `가게 ${cluster.stores.length}곳 확대해서 보기`
+              : `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
 
-          return (
-            <button
-              key={cluster.id}
-              type="button"
-              onClick={() =>
-                isCluster ? zoomIntoCluster(cluster.stores) : setSelectedId(store.id)
-              }
-              aria-label={label}
-              className="pointer-events-auto absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-              style={{
-                left: cluster.x,
-                top: cluster.y,
-                transform: isCluster
-                  ? "translate(-50%, calc(-100% + 16px))"
-                  : "translate(-50%, -50%)",
-              }}
-            >
-              <MarkerStoreMap
-                type={type}
-                size={compactMarkers ? "compact" : "regular"}
-                count={isCluster ? cluster.stores.length : undefined}
-                label={isCluster ? `${cluster.stores.length}개 가게` : store.name}
-                icon={
-                  type === "icon" ? (
-                    <MarkerStorePinIcon />
-                  ) : type === "favorite" ? (
-                    <MarkerFavoriteHeartIcon />
-                  ) : undefined
+            return (
+              <button
+                key={cluster.id}
+                type="button"
+                onClick={() =>
+                  isCluster ? zoomIntoCluster(cluster.stores) : setSelectedId(store.id)
                 }
-              />
-            </button>
-          );
-        })}
-      </div>
+                aria-label={label}
+                className="pointer-events-auto absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+                style={{
+                  left: cluster.x,
+                  top: cluster.y,
+                  transform: isCluster
+                    ? "translate(-50%, calc(-100% + 16px))"
+                    : "translate(-50%, -50%)",
+                }}
+              >
+                <MarkerStoreMap
+                  type={type}
+                  size={compactMarkers ? "compact" : "regular"}
+                  count={isCluster ? cluster.stores.length : undefined}
+                  label={isCluster ? `${cluster.stores.length}개 가게` : store.name}
+                  icon={
+                    type === "icon" ? (
+                      <MarkerStorePinIcon />
+                    ) : type === "favorite" ? (
+                      <MarkerFavoriteHeartIcon />
+                    ) : undefined
+                  }
+                />
+              </button>
+            );
+          })}
+        </div>
 
-      {noFavorites ? (
-        <EmptyOverlay
-          title="아직 찜한 가게가 없어요"
-          description="지도에서 가게를 누르고 하트를 누르면 여기에 모여요."
-        />
-      ) : null}
-      {!noFavorites && visibleStores.length === 0 ? (
-        <EmptyOverlay
-          title="검색 결과가 없어요"
-          description="가게 이름의 일부만 넣어 다시 찾아보세요."
-        />
-      ) : null}
+        {noFavorites ? (
+          <EmptyOverlay
+            title="아직 찜한 가게가 없어요"
+            description="지도에서 가게를 누르고 하트를 누르면 여기에 모여요."
+          />
+        ) : null}
+        {!noFavorites && visibleStores.length === 0 ? (
+          <EmptyOverlay
+            title="검색 결과가 없어요"
+            description="가게 이름의 일부만 넣어 다시 찾아보세요."
+          />
+        ) : null}
+      </div>
 
       {/* 상단 플로팅. 컨테이너는 지도 조작을 막지 않고 컨트롤만 탭을 받는다. */}
       <div className="pointer-events-none absolute inset-x-0 top-5 z-20 flex flex-col gap-11 px-4">
