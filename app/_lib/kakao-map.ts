@@ -11,9 +11,25 @@ export interface KakaoLatLng {
   getLng(): number;
 }
 
+export interface KakaoPoint {
+  x: number;
+  y: number;
+}
+
+export interface KakaoMapProjection {
+  containerPointFromCoords(latlng: KakaoLatLng): KakaoPoint;
+}
+
+export interface KakaoSetLevelOptions {
+  anchor?: KakaoLatLng;
+  animate?: boolean | { duration: number };
+}
+
 export interface KakaoMap {
   setCenter(latlng: KakaoLatLng): void;
-  setLevel(level: number): void;
+  setLevel(level: number, options?: KakaoSetLevelOptions): void;
+  getLevel(): number;
+  getProjection(): KakaoMapProjection;
 }
 
 export interface KakaoCustomOverlay {
@@ -32,8 +48,8 @@ export interface KakaoMapsApi {
     clickable?: boolean;
   }) => KakaoCustomOverlay;
   event: {
-    addListener(target: KakaoMap, type: "click", handler: () => void): void;
-    removeListener(target: KakaoMap, type: "click", handler: () => void): void;
+    addListener(target: KakaoMap, type: "click" | "idle", handler: () => void): void;
+    removeListener(target: KakaoMap, type: "click" | "idle", handler: () => void): void;
   };
   load(callback: () => void): void;
 }

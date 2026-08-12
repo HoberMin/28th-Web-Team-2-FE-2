@@ -6,8 +6,13 @@ import { BadgeMapLocation } from "../../_components/badge-map-location";
 import { ButtonCircle } from "../../_components/button-circle";
 import { MarkerStoreMap, type MarkerStoreMapType } from "../../_components/marker-store-map";
 import { TextField } from "../../_components/text-field";
+import { clusterStoreMarkers, type MapScreenPoint } from "./_cluster";
 import type { MapStore } from "./_data";
-import { MapCanvas } from "./_map-canvas";
+import {
+  MapCanvas,
+  type MapFocusRequest,
+  type MapViewport,
+} from "./_map-canvas";
 import { StoreSheet } from "./_store-sheet";
 
 // F03 동네가게 — 지도 화면 전체. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643)
@@ -43,6 +48,23 @@ import { StoreSheet } from "./_store-sheet";
 // 이 화면은 이번 사이클에 서버 통신이 없다(고정 더미) → **로딩·에러 상태는 만들지 않았다.**
 // BFF가 붙으면 그때 추가한다. 빈 상태는 **시안이 없어 임시 구현**이다(아래 EmptyOverlay).
 // 찜 필터는 반드시 "찜 0개"를 거치는 진입점이라 빈 상태 없이는 화면이 비어 버린다.
+
+// Figma F03_가게_기본_축소(774-10912): 지도 level 5 이상에서는 32px compact 마커를 쓰고,
+// 서로 겹치는 가게는 count 배지가 붙은 마커 하나로 합친다. count 마커를 누르면 그룹 중심으로
+// 이동하면서 level을 2 낮춘다(카카오맵은 level 값이 작을수록 확대).
+const COMPACT_MARKER_LEVEL = 5;
+const FALLBACK_MAP_SIZE = { width: 390, height: 721 } as const;
+
+function createFallbackViewport(stores: readonly MapStore[]): MapViewport {
+  const points: Record<string, MapScreenPoint> = {};
+  for (const store of stores) {
+    points[store.id] = {
+      x: (FALLBACK_MAP_SIZE.width * store.x) / 100,
+      y: (FALLBACK_MAP_SIZE.height * store.y) / 100,
+    };
+  }
+  return { level: 4, points };
+}
 
 // ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────
 // 색을 이 화면이 정해야 하는 자리만 `currentColor`로 넘긴다. 원본 색이 곧 정답인 자리는
@@ -105,7 +127,12 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
   const [favoriteIds, setFavoriteIds] = useState<string[]>(initialFavoriteIds);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [query, setQuery] = useState("");
+  const [viewport, setViewport] = useState<MapViewport>(() => createFallbackViewport(stores));
+  const [focusRequest, setFocusRequest] = useState<MapFocusRequest | null>(null);
   const closeSelectedStore = useCallback(() => setSelectedId(null), []);
+  const handleViewportChange = useCallback((nextViewport: MapViewport) => {
+    setViewport(nextViewport);
+  }, []);
 
   const keyword = query.trim();
   const visibleStores = stores.filter(
@@ -132,6 +159,24 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
   };
 
   const noFavorites = favoriteOnly && favoriteIds.length === 0;
+  const compactMarkers = viewport.level >= COMPACT_MARKER_LEVEL;
+  const markerClusters = compactMarkers
+    ? clusterStoreMarkers(visibleStores, viewport.points)
+    : visibleStores.flatMap((store) => {
+        const point = viewport.points[store.id];
+        return point ? [{ id: store.id, stores: [store], ...point }] : [];
+      });
+
+  const zoomIntoCluster = (clusterStores: readonly MapStore[]) => {
+    const lat = clusterStores.reduce((sum, store) => sum + store.lat, 0) / clusterStores.length;
+    const lng = clusterStores.reduce((sum, store) => sum + store.lng, 0) / clusterStores.length;
+    setSelectedId(null);
+    setFocusRequest({
+      lat,
+      lng,
+      level: Math.max(1, viewport.level - 2),
+    });
+  };
 
   return (
     <div
@@ -141,30 +186,49 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
       tabIndex={-1}
       className="relative h-full w-full overflow-hidden focus-visible:outline-none"
     >
-      <MapCanvas onMapClick={closeSelectedStore} />
+      <MapCanvas
+        stores={stores}
+        onMapClick={closeSelectedStore}
+        onViewportChange={handleViewportChange}
+        focusRequest={focusRequest}
+      />
 
       {/* 마커 오버레이 — 중심 앵커. 컨테이너는 탭을 가로막지 않고 마커만 받는다. */}
       <div className="pointer-events-none absolute inset-0 z-10">
-        {visibleStores.map((store) => {
-          const type = markerType(store);
+        {markerClusters.map((cluster) => {
+          const isCluster = cluster.stores.length > 1;
+          const store = cluster.stores[0];
+          const type = isCluster || (compactMarkers && !favoriteOnly) ? "icon" : markerType(store);
           // 🔴 찜 여부는 **여기 aria-label에 넣어야** 한다. `MarkerStoreMap`은 favorite일 때
           //    안쪽에 `sr-only` "찜한 가게"를 넣지만, 감싼 버튼의 aria-label이 접근 가능한
           //    이름을 통째로 대체해서 그 텍스트가 통째로 삼켜진다(WCAG 1.1.1 — 시각 사용자만
           //    하트를 보고 찜 여부를 알게 되는 상태였다).
-          const label = `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
+          const label = isCluster
+            ? `가게 ${cluster.stores.length}곳 확대해서 보기`
+            : `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
 
           return (
             <button
-              key={store.id}
+              key={cluster.id}
               type="button"
-              onClick={() => setSelectedId(store.id)}
+              onClick={() =>
+                isCluster ? zoomIntoCluster(cluster.stores) : setSelectedId(store.id)
+              }
               aria-label={label}
-              className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${store.x}%`, top: `${store.y}%` }}
+              className="pointer-events-auto absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+              style={{
+                left: cluster.x,
+                top: cluster.y,
+                transform: isCluster
+                  ? "translate(-50%, calc(-100% + 16px))"
+                  : "translate(-50%, -50%)",
+              }}
             >
               <MarkerStoreMap
                 type={type}
-                label={store.name}
+                size={compactMarkers ? "compact" : "regular"}
+                count={isCluster ? cluster.stores.length : undefined}
+                label={isCluster ? `${cluster.stores.length}개 가게` : store.name}
                 icon={
                   type === "icon" ? (
                     <MarkerStorePinIcon />
