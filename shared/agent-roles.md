@@ -29,9 +29,10 @@
 - 구현 agent는 **sonnet 유지**가 맞다 — 잘 스코프된 실행에는 sonnet이 적합하고 병렬 실행 시 지연도 짧다. 예외는 `figma-implementer`(**opus**): 토큰 값 오독이 전 화면에 퍼지고 실제로 hex 8건 오독 이력이 있어 검증 밀도가 값보다 비싸다
 - 읽기 전용 → `disallowedTools`로 Edit/Write 제외 / Codex `sandbox_mode = "read-only"`
 
-## 로스터 (13)
+## 로스터 (14)
 
 > **2026-08-05 정리**: 16 → 13. `explorer` 삭제(빌트인 **Explore** agent가 같은 일을 한다), `design-reviewer` → **code-reviewer**로 흡수(라우팅상 이미 "요청 시만"이라 사문화 상태였다), `design-handoff-advisor`+`design-context-advisor` → **design-advisor** 통합(디자이너가 질문 종류를 먼저 분류해야 하는 부담 제거).
+> **2026-08-10 추가**: `figma-handoff-auditor` 신설 — 디자이너가 핸드오프 전 Figma 파일 자체(레이어명·순서·토큰 바인딩)를 전수 점검하는 agent. 기존 `auditor`는 코드 저장소 전용이라 이 영역을 커버하지 못했다.
 
 | agent | 역할 | 읽기/쓰기 | 티어 | 든 스킬 | 핵심 경계·금지 |
 |---|---|---|---|---|---|
@@ -44,6 +45,7 @@
 | design-system-builder | **디자이너 바이브코딩** — `app/globals.css` `@theme static` 토큰 + `app/_components/` 공통 컴포넌트(Radix/shadcn). **현재 Figma에 컴포넌트 규격이 없어 토큰 작업이 주 업무** | 쓰기 (MCP 상속, `WebFetch` 차단) | sonnet·high | figma-bridge, frontend-design, tailwind-v4, accessibility, typescript-strict | **Figma는 MCP로만**. Radix 우선. 컴포넌트마다 `/playground` 스토리 필수. **빌드 1회→리뷰 1회→푸시로 종료** — 테스트·플랜 문서는 범위 밖(conventions #12) |
 | figma-implementer | Figma→코드 변환 + **토큰 sync**(Variables→`@theme static`) | 쓰기 (MCP 상속, `WebFetch` 차단) | **opus**·high | figma-bridge, frontend-design, tailwind-v4, accessibility | **토큰 화이트리스트만**. **REST·public API 금지**. **스크린샷 판독 금지**(2026-08-04 hex 8건 오독). sync 후 `/playground` 라벨 동반 갱신 |
 | design-advisor 🆕 | 디자이너 자문 **통합** — 핸드오프(토큰 넘기는 법) + 제품 맥락 + 내 디자인 점검 | 읽기 (MCP 상속) | opus·high | design-handoff, figma-bridge, tailwind-v4, frontend-design, flow-review | 코드 수정 X. 토큰 값을 문서에 넣지 않음. 미정은 "미정"이라 답함 |
+| figma-handoff-auditor 🆕 | **핸드오프 전 Figma 파일 자체 전수 점검** — 레이어·프레임명/순서는 직접 정리(리네임·재배치), 토큰·컴포넌트 미연결/4px·2px 그리드 이탈/raw값은 목록 보고 | 쓰기(Figma만, MCP 상속) | opus·high | figma-bridge, design-handoff, tailwind-v4 | **코드(레포) 수정 금지 — Figma 파일 전용**. 새 화면 코드 임의 생성 금지(`pages.md` 우선 확인). 애매한 리네임은 보류 |
 | wireframe-builder | 디자인 전 와이어프레임 초안 (더미 데이터·배포) | 쓰기 | sonnet | wireframe-drafting, nextjs-app-router, form-patterns, typescript-strict, accessibility | **디자인 가이드 없이**. 토큰 규칙 면제(초안 한정) |
 | test-writer | AI-native 테스트 (Vitest + Playwright + **스크린샷 회귀 + axe**) | 쓰기 | sonnet | test-strategy, playwright-e2e, vitest | 구현 베끼는 동어반복 테스트 금지 |
 | code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) + **디자인 정합·토큰·a11y 겸함** | 읽기+자동수정 (MCP 상속) | opus·high | api-patterns, frontend-design, typescript-strict, accessibility, web-performance, nextjs-app-router, data-fetching | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도·시크릿 클라 노출·Figma REST 우회 흔적 필수 체크** |

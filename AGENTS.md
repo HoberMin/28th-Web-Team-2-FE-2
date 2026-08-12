@@ -46,7 +46,7 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 
 ## 서브에이전트
 
-- `.codex/agents/*.toml` (총 **13**) — **생성 파일, 직접 편집 금지.** 상세 SSOT는 `.claude/agents/*.md`, 재생성은 `pnpm gen:codex`, 요약 카탈로그는 `shared/agent-roles.md`
+- `.codex/agents/*.toml` (총 **14**) — **생성 파일, 직접 편집 금지.** 상세 SSOT는 `.claude/agents/*.md`, 재생성은 `pnpm gen:codex`, 요약 카탈로그는 `shared/agent-roles.md`
 - **2026-08-05 정리**: 16 → 13. `explorer` 삭제(빌트인 탐색으로 대체), `design-reviewer` → `code-reviewer` 흡수, `design-handoff-advisor`+`design-context-advisor` → `design-advisor` 통합
 - 판단 밀도 티어: `model_reasoning_effort` high/medium/low (Claude 쪽 **opus**/sonnet/haiku와 매핑 — 구 `fable`은 조직 가용성 문제로 `opus`로 내렸다). Claude 쪽 frontmatter에 `effort`가 있으면 그 값이 우선한다
 - **도구 부여**: Claude 쪽 `tools`는 allowlist라 명시하면 MCP 도구가 배제된다 — MCP가 필요한 agent는 `tools`를 생략하고 `disallowedTools`로 제한한다 (`agent-roles.md` §도구 부여 규약)

@@ -83,6 +83,7 @@
 | **Figma 링크만 받음 / "이거 반영해줘"** | **figma-implementer** — 되묻지 말고 `get_metadata`로 정체를 먼저 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. **MCP 전용**. 절차는 `figma-bridge` 스킬 §0-0·§1 |
 | "Figma MCP 연결 확인해줘" (디자이너가 막혔을 때) | 메인 세션에서 `whoami` → `figma-bridge` §0-0 진단 순서. **REST 우회 제안 금지** |
 | Figma 노드 → 코드 변환·토큰 sync | figma-implementer |
+| **디자이너가 핸드오프 전에 Figma 파일 자체를 정리·전수점검** (레이어명·순서·토큰 미연결·그리드·raw값) | **figma-handoff-auditor** — 이름/순서는 직접 수정, 나머지는 목록 보고. 코드(레포)는 안 건드림 |
 | 디자인 확정 전 초안·프로토타입 | wireframe-builder |
 | "리뷰해줘" (코드) | code-reviewer |
 | 디자인 정합·토큰 위반·a11y 검토 | code-reviewer (구 design-reviewer 흡수) |

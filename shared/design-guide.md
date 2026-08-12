@@ -49,6 +49,50 @@
 - **실 사용 참고**: 셋업·컴포넌트·토큰은 `seed-design` 스킬이 안내(`@seed-design/react`+`@seed-design/css`, `seed-design.json`). 문서: `https://seed-design.io`.
 - `TODO(✍️):` UT 시나리오 화면 구현 — 어떤 플로우/화면을 만들지 미정(다음 세션). 격리 라우트 예정.
 
+## 1-3. 프레임·레이어 네이밍 규칙 (핸드오프 전 정리 — 2026-08-10 신설, 08-10 실측 반영 개정)
+
+> 핸드오프 직전 Figma 파일 정리(레이어명·순서 정리, 토큰/그리드/raw값 점검)는 **`figma-handoff-auditor`** 에이전트가 담당한다. 아래는 그 기준. **디자이너가 이미 실제로 쓰고 있던 방식을 그대로 문서화한 것**(F03_야채시세 상세 화면 실측, node `634-4925`) — 새로 지어낸 규칙이 아니다.
+
+**화면(최상위 프레임)**
+- `F0X[-N]_화면명` — `shared/pages.md` 화면 인벤토리의 코드·이름과 1:1로 맞춘다. 예: `F01_홈`, `F03_야채시세 상세`.
+- `pages.md`에 없는 새 화면이면 프레임명부터 정하지 않는다 — 화면 코드를 먼저 `pages.md`에 등록한 뒤 반영(순서 반대 금지, 코드와 어긋남).
+
+**구조용 프레임·그룹 (화면 안의 레이아웃 요소 — 컴포넌트 아님)**
+- **kebab-case 영어, 부모-자식 접두사 체이닝.** 슬래시(`/`)는 쓰지 않는다. 예: `store-summary` → `store-summary-thumbnail` / `store-summary-info` → `store-summary-title`, `price-chart-tooltip-label`.
+- 깊이 제한 없이 접두사를 이어 붙인다 — 실제로 4~5단까지 쓰이고 있다(`price-chart-tooltip-label`).
+- Figma 자동생성명(`Frame 2085673512`, `Line 6`, `Vector 140323`, `Ellipse 14874` 같은 "타입+숫자" 패턴)은 의미 있는 이름으로 바꾼다.
+
+**슬래시(`/`)는 컴포넌트 라이브러리 전용 — 구조용 레이어에 쓰지 않는다**
+- Figma가 컴포넌트 variant·Variable·텍스트 스타일 그룹을 만들 때 `/`를 네이티브로 해석하기 때문에(Assets 패널 폴더 구조), 구조용 프레임에 슬래시를 쓰면 "이거 컴포넌트인가?" 혼동이 생긴다. 실측에서도 슬래시는 컴포넌트 인스턴스(`text/vegetable-trend`, `button/base`)에만 등장했다.
+- 컴포넌트 라이브러리 자체의 네이밍·구조 규칙은 **§1-4**로 분리.
+
+**레이어 순서(z-order)**
+- 레이어 패널에서 위에 있는 항목이 실제 화면에서도 위에 보이는 요소와 일치해야 한다(붙여넣기 등으로 뒤섞인 순서 금지).
+
+## 1-4. 컴포넌트 라이브러리 네이밍·구조 규칙 (2026-08-10 신설 — Design Library 실측 반영)
+
+> `Design Library` 파일의 컴포넌트 정의 페이지(node `437-28228`) 실측. 이미 4단 구조가 일관되게 쓰이고 있었고, 예외 몇 개가 실제로 발견됐다 — 아래 표기하고 `figma-handoff-auditor`가 이 규칙으로 점검한다.
+
+**구조 4단**
+| 단계 | 규칙 | 예시 |
+|---|---|---|
+| 1. 대분류 섹션 | `숫자 카테고리` | `0 Asset`, `1 Icon`, `2 Action`, `3 Content` |
+| 2. 문서 wrapper(컴포넌트 아님) | `sec/카테고리` | `sec/button`, `sec/card`, `sec/nav` |
+| 3. 스펙시트 wrapper(컴포넌트 아님) | `spec/카테고리/컴포넌트명` | `spec/button/base`, `spec/card/news` |
+| 4. 실제 컴포넌트(마스터 — **코드 매핑 기준**) | `카테고리/컴포넌트명` (슬래시 1개만) | `button/base`, `card/news`, `text/vegetable-trend` |
+
+**컴포넌트 variant(내부 프로퍼티)**
+- Figma 컴포넌트 프로퍼티 문법(`속성=값`, 콤마로 다중 병기) 그대로 쓴다 — 이건 Figma 플랫폼이 강제하는 문법이라 별도 규칙이 필요 없다. 예: `variant=primary, state=normal, size=medium`.
+- **단, 같은 개념이면 속성 이름을 통일한다.** 실측에서 `filter/chip`은 `state=normal/selected`를 쓰는데 `row/sort-option`은 같은 의미(선택 여부)에 `status=normal/selected`를 써서 속성명이 갈렸다 — 이런 불일치는 `figma-handoff-auditor`가 report 대상으로 잡는다.
+
+**점검 대상 (실측에서 실제로 발견된 위반 유형)**
+- **3단 규칙 이탈**: `spec/badge`, `spec/circular`, `spec/vegetable`는 `spec/카테고리/컴포넌트명` 3단이 아니라 2단이다 (`spec/loading/circular`, `spec/image/vegetable`가 규칙대로의 형태) — 의도적 예외인지 실수인지 디자이너 확인 필요.
+- **복붙 중복 접두사**: `button/base/button/base/icon/check`처럼 같은 세그먼트가 반복된 이름 — 복붙 후 이름을 안 바꾼 흔적. 정규식으로 "같은 세그먼트 반복" 패턴을 잡아 report.
+- **문서 wrapper 이름이 안 갱신된 복제본**: `spec/sheet/store-detail`이 두 번 등장하는데(node `436-28171`, `477-4795`) 두 번째는 실제로는 `sheet/sort` 컴포넌트를 담고 있다 — 복제 후 wrapper 이름을 안 고친 사례. 안의 컴포넌트 이름과 wrapper 이름이 불일치하면 report.
+
+**화면에서 쓰인 인스턴스 ↔ 라이브러리 마스터 대조**
+- 컴포넌트가 활용되는 화면 링크 + 컴포넌트(라이브러리) 링크를 함께 받으면, 화면 안 인스턴스 이름이 라이브러리 마스터 이름(`카테고리/컴포넌트명`)과 실제로 일치하는지, 로컬에서 이름이 임의로 바뀌지 않았는지 대조한다.
+
 ## 2. 디자인 원칙
 
 - 확정: **모바일 퍼스트**, **WCAG 2.2 AA**, 상태 3종(로딩/에러/빈) 필수

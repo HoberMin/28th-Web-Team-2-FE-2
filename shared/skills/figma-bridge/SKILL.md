@@ -48,6 +48,7 @@ Figma 값을 가져오는 경로는 **MCP 도구 하나뿐이다.** 다음은 �
 | 라이브러리 안에서 규격 검색 | `search_design_system` |
 | 이미지·아이콘 내려받기 | `download_assets` |
 | 코드↔컴포넌트 매핑 확인 | `get_code_connect_map` |
+| **Figma 파일에 직접 쓰기**(레이어 리네임·순서 변경 등) | `use_figma` — 쓰기 도구. 호출 전 `/figma-use` 스킬(또는 `skill://figma/figma-use/SKILL.md`)을 반드시 먼저 읽는다. 현재 `figma-handoff-auditor`만 씀 — 다른 agent는 읽기 전용 |
 
 `get_libraries` → `search_design_system` 조합은 "이 규격이 라이브러리에 실제로 있나"를 확인하는 가장 싼 방법이다 — **"Figma에 있는 규격만 만든다"** 규칙(design-guide §1-1)을 검증할 때 쓴다.
 

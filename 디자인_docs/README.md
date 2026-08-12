@@ -13,7 +13,16 @@
 ## 구성
 
 - `variables/` — 디자이너가 전달하는 Figma Variables 원본 파일 아카이브 (날짜·버전 스냅샷)
+- `feedback/` — 코드 구현과 Figma 컴포넌트를 비교한 피드백 문서 (예: `v1.md`)
+- `audit/` — `figma-handoff-auditor`의 전수조사 결과 아카이브 (날짜·버전 스냅샷)
 - 루트 — 참고·의사결정 정리 문서 (예: `디자인시스템-참고정리.md`). 스냅샷 복제가 아니라 일반 git 커밋으로 이력을 관리하는 살아있는 문서
+
+## 규칙 (`audit/` — 전수조사 결과)
+
+- `figma-handoff-auditor`가 만든 전수조사 결과를 아카이브할 때 쓴다. 형식: 노드는 Figma 링크, 문제 유형별 섹션(A/B/C…), `# | 노드 | 현상태 | → 의도확인` 표, 전체 이어지는 번호 (`.claude/agents/figma-handoff-auditor.md` §출력 형식이 SSOT). `디자인_docs/feedback/v1.md`가 레포에 있으면 같은 스타일의 실례로 참고할 수 있다.
+- 파일명: `vN.md`(`v1.md`, `v2.md`, … 앞자리 0 없이 순차 번호 — `feedback/v1.md`와 동일 규칙). 새로 아카이브할 때마다 다음 번호로 새 파일을 만든다. 날짜·세션 단위로 리셋하지 않는다.
+- 과거 파일은 삭제하지 않고 누적한다.
+- **auditor 자신은 이 파일을 쓰지 않는다** (Figma 파일 전용 — 레포 쓰기 금지). 아카이브는 메인 세션에서 사용자 확인 후 진행.
 
 ## 규칙 (`variables/` — Figma Variables 원본)
 
