@@ -73,7 +73,10 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
         onClick={() => setHoursOpen((current) => !current)}
         className="mt-3 flex w-full items-start gap-2 text-left text-content-secondary"
       >
-        <IconClockFill aria-hidden="true" className="size-5 shrink-0" />
+        <IconClockFill
+          aria-hidden="true"
+          className="size-5 shrink-0 text-content-disabled"
+        />
         <div className="min-w-0 flex-1">
           <p className="text-caption-12-medium">
             <span className="font-semibold text-content-primary">영업종료</span>
@@ -288,7 +291,10 @@ export function StoreDetailClient({ store, detail }: StoreDetailClientProps) {
             />
             <span className="text-body-14-medium">999+</span>
           </button>
-          <Link href={`${ROUTES.report}?store=${encodeURIComponent(store.id)}`} className="flex flex-1 items-center justify-center rounded-lg bg-action-secondary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-content-secondary">
+          <Link
+            href={`${ROUTES.report}?store=${encodeURIComponent(store.id)}`}
+            className="flex flex-1 items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
+          >
             가게에 제보하기
           </Link>
         </footer>
