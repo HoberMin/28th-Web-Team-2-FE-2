@@ -30,14 +30,7 @@ interface FigmaComment {
   tone: ReporterTone;
 }
 
-const FIGMA_COMMENTS: FigmaComment[] = Array.from({ length: 15 }, (_, index) => ({
-  id: `figma-comment-${index + 1}`,
-  nickname: "떡볶이킬러",
-  rank: (["sprout", "rookie", "expert", "king"] as const)[index % 4],
-  age: `${index + 3}시간 전`,
-  body: "사장님이 친절해요~ 사장님이 친절해요~ 사장님이 친절해요~ 사장님이 친절해요~",
-  tone: (["green", "orange", "blue", "gray"] as const)[index % 4],
-}));
+const COMMENTS_PAGE_SIZE = 5;
 
 function StoreHero({ imageName, storeName }: { imageName?: string; storeName: string }) {
   if (imageName) {
@@ -226,8 +219,8 @@ function toFigmaComment(comment: Comment, index: number): FigmaComment {
 function StoreComments({ storeName }: { storeName: string }) {
   const localComments = useComments(storeName);
   const [value, setValue] = useState("");
-  const [visibleCount, setVisibleCount] = useState(5);
-  const comments = [...localComments.map(toFigmaComment), ...FIGMA_COMMENTS];
+  const [visibleCount, setVisibleCount] = useState(COMMENTS_PAGE_SIZE);
+  const comments = localComments.map(toFigmaComment);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -239,7 +232,7 @@ function StoreComments({ storeName }: { storeName: string }) {
 
   return (
     <section className="px-4 pt-5 pb-6">
-      <h2 className="text-body-16-bold text-content-primary">댓글 67</h2>
+      <h2 className="text-body-16-bold text-content-primary">댓글 {comments.length}</h2>
       <form onSubmit={handleSubmit} className="mt-4 flex h-10 items-center rounded-md bg-surface-secondary px-3">
         <label htmlFor="store-comment" className="sr-only">댓글 입력</label>
         <input id="store-comment" value={value} onChange={(event) => setValue(event.target.value)} placeholder="댓글을 입력하세요" className="min-w-0 flex-1 bg-transparent text-caption-12-medium text-content-primary outline-none placeholder:text-content-disabled" />
@@ -258,7 +251,13 @@ function StoreComments({ storeName }: { storeName: string }) {
         ))}
       </div>
       {visibleCount < comments.length && (
-        <button type="button" onClick={() => setVisibleCount((count) => count + 5)} className="mt-2 h-9.5 w-full rounded-md bg-surface-secondary text-caption-12-semibold text-content-secondary">댓글 더보기</button>
+        <button
+          type="button"
+          onClick={() => setVisibleCount((count) => count + COMMENTS_PAGE_SIZE)}
+          className="mt-2 h-9.5 w-full rounded-md bg-surface-secondary text-caption-12-semibold text-content-secondary"
+        >
+          댓글 더보기
+        </button>
       )}
     </section>
   );
