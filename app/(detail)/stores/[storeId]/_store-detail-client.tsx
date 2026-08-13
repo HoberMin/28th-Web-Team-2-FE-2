@@ -118,14 +118,31 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
           </div>
 
           {/*
-            stats(364:7898) — gap-[8px] items-center.
-            공통 `BadgeStoreStat`을 재사용한다 — 인라인 배지가 Figma와 두 군데 달랐다:
-              · 두 번째 배지 색이 `content/brand/light`였는데 Figma는 **`content/brand/dark`**
-              · 라벨/숫자가 한 덩어리였는데 Figma는 라벨 caption/12-medium + 숫자 caption/12-bold(gap 4)
+            stats(364:7898) — gap-[8px] items-center. 실측:
+              배지  px-[8px] py-[4px] · radius/sm · gap-[4px]
+                    라벨 caption/12-medium + 숫자 caption/12-bold
+              1번   bg surface/accent/orange-subtle · text content/accent/badge
+              2번   bg surface/brand · text **content/brand/dark**
+
+            ⚠️ 공통 `BadgeStoreStat`을 **쓰지 않는다.** 그 컴포넌트는 라벨·숫자가
+               `body-14-medium`/`body-14-bold`(14px)라서 이 자리와 4px 어긋난다 —
+               실제로 한 번 재사용했다가 배지 글자가 12→14px로 커지는 회귀를 냈다(리뷰에서 잡힘).
+               검산: 인스턴스 높이 25 = caption/12(12×1.45=17.4) + py-4×2 = 25.4 ✅
+                                  body/14(14×1.55=21.7) + 8 = 29.7 ✗
+               `BadgeStoreStat`에 size 축을 뚫는 건 컴포넌트 규격 변경이라 별도 세션이다.
+               그때 이 블록을 `<BadgeStoreStat size="small">`로 되돌린다.
+               (인라인 배지의 원래 문제였던 2번 배지 색 `content/brand/light` →
+                `content/brand/dark`와 라벨/숫자 굵기 분리는 아래에 반영돼 있다)
           */}
           <div className="flex items-center gap-2">
-            <BadgeStoreStat metric="affordable" count={store.affordableCount} />
-            <BadgeStoreStat metric="today-report" count={store.todayReportCount} />
+            <span className="flex shrink-0 items-center gap-1 rounded-sm bg-surface-accent-orange-subtle px-2 py-1 text-content-accent-badge">
+              <span className="text-caption-12-medium">저렴한 야채</span>
+              <span className="text-caption-12-bold">{store.affordableCount}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1 rounded-sm bg-surface-brand px-2 py-1 text-content-brand-dark">
+              <span className="text-caption-12-medium">오늘 제보된 품목</span>
+              <span className="text-caption-12-bold">{store.todayReportCount}</span>
+            </span>
           </div>
         </div>
       </div>
