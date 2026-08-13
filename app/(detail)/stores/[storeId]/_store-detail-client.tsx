@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import type { MapStore } from "@/app/(tabs)/stores/_data";
 import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
+import { BadgeStoreStat } from "@/app/_components/badge-store-stat";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
 import { ItemComment } from "@/app/_components/item-comment";
@@ -54,42 +55,79 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
   const [hoursOpen, setHoursOpen] = useState(true);
 
   return (
-    <section className="px-4 py-5">
-      <h1 className="text-title-20-bold text-content-primary">{store.name}</h1>
-      <div className="mt-3 flex items-start gap-2 text-content-secondary">
-        <FigmaIcon name="map-pin-fill" width={20} currentColor />
-        <p className="min-w-0 flex-1 text-caption-12-medium">{detail.address}</p>
-      </div>
-      <button
-        type="button"
-        aria-expanded={hoursOpen}
-        onClick={() => setHoursOpen((current) => !current)}
-        className="mt-3 flex w-full items-start gap-2 text-left text-content-secondary"
-      >
-        <IconClockFill
-          aria-hidden="true"
-          className="size-5 shrink-0 text-content-disabled"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="text-caption-12-medium">
-            <span className="font-semibold text-content-primary">영업종료</span>
-            {" · 10:30에 영업시작"}
-          </p>
-          {hoursOpen && (
-            <div className="mt-2 space-y-1 text-caption-12-medium">
-              {detail.hours.map((line) => <p key={line}>{line}</p>)}
+    // 화면GUI(원본) 364:7882 `store-profile-info` 실측(2026-08-13). 사진 bottom 220 → info y240 = pt-20.
+    <section className="px-4 pt-5">
+      {/* store-profile-info — flex-col gap-[12px] */}
+      <div className="flex flex-col gap-3">
+        <h1 className="w-full truncate text-title-20-bold text-content-primary">{store.name}</h1>
+
+        {/* store-profile-detail(364:7884) — flex-col gap-[12px] */}
+        <div className="flex flex-col gap-3">
+          {/* store-profile-meta(364:7885) — flex-col gap-[8px] */}
+          <div className="flex flex-col gap-2">
+            {/* address(364:7886) — gap-[4px] items-start · 아이콘 22 · body/14-regular · content/primary */}
+            <div className="flex w-full items-start gap-1">
+              <FigmaIcon name="map-pin-fill" width={22} className="shrink-0" />
+              <p className="min-w-0 flex-1 text-body-14-regular text-content-primary">
+                {detail.address}
+              </p>
             </div>
-          )}
+
+            {/*
+              hours(364:7889) — gap-[4px] items-start · `icon/clock-filled` **22**
+              Figma 개발 주석(364:7892): "해당 텍스트박스 클릭시 아래로 영업 시간 상세 정보가 나옴"
+              → 접힘/펼침이 상태축이고, chevron 방향이 그걸 나른다(7897 down ↔ 7584 up).
+            */}
+            <button
+              type="button"
+              aria-expanded={hoursOpen}
+              onClick={() => setHoursOpen((current) => !current)}
+              className="flex w-full items-start gap-1 text-left"
+            >
+              <IconClockFill aria-hidden="true" className="size-5.5 shrink-0 text-content-disabled" />
+              <div className="min-w-0 flex-1">
+                {/* summary(364:7892) — gap-[4px] items-center */}
+                <div className="flex items-center gap-1">
+                  {/* summary-text(364:7893) — gap-[6px] items-center */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-body-14-semibold text-content-primary">영업종료</span>
+                    <span
+                      aria-hidden="true"
+                      className="size-0.5 shrink-0 rounded-full bg-current text-content-primary"
+                    />
+                    <span className="whitespace-nowrap text-body-14-regular text-content-primary">
+                      10:30에 영업시작
+                    </span>
+                  </div>
+                  <FigmaIcon
+                    name={hoursOpen ? "chevron-up" : "chevron-down"}
+                    width={12}
+                    className="shrink-0"
+                  />
+                </div>
+                {hoursOpen && (
+                  // 펼침 상세(364:7585) — summary bottom → gap 6 · body/14 · 3줄 h66
+                  <div className="mt-1.5 text-body-14-regular text-content-secondary">
+                    {detail.hours.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </button>
+          </div>
+
+          {/*
+            stats(364:7898) — gap-[8px] items-center.
+            공통 `BadgeStoreStat`을 재사용한다 — 인라인 배지가 Figma와 두 군데 달랐다:
+              · 두 번째 배지 색이 `content/brand/light`였는데 Figma는 **`content/brand/dark`**
+              · 라벨/숫자가 한 덩어리였는데 Figma는 라벨 caption/12-medium + 숫자 caption/12-bold(gap 4)
+          */}
+          <div className="flex items-center gap-2">
+            <BadgeStoreStat metric="affordable" count={store.affordableCount} />
+            <BadgeStoreStat metric="today-report" count={store.todayReportCount} />
+          </div>
         </div>
-        <FigmaIcon name={hoursOpen ? "chevron-up" : "chevron-down"} width={16} currentColor />
-      </button>
-      <div className="mt-4 flex gap-2">
-        <span className="rounded-sm bg-surface-accent-orange-subtle px-2 py-1 text-caption-12-semibold text-content-accent-badge">
-          저렴한 야채 {store.affordableCount}
-        </span>
-        <span className="rounded-sm bg-surface-brand px-2 py-1 text-caption-12-semibold text-content-brand-light">
-          오늘 제보된 품목 {store.todayReportCount}
-        </span>
       </div>
     </section>
   );
@@ -101,7 +139,7 @@ function PriceRow({ item }: { item: StoreDetailPrice }) {
       <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
       <div className="min-w-0 flex-1">
         <p className="text-body-16-semibold text-content-primary">{item.name}</p>
-        <p className="text-caption-12-regular text-content-tertiary">{item.age}</p>
+        <p className="text-caption-12-regular text-content-secondary">{item.age}</p>
       </div>
       <div className="shrink-0 text-right">
         <p className="text-body-16-semibold text-content-primary">
@@ -175,7 +213,7 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
       <section className="px-4 pt-5 pb-4">
         <div className="flex items-center justify-between">
           <h2 className="text-body-16-bold text-content-primary">가게에 제보된 야채</h2>
-          <p className="text-caption-12-regular text-content-tertiary">최근 30일간 · 최신 순</p>
+          <p className="text-caption-12-regular text-content-secondary">최근 30일간 · 최신 순</p>
         </div>
         <div className="mt-5 grid h-10 grid-cols-2 rounded-md bg-surface-secondary p-1">
           {(["cheap", "expensive"] as const).map((value) => (
@@ -184,7 +222,7 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
               type="button"
               aria-pressed={kind === value}
               onClick={() => setKind(value)}
-              className={`rounded-sm text-caption-12-semibold ${kind === value ? "bg-surface-primary text-content-primary shadow-sm" : "text-content-tertiary"}`}
+              className={`rounded-sm text-caption-12-semibold ${kind === value ? "bg-surface-primary text-content-primary shadow-sm" : "text-content-secondary"}`}
             >
               {value === "cheap" ? "저렴해요" : "비싸요"}
             </button>
@@ -192,7 +230,7 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
         </div>
         <div className="mt-1 divide-y divide-border-secondary">
           {filtered.slice(0, 4).map((item) => <PriceRow key={item.id} item={item} />)}
-          {filtered.length === 0 && <p className="py-12 text-center text-body-14-medium text-content-tertiary">아직 제보가 없어요</p>}
+          {filtered.length === 0 && <p className="py-12 text-center text-body-14-medium text-content-secondary">아직 제보가 없어요</p>}
         </div>
         {filtered.length > 4 && (
           <button type="button" onClick={() => setSheetOpen(true)} className="mt-2 h-9.5 w-full rounded-md border border-border-primary text-caption-12-semibold text-content-secondary">

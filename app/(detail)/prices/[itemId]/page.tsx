@@ -79,6 +79,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             image={PRICE_VEGETABLE_IMAGE_BY_ID[vegetable.id] ?? vegetable.image}
             latestReportPrice={latestReport?.pricePerKg}
             publicPrice={baseline.current}
+            onlineLowestPrice={online?.cheapest.price}
             publicPriceDiff={publicPriceDiff}
             publicPriceDiffPercent={publicPriceDiffPercent}
           />
@@ -168,6 +169,11 @@ interface PriceSummaryProps {
   image?: string;
   latestReportPrice?: number;
   publicPrice: number;
+  /**
+   * 온라인 최저가. 화면GUI(원본) 364:7185 `public-price-row` — **이 행이 코드에 빠져 있었다.**
+   * Figma의 `public-price-group`은 공공 시세 · 온라인 최저가 · 어제 대비 **3행**이다.
+   */
+  onlineLowestPrice?: number;
   publicPriceDiff: number;
   publicPriceDiffPercent: number;
 }
@@ -178,6 +184,7 @@ function PriceSummary({
   image,
   latestReportPrice,
   publicPrice,
+  onlineLowestPrice,
   publicPriceDiff,
   publicPriceDiffPercent,
 }: PriceSummaryProps) {
@@ -210,7 +217,20 @@ function PriceSummary({
             <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
             <span className="text-body-14-medium text-content-secondary">{formatWon(publicPrice)}</span>
           </p>
-          <p className="flex items-center justify-between">
+          {/*
+            화면GUI(원본) 364:7185 — 공공 시세와 같은 형식의 두 번째 행이다.
+            온라인 가격이 없는 품목(getOnlinePrices가 undefined)에는 행 자체를 내지 않는다.
+          */}
+          {onlineLowestPrice === undefined ? null : (
+            <p className="flex items-center justify-between">
+              <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>
+              <span className="text-body-14-medium text-content-secondary">
+                {formatWon(onlineLowestPrice)}
+              </span>
+            </p>
+          )}
+          {/* 364:7188 `price-trend-row` — 위 두 행과 달리 **py-[2px]** 이 붙어 있다. */}
+          <p className="flex items-center justify-between py-0.5">
             <span className="text-caption-12-medium text-content-disabled">어제 대비</span>
             {direction === "flat" ? (
               <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
