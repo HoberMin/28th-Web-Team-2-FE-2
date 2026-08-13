@@ -81,7 +81,13 @@ export default async function SavedPage({ searchParams }: SavedPageProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-6 px-4 pt-4 pb-20">
+    // 화면GUI(원본) 364:6898·6922 실측(2026-08-13):
+    //   상태바 bottom 44 → `tab/bar` 시작 61  ⇒ 위 여백 **17** (`pt-4.25`)
+    //     (Figma 좌표가 44.0185 + 16.9814로 소수점이지만 합이 정확히 61이라 상쇄된다)
+    //   `tab/bar` bottom 104 → 목록 시작 124  ⇒ 탭↔본문 **20** (`gap-5`)
+    // ⚠️ 야채 탭만 그리드가 body 안에서 18.94px 더 내려가 있어 실제 시안은 탭 전환 때 19px 점프한다.
+    //    코드는 **점프를 재현하지 않고 20으로 통일**했다 (GUI피드백.md에 기록).
+    <div className="flex flex-col gap-5 px-4 pt-4.25 pb-20">
       <TabBar
         items={tabs}
         activeHref={activeTab === "store" ? tabs[1].href : tabs[0].href}
