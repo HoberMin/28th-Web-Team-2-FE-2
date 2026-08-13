@@ -151,6 +151,20 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //    값을 임의로 진하게 바꾸지 않고 원본 그대로 두었고, 조정 여부는
 //    `디자인_docs/feedback/0813-v2/디자인시스템-리뷰.md` 2번에 올려 디자이너 확인 대기 중이다.
 //
+// ⑦ v03 리뷰에서 **피드백 문서에는 안 올린 것들**(디자이너가 지금 결정하지 않아도 코드가 안 막히는
+//    항목 — `design-feedback` 스킬 §선별 기준). 조건이 바뀌면 다음 라운드에 올린다:
+//    · `content/rank/rookie`=`content/secondary`, `sprout`=`content/disabled` — 이름만 다르고 값이 같다.
+//      실제로 범용 토큰에서 전용 토큰으로 갈아탔는데 렌더 변화가 0이었다. sprout가 disabled와 같은 건
+//      의미상 어색하지만(새싹=비활성) 화면은 동일하다.
+//    · `surface/accent` 하위에 색상 축(orange)이 생겼는데 orange 계열 2개뿐. 다른 색이 안 오면 축이 무의미.
+//    · `content/accent/badge` 이름에 컴포넌트명이 들어간 건(v1 #19·#73) — v03에서도 그대로다.
+//    · `content/error`만 있고 success·warning 없음, `content/rank` 배경·테두리 없음 — 해당 화면이 없다.
+//    · `content/rank`가 `content/` 아래인데 `trend/`는 최상위 — 계층 기준이 갈렸다.
+//
+// ⑧ **우리 쪽 후속 점검 거리**: ⑥에서 드러난 "글자는 범용 토큰으로 근사, 아이콘은 원본 에셋"
+//    조합은 값이 어긋나도 화면상 티가 안 난다. 전용 SVG와 텍스트를 함께 쓰는 다른 컴포넌트도
+//    에셋 fill과 텍스트 토큰이 같은 값인지 한 번 전수 대조할 가치가 있다(디자이너 액션 아님).
+//
 // (구 ③ "합성 컴포넌트는 에셋 때문에 옮길 수 없다"는 보류 사유는 **해소됐다** — 에셋을 슬롯으로
 //  분리하는 방식으로 전부 구현했다. 위 ①이 그 대체 설명이다.)
 export const stories: Story[] = [
