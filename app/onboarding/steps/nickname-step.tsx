@@ -60,7 +60,13 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
             </span>
           </h1>
 
-          <div className="mt-6.5">
+          {/*
+            heading↔필드 간격. Figma 화면GUI(원본) 재실측(2026-08-13): `nickname-body`가
+            flex-col **gap-[28px]** 이다(364:7990). 이전 값 26은 프레임 364:7939 하나만 26이고
+            키보드 상태(7962)·에러 상태(7986)는 둘 다 28이라, 다수인 28로 맞췄다.
+            → Figma 7939의 26이 오타로 보인다 (GUI피드백.md에 기록).
+          */}
+          <div className="mt-7">
             <label className="sr-only" htmlFor="nickname">
               닉네임
             </label>
@@ -81,7 +87,9 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
               onChange={(event) => setNickname(event.target.value)}
             />
             {describedBy ? (
-              <p id="nickname-error" className="mt-2 text-body-14-medium text-content-error" role="alert">
+              // Figma 364:8010 실측: 에러 문구는 **body/16-medium**이다(14가 아니다).
+              // 필드↔문구 간격 8은 맞았다(`nickname-body-field-group` gap-[8px]).
+              <p id="nickname-error" className="mt-2 text-body-16-medium text-content-error" role="alert">
                 {error}
               </p>
             ) : null}

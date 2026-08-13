@@ -70,7 +70,10 @@ export function SectionRecommendedStore({ store }: SectionRecommendedStoreProps)
             visual: <VegetableImage />,
           }))}
           moreCount={store.moreCount}
-          grass={<ImageGrass height={48} />}
+          // 화면GUI(원본) 364:6810 재실측(2026-08-13): 카드 안 `image/grass`는 **h-30**이고
+          // grass-left 81×30 · grass-right 80×30 · gap 192 — 즉 `ImageGrass`의 기본값(Figma 원본)
+          // 그대로다. 이전 `height={48}`(1.6배 확대)은 Figma에 근거가 없는 코드 판단이었다.
+          grass={<ImageGrass />}
         />
       ) : (
         <SectionEmpty

@@ -22,6 +22,11 @@ interface RegionRowProps {
   onSelect: (region: Region) => void;
 }
 
+// Figma는 이 행을 `row/sort-option` 인스턴스로 꽂아 두었지만(364:8023~8027) **라이브러리
+// 마스터와 규격이 다르다** — 마스터(318-14915, 레포 `app/_components/row-sort-option.tsx`)는
+// `py-[16px]` + `border-b border/secondary`라 높이 57인데, 온보딩 인스턴스는 `py-[12px]` +
+// **테두리 없음**이라 높이 **49**다. 그래서 공통 컴포넌트를 재사용하지 않고 로컬로 둔다 —
+// 재사용하면 px가 8 틀어진다. (GUI피드백.md에 기록: 같은 컴포넌트 이름이 49/57/58 세 규격을 덮는다)
 function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
   return (
     <li>
@@ -40,7 +45,10 @@ function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
             {region.label}
           </span>
           {current ? (
-            <span className="rounded-sm bg-surface-brand px-2 py-0.5 text-body-12-semibold text-content-brand-medium">
+            // Figma `badge/current-location` 364:6171 실측: surface/brand · radius/sm 4 ·
+            // px-8 py-2 · **caption/12-semibold** · content/brand/medium.
+            // (기존 `text-body-12-semibold`는 @theme에 없는 토큰이라 무효 클래스였다)
+            <span className="rounded-sm bg-surface-brand px-2 py-0.5 text-caption-12-semibold text-content-brand-medium">
               현재 위치
             </span>
           ) : null}
@@ -97,7 +105,8 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
             value={query}
             autoComplete="address-level3"
             placeholder="동 단위로 검색"
-            className="mt-6.5"
+            // Figma 364:8016 `region-body-search` = flex-col **gap-[28px]** (제목 h70 + 28 = 필드 y98).
+            className="mt-7"
             trailing={
               query ? (
                 <button
@@ -121,15 +130,20 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
           />
         </div>
 
-        <div className="mt-5.5 h-px shrink-0 bg-border-primary" />
-
-        <section className="min-h-0 flex-1 overflow-y-auto px-4 overscroll-y-contain">
-          <h2 className="flex h-14.75 items-center text-body-14-semibold text-content-secondary">
+        {/*
+          Figma 364:8015 `region-body` = flex-col **gap-[20px]** — 검색 블록과 결과 블록 사이.
+          구분선은 별도 레이어가 아니라 결과 제목(364:8020)의 **border-t**다. 그래서 독립
+          divider를 없애고 제목에 테두리를 붙였다. 테두리는 화면 폭 전체(390)를 지나가고
+          제목 텍스트만 px-16이라, section에서 px-4를 떼고 자식에 각각 붙인다.
+        */}
+        <section className="mt-5 min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          {/* Figma 364:8020 실측: border-t border/primary · **pt-[20px] pb-[16px]** · body/14-**medium** */}
+          <h2 className="border-t border-border-primary px-4 pb-4 pt-5 text-body-14-medium text-content-secondary">
             {isSearching ? "검색 결과" : "근처 동네"}
           </h2>
 
           {visibleRegions.length > 0 ? (
-            <ul>
+            <ul className="px-4">
               {visibleRegions.map((region, index) => (
                 <RegionRow
                   key={region.id}
@@ -141,7 +155,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
               ))}
             </ul>
           ) : (
-            <p className="py-12 text-center text-body-16-medium text-content-secondary">
+            <p className="px-4 py-12 text-center text-body-16-medium text-content-secondary">
               검색 결과가 없어요
             </p>
           )}

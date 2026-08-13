@@ -63,7 +63,8 @@ export function IntroStep({ error, isLoading, onKakaoLogin }: IntroStepProps) {
             {isLoading ? "카카오 로그인 중" : "카카오로 시작하기"}
           </button>
           {error ? (
-            <p className="mt-1 text-center text-body-12-medium text-content-error" role="alert">
+            // `body-12-*` 토큰은 존재하지 않는다(@theme에 caption만 12가 있다) — 무효 클래스였다.
+            <p className="mt-1 text-center text-caption-12-medium text-content-error" role="alert">
               {error}
             </p>
           ) : null}
