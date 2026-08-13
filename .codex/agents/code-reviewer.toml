@@ -30,7 +30,9 @@ diff가 토큰(`globals.css`)·`/playground` 스토리·Figma 관련 파일을 �
 - **🔴 Figma를 MCP가 아닌 경로로 접근한 흔적** (`figma-bridge` §0-0): `api.figma.com`·`FIGMA_TOKEN`·`FIGMA_PAT`·figma 대상 `curl`/`fetch`/`WebFetch`. 발견 시 즉시 Critical — 값 신뢰성이 깨지고 시크릿 규칙(#7) 위반이다
 - **토큰 sync 회귀 3종** (`figma-bridge` §4): ①`@theme`이 `@theme static`에서 되돌아갔는지(시맨틱
   alias·SEED 오버라이드가 pruning으로 끊긴다) ②토큰 값이 바뀌었는데 `/playground` 스토리 라벨은
-  그대로인지(검산면이 죽는다) ③토큰 교체로 **대비가 나빠졌는지**(텍스트 4.5:1·아이콘 3:1 계산)
+  그대로인지(검산면이 죽는다) ③토큰 교체로 **대비가 나빠졌는지**(텍스트 4.5:1·아이콘 3:1 계산).
+  ③은 sync 전후 비교다 — 값이 내려갔으면 **엉뚱한 토큰에 물렸다는 신호**로 보고 매핑을 다시 확인한다.
+  Figma 원본이 원래 미달인 건은 flag 대상이 아니다(디자이너 소관 — `design-feedback` §2관문)
 - **Figma 원본이 없는 규격이 스토리에 등록됐는지** — `figma` 필드의 fileKey가 현 Design Library인지
   (전신 `TRXXVUvIwh8vh7FbBusXCO`를 가리키면 flag). 의심되면 `get_libraries`·`search_design_system`으로 실재 확인
 - 새 공통 컴포넌트에 `/playground` 스토리 누락
