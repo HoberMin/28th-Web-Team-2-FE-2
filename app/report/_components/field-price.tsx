@@ -3,6 +3,8 @@ import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma `field/price` — 화면GUI(원본) 컴포넌트 세트 364:6687 / 6693 / 6695, sync 2026-08-13.
 //
 // Figma의 state 축 3종을 실측했다(364:8145 get_design_context):

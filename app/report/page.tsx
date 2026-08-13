@@ -6,6 +6,14 @@ import { ReportHeader } from "./_components/report-header";
 import { getReportPlace, getReportVegetable } from "./_data";
 import { ReportForm } from "./_report-form";
 
+// ── 실측 출처 (검산용) ─────────────────────────────────────────────────────────
+// 이 폴더의 모든 `364:xxxx` 노드 ID는 **장보고 Design 파일**의 것이다:
+//   fileKey  d5j7K9BNpSXxVUu3fmZfY4
+//   섹션     `화면GUI(원본)` = 364:6742 (페이지 `(공유) GUI` = 0:1, 이 페이지의 유일한 섹션)
+// ⚠️ 레포의 다른 주석들이 참조하는 `WfW1Nkx1oiOWBHNwrw48IL`는 **Design Library**(컴포넌트·토큰)라
+//    거기서는 이 ID들이 해석되지 않는다. 두 파일을 섞어 보면 검산이 어긋난다.
+//    (실제로 리뷰에서 이 혼동이 발생해 fileKey를 명시하게 됐다)
+
 // F04-1 야채 제보 — Figma 화면GUI(원본) 364:8145 · 8173 · 8201 · 8236 · 8265.
 //
 // **Server Component다.** 클라이언트 지시어는 `_report-form.tsx`(입력·사진·모달) 하나뿐이다.

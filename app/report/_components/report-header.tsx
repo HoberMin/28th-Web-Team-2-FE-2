@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/app/_lib/cn";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma `header/vegetable-detail` — 화면GUI(원본) 364:8146 계열, sync 2026-08-13.
 //
 // 제보 플로우 4화면(F04-1·F04-2·F04-3)이 같은 인스턴스를 쓴다. F03 야채시세 상세·가게상세도

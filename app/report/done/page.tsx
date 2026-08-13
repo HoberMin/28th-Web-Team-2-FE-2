@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportCtaFooter } from "../_components/report-cta-footer";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-4 제보 완료 — Figma 화면GUI(원본) 364:8307.
 //
 // **Server Component다.** 인터랙션이 링크 2개뿐이라 클라이언트 지시어가 없다.
@@ -54,7 +56,7 @@ export default function ReportDonePage() {
             <div className="size-33 shrink-0 bg-surface-secondary" aria-hidden="true" />
             <div className="flex flex-col items-center gap-3 text-center">
               <h1 className="text-title-24-semibold text-content-primary">제보 성공!</h1>
-              <p className="max-w-50 text-body-16-medium text-content-secondary">
+              <p className="max-w-37.5 text-body-16-medium text-content-secondary">
                 3번 더 제보하시면
                 <br />
                 제보 고수가 될 수 있어요

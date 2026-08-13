@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma `scan-modal` — 화면GUI(원본) 364:8228 (F04-1_야채 제보 364:8201의 overlay), sync 2026-08-13.
 //
 // get_design_context 실측:
@@ -31,6 +33,14 @@ import { FigmaIcon } from "@/app/_lib/figma-asset";
 // a11y — Figma에 정의가 없어 코드 판단으로 채운 부분:
 //   role="dialog" + aria-modal + 진행률 aria-valuenow. 열릴 때 닫기 버튼에 포커스를 준다
 //   (모달이 열렸는데 포커스가 뒤 화면에 남으면 스크린리더가 상태 변화를 놓친다).
+//
+//   ⚠️ `aria-modal="true"`를 선언한 이상 **뒤 콘텐츠가 실제로 도달 불가여야** 한다 —
+//      안 그러면 보조기술 안내와 실제 동작이 어긋난다. 그래서 두 개를 직접 넣었다:
+//        · Escape로 닫기
+//        · 포커스 트랩 — 이 모달의 유일한 포커스 대상이 닫기 버튼 하나라, Tab을 어디로 눌러도
+//          그 버튼으로 되돌린다(순회 목록을 만들 필요가 없다)
+//      Radix `Dialog`로 감싸면 트랩·Escape·`aria-hidden`이 공짜지만, 그건 이 화면 로컬
+//      컴포넌트에 새 의존성을 들이는 결정이라 컴포넌트 세션으로 넘긴다. 지금은 손으로 막았다.
 
 export interface ScanModalProps {
   /** 진행률 0~100. Figma 시안은 36% 고정. */
@@ -47,6 +57,23 @@ export function ScanModal({ progress = 36, label = "야채 인식 중..", onClos
   useEffect(() => {
     closeRef.current?.focus();
   }, []);
+
+  // Escape로 닫기 + 포커스 트랩. 포커스 대상이 닫기 버튼 하나뿐이라 Tab을 잡아 되돌리면 끝난다.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        closeRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const clamped = Math.min(100, Math.max(0, progress));
 

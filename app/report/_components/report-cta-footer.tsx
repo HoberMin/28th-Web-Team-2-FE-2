@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/app/_lib/cn";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // 제보 플로우 하단 CTA 바 — Figma 364:8172 / 8200 / 8264 / 8292 / 8109 / 8119 / 8125 / 8143.
 //
 // ⚠️ **Figma에서 이 프레임의 레이어 이름이 자동 이름 2종으로 갈려 있다** —
@@ -34,8 +36,8 @@ export function ReportCtaFooter({ children, above, className }: ReportCtaFooterP
   return (
     <footer
       className={cn(
-        "flex w-full flex-col items-center gap-2 border-t border-border-secondary bg-surface-primary px-4 pb-3",
-        // Figma: 버튼만 있는 화면은 pt-12, 보조 링크가 있는 F04-4는 pt-8.
+        "flex w-full flex-col items-stretch gap-2 border-t border-border-secondary bg-surface-primary px-4 pb-3",
+        // Figma 실측: 버튼만 있는 화면은 pt-[12px], 보조 링크가 있는 F04-4는 pt-[8px].
         above ? "pt-2" : "pt-3",
         className,
       )}

@@ -7,6 +7,8 @@ import { ReportHeader } from "../_components/report-header";
 import { RowStoreOption } from "../_components/row-store-option";
 import { getReportPlaces } from "../_data";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-3 판매 장소 선택 — Figma 화면GUI(원본) 364:8293.
 //
 // **Server Component다.** 지도 placeholder·마커·행이 전부 정적이라 클라이언트 지시어가 없다.

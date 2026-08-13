@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma `row/store-option` — 화면GUI(원본) 364:6734, sync 2026-08-13.
 // Figma 컴포넌트 설명: "판매 장소 선택 화면에서 매장명, 거리, 주소를 보여주는 선택 행."
 //

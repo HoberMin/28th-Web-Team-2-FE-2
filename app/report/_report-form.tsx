@@ -12,6 +12,8 @@ import { PhotoPreview } from "./_components/photo-preview";
 import { ReportCtaFooter } from "./_components/report-cta-footer";
 import { ScanModal } from "./_components/scan-modal";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-1 야채 제보 폼의 인터랙션 leaf — Figma 화면GUI(원본) 364:8145 · 8173 · 8201 · 8236 · 8265.
 //
 // Figma 5프레임은 별개 화면이 아니라 **같은 폼의 상태**다:
@@ -54,6 +56,9 @@ export interface ReportFormProps {
 
 type PhotoState = { url: string; scanning: boolean } | null;
 
+/** 사진 로드 실패 안내. Figma에 실패 시안이 없어 문구만 둔다(동작 공백은 메워야 한다). */
+const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
+
 export function ReportForm({
   vegetableName,
   unitType,
@@ -63,6 +68,7 @@ export function ReportForm({
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<PhotoState>(null);
+  const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -74,13 +80,22 @@ export function ReportForm({
     };
   }, [photo?.url]);
 
-  const canSubmit = Boolean(vegetableName) && price.trim() !== "" && amount.trim() !== "";
+  // Figma에 검증 규칙 정의가 없다(위 ⚠️). `shared/pages.md` F04-1이 "필수는 품목·가격·양"이라고
+  // 적어 두었지만 **판매 장소도 포함시켰다** — "어디서 본 가격인가"가 이 플로우의 존재 이유이고,
+  // 장소 없는 제보는 시세 비교에 쓸 수 없다. 규칙을 발명하면서 일부만 발명하는 게 더 위험하다.
+  // (pages.md의 "필수 3종"이 정본이면 이 줄에서 placeName만 빼면 된다)
+  const canSubmit =
+    Boolean(vegetableName) &&
+    Boolean(placeName) &&
+    price.trim() !== "" &&
+    amount.trim() !== "";
 
   function handlePickFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     // 같은 파일을 다시 고를 수 있어야 하므로 input 값을 비운다.
     event.target.value = "";
     if (!file) return;
+    setPhotoError("");
     setPhoto({ url: URL.createObjectURL(file), scanning: true });
   }
 
@@ -126,7 +141,10 @@ export function ReportForm({
                     unoptimized
                     className="size-full object-cover"
                     onLoad={() => setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev))}
-                    onError={() => setPhoto(null)}
+                    onError={() => {
+                      setPhoto(null);
+                      setPhotoError(PHOTO_ERROR);
+                    }}
                   />
                 </PhotoPreview>
               ) : (
@@ -145,6 +163,11 @@ export function ReportForm({
                   }
                 />
               )}
+              {photoError ? (
+                <p className="text-caption-12-medium text-content-error" role="alert">
+                  {photoError}
+                </p>
+              ) : null}
               <input
                 ref={fileRef}
                 type="file"
@@ -167,28 +190,33 @@ export function ReportForm({
               />
             </FieldBlock>
 
-            <FieldBlock label="가격">
+            <FieldBlock label="가격" htmlFor="report-price">
               <FieldInput
+                id="report-price"
                 inputMode="numeric"
                 placeholder="가격을 입력해 주세요"
                 value={price}
-                aria-label="가격"
                 onChange={(event) => setPrice(event.target.value)}
               />
             </FieldBlock>
 
-            <FieldBlock label="양">
+            <FieldBlock label="양" htmlFor="report-amount">
               {/* Figma 364:8165 — flex gap-[4px], 양 입력이 flex-1, 단위가 124 고정. */}
               <div className="flex w-full items-center gap-1">
                 <FieldInput
+                  id="report-amount"
                   inputMode="numeric"
                   placeholder="1"
                   value={amount}
-                  aria-label="양"
                   className="min-w-0 flex-1"
                   onChange={(event) => setAmount(event.target.value)}
                 />
-                <FieldUnitSelect unit={unitType ?? "kg"} aria-label="단위 선택" />
+                {/*
+                  Figma에 단위 선택 시트·목록이 없다(위 ⚠️). 탭으로 도달해 Enter를 눌러도
+                  아무 일도 안 하는 컨트롤은 "고장난 것"으로 읽히므로 상태를 정직하게 노출한다.
+                  시트가 생기면 `disabled`만 떼면 된다.
+                */}
+                <FieldUnitSelect unit={unitType ?? "kg"} aria-label="단위 선택" disabled />
               </div>
             </FieldBlock>
 
@@ -225,11 +253,31 @@ export function ReportForm({
 /**
  * Figma의 필드 블록 — 라벨 + gap-[8px] + 입력.
  * 라벨은 caption/12-medium · content/primary (364:8151 계열 실측).
+ *
+ * `htmlFor`를 넘기면 `<label>`로 렌더해 라벨을 탭했을 때 입력에 포커스가 간다.
+ * 입력이 아닌 블록(사진 등록·이동 링크)은 `<p>`로 남는다 — `<label>`이 가리킬 대상이 없다.
  */
-function FieldBlock({ label, children }: { label: string; children: React.ReactNode }) {
+function FieldBlock({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex w-full flex-col items-start gap-2">
-      <p className="w-full text-caption-12-medium text-content-primary">{label}</p>
+      {htmlFor ? (
+        <label
+          htmlFor={htmlFor}
+          className="w-full text-caption-12-medium text-content-primary"
+        >
+          {label}
+        </label>
+      ) : (
+        <p className="w-full text-caption-12-medium text-content-primary">{label}</p>
+      )}
       {children}
     </div>
   );

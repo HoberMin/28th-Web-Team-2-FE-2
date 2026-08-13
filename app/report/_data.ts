@@ -3,6 +3,8 @@ import { formatDistance } from "@/app/_lib/store-locations";
 import { DEFAULT_DISTRICT, VEGETABLES, getVegetable, getVegetableGroup } from "@/app/_lib/vegetables";
 import type { VegetableGroup } from "@/app/_lib/types";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-1~4 제보 플로우 화면 데이터 — Figma 화면GUI(원본) 364:8063~8317.
 //
 // **디자인 작업용 더미다.** 실제 제보 저장·조회는 외부 Spring 스펙이 나오면 붙인다

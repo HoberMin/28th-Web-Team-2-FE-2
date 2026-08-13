@@ -5,7 +5,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import type { MapStore } from "@/app/(tabs)/stores/_data";
 import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
-import { BadgeStoreStat } from "@/app/_components/badge-store-stat";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
 import { ItemComment } from "@/app/_components/item-comment";

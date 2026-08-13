@@ -8,6 +8,8 @@ import { REPORT_CATEGORIES, getReportVegetablesByGroup, searchReportVegetables }
 import { VegetableSearchField } from "./_search-field";
 import { VegetablePicker } from "./_vegetable-picker";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-2 야채 카테고리 — Figma 화면GUI(원본) 364:8063(카테고리) · 8093(야채 목록) ·
 // 8111(검색 후) · 8121(검색결과 없음) · 8127(야채 선택).
 //

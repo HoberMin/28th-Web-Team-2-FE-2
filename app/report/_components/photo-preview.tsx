@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/app/_lib/cn";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma `report-form-photo-preview` — 화면GUI(원본) 364:8243, sync 2026-08-13.
 // 사진을 등록한 뒤 dropzone 자리를 대체한다(F04-1 364:8236 · 8265).
 //

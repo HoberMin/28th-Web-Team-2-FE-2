@@ -6,6 +6,8 @@ import { TextField } from "@/app/_components/text-field";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // F04-2 야채 카테고리 1단의 검색 필드 — Figma 화면GUI(원본) 364:8066.
 //
 // 실측: `field/text` bg surface/secondary · h-[52px] · px-[16px] py-[8px] · radius/lg ·

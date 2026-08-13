@@ -2,6 +2,8 @@ import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 
+// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
+
 // Figma가 `row/sort-option`이라고 부르는 행의 **chevron 변형** — 화면GUI(원본) 364:8068 계열,
 // sync 2026-08-13. F04-2 야채 카테고리 목록(카테고리 8행 / 야채 11행)이 쓴다.
 //
