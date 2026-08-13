@@ -24,7 +24,7 @@ import { cn } from "../_lib/cn";
 export type BadgeReportDateVariant = "today" | "yesterday";
 
 const VARIANT: Record<BadgeReportDateVariant, { className: string; text: string }> = {
-  today: { className: "bg-surface-accent text-content-accent", text: "오늘" },
+  today: { className: "bg-surface-accent-orange text-content-accent-badge", text: "오늘" },
   yesterday: { className: "bg-surface-secondary text-content-secondary", text: "어제" },
 };
 

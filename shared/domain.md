@@ -38,7 +38,9 @@
     - TextField(node 237-8556) placeholder 안내 문구 1.74:1 (기준 4.5:1)
     - Vegetable Price(node 224-7408) 단위 표기 1.92:1 (기준 4.5:1)
     - Vegetable Trend(node 224-7405) 텍스트 3.95:1 (기준 4.5:1) — 상승/하락 방향을 색(`trend/down`)에만 의존해 표시 중이라 WCAG 1.4.1 위반이기도 함. 방향 아이콘이 아직 없어서(Figma 미확정) 색 외 구분 수단이 없음
-    - Semantic Color `content/accent`(orange/700, v02 sync 신설) 흰 배경 4.45:1 (기준 4.5:1) — 아직 컴포넌트 적용 전, `/playground` Color 스토리 라벨에만 기록된 상태
+    - Semantic Color `content/accent/badge`(orange/700, v02 신설 → v03에서 리네임) 흰 배경 4.45:1 (기준 4.5:1) — 배지 텍스트에 적용 중
+    - Semantic Color `content/error`(red/500, v03 신설) 흰 배경 3.61:1 (기준 4.5:1) — 온보딩 에러 문구에 적용 중(기존 raw `red-500`과 값 동일, 토큰화만 한 것이라 대비는 그대로다)
+    - Semantic Color `content/rank/*`(v03 신설, `badge/reporter-rank`에 적용 완료) 등급명 텍스트 대비: king(orange/400) 2.02:1 · expert(green/500) 2.56:1 · sprout(gray/400) 1.92:1 · rookie(gray/600) 4.79:1 ✅. 이전 구현은 등급명 글자를 범용 토큰으로 근사해 expert 5.53:1 · king 4.45:1이었으나, **같은 배지 안의 심볼 SVG는 이미 green/500·orange/400**이어서 글자와 심볼 색이 어긋나 있었다. v03 전용 토큰이 심볼 값과 일치해 글자를 거기 맞추면서 대비가 내려갔다 — 색을 밝힌 게 아니라 정합시킨 것이다. 글자·심볼을 어느 쪽으로 통일할지는 확인 대기 (`디자인_docs/feedback/0813-v2/디자인시스템-리뷰.md` 2번)
 - `TODO(✍️):` 핵심 비주얼·타겟 톤 → `design-guide.md`
 
 ## 6. 개발 환경

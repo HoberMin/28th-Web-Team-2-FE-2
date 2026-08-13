@@ -1,7 +1,7 @@
 import type { Story } from "./types";
 
-// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-05 v02
-// (디자인_docs/variables/variables_2026-08-05_v02.json 기준 재sync).
+// Figma node 126-1092 (Raw Color · Semantic Color 컬렉션) sync 2026-08-13 v03
+// (디자인_docs/variables/variables_2026-08-13-v03.json 기준 재sync — 값 변경 0, 이름·신설만).
 // 눈으로 색을 훑어보는 갤러리이면서, 동시에 sync 검산 도구이기도 하다(hex 오독이 두 번 발생한
 // 이력이 있어 만든 안전판) — 라벨에 Figma 변수명과 기대 hex를 같이 적어 화면과 라벨이 어긋나는지
 // 잡을 수 있게 한다. 화면 문구는 뷰어 관점(무엇을 언제 쓰는지)으로 쓰되, 검산 안내 한 줄은 유지한다
@@ -131,14 +131,14 @@ const SEMANTIC: {
         usage: "가장 어두운 반전 표면(스낵바·하단 안내) · 글자는 content/inverse",
       },
       {
-        name: "surface/accent-subtle",
-        cls: "bg-surface-accent-subtle",
+        name: "surface/accent/orange-subtle",
+        cls: "bg-surface-accent-orange-subtle",
         alias: "orange/50",
         usage: "강조 영역의 옅은 배경(안내 박스·선택된 칩)",
       },
       {
-        name: "surface/accent",
-        cls: "bg-surface-accent",
+        name: "surface/accent/orange",
+        cls: "bg-surface-accent-orange",
         alias: "orange/100",
         usage: "강조 영역의 배경 · subtle보다 한 단계 진하게",
       },
@@ -161,10 +161,46 @@ const SEMANTIC: {
       { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700", usage: "브랜드 텍스트 · 중간" },
       { name: "content/brand-dark", cls: "bg-content-brand-dark", alias: "green/900", usage: "브랜드 텍스트 · 진하게" },
       {
-        name: "content/accent",
-        cls: "bg-content-accent",
+        name: "content/accent/badge",
+        cls: "bg-content-accent-badge",
         alias: "orange/700",
-        usage: "강조 텍스트·숫자 · 흰 배경에서 대비 4.45:1로 기준(4.5:1)에 살짝 못 미쳐요",
+        usage: "배지의 강조 텍스트·숫자 · 흰 배경에서 대비 4.45:1로 기준(4.5:1)에 살짝 못 미쳐요",
+      },
+      {
+        name: "content/accent/favorite",
+        cls: "bg-content-accent-favorite",
+        alias: "red/500",
+        usage: "찜(하트) 활성 색 · 흰 배경 대비 3.61:1 — 아이콘(비텍스트) 기준 3:1 충족",
+      },
+      {
+        name: "content/error",
+        cls: "bg-content-error",
+        alias: "red/500",
+        usage: "에러 문구·입력 오류 테두리 · 흰 배경 대비 3.61:1로 본문 기준(4.5:1) 미달",
+      },
+      {
+        name: "content/rank/king",
+        cls: "bg-content-rank-king",
+        alias: "orange/400",
+        usage: "제보왕 등급 · 흰 배경 대비 2.02:1 (본문 기준 4.5:1 미달)",
+      },
+      {
+        name: "content/rank/expert",
+        cls: "bg-content-rank-expert",
+        alias: "green/500",
+        usage: "제보 고수 등급 · 흰 배경 대비 2.56:1 (본문 기준 4.5:1 미달)",
+      },
+      {
+        name: "content/rank/rookie",
+        cls: "bg-content-rank-rookie",
+        alias: "gray/600",
+        usage: "제보 초보 등급 · 흰 배경 대비 4.79:1 ✅",
+      },
+      {
+        name: "content/rank/sprout",
+        cls: "bg-content-rank-sprout",
+        alias: "gray/400",
+        usage: "새싹 등급 · 흰 배경 대비 1.92:1 (본문 기준 4.5:1 미달)",
       },
     ],
   },

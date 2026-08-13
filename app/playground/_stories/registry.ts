@@ -135,13 +135,21 @@ import { vegetableTrendStory } from "./vegetable-trend";
 //    아이콘 세트(477-9106, 18종)는 별도 스토리로 등록하지 않았지만 SVG는 export돼 있어(위 ① 참고)
 //    각 컴포넌트 스토리에서 원본 그대로 쓰고 있다.
 //
-// ⑤ 토큰 이름이 Figma에서 바뀌었다 — **값은 같고 이름만 다르다**(렌더 영향 없음):
-//      Figma `content/accent/badge`        ↔ 코드 `--color-content-accent`        (둘 다 orange-700)
-//      Figma `surface/accent/orange`       ↔ 코드 `--color-surface-accent`        (둘 다 orange-100)
-//      Figma `surface/accent/orange-subtle`↔ 코드 `--color-surface-accent-subtle` (둘 다 orange-50)
-//    `content/accent/**badge**`는 시맨틱 토큰에 컴포넌트명이 들어간 형태라(배지 밖에선 못 쓴다)
-//    이름을 그대로 따라가는 게 옳은지 판단이 필요하다. **디자이너 확인 전까지 코드는 그대로 둔다** —
-//    지금 리네임하면 사용처를 다 바꾼 뒤 되돌려야 할 수 있다.
+// ⑤ ~~토큰 이름이 Figma에서 바뀌었다~~ → **2026-08-13 v03 sync에서 해소.** variables v03가 같은 이름을
+//    유지한 채 `content/accent/favorite`를 형제로 추가해서(= accent 아래를 용도별로 나눈 게 의도적 구조),
+//    코드도 Figma 이름을 그대로 따라갔다: `--color-content-accent-badge` ·
+//    `--color-surface-accent-orange` · `--color-surface-accent-orange-subtle` (값은 전부 그대로).
+//
+// ⑥ v03 신설 `content/rank/*`를 `badge/reporter-rank`에 **적용했다**(Figma 우선 원칙).
+//    구현은 2026-08-11에 등급명 **글자**를 범용 토큰으로 근사하고 있었는데, 그게 같은 배지 안의
+//    **심볼과 색이 달랐다** — 심볼 SVG는 이미 expert `#10B972`(green/500)·king `#FFA132`(orange/400)로
+//    v03 rank 토큰과 정확히 같은 값이다(rookie·sprout도 일치). 글자만 더 진했던 것이다:
+//      expert green/700(5.53:1) → green/500(2.56:1) · king orange/700(4.45:1) → orange/400(2.02:1).
+//    즉 이 변경은 "색을 밝힌 것"이 아니라 **글자를 심볼에 맞춘 정합**이다.
+//    sprout·rookie는 값이 같아 렌더 변화 없음.
+//    ⚠️ 결과적으로 등급명 **텍스트** 대비가 AA(4.5:1) 아래다(king 2.02·expert 2.56·sprout 1.92).
+//    값을 임의로 진하게 바꾸지 않고 원본 그대로 두었고, 조정 여부는
+//    `디자인_docs/feedback/0813-v2/디자인시스템-리뷰.md` 2번에 올려 디자이너 확인 대기 중이다.
 //
 // (구 ③ "합성 컴포넌트는 에셋 때문에 옮길 수 없다"는 보류 사유는 **해소됐다** — 에셋을 슬롯으로
 //  분리하는 방식으로 전부 구현했다. 위 ①이 그 대체 설명이다.)

@@ -63,7 +63,7 @@ export function IntroStep({ error, isLoading, onKakaoLogin }: IntroStepProps) {
             {isLoading ? "카카오 로그인 중" : "카카오로 시작하기"}
           </button>
           {error ? (
-            <p className="mt-1 text-center text-body-12-medium text-red-500" role="alert">
+            <p className="mt-1 text-center text-body-12-medium text-content-error" role="alert">
               {error}
             </p>
           ) : null}

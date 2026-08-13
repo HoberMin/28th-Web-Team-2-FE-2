@@ -25,7 +25,7 @@ export type BadgeStoreStatMetric = "affordable" | "today-report";
 
 const METRIC: Record<BadgeStoreStatMetric, { className: string; label: string }> = {
   affordable: {
-    className: "bg-surface-accent-subtle text-content-accent",
+    className: "bg-surface-accent-orange-subtle text-content-accent-badge",
     label: "저렴한 야채",
   },
   "today-report": {

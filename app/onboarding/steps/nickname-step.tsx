@@ -75,13 +75,13 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
               placeholder="이름 또는 별명"
               className={`h-13 w-full rounded-lg border bg-surface-primary px-4 text-body-16-medium text-content-primary placeholder:text-content-disabled focus-visible:outline-2 focus-visible:outline-offset-1 ${
                 describedBy
-                  ? "border-red-500 focus-visible:outline-red-500"
+                  ? "border-content-error focus-visible:outline-content-error"
                   : "border-border-primary focus-visible:outline-border-tertiary"
               }`}
               onChange={(event) => setNickname(event.target.value)}
             />
             {describedBy ? (
-              <p id="nickname-error" className="mt-2 text-body-14-medium text-red-500" role="alert">
+              <p id="nickname-error" className="mt-2 text-body-14-medium text-content-error" role="alert">
                 {error}
               </p>
             ) : null}

@@ -84,7 +84,7 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
         <FigmaIcon name={hoursOpen ? "chevron-up" : "chevron-down"} width={16} currentColor />
       </button>
       <div className="mt-4 flex gap-2">
-        <span className="rounded-sm bg-surface-accent-subtle px-2 py-1 text-caption-12-semibold text-content-accent">
+        <span className="rounded-sm bg-surface-accent-orange-subtle px-2 py-1 text-caption-12-semibold text-content-accent-badge">
           저렴한 야채 {store.affordableCount}
         </span>
         <span className="rounded-sm bg-surface-brand px-2 py-1 text-caption-12-semibold text-content-brand-light">
@@ -286,7 +286,7 @@ export function StoreDetailClient({ store, detail }: StoreDetailClientProps) {
               name={favorite ? "heart-fill" : "heart-stroke-bold"}
               width={24}
               currentColor
-              className={favorite ? "text-red-500" : undefined}
+              className={favorite ? "text-content-accent-favorite" : undefined}
             />
             <span className="text-body-14-medium">999+</span>
           </button>
