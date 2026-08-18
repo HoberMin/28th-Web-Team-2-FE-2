@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Item } from "@/app/_lib/api/schemas/items";
-import { mapItemToPriceView } from "./_item-view";
+import { formatItemBaseDateLabel, mapItemToPriceView } from "./_item-view";
 
 const ITEM: Item = {
   itemId: 1,
@@ -53,5 +53,15 @@ describe("mapItemToPriceView", () => {
     expect(
       mapItemToPriceView({ ...ITEM, itemImageUrl: "http://cdn.example.com/potato.png" }).image,
     ).toBe("/figma/design-library/images/vegetable-grid.png");
+  });
+});
+
+describe("formatItemBaseDateLabel", () => {
+  it("기준일이 있으면 기존 날짜 표기를 사용한다", () => {
+    expect(formatItemBaseDateLabel("2026-08-16")).toBe("8월 16일 기준");
+  });
+
+  it("가격 기준일이 없으면 정직한 대체 문구를 표시한다", () => {
+    expect(formatItemBaseDateLabel(null)).toBe("기준일 정보 없음");
   });
 });

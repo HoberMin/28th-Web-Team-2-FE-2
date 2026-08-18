@@ -1,5 +1,5 @@
 import type { Item } from "@/app/_lib/api/schemas/items";
-import { formatWon } from "@/app/_lib/format";
+import { formatAsOfLabel, formatWon } from "@/app/_lib/format";
 
 const FALLBACK_ITEM_IMAGE = "/figma/design-library/images/vegetable-grid.png";
 
@@ -15,6 +15,10 @@ export interface PriceItemView {
   trendAmount: string;
   trendPercent: string;
   isLiked: boolean;
+}
+
+export function formatItemBaseDateLabel(baseDate: string | null): string {
+  return baseDate ? formatAsOfLabel(baseDate) : "기준일 정보 없음";
 }
 
 function safeItemImage(image: string | null | undefined): string {

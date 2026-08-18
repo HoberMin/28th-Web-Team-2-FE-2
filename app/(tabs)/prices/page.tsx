@@ -3,11 +3,10 @@ import type { Metadata } from "next";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { formatAsOfLabel } from "@/app/_lib/format";
 import { ROUTES } from "@/app/_lib/routes";
 import { PricesGroupChips } from "./_group-chips";
 import { buildPricesHref } from "./_href";
-import { mapItemToPriceView } from "./_item-view";
+import { formatItemBaseDateLabel, mapItemToPriceView } from "./_item-view";
 import { PriceVegetableCard } from "./_price-vegetable-card";
 import {
   DEFAULT_PRICES_SORT,
@@ -173,7 +172,7 @@ export default async function PricesPage({
       <div className="mt-2 flex items-center justify-end gap-0.5 px-4">
         <div className="flex items-center gap-2">
           <span className="text-body-14-regular text-content-secondary">
-            {formatAsOfLabel(itemPage.baseDate)}
+            {formatItemBaseDateLabel(itemPage.baseDate)}
           </span>
           <span aria-hidden="true" className="h-3.5 w-px shrink-0 bg-border-primary" />
         </div>
