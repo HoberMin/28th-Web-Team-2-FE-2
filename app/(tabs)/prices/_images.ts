@@ -70,3 +70,15 @@ export const PRICE_VEGETABLE_IMAGE_BY_NAME: Readonly<Record<string, string>> = O
 export function getPriceVegetableImage(name: string): string {
   return PRICE_VEGETABLE_IMAGE_BY_NAME[name] ?? FALLBACK_PRICE_VEGETABLE_IMAGE;
 }
+
+const VEGETABLE_ID_BY_NAME: Readonly<Record<string, string>> = Object.freeze({
+  ...Object.fromEntries(PRICE_VEGETABLE_IMAGES.map(([id, name]) => [name, id])),
+  // 프런트 카탈로그의 괄호 표기와 라이브 API의 하이픈 표기를 모두 받는다(위 이미지 맵과 동일 이유).
+  "고춧가루(국산)": "pepper-powder-kr",
+  "고춧가루(중국산)": "pepper-powder-cn",
+});
+
+/** Spring 응답의 `itemName`(라이브 표기)을 46종 더미 카탈로그의 slug id로 되짚는다. */
+export function getVegetableIdByName(name: string): string | undefined {
+  return VEGETABLE_ID_BY_NAME[name];
+}
