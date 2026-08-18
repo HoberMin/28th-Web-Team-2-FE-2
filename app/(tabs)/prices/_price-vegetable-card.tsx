@@ -107,7 +107,6 @@ export function PriceVegetableCard({
       ) : null}
       <GridVegetableItem
         visual={
-          // 품목 이미지 host가 고정되지 않아 Next remotePatterns를 광범위하게 열지 않는다.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
@@ -116,8 +115,7 @@ export function PriceVegetableCard({
             height={110}
             loading="lazy"
             decoding="async"
-            referrerPolicy="no-referrer"
-            className="size-full object-contain"
+            className="size-full object-cover"
           />
         }
         name={name}

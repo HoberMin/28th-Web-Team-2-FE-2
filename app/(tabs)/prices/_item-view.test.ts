@@ -18,7 +18,7 @@ describe("mapItemToPriceView", () => {
     expect(mapItemToPriceView(ITEM)).toEqual({
       itemId: 1,
       name: "감자",
-      image: "https://cdn.example.com/potato.png",
+      image: "/vegetables/coupang/potato.webp",
       price: "3,500원",
       unit: "/1kg",
       trendState: "down",
@@ -28,7 +28,7 @@ describe("mapItemToPriceView", () => {
     });
   });
 
-  it("가격과 이미지가 없으면 안전한 표시값을 사용한다", () => {
+  it("가격과 백엔드 이미지가 없어도 프런트 품목 사진을 사용한다", () => {
     expect(
       mapItemToPriceView({
         ...ITEM,
@@ -38,7 +38,7 @@ describe("mapItemToPriceView", () => {
         priceDiffRate: null,
       }),
     ).toMatchObject({
-      image: "/figma/design-library/images/vegetable-grid.png",
+      image: "/vegetables/coupang/potato.webp",
       price: "가격 없음",
       trendState: "flat",
       trendAmount: "",
@@ -46,13 +46,22 @@ describe("mapItemToPriceView", () => {
     });
   });
 
-  it("잘못된 이미지 URL 한 건을 공용 대체 이미지로 격리한다", () => {
+  it("백엔드 이미지 URL은 사용하지 않고 이름으로 프런트 사진을 고른다", () => {
     expect(mapItemToPriceView({ ...ITEM, itemImageUrl: "javascript:alert(1)" }).image).toBe(
-      "/figma/design-library/images/vegetable-grid.png",
+      "/vegetables/coupang/potato.webp",
     );
     expect(
       mapItemToPriceView({ ...ITEM, itemImageUrl: "http://cdn.example.com/potato.png" }).image,
-    ).toBe("/figma/design-library/images/vegetable-grid.png");
+    ).toBe("/vegetables/coupang/potato.webp");
+  });
+
+  it("라이브 API의 고춧가루 하이픈 표기와 알 수 없는 품목을 처리한다", () => {
+    expect(mapItemToPriceView({ ...ITEM, itemName: "고춧가루-국산" }).image).toBe(
+      "/vegetables/coupang/pepper-powder-kr.webp",
+    );
+    expect(mapItemToPriceView({ ...ITEM, itemName: "새 품목" }).image).toBe(
+      "/figma/design-library/images/vegetable-grid.png",
+    );
   });
 });
 

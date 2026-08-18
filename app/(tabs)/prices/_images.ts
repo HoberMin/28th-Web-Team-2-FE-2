@@ -1,49 +1,72 @@
-// 시세 탭 전용 이미지다. 공용 채소 카탈로그의 일러스트는 다른 화면에서 그대로 유지한다.
-export const PRICE_VEGETABLE_IMAGE_BY_ID: Readonly<Record<string, string>> = {
-  potato: "/vegetables/coupang/potato.webp",
-  "sweet-potato": "/vegetables/coupang/sweet-potato.webp",
-  garlic: "/vegetables/coupang/garlic.webp",
-  onion: "/vegetables/coupang/onion.webp",
-  carrot: "/vegetables/coupang/carrot.webp",
-  ginger: "/vegetables/coupang/ginger.webp",
-  tomato: "/vegetables/coupang/tomato.webp",
-  "cherry-tomato": "/vegetables/coupang/cherry-tomato.webp",
-  "date-cherry-tomato": "/vegetables/coupang/date-cherry-tomato.webp",
-  "bell-pepper": "/vegetables/coupang/bell-pepper.webp",
-  paprika: "/vegetables/coupang/paprika.webp",
-  cucumber: "/vegetables/coupang/cucumber.webp",
-  "zucchini-korean": "/vegetables/coupang/zucchini-korean.webp",
-  zucchini: "/vegetables/coupang/zucchini.webp",
-  "green-pepper": "/vegetables/coupang/green-pepper.webp",
-  "kkwari-pepper": "/vegetables/coupang/kkwari-pepper.webp",
-  "cheongyang-pepper": "/vegetables/coupang/cheongyang-pepper.webp",
-  "mild-pepper": "/vegetables/coupang/mild-pepper.webp",
-  "red-pepper": "/vegetables/coupang/red-pepper.webp",
-  "dried-pepper": "/vegetables/coupang/dried-pepper.webp",
-  "pepper-powder-kr": "/vegetables/coupang/pepper-powder-kr.webp",
-  "pepper-powder-cn": "/vegetables/coupang/pepper-powder-cn.webp",
-  "napa-cabbage": "/vegetables/coupang/napa-cabbage.webp",
-  radish: "/vegetables/coupang/radish.webp",
-  "baby-napa-cabbage": "/vegetables/coupang/baby-napa-cabbage.webp",
-  "young-napa-cabbage": "/vegetables/coupang/young-napa-cabbage.webp",
-  cabbage: "/vegetables/coupang/cabbage.webp",
-  "young-radish": "/vegetables/coupang/young-radish.webp",
-  spinach: "/vegetables/coupang/spinach.webp",
-  "red-lettuce": "/vegetables/coupang/red-lettuce.webp",
-  "green-lettuce": "/vegetables/coupang/green-lettuce.webp",
-  "perilla-leaf": "/vegetables/coupang/perilla-leaf.webp",
-  "water-parsley": "/vegetables/coupang/water-parsley.webp",
-  "welsh-onion": "/vegetables/coupang/welsh-onion.webp",
-  chive: "/vegetables/coupang/chive.webp",
-  broccoli: "/vegetables/coupang/broccoli.webp",
-  "mustard-green": "/vegetables/coupang/mustard-green.webp",
-  "oyster-mushroom": "/vegetables/coupang/oyster-mushroom.webp",
-  "enoki-mushroom": "/vegetables/coupang/enoki-mushroom.webp",
-  "king-oyster-mushroom": "/vegetables/coupang/king-oyster-mushroom.webp",
-  sesame: "/vegetables/coupang/sesame.webp",
-  peanut: "/vegetables/coupang/peanut.webp",
-  watermelon: "/vegetables/coupang/watermelon.webp",
-  "korean-melon": "/vegetables/coupang/korean-melon.webp",
-  melon: "/vegetables/coupang/melon.webp",
-  strawberry: "/vegetables/coupang/strawberry.webp",
-};
+const PRICE_VEGETABLE_IMAGES = [
+  ["potato", "감자"],
+  ["sweet-potato", "고구마"],
+  ["garlic", "마늘"],
+  ["onion", "양파"],
+  ["carrot", "당근"],
+  ["ginger", "생강"],
+  ["tomato", "토마토"],
+  ["cherry-tomato", "방울토마토"],
+  ["date-cherry-tomato", "대추방울토마토"],
+  ["bell-pepper", "피망"],
+  ["paprika", "파프리카"],
+  ["cucumber", "오이"],
+  ["zucchini-korean", "애호박"],
+  ["zucchini", "쥬키니"],
+  ["green-pepper", "풋고추"],
+  ["kkwari-pepper", "꽈리고추"],
+  ["cheongyang-pepper", "청양고추"],
+  ["mild-pepper", "오이맛고추"],
+  ["red-pepper", "붉은고추"],
+  ["dried-pepper", "건고추"],
+  ["pepper-powder-kr", "고춧가루-국산"],
+  ["pepper-powder-cn", "고춧가루-중국산"],
+  ["napa-cabbage", "배추"],
+  ["radish", "무"],
+  ["baby-napa-cabbage", "알배기배추"],
+  ["young-napa-cabbage", "얼갈이배추"],
+  ["cabbage", "양배추"],
+  ["young-radish", "열무"],
+  ["spinach", "시금치"],
+  ["red-lettuce", "적상추"],
+  ["green-lettuce", "청상추"],
+  ["perilla-leaf", "깻잎"],
+  ["water-parsley", "미나리"],
+  ["welsh-onion", "대파"],
+  ["chive", "쪽파"],
+  ["broccoli", "브로콜리"],
+  ["mustard-green", "갓"],
+  ["oyster-mushroom", "느타리버섯"],
+  ["enoki-mushroom", "팽이버섯"],
+  ["king-oyster-mushroom", "새송이버섯"],
+  ["sesame", "참깨"],
+  ["peanut", "땅콩"],
+  ["watermelon", "수박"],
+  ["korean-melon", "참외"],
+  ["melon", "멜론"],
+  ["strawberry", "딸기"],
+] as const;
+
+export const FALLBACK_PRICE_VEGETABLE_IMAGE =
+  "/figma/design-library/images/vegetable-grid.png";
+
+// 시세 탭은 백엔드 itemImageUrl 대신 프런트에 모아 둔 46종 사진을 사용한다.
+// id 맵은 기존 더미 목록이, 이름 맵은 Spring 품목 목록이 공유한다.
+export const PRICE_VEGETABLE_IMAGE_BY_ID: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    PRICE_VEGETABLE_IMAGES.map(([id]) => [id, `/vegetables/coupang/${id}.webp`]),
+  ),
+);
+
+export const PRICE_VEGETABLE_IMAGE_BY_NAME: Readonly<Record<string, string>> = Object.freeze({
+  ...Object.fromEntries(
+    PRICE_VEGETABLE_IMAGES.map(([id, name]) => [name, `/vegetables/coupang/${id}.webp`]),
+  ),
+  // 프런트 카탈로그의 괄호 표기와 라이브 API의 하이픈 표기를 모두 받는다.
+  "고춧가루(국산)": "/vegetables/coupang/pepper-powder-kr.webp",
+  "고춧가루(중국산)": "/vegetables/coupang/pepper-powder-cn.webp",
+});
+
+export function getPriceVegetableImage(name: string): string {
+  return PRICE_VEGETABLE_IMAGE_BY_NAME[name] ?? FALLBACK_PRICE_VEGETABLE_IMAGE;
+}
