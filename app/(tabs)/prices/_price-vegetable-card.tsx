@@ -1,12 +1,17 @@
 "use client";
 
+import { useReducer, useRef, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
 import { FigmaIcon } from "../../_lib/figma-asset";
-import { toggleFavorite, useIsFavorite } from "../../_lib/favorites-store";
-import { ROUTES } from "../../_lib/routes";
-import type { TrendState } from "./_list";
+import { updateItemFavorite } from "./_actions";
+import {
+  createFavoriteState,
+  reduceFavoriteState,
+} from "./_favorite-state";
+import type { TrendState } from "./_item-view";
 
 const TREND_ICON_NAME: Record<TrendState, string> = {
   down: "trend-down",
@@ -21,7 +26,7 @@ const TREND_LABEL: Record<TrendState, string> = {
 };
 
 export interface PriceVegetableCardProps {
-  id: string;
+  itemId: number;
   name: string;
   image: string;
   price: string;
@@ -29,10 +34,14 @@ export interface PriceVegetableCardProps {
   trendState: TrendState;
   trendAmount: string;
   trendPercent: string;
+  initialFavorite: boolean;
+  canFavorite: boolean;
+  /** API 숫자 ID와 기존 slug 상세 경로의 계약이 생기기 전까지 실제 화면에서는 넘기지 않는다. */
+  detailHref?: string;
 }
 
 export function PriceVegetableCard({
-  id,
+  itemId,
   name,
   image,
   price,
@@ -40,16 +49,59 @@ export function PriceVegetableCard({
   trendState,
   trendAmount,
   trendPercent,
+  initialFavorite,
+  canFavorite,
+  detailHref,
 }: PriceVegetableCardProps) {
-  const favorite = useIsFavorite(id);
+  const router = useRouter();
+  const [state, dispatch] = useReducer(
+    reduceFavoriteState,
+    initialFavorite,
+    createFavoriteState,
+  );
+  const [isPending, startTransition] = useTransition();
+  const inFlight = useRef(false);
+
+  const toggleFavorite = () => {
+    if (!canFavorite) {
+      dispatch({ type: "notice", message: "찜하려면 카카오 로그인이 필요해요." });
+      return;
+    }
+    if (inFlight.current) return;
+
+    const nextLiked = !state.liked;
+    inFlight.current = true;
+    dispatch({ type: "request", liked: nextLiked });
+
+    startTransition(async () => {
+      try {
+        const result = await updateItemFavorite(itemId, nextLiked);
+        if (result.status === "success") {
+          dispatch({ type: "success" });
+          router.refresh();
+          return;
+        }
+        dispatch({ type: "failure", message: result.message });
+      } catch {
+        dispatch({
+          type: "failure",
+          message: "찜 상태를 바꾸지 못했어요. 다시 시도해 주세요.",
+        });
+      } finally {
+        inFlight.current = false;
+      }
+    });
+  };
 
   return (
     <div className="relative">
-      <Link
-        href={ROUTES.priceDetail(id)}
-        aria-label={`${name} 시세 상세 보기`}
-        className="absolute inset-0 z-10 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-      />
+      {detailHref ? (
+        <Link
+          href={detailHref}
+          aria-label={`${name} 시세 상세 보기`}
+          className="absolute inset-0 z-10 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+        />
+      ) : null}
       <GridVegetableItem
         visual={
           <Image
@@ -57,6 +109,7 @@ export function PriceVegetableCard({
             alt=""
             width={110}
             height={110}
+            unoptimized
             className="size-full object-contain"
           />
         }
@@ -72,22 +125,33 @@ export function PriceVegetableCard({
             <span className="sr-only">{TREND_LABEL[trendState]}</span>
           </>
         }
-        favorite={favorite}
+        favorite={state.liked}
         favoriteIcon={
           <button
             type="button"
-            aria-label={`${name} ${favorite ? "찜 취소" : "찜하기"}`}
-            aria-pressed={favorite}
-            onClick={() => toggleFavorite(id)}
+            aria-label={
+              canFavorite
+                ? `${name} ${state.liked ? "찜 취소" : "찜하기"}`
+                : `${name} 찜하려면 로그인 필요`
+            }
+            aria-pressed={state.liked}
+            aria-busy={state.pending || isPending}
+            disabled={state.pending || isPending}
+            onClick={toggleFavorite}
             className="relative z-20 flex size-9 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
           >
             <FigmaIcon
-              name={favorite ? "heart-fill-grid-24" : "heart-stroke-grid-24"}
+              name={state.liked ? "heart-fill-grid-24" : "heart-stroke-grid-24"}
               width={24}
             />
           </button>
         }
       />
+      {state.message ? (
+        <p role="status" className="mt-1 text-caption-12-regular text-content-error">
+          {state.message}
+        </p>
+      ) : null}
     </div>
   );
 }
