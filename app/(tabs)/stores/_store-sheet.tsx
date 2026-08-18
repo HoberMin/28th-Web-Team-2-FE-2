@@ -78,9 +78,11 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
           type="button"
           aria-label="가게 정보 닫기"
           onClick={onClose}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-secondary p-2 text-content-secondary"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-content-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
         >
-          <FigmaIcon name="close-header-20" width={20} currentColor />
+          <span className="flex size-9 items-center justify-center rounded-full bg-surface-secondary p-2">
+            <FigmaIcon name="close-header-20" width={20} currentColor />
+          </span>
         </button>
       </div>
     </div>

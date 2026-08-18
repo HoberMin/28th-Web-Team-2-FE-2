@@ -228,7 +228,7 @@ export function StoresMapView({ region }: StoresMapViewProps) {
                   isCluster ? zoomIntoCluster(cluster.stores) : setSelectedId(store.id)
                 }
                 aria-label={label}
-                className="pointer-events-auto absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+                className="pointer-events-auto absolute flex min-h-11 min-w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
                 style={{
                   left: cluster.x,
                   top: cluster.y,
