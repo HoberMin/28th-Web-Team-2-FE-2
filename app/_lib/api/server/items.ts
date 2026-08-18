@@ -1,6 +1,5 @@
 import "server-only";
 
-import { revalidateTag } from "next/cache";
 import {
   itemPageSchema,
   type ItemCategory,
@@ -8,7 +7,7 @@ import {
   type ItemSort,
 } from "../schemas/items";
 import { springFetch } from "../spring";
-import { CACHE_TAGS, REVALIDATE_IMMEDIATELY } from "../tags";
+import { CACHE_TAGS } from "../tags";
 
 export interface GetItemsParams {
   /** 법정동 코드. 앞자리 0이 있을 수 있어 문자열이다. */
@@ -50,8 +49,10 @@ export function getItems({ token, ...query }: GetItemsParams): Promise<ItemPage>
 /**
  * 품목 찜 추가/해제. 204를 주므로 본문이 없다.
  *
- * **Server Action이나 Route Handler에서만 호출한다** — 내부에서 `revalidateTag`를 부르는데
- * 렌더 도중에는 호출할 수 없다.
+ * **여기서 `revalidateTag`를 부르지 않는다.** 찜 상태가 담긴 응답(`token` 있음)은 애초에
+ * `no-store`라 캐시에 없고, 태그가 붙은 건 비로그인용 공유 캐시뿐인데 거기엔 찜 정보가 없다.
+ * 무효화하면 **로그인 사용자가 하트를 누를 때마다 전 게스트 캐시가 날아가** `revalidate: 300`이
+ * 무력화된다. 화면 갱신은 호출한 Server Action이 `revalidatePath`나 낙관적 업데이트로 처리한다.
  */
 export async function setItemFavorite(params: {
   itemId: number;
@@ -64,5 +65,4 @@ export async function setItemFavorite(params: {
     token: params.token,
     cache: "no-store",
   });
-  revalidateTag(CACHE_TAGS.items, REVALIDATE_IMMEDIATELY);
 }
