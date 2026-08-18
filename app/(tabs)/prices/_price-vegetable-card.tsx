@@ -145,11 +145,13 @@ export function PriceVegetableCard({
             aria-busy={state.pending || isPending}
             disabled={state.pending || isPending}
             onClick={toggleFavorite}
-            className="relative z-20 flex size-9 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+            className="absolute top-px right-px z-20 flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
           >
+            {/* 44px hit area를 안쪽으로 넓히고 아이콘 중심은 기존 36px Figma 위치에 둔다. */}
             <FigmaIcon
               name={state.liked ? "heart-fill-grid-24" : "heart-stroke-grid-24"}
               width={24}
+              className="translate-x-1.25 -translate-y-1.25"
             />
           </button>
         }
