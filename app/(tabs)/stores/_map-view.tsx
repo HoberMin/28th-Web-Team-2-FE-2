@@ -16,6 +16,7 @@ import {
   type MapViewport,
 } from "./_map-canvas";
 import { StoreSheet } from "./_store-sheet";
+import type { NearbyStoresState } from "./_nearby-state";
 import { useNearbyStores } from "./_use-nearby-stores";
 
 // F03 동네가게 — 검색 헤더 아래 지도. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643,
@@ -134,9 +135,10 @@ function StatusOverlay({
 
 export interface StoresMapViewProps {
   region: string;
+  initialNearbyState: NearbyStoresState;
 }
 
-export function StoresMapView({ region }: StoresMapViewProps) {
+export function StoresMapView({ region, initialNearbyState }: StoresMapViewProps) {
   // 시트가 닫힐 때 돌아갈 자리가 사라져 있으면(마커가 걸러져 사라진 경우) 포커스가 body로
   // 떨어진다. 그때 착지할 곳으로 이 지도 영역을 넘긴다 — 이름표가 붙어 있어 보조기기가
   // "동네 가게 지도"를 읽어 준다.
@@ -151,6 +153,7 @@ export function StoresMapView({ region }: StoresMapViewProps) {
     radius: DEFAULT_NEARBY_STORE_RADIUS,
     keyword: query,
     onlyLiked: favoriteOnly,
+    initialState: initialNearbyState,
   });
   const closeSelectedStore = useCallback(() => setSelectedId(null), []);
   const handleViewportChange = useCallback((nextViewport: MapViewport) => {
