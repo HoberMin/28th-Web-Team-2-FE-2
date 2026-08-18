@@ -5,6 +5,11 @@ import { getVegetable } from "@/app/_lib/vegetables";
 // 클라이언트 번들·응답에 노출되지 않는다. 캐싱·정규화도 여기(서버)까지.
 // 현재 시세는 RSC가 getBaselinePrice로 서버에서 직접 가져가므로, 이 라우트는
 // 향후 클라이언트 호출/외부 노출용 진입점으로 둔다(api-patterns 3층 구조).
+//
+// 쿼리(item·region)마다 응답이 갈리고 시세가 수시로 바뀌므로 라우트 자체는 캐시하지 않는다.
+// 실제 캐싱은 안쪽 getBaselinePrice가 담당한다 (conventions #11).
+
+export const dynamic = "force-dynamic";
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const item = searchParams.get("item");
