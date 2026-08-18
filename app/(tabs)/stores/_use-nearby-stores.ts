@@ -7,21 +7,19 @@ import {
   StoresClientError,
 } from "@/app/_lib/api/client/stores";
 import { mapNearbyStoreToMapStore, type MapCenter, type MapStore } from "./_data";
-
-type NearbyStoresStatus = "loading" | "success" | "error";
-
-interface NearbyStoresState {
-  key: string;
-  stores: MapStore[];
-  status: NearbyStoresStatus;
-  error: string | null;
-}
+import {
+  createNearbyStoresRequestKey,
+  shouldFetchNearbyStores,
+  type NearbyStoresState,
+  type NearbyStoresStatus,
+} from "./_nearby-state";
 
 export interface UseNearbyStoresParams {
   center: MapCenter;
   radius: number;
   keyword: string;
   onlyLiked: boolean;
+  initialState: NearbyStoresState;
 }
 
 export interface UseNearbyStoresResult {
@@ -39,18 +37,16 @@ export function useNearbyStores({
   radius,
   keyword,
   onlyLiked,
+  initialState,
 }: UseNearbyStoresParams): UseNearbyStoresResult {
   const { lat, lng } = center;
   const normalizedKeyword = keyword.trim();
-  const requestKey = `${lat}|${lng}|${radius}|${normalizedKeyword}|${onlyLiked}`;
-  const [state, setState] = useState<NearbyStoresState>({
-    key: "",
-    stores: [],
-    status: "loading",
-    error: null,
-  });
+  const requestKey = createNearbyStoresRequestKey({ center, radius, keyword, onlyLiked });
+  const [state, setState] = useState<NearbyStoresState>(initialState);
 
   useEffect(() => {
+    if (!shouldFetchNearbyStores(state.key, requestKey)) return;
+
     let active = true;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
@@ -92,7 +88,7 @@ export function useNearbyStores({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [lat, lng, normalizedKeyword, onlyLiked, radius, requestKey]);
+  }, [lat, lng, normalizedKeyword, onlyLiked, radius, requestKey, state.key]);
 
   if (state.key !== requestKey) {
     return { stores: [], status: "loading", error: null };
