@@ -10,6 +10,7 @@ import { getVegetable } from "@/app/_lib/vegetables";
 // 실제 캐싱은 안쪽 getBaselinePrice가 담당한다 (conventions #11).
 
 export const dynamic = "force-dynamic";
+
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const item = searchParams.get("item");
