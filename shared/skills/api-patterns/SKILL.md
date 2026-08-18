@@ -27,6 +27,13 @@ app/api/*/route.ts # BFF Route Handler — 클라가 부르는 유일한 HTTP �
 2. **BFF Route Handler (`app/api/*`)** — 클라 인터랙션이 부르는 표면. 내부에서 서버 함수 재사용. 클라에 필요한 모양으로 가공(over-fetch 차단).
 3. **클라 훅 (`lib/api/client/*`)** — TanStack Query로 BFF 호출. **Spring 직호출 금지** (토큰이 클라로 새는 경로).
 
+## 이 백엔드(marketgo) 특수 규약
+
+- **응답 envelope는 엔드포인트마다 다르다.** `{code,message,data}`로 감싼 것, DTO 그대로인 것, 최상위 배열인 것이 섞여 있다. → **공통 unwrap 유틸을 만들지 않는다.** 엔드포인트별 zod 스키마가 각자의 모양을 그대로 검증한다.
+- **에러 body를 신뢰하지 않는다** — 스펙이 4xx/5xx에 성공 스키마를 재사용해 형식을 알 수 없다. BFF는 **HTTP status로 분기**해 `ApiError`를 만든다.
+- **인증**: Spring accessToken(JWT)은 서버 함수·BFF에서만 `Authorization: Bearer`로 붙인다. refreshToken은 **쿠키** — BFF가 중계하며, `cookies()` 사용은 그 라우트를 동적으로 만든다(캐싱 판단에 반영).
+- 스펙 조회·함정 목록은 **`backend-api-reference` 스킬**이 진실 소스. 필드는 항상 라이브 스펙에서 읽는다.
+
 ## 공통 규약
 
 - **ApiError**: status·code·message 표준화 throw — 화면 에러 상태가 구분 처리
@@ -38,6 +45,7 @@ app/api/*/route.ts # BFF Route Handler — 클라가 부르는 유일한 HTTP �
 ## 안티패턴 (리뷰 flag)
 
 - 클라 컴포넌트→Spring 직호출 (BFF 우회) = 🔴
+- 모든 응답을 하나의 envelope로 가정한 공통 unwrap 유틸 (이 백엔드는 형태가 섞여 있다)
 - `server-only` 가드 없는 서버 함수
 - zod 없이 `as Type` 캐스팅으로 응답 신뢰
 - BFF가 Spring 응답을 가공 없이 그대로 프록시만 (BFF 존재 이유 상실 — 필요성 재검토)
