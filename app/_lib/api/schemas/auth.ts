@@ -9,9 +9,15 @@ import { z } from "zod";
 export const AUTH_PROVIDERS = ["kakao"] as const;
 export type AuthProvider = (typeof AUTH_PROVIDERS)[number];
 
+export const MAX_KAKAO_ID_TOKEN_LENGTH = 8_192;
+
 /** 카카오 access_token이 아니라 **OIDC id_token**을 보낸다. 헷갈리기 쉬운 지점. */
 export const loginRequestSchema = z.object({
-  idToken: z.string().min(1),
+  idToken: z
+    .string()
+    .min(1)
+    .max(MAX_KAKAO_ID_TOKEN_LENGTH)
+    .refine((value) => value.trim().length > 0),
 });
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 
