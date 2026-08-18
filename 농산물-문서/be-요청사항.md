@@ -87,7 +87,8 @@
 | **에러 응답 형식을 알 수 없음** — 400·401·404·502가 전부 성공 스키마를 재사용 | Swagger 생성 이슈로 보임 | 상태 코드로만 분기하고 본문은 신뢰하지 않습니다 |
 | **`Set-Cookie`가 Swagger에 없음** — refreshToken을 *받는* API는 있는데 *주는* 곳이 스펙에 없음 | 문서에만 있음 | 문서 기준으로 구현 |
 | **쿼리 파라미터가 `request`로 나옴** — `/regions/search`·`/regions/nearby`·`/kamis/daily-prices` | Swagger를 그대로 읽으면 `?request=`를 만들어 400. 실제로는 `?keyword=` 형태 | 확인 완료, 저희 문서에 메모함 |
-| **`regionId` 타입 불일치** — `SearchResult`는 `string("0111010100")`, `NearbyRegionResponse`는 `int64` | 숫자로 다루면 **앞자리 0이 사라짐** | 프론트는 문자열로 통일. **가능하시면 서버도 문자열로 통일 부탁드립니다** |
+| **KAMIS `errorCode`의 정상값** — 스펙에 enum·example이 없어 어떤 값이 성공인지 모름 | 지금은 KAMIS 관례대로 `"000"`을 정상으로 보고 있음 | **`"000"`이 맞는지만 알려주세요.** Spring이 값을 바꿔 내리면 정상 응답이 전부 에러로 뒤집힙니다 |
+| **`regionId` 타입 불일치** — `SearchResult`는 `string("0111010100")`, `NearbyRegionResponse`는 `int64` | 숫자로 다루면 **앞자리 0이 사라짐** | 프론트는 문자열로 통일. **가능하시면 서버도 문자열로 통일 부탁드립니다.** 법정동 코드가 항상 10자리인지 알려주시면 잃어버린 0을 복원할 수 있습니다 |
 | **응답 감싸는 방식이 엔드포인트마다 다름** — `/regions/search`만 `{code,message,data}`, 나머지는 그대로 또는 배열 | — | 엔드포인트마다 따로 처리. **통일 계획 있으면 알려주세요** |
 | `servers`가 `http://`, `info.title`이 `Demo API` | Swagger 기본값 | `https`로 호출 중 |
 
