@@ -145,6 +145,9 @@ export default async function PricesPage({
   });
   const rows = itemPage.items.map(mapItemToPriceView);
   const counts = mapCategoryCounts(itemPage.categoryCounts);
+  const catalogTotalCount = itemPage.categoryCounts
+    ? Object.values(counts).reduce((total, count) => total + count, 0)
+    : itemPage.totalCount;
   const currentPage = itemPage.page + 1;
   const sortParam = sort === DEFAULT_PRICES_SORT ? undefined : sort;
 
@@ -160,7 +163,7 @@ export default async function PricesPage({
         <PricesGroupChips
           groups={PRICE_GROUPS.map(({ label }) => label)}
           counts={counts}
-          totalCount={itemPage.totalCount}
+          totalCount={catalogTotalCount}
           selected={group}
           query={query}
           sort={sortParam}
@@ -185,7 +188,7 @@ export default async function PricesPage({
 
       <div className="mt-2 px-4">
         <p role="status" className="sr-only">
-          전체 {itemPage.totalCount}개 중 야채 {rows.length}개
+          조건에 맞는 야채 {itemPage.totalCount}개 중 {rows.length}개
         </p>
         {rows.length === 0 ? (
           <EmptyResult query={query} />
