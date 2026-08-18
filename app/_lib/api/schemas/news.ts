@@ -5,8 +5,8 @@ import { z } from "zod";
 export const newsArticleSchema = z.object({
   title: z.string(),
   summary: z.string().optional(),
-  /** 외부 기사 원문 링크 — 뉴스 카드는 이 주소로 나간다. */
-  originalUrl: z.string(),
+  /** 외부 기사 원문 링크 — 그대로 `<a href>`로 나가므로 경계에서 형식을 거른다. */
+  originalUrl: z.url(),
   publishedAt: z.string(),
   thumbnailUrl: z.string().optional(),
 });
