@@ -30,7 +30,19 @@ fetch(url, { cache: 'no-store' })
 아무것도 안 쓴 fetch = 의도 불명 → 리뷰 flag.
 
 **2. 뮤테이션엔 무효화 짝 (의무)**
-Server Action / BFF 뮤테이션 → `revalidateTag('products')` 또는 `revalidatePath('/products')`. 무효화 없는 뮤테이션 = stale 화면 = 🔴.
+Server Action / BFF 뮤테이션 → `revalidateTag` 또는 `revalidatePath`. 무효화 없는 뮤테이션 = stale 화면 = 🔴.
+
+⚠️ **Next 16에서 `revalidateTag`가 2인자로 바뀌었고, 프로필 이름을 넘기면 즉시 무효화가 안 된다.**
+```ts
+revalidateTag('products')              // ❌ deprecated 경고
+revalidateTag('products', 'max')       // ❌ 만료가 1년 뒤로 밀린다 = 사실상 무효화 아님
+revalidateTag('products', { expire: 0 })  // ✅ 즉시 만료
+updateTag('products')                  // ✅ 즉시. 단 Server Action 전용(Route Handler에서 throw)
+```
+캐시 핸들러가 `expired = now + profile.expire`로 쓰기 때문이다. `'max'`(1년)를 넘기면
+`expiredAt <= now` 판정에 걸리지 않아 **stale 값이 한 번 더 서빙되고**, 뮤테이션 직후
+자기 변경을 못 보는 상태가 된다. 이 프로젝트는 `app/_lib/api/tags.ts`의
+`REVALIDATE_IMMEDIATELY`(`{ expire: 0 }`)를 쓴다.
 
 **3. 라우트 단위 선언**
 `export const revalidate = 3600` / `export const dynamic = 'force-static' | 'force-dynamic'` — 페이지 성격을 라우트 상단에 선언. **정적 유지가 기본**, `cookies()`·`headers()` 등 동적 API는 필요할 때만(쓰는 순간 라우트 전체가 동적으로 전환됨을 인지).
