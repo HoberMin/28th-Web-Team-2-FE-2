@@ -12,7 +12,15 @@ import { ApiError } from "./api-error";
 import { getSpringBaseUrl, SPRING_REQUEST_TIMEOUT_MS } from "./spring-config";
 
 export function springUrl(path: string, query?: QueryParams): string {
-  const url = new URL(path, getSpringBaseUrl());
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Spring API path는 /로 시작하는 same-origin 상대 경로여야 합니다.");
+  }
+
+  const baseUrl = getSpringBaseUrl();
+  const url = new URL(path, baseUrl);
+  if (url.origin !== baseUrl.origin) {
+    throw new Error("Spring API path는 base URL과 같은 origin이어야 합니다.");
+  }
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value === undefined || value === null || value === "") continue;
