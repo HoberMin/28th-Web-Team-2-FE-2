@@ -1,7 +1,7 @@
 "use server";
 
 import { ApiError } from "@/app/_lib/api/api-error";
-import { getAccessToken } from "@/app/_lib/api/auth/session";
+import { clearTokens, getAccessToken } from "@/app/_lib/api/auth/session";
 import { setItemFavorite } from "@/app/_lib/api/server/items";
 
 export type FavoriteMutationResult =
@@ -28,10 +28,19 @@ export async function updateItemFavorite(
     // 공개 게스트 캐시에는 개인 찜이 없으므로 여기서 무효화하지 않는다.
     return { status: "success" };
   } catch (error) {
-    if (error instanceof ApiError && error.isAuthExpired) {
+    if (!(error instanceof ApiError)) throw error;
+
+    console.error("품목 찜 변경 실패", {
+      kind: error.kind,
+      status: error.status,
+      endpoint: error.endpoint,
+    });
+
+    if (error.isAuthExpired || error.kind === "forbidden") {
+      await clearTokens();
       return { status: "unauthorized", message: "로그인이 만료됐어요. 다시 로그인해 주세요." };
     }
-    if (error instanceof ApiError && error.kind === "notFound") {
+    if (error.kind === "notFound") {
       return { status: "error", message: "야채 정보를 찾을 수 없어요." };
     }
     return { status: "error", message: "찜 상태를 바꾸지 못했어요. 다시 시도해 주세요." };
