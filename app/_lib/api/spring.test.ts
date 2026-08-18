@@ -72,6 +72,8 @@ describe("Spring API client", () => {
         Cookie: "refreshToken=refresh-token",
       },
     });
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    expect(init?.signal?.aborted).toBe(false);
   });
 
   it("공개 GET에 revalidate와 cache tag를 전달한다", async () => {

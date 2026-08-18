@@ -28,7 +28,10 @@ import {
   REFRESH_TOKEN_COOKIE,
   SPRING_REFRESH_COOKIE,
 } from "@/app/_lib/api/auth/tokens";
-import { getSpringBaseUrl } from "@/app/_lib/api/spring-config";
+import {
+  getSpringBaseUrl,
+  SPRING_REQUEST_TIMEOUT_MS,
+} from "@/app/_lib/api/spring-config";
 
 /**
  * 재발급 결과. **인증 실패와 통신 실패를 반드시 구분한다** — 둘을 뭉치면
@@ -59,6 +62,7 @@ async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
         Cookie: `${SPRING_REFRESH_COOKIE}=${refreshToken}`,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
     });
   } catch {
     return { status: "unreachable" };

@@ -9,7 +9,7 @@ import "server-only";
 
 import { z } from "zod";
 import { ApiError } from "./api-error";
-import { getSpringBaseUrl } from "./spring-config";
+import { getSpringBaseUrl, SPRING_REQUEST_TIMEOUT_MS } from "./spring-config";
 
 export function springUrl(path: string, query?: QueryParams): string {
   const url = new URL(path, getSpringBaseUrl());
@@ -70,6 +70,7 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
       ...cacheInit(cache),
     });
   } catch (cause) {
