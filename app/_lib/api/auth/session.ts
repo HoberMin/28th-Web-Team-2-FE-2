@@ -26,10 +26,9 @@ export async function getRefreshToken(): Promise<string | undefined> {
   return (await cookies()).get(REFRESH_TOKEN_COOKIE)?.value;
 }
 
-/** 로그인 여부. 토큰 존재만 본다 — 유효성은 서버 응답(401)이 판정한다. */
-export async function isSignedIn(): Promise<boolean> {
-  return Boolean(await getAccessToken());
-}
+// 참고: `isSignedIn()` 같은 편의 헬퍼를 일부러 두지 않았다. 이름이 편해서 헤더·레이아웃에서
+// 부르고 싶어지는데, 그게 **앱 전체가 Full Route Cache를 잃는** 경로다(`auth-session` §5).
+// 로그인 여부가 필요한 화면이 생기면 배치를 같이 판단해서 넣는다.
 
 /**
  * 발급받은 토큰을 우리 도메인 쿠키에 심는다.
