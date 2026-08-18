@@ -22,14 +22,16 @@ export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 export const itemSchema = z.object({
   itemId: z.number(),
   itemName: z.string(),
-  itemImageUrl: z.string().optional(),
+  /** 라이브 응답은 이미지가 없을 때 `null`을 반환한다(Swagger의 string 선언과 불일치). */
+  itemImageUrl: z.string().nullable().optional(),
   /** 스펙상 nullable — 단위가 정해지지 않은 품목이 있다. */
   defaultUnit: z.string().nullable().optional(),
-  price: z.number(),
+  /** 기준일 가격이 없는 계절 품목은 라이브 응답에서 `null`이다. */
+  price: z.number().nullable(),
   /** 직전 대비 가격 차이(원). */
-  priceGap: z.number(),
+  priceGap: z.number().nullable(),
   /** 직전 대비 변동률. */
-  priceDiffRate: z.number(),
+  priceDiffRate: z.number().nullable(),
   /**
    * 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.**
    * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없거나 null이면 false로 본다.
