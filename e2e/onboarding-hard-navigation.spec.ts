@@ -41,8 +41,14 @@ function captureBrowserErrors(page: Page): string[] {
 }
 
 async function expectStoresReady(page: Page): Promise<void> {
-  await expect(page).toHaveURL(/\/stores$/);
   await expect(page.getByRole("status")).toBeHidden();
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+      }),
+  );
+  await expect(page).toHaveURL(/\/stores$/);
   await expect(page.getByRole("region", { name: "동네 가게 지도" })).toBeVisible();
 }
 
