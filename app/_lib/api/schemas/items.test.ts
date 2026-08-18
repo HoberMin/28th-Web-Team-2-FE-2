@@ -1,5 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { itemPageEnvelopeSchema, itemPageSchema } from "./items";
+import { itemPageEnvelopeSchema, itemPageRequestSchema, itemPageSchema } from "./items";
+
+describe("itemPageRequestSchema", () => {
+  it("BFF 문자열 쿼리를 Spring 페이지 계약으로 바꾼다", () => {
+    expect(
+      itemPageRequestSchema.parse({
+        page: "2",
+        size: "18",
+        sort: "PRICE_ASC",
+        keyword: " 감자 ",
+        category: "ROOT_VEGETABLES",
+      }),
+    ).toEqual({
+      page: 2,
+      size: 18,
+      sort: "PRICE_ASC",
+      keyword: "감자",
+      category: "ROOT_VEGETABLES",
+    });
+  });
+
+  it.each([
+    ["빈 페이지", { page: "" }],
+    ["음수 페이지", { page: "-1" }],
+    ["0인 크기", { size: "0" }],
+    ["상한을 넘는 크기", { size: "101" }],
+    ["지원하지 않는 정렬", { sort: "RECENT" }],
+    ["지원하지 않는 카테고리", { category: "GRAINS" }],
+  ])("%s 쿼리를 거부한다", (_case, query) => {
+    expect(itemPageRequestSchema.safeParse(query).success).toBe(false);
+  });
+});
 
 describe("itemPageSchema", () => {
   it("기준일·가격·이미지가 없는 지역 응답을 거부하지 않는다", () => {

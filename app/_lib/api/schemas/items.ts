@@ -19,6 +19,25 @@ export const ITEM_CATEGORIES = [
 ] as const;
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
+const queryIntegerSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? Number.NaN : value),
+  z.coerce.number().int().safe(),
+);
+
+/** GET /api/items BFF가 브라우저 쿼리를 Spring 계약으로 넘기기 전 검증한다. */
+export const itemPageRequestSchema = z.object({
+  page: queryIntegerSchema.pipe(z.number().min(0)).default(0),
+  size: queryIntegerSchema.pipe(z.number().min(1).max(100)).default(18),
+  sort: z.enum(ITEM_SORTS).default("NAME_ASC"),
+  keyword: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined),
+  category: z.enum(ITEM_CATEGORIES).optional(),
+});
+export type ItemPageRequest = z.infer<typeof itemPageRequestSchema>;
+
 export const itemSchema = z.object({
   itemId: z.number().int().safe(),
   itemName: z.string(),
