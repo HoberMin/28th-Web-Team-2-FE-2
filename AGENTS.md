@@ -40,6 +40,12 @@ Tailwind v4 / shadcn(Radix) / rhf+zod / Vitest+Playwright(스크린샷 회귀+ax
 
 **main 직접 커밋·푸시 허용, PR 최소화.** 푸시 전 리뷰 1회 + `git pull --rebase origin main`(충돌 시 사용자에게 묻기). main force push 금지. RSC/BFF 경계 변경·위험 경로만 PR 권장. 커밋 형식 `feat|fix|design|refactor|chore|style|docs(scope): 한국어 설명`.
 
+**커밋은 최대한 잘게 (2026-08-18)** — 타입 하나·함수 하나·캐싱 옵션 하나·상태 하나가 각각 커밋이고, 기능 하나는 보통 5~15 커밋. 중간 커밋이 빌드를 깨도 되지만 **푸시 시점 HEAD는 `pnpm build` 통과** 필수. 분해 축·예외(이름 변경·생성물·lockfile)·`git add -p` 절차는 `shared/skills/git-commit/SKILL.md`.
+
+## 외부 백엔드 (marketgo)
+
+스펙은 **라이브가 진실 소스**: `curl -s https://api.marketgo.kro.kr/v3/api-docs`. 매 작업마다 읽고 문서·기억으로 필드를 채우지 않는다. 인증은 JWT Bearer(accessToken은 서버까지만) + refreshToken 쿠키. **응답 envelope가 엔드포인트마다 달라 공통 unwrap 유틸을 만들지 않는다.** 절차·함정은 `shared/skills/backend-api-reference/SKILL.md`.
+
 ## 리뷰 (shared/review-standard.md)
 
 고정 템플릿(🔴Critical/🟡Warning/🟢Suggestion/✅자동수정). RSC/Client 경계·캐싱 의도 누락·시크릿 클라 노출·a11y 필수 체크. 머지(푸시) 차단은 Critical만.
