@@ -202,6 +202,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
             className="h-12.25 w-full"
             disabled={!selected || isSaving}
             aria-busy={isSaving}
+            style={selected ? { color: "var(--color-content-primary)" } : undefined}
             leading={false}
             trailing={false}
           >

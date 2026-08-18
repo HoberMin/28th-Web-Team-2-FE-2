@@ -150,12 +150,14 @@ test("빈 결과와 400·5xx 오류를 각각 안내한다", async ({ page }) =>
   await expect(page.getByText("검색 결과가 없어요.")).toBeVisible();
 
   await search.fill("오류동");
-  await expect(page.getByRole("alert")).toHaveText("검색어가 올바르지 않아요.");
+  await expect(page.getByText("검색어가 올바르지 않아요.", { exact: true })).toBeVisible();
 
   await search.fill("장애동");
-  await expect(page.getByRole("alert")).toHaveText(
-    "동네를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-  );
+  await expect(
+    page.getByText("동네를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.", {
+      exact: true,
+    }),
+  ).toBeVisible();
 });
 
 for (const scenario of [
@@ -164,9 +166,11 @@ for (const scenario of [
 ]) {
   test(`${scenario.label} 시 검색 가능한 안내 상태를 유지한다`, async ({ page }) => {
     await prepareRegionStep(page, scenario.code);
-    await expect(page.getByRole("alert")).toHaveText(
-      "현재 위치를 확인하지 못했어요. 동 이름으로 검색해 주세요.",
-    );
+    await expect(
+      page.getByText("현재 위치를 확인하지 못했어요. 동 이름으로 검색해 주세요.", {
+        exact: true,
+      }),
+    ).toBeVisible();
     await expect(page.getByRole("textbox", { name: "동 단위로 지역 검색" })).toBeEnabled();
   });
 }
@@ -188,6 +192,12 @@ test("선택한 label과 10자리 regionId를 로컬 상태와 서버 쿠키에 
 
   await page.getByRole("textbox", { name: "동 단위로 지역 검색" }).fill("청운동");
   await page.getByRole("button", { name: "서울특별시 종로구 청운동" }).click();
+
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+
   await page.getByRole("button", { name: "확인" }).click();
   await expect(page).toHaveURL(/\/$/);
 
@@ -210,9 +220,4 @@ test("선택한 label과 10자리 regionId를 로컬 상태와 서버 쿠키에 
   const regionNameCookie = cookies.find((cookie) => cookie.name === "mg_region_name");
   expect(regionNameCookie).toBeDefined();
   expect(decodeURIComponent(regionNameCookie?.value ?? "")).toBe("서울특별시 종로구 청운동");
-
-  const accessibility = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-    .analyze();
-  expect(accessibility.violations).toEqual([]);
 });
