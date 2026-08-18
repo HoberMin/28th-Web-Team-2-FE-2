@@ -25,7 +25,7 @@ describe("auth request origin", () => {
     expect(isSameOriginRequest(request)).toBe(true);
   });
 
-  it.each([
+  it.each<[string, HeadersInit]>([
     ["Origin 없음", {}],
     ["null Origin", { Origin: "null" }],
     ["다른 origin", { Origin: "https://attacker.example" }],
