@@ -39,7 +39,7 @@ export const nearbyStoresRequestSchema = z.object({
 export type NearbyStoresRequest = z.infer<typeof nearbyStoresRequestSchema>;
 
 export const nearbyStoreSchema = z.object({
-  storeId: z.number(),
+  storeId: z.number().int().safe(),
   storeName: z.string(),
   latitude: z.number(),
   longitude: z.number(),
