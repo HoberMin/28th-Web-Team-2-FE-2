@@ -5,6 +5,8 @@
 //
 // 주의: 스펙의 `servers[0].url`이 `http://`로 잡혀 있으나 그대로 쓰지 않는다(§2).
 
+import "server-only";
+
 import { z } from "zod";
 import { ApiError } from "./api-error";
 
