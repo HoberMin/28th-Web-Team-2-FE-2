@@ -1,10 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { setItemFavorite } from "@/app/_lib/api/server/items";
-import { ROUTES } from "@/app/_lib/routes";
 
 export type FavoriteMutationResult =
   | { status: "success" }
@@ -26,8 +24,8 @@ export async function updateItemFavorite(
 
   try {
     await setItemFavorite({ itemId, liked, token });
-    revalidatePath(ROUTES.prices);
-    revalidatePath(ROUTES.saved);
+    // 인증 품목 조회는 no-store이고 호출 카드가 성공 후 router.refresh()한다.
+    // 공개 게스트 캐시에는 개인 찜이 없으므로 여기서 무효화하지 않는다.
     return { status: "success" };
   } catch (error) {
     if (error instanceof ApiError && error.isAuthExpired) {
