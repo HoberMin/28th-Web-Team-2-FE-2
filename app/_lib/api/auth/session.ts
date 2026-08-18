@@ -3,8 +3,9 @@ import "server-only";
 import { cookies } from "next/headers";
 import type { SpringTokens } from "../server/auth";
 import {
+  ACCESS_COOKIE_OPTIONS,
   ACCESS_TOKEN_COOKIE,
-  AUTH_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   REFRESH_TOKEN_COOKIE,
 } from "./tokens";
 
@@ -38,9 +39,9 @@ export async function isSignedIn(): Promise<boolean> {
  */
 export async function saveTokens(tokens: SpringTokens): Promise<void> {
   const store = await cookies();
-  store.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, AUTH_COOKIE_OPTIONS);
+  store.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, ACCESS_COOKIE_OPTIONS);
   if (tokens.refreshToken) {
-    store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, AUTH_COOKIE_OPTIONS);
+    store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
   }
 }
 

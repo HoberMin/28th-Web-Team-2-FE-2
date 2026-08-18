@@ -29,11 +29,31 @@ export const REFRESH_LEEWAY_SECONDS = 60;
 // 짧게 잡으면 멀쩡한 refreshToken을 우리가 먼저 버려 불필요한 재로그인이 생긴다.
 const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
-export const AUTH_COOKIE_OPTIONS = {
+/**
+ * 두 쿠키가 옵션을 공유하지 않는다 — 수명 의미가 다르기 때문이다.
+ * 하나로 묶어두면 나중에 refresh 수명을 고칠 때 access 쿠키까지 딸려 바뀐다.
+ *
+ * `secure`가 프로덕션 조건인 건 로컬 http 개발 때문이다. Vercel은 프리뷰 빌드도
+ * `NODE_ENV=production`이라 배포 환경에서는 항상 켜진다.
+ */
+const BASE_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
   path: "/",
+} as const;
+
+/**
+ * accessToken 쿠키는 refresh와 같은 기간 살려둔다. 값 자체의 만료는 JWT `exp`가 들고 있고
+ * `needsRefresh`가 그걸 보므로, 쿠키를 먼저 지워봐야 갱신 기회만 잃는다.
+ */
+export const ACCESS_COOKIE_OPTIONS = {
+  ...BASE_COOKIE_OPTIONS,
+  maxAge: REFRESH_COOKIE_MAX_AGE,
+} as const;
+
+export const REFRESH_COOKIE_OPTIONS = {
+  ...BASE_COOKIE_OPTIONS,
   maxAge: REFRESH_COOKIE_MAX_AGE,
 } as const;
 
