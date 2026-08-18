@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useTransition } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GridVegetableItem } from "../../_components/grid-vegetable-item";
@@ -108,12 +107,16 @@ export function PriceVegetableCard({
       ) : null}
       <GridVegetableItem
         visual={
-          <Image
+          // 품목 이미지 host가 고정되지 않아 Next remotePatterns를 광범위하게 열지 않는다.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={image}
             alt=""
             width={110}
             height={110}
-            unoptimized
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
             className="size-full object-contain"
           />
         }
