@@ -8,7 +8,7 @@
 
 import { z } from "zod";
 import { saveTokens } from "@/app/_lib/api/auth/session";
-import { ApiError } from "@/app/_lib/api/error";
+import { ApiError } from "@/app/_lib/api/api-error";
 import { login } from "@/app/_lib/api/server/auth";
 
 export const dynamic = "force-dynamic";

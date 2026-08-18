@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ApiError } from "../error";
+import { ApiError } from "../api-error";
 import { isKamisFailure, kamisDailyPriceSchema, type KamisDailyPriceItem } from "../schemas/kamis";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";

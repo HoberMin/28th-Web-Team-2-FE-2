@@ -1,7 +1,7 @@
 import "server-only";
 
 import { extractRefreshToken, SPRING_REFRESH_COOKIE } from "../auth/tokens";
-import { ApiError } from "../error";
+import { ApiError } from "../api-error";
 import { tokenResponseSchema, type AuthProvider } from "../schemas/auth";
 import { springRaw } from "../spring";
 

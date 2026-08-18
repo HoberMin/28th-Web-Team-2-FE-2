@@ -6,7 +6,7 @@
 // 주의: 스펙의 `servers[0].url`이 `http://`로 잡혀 있으나 그대로 쓰지 않는다(§2).
 
 import { z } from "zod";
-import { ApiError } from "./error";
+import { ApiError } from "./api-error";
 
 /** 환경변수 미설정 시 운영 주소로 폴백. **서버 전용** — `NEXT_PUBLIC_` 금지(conventions #7). */
 const BASE_URL = process.env.SPRING_API_BASE_URL ?? "https://api.marketgo.kro.kr";
