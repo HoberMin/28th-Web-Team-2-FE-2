@@ -61,3 +61,11 @@ export const nearbyStoresSchema = z.object({
   stores: z.array(nearbyStoreSchema),
 });
 export type NearbyStores = z.infer<typeof nearbyStoresSchema>;
+
+// Spring 응답이 {code, message, data}로 감싸져 있다 — 다른 엔드포인트와 envelope 형태가
+// 달라서(backend-api-reference §2) items.ts의 itemPageEnvelopeSchema와 같은 패턴을 쓴다.
+export const nearbyStoresEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: nearbyStoresSchema,
+});
