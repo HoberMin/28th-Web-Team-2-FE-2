@@ -57,6 +57,17 @@
 - 이름 변경의 정의와 호출부가 다른 커밋 / `pnpm gen:codex` 생성물이 원본과 다른 커밋 → 🟡 (`git-commit` §2 예외)
 - 커밋 수를 늘리려는 무관한 정리·오타 분할 → 🟡 (conventions #4)
 
+**인증·세션 (2026-08-18 신설 — 실제로 사고가 났던 항목들)**
+- **`revalidateTag(tag, '문자열프로필')`** — Next 16에서 프로필을 넘기면 만료가 미래로 밀려 **즉시 무효화가 안 된다**. `{ expire: 0 }`(또는 Server Action이면 `updateTag`)이 아니면 🔴 (`data-fetching`)
+- **인증 실패와 통신 실패를 뭉쳐서 처리** — 5xx·타임아웃에 세션 쿠키를 지우면 서버 장애가 전원 재로그인으로 번진다 = 🔴
+- **세션 종료 시 요청 쿠키를 안 지움** — 응답 쿠키만 지우면 이번 렌더 RSC가 죽은 토큰을 읽는다 = 🟡
+- **토큰이 응답 본문·로그에 등장** = 🔴. BFF는 `{ ok: true }`만 돌려준다
+- **프론트에서 JWT 서명 검증 시도** = 🔴 (비밀키가 프론트로 넘어온다). `exp` 디코드만 허용
+- **Edge에서 import되는 파일(`auth/tokens.ts`)에 `server-only`나 무거운 의존** = 🟡
+- **개인화 필드(`isLiked` 등)가 든 응답에 공유 캐시** = 🔴. `security` 선언이 없어도 개인화일 수 있다
+- **`app/` 안에 `error.ts` 이름의 파일** — 비공개 폴더 안이어도 Next가 에러 바운더리로 보고 빌드를 세운다 = 🔴
+- **`middleware.ts`** — Next 16에서 `proxy.ts`로 개명됐다 = 🟡
+
 **접근성 (WCAG 2.2 AA — 신설)**
 - 인터랙티브 요소의 키보드 접근·포커스 가시성
 - 이미지 `alt` / 아이콘 버튼 `aria-label`
@@ -96,5 +107,7 @@
 - `"use client"` → 각 파일에 인터랙션(핸들러·훅) 실재하는지 확인
 - `NEXT_PUBLIC_` → 비밀값 아닌지 확인
 - `fetch\(` (app/ 내) → `next:` 옵션 or `no-store` 명시 확인
+- `revalidateTag\([^,)]*\)` → 1인자 호출(deprecated) / `revalidateTag\(.*['"](max|days|hours)['"]` → 즉시 무효화 아님 (🔴)
+- `cookies\(\)` → 그 라우트가 동적으로 전환됨을 인지했는지 (공통 셸이면 앱 전체가 캐시를 잃는다)
 - `https?://api\.marketgo\.kro\.kr` (app/ 내 하드코딩) → base URL 상수·env로
 - `api\.figma\.com` / `FIGMA_TOKEN|FIGMA_PAT|figma.*token` → Figma REST 우회 (🔴)
