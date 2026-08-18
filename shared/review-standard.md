@@ -44,6 +44,19 @@
 - **서버 전용 모듈의 클라 import** (`server-only` 패키지로 가드 권장)
 - 수동 `memo`/`useMemo`/`useCallback` 남발 — React Compiler 켜져 있음, 근거 없으면 flag
 
+**외부 BE 연동 (marketgo — 2026-08-18 신설)**
+- **스펙을 안 읽고 지어낸 필드·엔드포인트** — 라이브 `/v3/api-docs`에 없는 경로/필드가 코드에 등장 = 🔴. 리뷰 시 실제 스펙과 대조한다
+- **공통 envelope 가정** — 모든 응답을 하나의 `{code,message,data}`로 unwrap하는 유틸 = 🔴 (이 백엔드는 감싼 것·안 감싼 것·최상위 배열이 섞여 있다)
+- **에러 body를 믿고 파싱** — 스펙이 4xx/5xx에 성공 스키마를 재사용해 형식 미상. status 기반 분기가 아니면 🟡
+- **`regionId`류 앞자리 0 있는 코드값을 number로** 취급 (`"0111010100"` 유실) = 🔴
+- accessToken이 클라 쪽에 등장 / base URL이 `NEXT_PUBLIC_` = 🔴
+- 스펙 `servers[0].url`의 `http://`를 그대로 박음 → https로 (🟡)
+
+**커밋 분해 (2026-08-18 신설)**
+- 커밋 하나에 여러 사실이 섞임(메시지에 "및/그리고") → 🟡 더 쪼개기 권고
+- 이름 변경의 정의와 호출부가 다른 커밋 / `pnpm gen:codex` 생성물이 원본과 다른 커밋 → 🟡 (`git-commit` §2 예외)
+- 커밋 수를 늘리려는 무관한 정리·오타 분할 → 🟡 (conventions #4)
+
 **접근성 (WCAG 2.2 AA — 신설)**
 - 인터랙티브 요소의 키보드 접근·포커스 가시성
 - 이미지 `alt` / 아이콘 버튼 `aria-label`
@@ -83,4 +96,5 @@
 - `"use client"` → 각 파일에 인터랙션(핸들러·훅) 실재하는지 확인
 - `NEXT_PUBLIC_` → 비밀값 아닌지 확인
 - `fetch\(` (app/ 내) → `next:` 옵션 or `no-store` 명시 확인
+- `https?://api\.marketgo\.kro\.kr` (app/ 내 하드코딩) → base URL 상수·env로
 - `api\.figma\.com` / `FIGMA_TOKEN|FIGMA_PAT|figma.*token` → Figma REST 우회 (🔴)
