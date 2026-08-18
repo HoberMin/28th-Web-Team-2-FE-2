@@ -4,15 +4,13 @@
 // 중복이면 409가 온다.
 
 import { z } from "zod";
-
-export const NICKNAME_MIN = 2;
-export const NICKNAME_MAX = 10;
+import { NICKNAME_MAX, NICKNAME_MIN, NICKNAME_PATTERN } from "@/app/_lib/nickname";
 
 export const nicknameSchema = z
   .string()
   .min(NICKNAME_MIN, `닉네임은 ${NICKNAME_MIN}자 이상이어야 해요.`)
   .max(NICKNAME_MAX, `닉네임은 ${NICKNAME_MAX}자까지 쓸 수 있어요.`)
-  .regex(/^[가-힣A-Za-z0-9]+$/, "한글, 영문, 숫자만 쓸 수 있어요.");
+  .regex(NICKNAME_PATTERN, "한글, 영문, 숫자만 쓸 수 있어요.");
 
 export const updateNicknameRequestSchema = z.object({ nickname: nicknameSchema });
 export type UpdateNicknameRequest = z.infer<typeof updateNicknameRequestSchema>;

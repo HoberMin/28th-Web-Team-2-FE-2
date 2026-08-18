@@ -8,6 +8,16 @@ async function prepareRegionStep(
   page: Page,
   geolocationErrorCode: 1 | 3 | null = null,
 ): Promise<void> {
+  await page.context().addCookies([
+    {
+      name: "mg_access_token",
+      value: "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDI0NDQ4MDB9.signature",
+      domain: "127.0.0.1",
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
   await page.addInitScript(
     ({ errorCode, storageKey }) => {
       window.localStorage.setItem(
