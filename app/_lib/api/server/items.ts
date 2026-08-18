@@ -8,7 +8,7 @@ import {
   type ItemSort,
 } from "../schemas/items";
 import { springFetch } from "../spring";
-import { CACHE_TAGS } from "../tags";
+import { CACHE_TAGS, REVALIDATE_PROFILE } from "../tags";
 
 export interface GetItemsParams {
   /** 법정동 코드. 앞자리 0이 있을 수 있어 문자열이다. */
@@ -61,5 +61,5 @@ export async function setItemFavorite(params: {
     token: params.token,
     cache: "no-store",
   });
-  revalidateTag(CACHE_TAGS.items);
+  revalidateTag(CACHE_TAGS.items, REVALIDATE_PROFILE);
 }
