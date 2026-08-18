@@ -2,7 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PRICE_VEGETABLE_IMAGE_BY_ID } from "@/app/(tabs)/prices/_images";
+import { getPriceVegetableImage, getVegetableIdByName } from "@/app/(tabs)/prices/_images";
+import { ApiError } from "@/app/_lib/api/api-error";
+import { getAccessToken } from "@/app/_lib/api/auth/session";
+import { getItemDetail } from "@/app/_lib/api/server/items";
+import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
@@ -12,7 +16,7 @@ import {
   DEFAULT_DISTRICT,
   getNeighborhoodSeedReports,
   getOnlinePrices,
-  getVegetable,
+  VEGETABLES,
 } from "@/app/_lib/vegetables";
 import {
   NeighborhoodPrices,
@@ -27,39 +31,81 @@ interface PriceDetailPageProps {
   params: Promise<{ itemId: string }>;
 }
 
-export async function generateMetadata({ params }: PriceDetailPageProps): Promise<Metadata> {
-  const { itemId } = await params;
-  const vegetable = getVegetable(itemId);
-  return { title: vegetable ? `${vegetable.name} 시세` : "야채 시세 상세" };
+/** 라우트 파라미터는 이제 Spring의 숫자 itemId다(예전 46종 prototype 영문 slug 아님). */
+function parseItemId(raw: string): number | null {
+  const value = Number(raw);
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: "야채 시세 상세" };
+}
+
+function MissingRegion() {
+  return (
+    <div className="flex h-dvh items-center justify-center bg-surface-primary px-4 text-center">
+      <div>
+        <p className="text-title-18-bold text-content-primary">동네 정보가 필요해요</p>
+        <p className="mt-2 text-body-14-regular text-content-secondary">
+          온보딩에서 동네를 선택하면 시세를 볼 수 있어요.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default async function PriceDetailPage({ params }: PriceDetailPageProps) {
-  const { itemId } = await params;
-  const vegetable = getVegetable(itemId);
-  if (!vegetable) notFound();
+  const { itemId: rawItemId } = await params;
+  const itemId = parseItemId(rawItemId);
+  if (itemId === null) notFound();
 
-  const baseline = await getBaselinePrice(vegetable.id);
-  const reports = getNeighborhoodSeedReports(DEFAULT_DISTRICT)
-    .filter((report) => report.vegetableId === vegetable.id)
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
+  if (!regionId) return <MissingRegion />;
+
+  const detail = await getItemDetail({ itemId, regionId, token }).catch((error: unknown) => {
+    if (error instanceof ApiError && error.kind === "notFound") notFound();
+    throw error;
+  });
+
+  // 그래프·동네 제보 목록·온라인가 비교는 아직 Spring에 없어, 이름이 일치하는 46종 더미
+  // 카탈로그 항목을 찾아 그 부분만 채운다. slug id 매핑은 _images.ts가 진실 소스다 —
+  // 직접 `name ===` 비교하면 라이브 표기("고춧가루-국산")와 더미 표기("고춧가루(국산)")가
+  // 갈리는 2종을 놓친다. 매칭 실패(더미에 없는 신규 품목)면 그 섹션들만 건너뛰고
+  // 위 요약 카드(API 실데이터)는 그대로 보인다.
+  const vegetableId = getVegetableIdByName(detail.itemName);
+  const vegetable = vegetableId ? VEGETABLES.find((candidate) => candidate.id === vegetableId) : undefined;
+
+  const baseline = vegetable ? await getBaselinePrice(vegetable.id) : null;
+  const reports = vegetable
+    ? getNeighborhoodSeedReports(DEFAULT_DISTRICT)
+        .filter((report) => report.vegetableId === vegetable.id)
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    : [];
   const latestReport = reports[0];
-  const online = getOnlinePrices(vegetable.id);
-  const previousPublicPrice = baseline.series.week.at(-2)?.price ?? baseline.current;
-  const publicPriceDiff = baseline.current - previousPublicPrice;
-  const publicPriceDiffPercent = previousPublicPrice > 0
-    ? (publicPriceDiff / previousPublicPrice) * 100
-    : 0;
-  const averageWeightNote = vegetable.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
-  const detailReports: PriceDetailReport[] = reports.map((report) => ({
-    id: report.id,
-    reportedAt: Date.parse(report.createdAt),
-    place: report.place ?? report.district,
-    age: formatAge(report.createdAt, baseline.asOf),
-    price: report.pricePerKg,
-    unit: vegetable.unit,
-    diff: report.pricePerKg - baseline.current,
-    diffPercent: ((report.pricePerKg - baseline.current) / baseline.current) * 100,
-  }));
+  const online = vegetable ? getOnlinePrices(vegetable.id) : undefined;
+  const averageWeightNote = vegetable?.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
+  const detailReports: PriceDetailReport[] =
+    vegetable && baseline
+      ? reports.map((report) => ({
+          id: report.id,
+          reportedAt: Date.parse(report.createdAt),
+          place: report.place ?? report.district,
+          age: formatAge(report.createdAt, baseline.asOf),
+          price: report.pricePerKg,
+          unit: vegetable.unit,
+          diff: report.pricePerKg - baseline.current,
+          diffPercent: ((report.pricePerKg - baseline.current) / baseline.current) * 100,
+        }))
+      : [];
+
+  const unit = detail.defaultUnit ?? vegetable?.unit ?? "";
+  // 백엔드 itemImageUrl은 안 쓴다 — 시세 탭 전체가 프런트에 모아 둔 46종 사진을 쓰기로
+  // 이미 정해져 있고(_images.ts), next.config에 remotePatterns도 없어 원격 URL을 그대로
+  // <Image>에 넘기면 렌더 중 throw한다.
+  const image = getPriceVegetableImage(detail.itemName);
+  const publicPrice = detail.todayPublicPrice ?? null;
+  const publicPriceDiff = detail.priceGap ?? 0;
+  const publicPriceDiffPercent = detail.priceDiffRate ?? 0;
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -67,19 +113,19 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         <header className="flex h-12.25 shrink-0 items-center justify-between border-b border-border-secondary px-1">
           <PriceDetailBackButton />
           <p className="text-body-16-semibold text-content-primary">
-            {vegetable.name} {vegetable.unit}
+            {detail.itemName} {unit}
           </p>
           <span aria-hidden="true" className="size-12 shrink-0" />
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-          <h1 className="sr-only">{vegetable.name} 야채 시세 상세</h1>
+          <h1 className="sr-only">{detail.itemName} 야채 시세 상세</h1>
           <PriceSummary
-            name={vegetable.name}
-            unit={vegetable.unit}
-            image={PRICE_VEGETABLE_IMAGE_BY_ID[vegetable.id] ?? vegetable.image}
-            latestReportPrice={latestReport?.pricePerKg}
-            publicPrice={baseline.current}
-            onlineLowestPrice={online?.cheapest.price}
+            name={detail.itemName}
+            unit={unit}
+            image={image}
+            latestReportPrice={detail.latestLocalReportPrice ?? undefined}
+            publicPrice={publicPrice}
+            onlineLowestPrice={detail.onlineLowestPrice ?? undefined}
             publicPriceDiff={publicPriceDiff}
             publicPriceDiffPercent={publicPriceDiffPercent}
           />
@@ -88,7 +134,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
           <NeighborhoodPrices reports={detailReports} />
           <div className="h-2 bg-border-secondary" />
-          <PublicPriceChart series={baseline.series} />
+          {baseline ? <PublicPriceChart series={baseline.series} /> : null}
           <div className="h-2 bg-border-secondary" />
 
           <section id="online-prices" className="scroll-mt-12 px-4 py-8">
@@ -99,7 +145,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                   <span className="text-body-14-medium text-content-secondary">
                     {latestReport ? formatWon(latestReport.pricePerKg) : "제보 없음"}
                   </span>
-                  <span className="text-caption-12-regular text-content-disabled">/{vegetable.unit}</span>
+                  <span className="text-caption-12-regular text-content-disabled">/{unit}</span>
                 </p>
               </div>
               {averageWeightNote ? (
@@ -129,7 +175,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                         <div className="shrink-0 text-right">
                           <p className="flex items-center justify-end gap-1">
                             <strong className="text-body-16-bold text-content-primary">{formatWon(price.price)}</strong>
-                            <span className="text-caption-12-regular text-content-disabled">/{vegetable.unit}</span>
+                            <span className="text-caption-12-regular text-content-disabled">/{unit}</span>
                           </p>
                           <p className={`text-caption-12-medium ${comparison !== null && comparison < 0 ? "text-trend-down" : "text-content-disabled"}`}>
                             {comparison === null
@@ -152,7 +198,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
         <footer className="shrink-0 border-t border-border-secondary bg-surface-primary px-4 py-3" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
           <Link
-            href={`${ROUTES.report}?item=${vegetable.id}`}
+            href={vegetable ? `${ROUTES.report}?item=${vegetable.id}` : ROUTES.report}
             className="flex w-full items-center justify-center rounded-lg bg-action-secondary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-content-secondary"
           >
             우리 동네 가격 제보하기
@@ -168,7 +214,8 @@ interface PriceSummaryProps {
   unit: string;
   image?: string;
   latestReportPrice?: number;
-  publicPrice: number;
+  /** 계절 품목 등 기준일 공공가격이 없으면 `null` — "0원"으로 단정하지 않는다. */
+  publicPrice: number | null;
   /**
    * 온라인 최저가. 화면GUI(원본) 364:7185 `public-price-row` — **이 행이 코드에 빠져 있었다.**
    * Figma의 `public-price-group`은 공공 시세 · 온라인 최저가 · 어제 대비 **3행**이다.
@@ -215,7 +262,9 @@ function PriceSummary({
         <div className="mt-2 flex flex-col gap-0.5">
           <p className="flex items-center justify-between">
             <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
-            <span className="text-body-14-medium text-content-secondary">{formatWon(publicPrice)}</span>
+            <span className="text-body-14-medium text-content-secondary">
+              {publicPrice === null ? "시세 정보 없음" : formatWon(publicPrice)}
+            </span>
           </p>
           {/*
             화면GUI(원본) 364:7185 — 공공 시세와 같은 형식의 두 번째 행이다.
