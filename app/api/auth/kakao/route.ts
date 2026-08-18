@@ -42,8 +42,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: true });
   } catch (error) {
     if (error instanceof ApiError) {
-      const status = error.kind === "unauthorized" ? 401 : 502;
-      return Response.json({ message: "로그인에 실패했어요. 다시 시도해 주세요." }, { status });
+      // 원인을 뭉개지 않는다 — 전부 502로 내보내면 "카카오 토큰이 틀렸다"와
+      // "Spring이 죽었다"가 구분되지 않아 디버깅이 어려워진다.
+      if (error.isAuthExpired || error.kind === "badRequest") {
+        return Response.json({ message: "로그인 정보가 올바르지 않아요." }, { status: 401 });
+      }
+      return Response.json(
+        { message: "로그인에 실패했어요. 잠시 후 다시 시도해 주세요." },
+        { status: 502 },
+      );
     }
     throw error;
   }
