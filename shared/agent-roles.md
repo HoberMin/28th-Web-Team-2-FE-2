@@ -40,7 +40,7 @@
 | planner | 기획·기술 결정·계획 | 읽기 | opus·high | — | 코드 작성 금지 |
 | flow-reviewer | 유저 플로우 검수 (CRUD·사용자 관점 누락) | 읽기 | opus·high | flow-review | 코드 X 제품 플로우. 수정 금지, 갭 목록만 |
 | bug-investigator | 버그 근본원인 추적 | 읽기 | opus·high | api-patterns | 수정 금지. 원인·위치만 |
-| api-developer | **BFF Route Handler + 외부 Spring(marketgo) 연동 + 캐싱 전략** | 쓰기 (`Bash` 포함 — 스펙 조회) | sonnet | api-patterns, backend-api-reference, data-fetching, typescript-strict, git-commit | **작업 전 `/v3/api-docs` 실조회 필수**(기억으로 필드 채우기 금지). 스펙에 없으면 멈춤. 시크릿은 서버까지만. envelope 공통 unwrap 금지 |
+| api-developer | **BFF Route Handler + 외부 Spring(marketgo) 연동 + 캐싱 전략** | 쓰기 (`Bash` 포함 — 스펙 조회) | sonnet | api-patterns, backend-api-reference, data-fetching, typescript-strict, git-commit, auth-session | **작업 전 `/v3/api-docs` 실조회 필수**(기억으로 필드 채우기 금지). 스펙에 없으면 멈춤. 시크릿은 서버까지만. envelope 공통 unwrap 금지 |
 | frontend-dev | 페이지·화면 구현 (**RSC 기본, `"use client"`는 leaf만**) | 쓰기 | sonnet | api-patterns, frontend-design, form-patterns, tailwind-v4, typescript-strict, nextjs-app-router, data-fetching, accessibility, web-performance | BFF·API는 api-developer. 경계 전환은 리뷰 대상 |
 | design-system-builder | **디자이너 바이브코딩** — `app/globals.css` `@theme static` 토큰 + `app/_components/` 공통 컴포넌트(Radix/shadcn). **현재 Figma에 컴포넌트 규격이 없어 토큰 작업이 주 업무** | 쓰기 (MCP 상속, `WebFetch` 차단) | sonnet·high | figma-bridge, frontend-design, tailwind-v4, accessibility, typescript-strict | **Figma는 MCP로만**. Radix 우선. 컴포넌트마다 `/playground` 스토리 필수. **빌드 1회→리뷰 1회→푸시로 종료** — 테스트·플랜 문서는 범위 밖(conventions #12) |
 | figma-implementer | Figma→코드 변환 + **토큰 sync**(Variables→`@theme static`) | 쓰기 (MCP 상속, `WebFetch` 차단) | **opus**·high | figma-bridge, frontend-design, tailwind-v4, accessibility | **토큰 화이트리스트만**. **REST·public API 금지**. **스크린샷 판독 금지**(2026-08-04 hex 8건 오독). sync 후 `/playground` 라벨 동반 갱신 |
@@ -48,7 +48,7 @@
 | figma-handoff-auditor 🆕 | **핸드오프 전 Figma 파일 자체 전수 점검** — 레이어·프레임명/순서는 직접 정리(리네임·재배치), 토큰·컴포넌트 미연결/4px·2px 그리드 이탈/raw값은 목록 보고 | 쓰기(Figma만, MCP 상속) | opus·high | figma-bridge, design-handoff, tailwind-v4 | **코드(레포) 수정 금지 — Figma 파일 전용**. 새 화면 코드 임의 생성 금지(`pages.md` 우선 확인). 애매한 리네임은 보류 |
 | wireframe-builder | 디자인 전 와이어프레임 초안 (더미 데이터·배포) | 쓰기 | sonnet | wireframe-drafting, nextjs-app-router, form-patterns, typescript-strict, accessibility | **디자인 가이드 없이**. 토큰 규칙 면제(초안 한정) |
 | test-writer | AI-native 테스트 (Vitest + Playwright + **스크린샷 회귀 + axe**) | 쓰기 | sonnet | test-strategy, playwright-e2e, vitest | 구현 베끼는 동어반복 테스트 금지 |
-| code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) + **디자인 정합·토큰·a11y 겸함** | 읽기+자동수정 (MCP 상속) | opus·high | api-patterns, frontend-design, typescript-strict, accessibility, web-performance, nextjs-app-router, data-fetching | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도·시크릿 클라 노출·Figma REST 우회 흔적 필수 체크** |
+| code-reviewer | 코드 리뷰 (게이트키퍼 — **푸시 전 1회**) + **디자인 정합·토큰·a11y 겸함** | 읽기+자동수정 (MCP 상속) | opus·high | api-patterns, frontend-design, typescript-strict, accessibility, web-performance, nextjs-app-router, data-fetching, auth-session | 자동수정+flag. 차단은 Critical만. **RSC/Client 경계·캐싱 의도·시크릿 클라 노출·Figma REST 우회 흔적 필수 체크** |
 | diff-organizer | 커밋 정리·푸시 (git-flow) — **최대 분해 커밋** | 쓰기(git) | sonnet | git-commit | **main 직접 푸시 기본.** 기능 하나 = 5~15 커밋. pull --rebase 충돌 시 사용자에게. main force 금지 |
 
 > **빌트인 agent 활용**: 빠른 코드 탐색은 **Explore**(read-only 광범위 검색), 계획 초안은 **Plan**을 쓴다 — 같은 일을 하는 커스텀 agent를 두지 않는다.
@@ -56,6 +56,8 @@
 > **와이어프레임 초안 예외**: wireframe-builder 산출물은 디자인 토큰 검사 면제(코드 규칙은 적용). → `wireframe-drafting` 스킬.
 
 > **2026-08-18 갱신**: BE(marketgo Swagger) 연동 준비 — `backend-api-reference` 스킬을 **라이브 조회 규약**으로 전면 개정(문서에 필드를 복제하지 않는다), `api-developer`에 `Bash` 부여(스펙 curl). `git-commit` 스킬 신설 + `diff-organizer` 티어를 haiku→**sonnet**으로 올렸다 — 함수·타입 단위 분해는 diff를 읽고 hunk를 고르는 판단이라 haiku로는 얕게 뭉친다.
+
+> **2026-08-18 (2차)**: 외부 Spring 연동 레이어(`app/_lib/api/`)와 토큰 갱신(`proxy.ts`)을 실제로 구현하면서 **`auth-session` 스킬을 신설**했다 — 토큰 보관 위치·갱신 지점·캐싱 경계는 매번 새로 판단하면 사고가 나는 영역이라 규격으로 고정했다. `api-developer`·`code-reviewer`에 연결.
 
 > **라이브러리 best-practice 스킬**: tailwind-v4·typescript-strict·nextjs-app-router(**RSC+BFF 기준**)·playwright-e2e·vitest·web-performance·accessibility·vercel-react-best-practices — 해당 구현/리뷰 agent에 연결.
 
