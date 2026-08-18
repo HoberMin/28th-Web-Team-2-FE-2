@@ -72,12 +72,13 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (cookie) headers.Cookie = cookie;
+  const serializedBody = body === undefined ? undefined : JSON.stringify(body);
 
   try {
     return await fetch(url, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: serializedBody,
       signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
       ...cacheInit(cache),
     });
