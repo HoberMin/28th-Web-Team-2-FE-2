@@ -50,5 +50,8 @@ describe("mapItemToPriceView", () => {
     expect(mapItemToPriceView({ ...ITEM, itemImageUrl: "javascript:alert(1)" }).image).toBe(
       "/figma/design-library/images/vegetable-grid.png",
     );
+    expect(
+      mapItemToPriceView({ ...ITEM, itemImageUrl: "http://cdn.example.com/potato.png" }).image,
+    ).toBe("/figma/design-library/images/vegetable-grid.png");
   });
 });
