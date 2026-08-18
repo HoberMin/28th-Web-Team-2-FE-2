@@ -17,4 +17,18 @@ export const newsArticleSchema = z.object({
 });
 export type NewsArticle = z.infer<typeof newsArticleSchema>;
 
-export const newsListSchema = z.array(newsArticleSchema);
+/**
+ * 뉴스 목록.
+ *
+ * **항목 단위로 거른다** — 배열 전체를 한 스키마로 검증하면 기사 하나의 URL이 깨졌을 때
+ * `ApiError.parse`가 터져 **홈의 뉴스 섹션이 통째로 사라진다.** BE가 외부에서 수집해 오는
+ * 값이라 한 건이 깨질 확률이 낮지 않다. 못 읽은 항목만 버리고 나머지는 보여준다.
+ */
+export const newsListSchema = z
+  .array(z.unknown())
+  .transform((items) =>
+    items.flatMap((item) => {
+      const parsed = newsArticleSchema.safeParse(item);
+      return parsed.success ? [parsed.data] : [];
+    }),
+  );
