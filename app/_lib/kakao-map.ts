@@ -63,14 +63,13 @@ const SDK_ID = "kakao-maps-sdk";
 
 /** SDK를 한 번만 심고, 이후 호출은 이미 로드된 전역을 돌려준다. 실패·키 없음은 모두 null. */
 export function loadKakaoSdk(appKey: string | undefined): Promise<KakaoGlobal | null> {
+  const existing = (window as unknown as { kakao?: KakaoGlobal }).kakao;
+  if (existing?.maps) {
+    return new Promise((resolve) => existing.maps.load(() => resolve(existing)));
+  }
   if (!appKey) return Promise.resolve(null);
 
   return new Promise((resolve) => {
-    const existing = (window as unknown as { kakao?: KakaoGlobal }).kakao;
-    if (existing?.maps) {
-      existing.maps.load(() => resolve(existing));
-      return;
-    }
     // 같은 스크립트를 화면마다 다시 넣지 않는다 — 태그가 이미 있으면 로드 완료만 기다린다.
     const prior = document.getElementById(SDK_ID) as HTMLScriptElement | null;
     const script = prior ?? document.createElement("script");
