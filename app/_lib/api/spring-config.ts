@@ -1,5 +1,5 @@
-// Spring base URL은 server fetch와 Edge proxy가 함께 쓴다.
-// Edge 번들에서도 안전해야 하므로 `server-only`나 Node 전용 API를 import하지 않는다.
+// Spring base URL은 server fetch와 Next 16의 Node.js proxy가 함께 쓴다.
+// 두 서버 진입점이 공유하므로 런타임 종속 구현 없이 URL·환경 설정만 다룬다.
 
 const DEFAULT_SPRING_API_BASE_URL = "https://api.marketgo.kro.kr";
 

@@ -2,6 +2,7 @@
 //
 // 파일명이 `proxy.ts`인 이유: Next 16에서 `middleware` 컨벤션이 **`proxy`로 이름이 바뀌었다.**
 // `middleware.ts`로 두면 deprecated 경고가 뜬다. export 이름도 `proxy`여야 한다.
+// Next 16의 Proxy 런타임은 **Node.js로 고정**이며 Edge runtime을 지원하지 않는다.
 //
 // 왜 여기냐: Server Component는 쿠키를 **읽을 수만 있고 쓸 수 없다.** RSC 안에서 재발급을
 // 받아봐야 새 토큰을 저장할 데가 없어서 다음 요청에 또 만료된 토큰으로 시작한다.
@@ -14,7 +15,7 @@
 // 회전한다면 진 쪽이 401을 받으므로 짧은 락이나 재시도가 필요해진다.
 //
 // ⚠️ 여기서 토큰을 **검증하지 않는다.** 서명 검증은 Spring이 한다(`auth/tokens.ts` 참고).
-// zod·검증 라이브러리를 들이지 않는 것도 Edge 번들을 가볍게 두기 위해서다.
+// zod·검증 라이브러리를 들이지 않는 것도 모든 요청이 지나는 경로를 가볍게 두기 위해서다.
 
 import { NextResponse, type NextRequest } from "next/server";
 import {
@@ -50,7 +51,7 @@ type ReissueOutcome =
  *
  * 서버 fetch에는 쿠키 저장소가 없어 `Cookie` 헤더를 손으로 붙인다.
  * `server/auth.ts`에 같은 일을 하는 함수가 있지만, 그쪽은 zod를 끌고 와서
- * Edge 번들이 커진다 — 미들웨어에서는 최소 구현을 따로 둔다.
+ * 모든 요청이 지나는 Proxy 경로가 커진다 — 여기서는 최소 구현을 따로 둔다.
  */
 async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
   // 환경변수 오류는 통신 실패가 아니라 배포 설정 버그다. catch 밖에서 검증해 숨기지 않는다.
