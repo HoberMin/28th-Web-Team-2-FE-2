@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 interface MockStorePatch {
@@ -150,6 +151,12 @@ async function installKakaoMapMock(page: Page): Promise<void> {
       activeMap.setCenter(new LatLngMock(lat, lng));
       activeMap.emit("idle");
     };
+    browserWindow.__setKakaoMapLevel = (level: number) => {
+      if (!activeMap) return;
+      activeMap.setLevel(level);
+      activeMap.emit("idle");
+    };
+    browserWindow.__isKakaoMapReady = () => activeMap !== null;
   });
 }
 
@@ -165,19 +172,47 @@ async function moveMap(page: Page, lat: number, lng: number): Promise<void> {
   );
 }
 
+async function setMapLevel(page: Page, level: number): Promise<void> {
+  await page.evaluate((nextLevel) => {
+    const browserWindow = window as unknown as {
+      __setKakaoMapLevel: (level: number) => void;
+    };
+    browserWindow.__setKakaoMapLevel(nextLevel);
+  }, level);
+}
+
+async function waitForKakaoMap(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const browserWindow = window as unknown as {
+          __isKakaoMapReady: () => boolean;
+        };
+        return browserWindow.__isKakaoMapReady();
+      }),
+    )
+    .toBe(true);
+}
+
+async function loadClientNearbyStores(page: Page): Promise<void> {
+  await waitForKakaoMap(page);
+  await moveMap(page, 37.5088, 127.0632);
+}
+
 test.beforeEach(async ({ page }) => {
   await installCompletedOnboarding(page);
-  await installKakaoMapMock(page);
 });
 
 test("주변 가게를 마커와 지원 정보로 표시하고 검색·찜 필터를 BFF에 전달한다", async ({
   page,
 }) => {
+  await installKakaoMapMock(page);
   await page.route("**/api/stores/nearby?**", async (route) => {
     await route.fulfill({ status: 200, json: storesResponse() });
   });
 
   await page.goto("/stores");
+  await loadClientNearbyStores(page);
 
   const marker = page.getByRole("button", {
     name: "장보고 마트 찜한 가게 가게 정보 보기",
@@ -212,16 +247,19 @@ test("주변 가게를 마커와 지원 정보로 표시하고 검색·찜 필�
 });
 
 test("주변 가게가 없으면 빈 결과 상태를 표시한다", async ({ page }) => {
+  await installKakaoMapMock(page);
   await page.route("**/api/stores/nearby?**", async (route) => {
     await route.fulfill({ status: 200, json: { totalCount: 0, stores: [] } });
   });
 
   await page.goto("/stores");
+  await loadClientNearbyStores(page);
 
   await expect(page.getByRole("status")).toContainText("검색 결과가 없어요");
 });
 
 test("가게 API 오류를 지도 위 오류 상태로 표시한다", async ({ page }) => {
+  await installKakaoMapMock(page);
   await page.route("**/api/stores/nearby?**", async (route) => {
     await route.fulfill({
       status: 502,
@@ -230,6 +268,7 @@ test("가게 API 오류를 지도 위 오류 상태로 표시한다", async ({ p
   });
 
   await page.goto("/stores");
+  await loadClientNearbyStores(page);
 
   await expect(page.getByRole("alert")).toContainText("주변 가게를 불러오지 못했어요");
 });
@@ -237,7 +276,9 @@ test("가게 API 오류를 지도 위 오류 상태로 표시한다", async ({ p
 test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 마커를 덮지 않는다", async ({
   page,
 }) => {
+  await installKakaoMapMock(page);
   let movedRequestCount = 0;
+  const firstBurstLatitudes: number[] = [];
   let delayedRequestStarted: (() => void) | undefined;
   const delayedStarted = new Promise<void>((resolve) => {
     delayedRequestStarted = resolve;
@@ -247,6 +288,10 @@ test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 �
     const url = new URL(route.request().url());
     const latitude = Number(url.searchParams.get("latitude"));
     const longitude = Number(url.searchParams.get("longitude"));
+
+    if (Math.abs(latitude - 37.6) < 0.0001 || Math.abs(latitude - 37.7) < 0.0001) {
+      firstBurstLatitudes.push(latitude);
+    }
 
     if (Math.abs(latitude - 37.7) < 0.0001) {
       movedRequestCount += 1;
@@ -294,6 +339,7 @@ test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 �
   });
 
   await page.goto("/stores");
+  await loadClientNearbyStores(page);
   await expect(page.getByRole("button", { name: /장보고 마트.*가게 정보 보기/ })).toBeVisible();
 
   await moveMap(page, 37.6, 127.1);
@@ -302,6 +348,7 @@ test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 �
     page.getByRole("button", { name: /debounce 최종 가게.*가게 정보 보기/ }),
   ).toBeVisible();
   expect(movedRequestCount).toBe(1);
+  expect(firstBurstLatitudes).toEqual([37.7]);
 
   await moveMap(page, 37.8, 127.3);
   await delayedStarted;
@@ -311,4 +358,51 @@ test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 �
   ).toBeVisible();
   await page.waitForTimeout(700);
   await expect(page.getByRole("button", { name: /느린 이전 가게/ })).toHaveCount(0);
+});
+
+test("compact 마커와 시트 닫기 버튼은 44px 터치 영역과 axe 기준을 충족한다", async ({
+  page,
+}) => {
+  await installKakaoMapMock(page);
+  await page.route("**/api/stores/nearby?**", async (route) => {
+    await route.fulfill({ status: 200, json: storesResponse() });
+  });
+  await page.goto("/stores");
+  await loadClientNearbyStores(page);
+
+  await setMapLevel(page, 5);
+  const marker = page.getByRole("button", { name: /장보고 마트.*가게 정보 보기/ });
+  await expect(marker).toBeVisible();
+  const markerBox = await marker.boundingBox();
+  if (!markerBox) throw new Error("compact 마커의 hit area를 측정할 수 없습니다.");
+  expect(markerBox.width).toBeGreaterThanOrEqual(44);
+  expect(markerBox.height).toBeGreaterThanOrEqual(44);
+
+  await marker.click();
+  const closeButton = page.getByRole("button", { name: "가게 정보 닫기" });
+  const closeButtonBox = await closeButton.boundingBox();
+  if (!closeButtonBox) throw new Error("시트 닫기 버튼의 hit area를 측정할 수 없습니다.");
+  expect(closeButtonBox.width).toBeGreaterThanOrEqual(44);
+  expect(closeButtonBox.height).toBeGreaterThanOrEqual(44);
+
+  const results = await new AxeBuilder({ page })
+    .include("main")
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test("Kakao 지도를 불러오지 못하면 접근 가능한 오류 상태를 알린다", async ({ page }) => {
+  await page.route("https://dapi.kakao.com/**", async (route) => {
+    await route.abort();
+  });
+  await page.route("**/api/stores/nearby?**", async (route) => {
+    await route.fulfill({ status: 200, json: storesResponse() });
+  });
+
+  await page.goto("/stores");
+
+  await expect(
+    page.getByRole("alert").filter({ hasText: "지도를 불러오지 못했어요" }),
+  ).toBeVisible();
 });
