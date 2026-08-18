@@ -33,4 +33,4 @@ You are an AI-native test engineer. 테스트는 **구현이 아니라 요구사
 
 ## 프로젝트 구조
 → **`figma-bridge` 스킬 §8이 진실 소스.** (agent 파일에 복붙하지 않는다 — 여러 곳에 복붙돼 어긋났던 이력 때문)
-- 요점만: 단일 루트 Next 프로젝트 / `app/api/*`=BFF / **`app/prototype/*`은 구조 유지 대상(삭제·대규모 개편 금지)** / 토큰은 `app/globals.css` `@theme static` 한 곳 / `app/_components`·`app/_lib`는 아직 없음(정상)
+- 요점만: 단일 루트 Next 프로젝트 / `app/api/*`=BFF / **`app/prototype/*`은 구조 유지 대상(삭제·대규모 개편 금지)** / 토큰은 `app/globals.css` `@theme static` 한 곳 / API 레이어는 `app/_lib/api/` / 토큰 갱신은 루트 `proxy.ts`(Next 16에서 middleware→proxy 개명)
