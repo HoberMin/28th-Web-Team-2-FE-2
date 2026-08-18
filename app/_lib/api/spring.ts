@@ -58,6 +58,80 @@ interface SpringRequest<TSchema extends z.ZodType | undefined> {
 
 type Parsed<TSchema> = TSchema extends z.ZodType ? z.infer<TSchema> : void;
 
+type PayloadShape =
+  | { kind: "array"; length: number; item?: PayloadShape }
+  | { kind: "object"; fieldCount: number; truncated: boolean; fields?: PayloadShape[] }
+  | {
+      kind:
+        | "null"
+        | "bigint"
+        | "boolean"
+        | "function"
+        | "number"
+        | "string"
+        | "symbol"
+        | "undefined";
+    };
+
+const responseTraceIds = new WeakMap<Response, string>();
+
+function isSpringDebugEnabled(): boolean {
+  if (process.env.VERCEL_ENV === "production") return false;
+  const override = process.env.SPRING_API_DEBUG?.trim().toLowerCase();
+  if (override === "true") return true;
+  if (override === "false") return false;
+  return process.env.NODE_ENV === "development";
+}
+
+function payloadShape(value: unknown, depth = 0): PayloadShape {
+  if (value === null) return { kind: "null" };
+  if (Array.isArray(value)) {
+    const item = value.length > 0 && depth < 2 ? payloadShape(value[0], depth + 1) : undefined;
+    return item
+      ? { kind: "array", length: value.length, item }
+      : { kind: "array", length: value.length };
+  }
+  const kind = typeof value;
+  if (kind === "object") {
+    const objectValue = value ?? {};
+    const fields: PayloadShape[] = [];
+    let fieldCount = 0;
+    let truncated = false;
+    for (const key in objectValue) {
+      if (!Object.prototype.hasOwnProperty.call(objectValue, key)) continue;
+      fieldCount += 1;
+      if (fieldCount > 20) {
+        truncated = true;
+        fieldCount = 20;
+        break;
+      }
+      if (depth < 2) fields.push(payloadShape(Reflect.get(objectValue, key), depth + 1));
+    }
+    return depth < 2
+      ? { kind: "object", fieldCount, truncated, fields }
+      : { kind: "object", fieldCount, truncated };
+  }
+  return { kind };
+}
+
+function cacheDescription(cache: CachePolicy): string {
+  if (cache === "no-store") return cache;
+  const tags = cache.tags?.length ? ` tags=${cache.tags.join(",")}` : "";
+  return `revalidate=${String(cache.revalidate)}${tags}`;
+}
+
+function authDescription(token?: string, cookie?: string): string {
+  if (token && cookie) return "bearer+cookie";
+  if (token) return "bearer";
+  if (cookie) return "cookie";
+  return "anonymous";
+}
+
+function springDebug(event: () => Record<string, unknown>): void {
+  if (!isSpringDebugEnabled()) return;
+  console.info("[spring-api]", event());
+}
+
 function cacheInit(cache: CachePolicy): RequestInit {
   if (cache === "no-store") return { cache: "no-store" };
   return { next: { revalidate: cache.revalidate, tags: cache.tags } };
@@ -73,16 +147,52 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
   if (token) headers.Authorization = `Bearer ${token}`;
   if (cookie) headers.Cookie = cookie;
   const serializedBody = body === undefined ? undefined : JSON.stringify(body);
+  const debugContext = isSpringDebugEnabled()
+    ? {
+        startedAt: performance.now(),
+        metadata: {
+          traceId: crypto.randomUUID().slice(0, 8),
+          method,
+          path,
+          queryKeys: query
+            ? Object.entries(query)
+                .filter(([, value]) => value !== undefined && value !== null && value !== "")
+                .map(([key]) => key)
+                .sort()
+            : [],
+          cache: cacheDescription(cache),
+          auth: authDescription(token, cookie),
+        },
+      }
+    : undefined;
 
   try {
-    return await fetch(url, {
+    const response = await fetch(url, {
       method,
       headers,
       body: serializedBody,
       signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
       ...cacheInit(cache),
     });
+    if (debugContext) {
+      responseTraceIds.set(response, debugContext.metadata.traceId);
+      springDebug(() => ({
+        event: "response",
+        ...debugContext.metadata,
+        status: response.status,
+        ok: response.ok,
+        durationMs: Math.round(performance.now() - debugContext.startedAt),
+      }));
+    }
+    return response;
   } catch (cause) {
+    if (debugContext) {
+      springDebug(() => ({
+        event: "network-error",
+        ...debugContext.metadata,
+        durationMs: Math.round(performance.now() - debugContext.startedAt),
+      }));
+    }
     throw ApiError.network(`${method} ${path}`, cause);
   }
 }
@@ -109,12 +219,31 @@ export async function springFetch<TSchema extends z.ZodType | undefined = undefi
   try {
     payload = await response.json();
   } catch (cause) {
+    springDebug(() => ({
+      event: "parse-error",
+      traceId: responseTraceIds.get(response),
+      endpoint,
+      reason: "invalid-json",
+    }));
     throw ApiError.parse(endpoint, cause instanceof Error ? cause.message : "JSON 아님");
   }
 
   const result = schema.safeParse(payload);
   if (!result.success) {
+    springDebug(() => ({
+      event: "parse-error",
+      traceId: responseTraceIds.get(response),
+      endpoint,
+      reason: "schema-mismatch",
+      payload: payloadShape(payload),
+    }));
     throw ApiError.parse(endpoint, z.prettifyError(result.error));
   }
+  springDebug(() => ({
+    event: "validated",
+    traceId: responseTraceIds.get(response),
+    endpoint,
+    payload: payloadShape(result.data),
+  }));
   return result.data as Parsed<TSchema>;
 }
