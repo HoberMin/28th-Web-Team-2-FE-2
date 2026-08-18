@@ -1,25 +1,29 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { DEFAULT_NEARBY_STORE_RADIUS } from "@/app/_lib/api/schemas/stores";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { BadgeMapLocation } from "../../_components/badge-map-location";
 import { ButtonCircle } from "../../_components/button-circle";
+import { LoadingCircular } from "../../_components/loading-circular";
 import { MarkerStoreMap, type MarkerStoreMapType } from "../../_components/marker-store-map";
 import { TextField } from "../../_components/text-field";
 import { clusterStoreMarkers, type MapScreenPoint } from "./_cluster";
-import type { MapStore } from "./_data";
+import { MAP_CENTER, type MapStore } from "./_data";
 import {
   MapCanvas,
   type MapFocusRequest,
   type MapViewport,
 } from "./_map-canvas";
 import { StoreSheet } from "./_store-sheet";
+import type { NearbyStoresState } from "./_nearby-state";
+import { useNearbyStores } from "./_use-nearby-stores";
 
 // F03 동네가게 — 검색 헤더 아래 지도. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643,
 // `F03_가게_기본_축소` 774:10912)
 //
 // 이 화면의 인터랙션이 전부 여기 모여 있어서 **여기가 유일한 client leaf**다
-// (선택된 가게 · 찜 목록 · 찜 필터 · 검색어). 데이터는 서버(page.tsx)에서 내려온다.
+// (선택된 가게 · 찜 필터 · 검색어 · 지도 중심). 가게 목록은 same-origin BFF에서 조회한다.
 //
 // ── 레이어 (아래 → 위) ─────────────────────────────────────────────
 //   z-0   지도 캔버스 (검색 헤더 아래, absolute inset-x-0 top-22 bottom-0)
@@ -49,9 +53,8 @@ import { StoreSheet } from "./_store-sheet";
 //    앉히면 type이 바뀔 때마다 핀이 튄다. 화면 밖으로 잘리는 건 정상 동작으로 허용한다.
 //
 // ── 상태 3종 ──────────────────────────────────────────────────────
-// 이 화면은 이번 사이클에 서버 통신이 없다(고정 더미) → **로딩·에러 상태는 만들지 않았다.**
-// BFF가 붙으면 그때 추가한다. 빈 상태는 **시안이 없어 임시 구현**이다(아래 EmptyOverlay).
-// 찜 필터는 반드시 "찜 0개"를 거치는 진입점이라 빈 상태 없이는 화면이 비어 버린다.
+// 로딩·에러·빈 결과 모두 지도 위 상태 오버레이로 알린다. 전용 시안은 없어 문구와 위계는
+// 임시 구현이며, 마커·지도 조작 영역과 같은 컨테이너 안에서 중심 정렬한다.
 
 // Figma F03_가게_기본_축소(774-10912): 지도 level 5 이상에서는 32px compact 마커를 쓰고,
 // 서로 겹치는 가게는 count 배지가 붙은 마커 하나로 합친다. count 마커를 누르면 그룹 중심으로
@@ -67,7 +70,7 @@ function createFallbackViewport(stores: readonly MapStore[]): MapViewport {
       y: (FALLBACK_MAP_SIZE.height * store.y) / 100,
     };
   }
-  return { level: 4, points };
+  return { level: 4, center: MAP_CENTER, points };
 }
 
 // ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────
@@ -104,11 +107,25 @@ function FilterHeartIcon() {
   return <FigmaIcon name="heart-stroke-regular" width={24} currentColor />;
 }
 
-/** 빈 상태 — ⚠️ Figma 시안 없음, 임시 구현. 디자이너 확인 항목. */
-function EmptyOverlay({ title, description }: { title: string; description: string }) {
+/** 조회 상태 — ⚠️ Figma 시안 없음, 임시 구현. 디자이너 확인 항목. */
+function StatusOverlay({
+  title,
+  description,
+  error = false,
+  loading = false,
+}: {
+  title: string;
+  description: string;
+  error?: boolean;
+  loading?: boolean;
+}) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4">
+    <div
+      className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4"
+      role={error ? "alert" : "status"}
+    >
       <div className="pointer-events-auto flex max-w-72 flex-col items-center gap-1 rounded-lg bg-surface-primary px-5 py-4 text-center shadow-floating">
+        {loading ? <LoadingCircular animate /> : null}
         <p className="text-body-16-semibold text-content-primary">{title}</p>
         <p className="text-body-14-regular text-content-secondary">{description}</p>
       </div>
@@ -118,55 +135,46 @@ function EmptyOverlay({ title, description }: { title: string; description: stri
 
 export interface StoresMapViewProps {
   region: string;
-  stores: MapStore[];
-  initialFavoriteIds: string[];
+  initialNearbyState: NearbyStoresState;
 }
 
-export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapViewProps) {
+export function StoresMapView({ region, initialNearbyState }: StoresMapViewProps) {
   // 시트가 닫힐 때 돌아갈 자리가 사라져 있으면(마커가 걸러져 사라진 경우) 포커스가 body로
   // 떨어진다. 그때 착지할 곳으로 이 지도 영역을 넘긴다 — 이름표가 붙어 있어 보조기기가
   // "동네 가게 지도"를 읽어 준다.
   const mapRootRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>(initialFavoriteIds);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [query, setQuery] = useState("");
-  const [viewport, setViewport] = useState<MapViewport>(() => createFallbackViewport(stores));
+  const [viewport, setViewport] = useState<MapViewport>(() => createFallbackViewport([]));
   const [focusRequest, setFocusRequest] = useState<MapFocusRequest | null>(null);
+  const { stores, status, error } = useNearbyStores({
+    center: viewport.center,
+    radius: DEFAULT_NEARBY_STORE_RADIUS,
+    keyword: query,
+    onlyLiked: favoriteOnly,
+    initialState: initialNearbyState,
+  });
   const closeSelectedStore = useCallback(() => setSelectedId(null), []);
   const handleViewportChange = useCallback((nextViewport: MapViewport) => {
     setViewport(nextViewport);
   }, []);
 
-  const keyword = query.trim();
-  const visibleStores = stores.filter(
-    (store) =>
-      (!favoriteOnly || favoriteIds.includes(store.id)) &&
-      (keyword === "" || store.name.includes(keyword)),
-  );
-
-  // 선택된 가게를 **보이는 목록에서** 찾는다 — 찜을 풀거나 검색으로 걸러져 마커가 사라지면
-  // 시트도 같이 닫혀야 앞뒤가 맞는다. 따로 닫는 effect를 두지 않기 위한 파생값이다.
-  const selectedStore = visibleStores.find((store) => store.id === selectedId) ?? null;
-
-  const toggleFavorite = (id: string) => {
-    setFavoriteIds((prev) =>
-      prev.includes(id) ? prev.filter((favoriteId) => favoriteId !== id) : [...prev, id],
-    );
-  };
+  // 새 중심·검색·찜 필터 응답에서 선택 가게가 사라지면 시트도 같이 닫혀야 앞뒤가 맞는다.
+  // 따로 닫는 effect를 두지 않고 현재 응답에서 파생한다.
+  const selectedStore = stores.find((store) => store.id === selectedId) ?? null;
 
   // 하트 필터가 켜졌을 때만 보이는 모든 마커를 favorite(하트 + 이름)으로 표시한다.
   // 필터가 꺼진 기본 지도에서는 찜 여부를 마커에 드러내지 않고, 선택한 가게만 name으로 바꾼다.
   const markerType = (store: MapStore): MarkerStoreMapType => {
-    if (favoriteOnly) return "favorite"; // annotation 298:3650
+    if (favoriteOnly && store.isLiked) return "favorite"; // annotation 298:3650
     return store.id === selectedId ? "name" : "icon"; // annotation 298:3628
   };
 
-  const noFavorites = favoriteOnly && favoriteIds.length === 0;
   const compactMarkers = viewport.level >= COMPACT_MARKER_LEVEL;
   const markerClusters = compactMarkers
-    ? clusterStoreMarkers(visibleStores, viewport.points)
-    : visibleStores.flatMap((store) => {
+    ? clusterStoreMarkers(stores, viewport.points)
+    : stores.flatMap((store) => {
         const point = viewport.points[store.id];
         return point ? [{ id: store.id, stores: [store], ...point }] : [];
       });
@@ -213,7 +221,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
             //    하트를 보고 찜 여부를 알게 되는 상태였다).
             const label = isCluster
               ? `가게 ${cluster.stores.length}곳 확대해서 보기`
-              : `${store.name}${type === "favorite" ? " 찜한 가게" : ""} 가게 정보 보기`;
+              : `${store.name}${store.isLiked ? " 찜한 가게" : ""} 가게 정보 보기`;
 
             return (
               <button
@@ -223,7 +231,7 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
                   isCluster ? zoomIntoCluster(cluster.stores) : setSelectedId(store.id)
                 }
                 aria-label={label}
-                className="pointer-events-auto absolute rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+                className="pointer-events-auto absolute flex min-h-11 min-w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
                 style={{
                   left: cluster.x,
                   top: cluster.y,
@@ -250,16 +258,28 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
           })}
         </div>
 
-        {noFavorites ? (
-          <EmptyOverlay
-            title="아직 찜한 가게가 없어요"
-            description="지도에서 가게를 누르고 하트를 누르면 여기에 모여요."
+        {status === "loading" ? (
+          <StatusOverlay
+            loading
+            title="주변 가게를 찾고 있어요"
+            description="지도를 움직이면 새 중심을 기준으로 다시 찾아요."
           />
         ) : null}
-        {!noFavorites && visibleStores.length === 0 ? (
-          <EmptyOverlay
-            title="검색 결과가 없어요"
-            description="가게 이름의 일부만 넣어 다시 찾아보세요."
+        {status === "error" ? (
+          <StatusOverlay
+            error
+            title="주변 가게를 불러오지 못했어요"
+            description={error ?? "잠시 후 다시 시도해 주세요."}
+          />
+        ) : null}
+        {status === "success" && stores.length === 0 ? (
+          <StatusOverlay
+            title={favoriteOnly ? "찜한 가게가 없어요" : "검색 결과가 없어요"}
+            description={
+              query.trim()
+                ? "가게 이름의 일부만 넣어 다시 찾아보세요."
+                : "지도를 움직여 다른 지역의 가게를 찾아보세요."
+            }
           />
         ) : null}
       </div>
@@ -306,8 +326,6 @@ export function StoresMapView({ region, stores, initialFavoriteIds }: StoresMapV
         <div className="absolute inset-x-0 bottom-0 z-30">
           <StoreSheet
             store={selectedStore}
-            isFavorite={favoriteIds.includes(selectedStore.id)}
-            onToggleFavorite={() => toggleFavorite(selectedStore.id)}
             onClose={closeSelectedStore}
             fallbackFocusRef={mapRootRef}
           />

@@ -28,6 +28,7 @@ export interface KakaoSetLevelOptions {
 export interface KakaoMap {
   setCenter(latlng: KakaoLatLng): void;
   setLevel(level: number, options?: KakaoSetLevelOptions): void;
+  getCenter(): KakaoLatLng;
   getLevel(): number;
   getProjection(): KakaoMapProjection;
 }
@@ -59,34 +60,57 @@ export interface KakaoGlobal {
 }
 
 const SDK_ID = "kakao-maps-sdk";
+let pendingSdkLoad: Promise<KakaoGlobal | null> | null = null;
 
 /** SDK를 한 번만 심고, 이후 호출은 이미 로드된 전역을 돌려준다. 실패·키 없음은 모두 null. */
 export function loadKakaoSdk(appKey: string | undefined): Promise<KakaoGlobal | null> {
+  const existing = (window as unknown as { kakao?: KakaoGlobal }).kakao;
+  if (existing?.maps) {
+    return new Promise((resolve) => existing.maps.load(() => resolve(existing)));
+  }
   if (!appKey) return Promise.resolve(null);
+  if (pendingSdkLoad) return pendingSdkLoad;
 
-  return new Promise((resolve) => {
-    const existing = (window as unknown as { kakao?: KakaoGlobal }).kakao;
-    if (existing?.maps) {
-      existing.maps.load(() => resolve(existing));
-      return;
-    }
-    // 같은 스크립트를 화면마다 다시 넣지 않는다 — 태그가 이미 있으면 로드 완료만 기다린다.
-    const prior = document.getElementById(SDK_ID) as HTMLScriptElement | null;
-    const script = prior ?? document.createElement("script");
+  // 전 호출이 load/error 이후 전역 없이 끝났다면 남은 태그는 이미 이벤트가 끝난 상태다.
+  // 거기에 listener를 다시 달면 영원히 호출되지 않으므로 제거하고 새 요청을 시작한다.
+  const prior = document.getElementById(SDK_ID);
+  prior?.remove();
+
+  const script = document.createElement("script");
+  pendingSdkLoad = new Promise((resolve) => {
+    let settled = false;
+    const settle = (result: KakaoGlobal | null) => {
+      if (settled) return;
+      settled = true;
+      script.removeEventListener("load", onLoad);
+      script.removeEventListener("error", onError);
+      if (!result) script.remove();
+      pendingSdkLoad = null;
+      resolve(result);
+    };
     const onLoad = () => {
       const kakao = (window as unknown as { kakao?: KakaoGlobal }).kakao;
-      if (kakao?.maps) kakao.maps.load(() => resolve(kakao));
-      else resolve(null);
+      if (!kakao?.maps) {
+        settle(null);
+        return;
+      }
+
+      try {
+        kakao.maps.load(() => settle(kakao));
+      } catch {
+        settle(null);
+      }
     };
+    const onError = () => settle(null);
+
     script.addEventListener("load", onLoad, { once: true });
-    script.addEventListener("error", () => resolve(null), { once: true });
-    if (!prior) {
-      script.id = SDK_ID;
-      script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
-      document.head.appendChild(script);
-    }
+    script.addEventListener("error", onError, { once: true });
+    script.id = SDK_ID;
+    script.async = true;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    document.head.appendChild(script);
   });
+  return pendingSdkLoad;
 }
 
 export type MapLoadStatus = "idle" | "loading" | "ready" | "failed";

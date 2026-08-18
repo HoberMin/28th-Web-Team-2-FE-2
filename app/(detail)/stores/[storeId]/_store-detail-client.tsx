@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
-import type { MapStore } from "@/app/(tabs)/stores/_data";
+import type { PrototypeMapStore } from "@/app/(tabs)/stores/_data";
 import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
@@ -17,7 +17,7 @@ import { StoreDetailBackButton } from "./_back-button";
 import type { StoreDetailData, StoreDetailPrice } from "./_data";
 
 interface StoreDetailClientProps {
-  store: MapStore;
+  store: PrototypeMapStore;
   detail: StoreDetailData;
 }
 
