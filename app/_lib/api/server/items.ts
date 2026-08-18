@@ -1,8 +1,10 @@
 import "server-only";
 
 import {
+  itemDetailSchema,
   itemPageEnvelopeSchema,
   type ItemCategory,
+  type ItemDetail,
   type ItemPage,
   type ItemSort,
 } from "../schemas/items";
@@ -45,6 +47,28 @@ export async function getItems({ token, ...query }: GetItemsParams): Promise<Ite
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.items] },
   });
   return envelope.data;
+}
+
+export interface GetItemDetailParams {
+  itemId: number;
+  regionId: string;
+  token: string | undefined;
+}
+
+/**
+ * 품목 상세 — 요약 카드용 수치(오늘 공공시세·어제 대비·최근 동네 제보가·온라인 최저가·찜 여부).
+ *
+ * `isLiked`가 있어 items 목록과 같은 이유로 로그인 상태는 캐시하지 않는다.
+ */
+export function getItemDetail({ token, ...query }: GetItemDetailParams): Promise<ItemDetail> {
+  const { itemId, ...rest } = query;
+  return springFetch({
+    path: `/api/v1/items/${itemId}`,
+    query: { ...rest },
+    token,
+    schema: itemDetailSchema,
+    cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.items] },
+  });
 }
 
 /**

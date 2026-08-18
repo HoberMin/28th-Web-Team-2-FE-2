@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { springFetchMock } = vi.hoisted(() => ({ springFetchMock: vi.fn() }));
 vi.mock("../spring", () => ({ springFetch: springFetchMock }));
 
-import { getItems, setItemFavorite } from "./items";
+import { getItemDetail, getItems, setItemFavorite } from "./items";
 
 const ITEM_PAGE = {
   baseDate: "2026-08-16",
@@ -69,5 +69,53 @@ describe("items server API", () => {
       token: "access-token",
       cache: "no-store",
     });
+  });
+});
+
+const ITEM_DETAIL = {
+  itemId: 1,
+  itemName: "감자",
+  itemImageUrl: null,
+  defaultUnit: "1kg",
+  isLiked: false,
+  latestLocalReportPrice: null,
+  todayPublicPrice: 3500,
+  onlineLowestPrice: null,
+  baseDate: "2026-08-16",
+  priceGap: null,
+  priceDiffRate: null,
+};
+
+describe("getItemDetail", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // 목록(envelope)과 달리 상세는 flat으로 온다(라이브 확인).
+    springFetchMock.mockResolvedValue(ITEM_DETAIL);
+  });
+
+  it("익명 상세 응답만 공개 캐시에 저장하고 flat 응답을 그대로 반환한다", async () => {
+    const result = await getItemDetail({
+      itemId: 1,
+      regionId: "1121510100",
+      token: undefined,
+    });
+
+    expect(springFetchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: "/api/v1/items/1",
+        query: { regionId: "1121510100" },
+        token: undefined,
+        cache: { revalidate: 300, tags: ["items"] },
+      }),
+    );
+    expect(result).toEqual(ITEM_DETAIL);
+  });
+
+  it("인증 상세 응답은 찜 상태가 섞이므로 캐시하지 않는다", async () => {
+    await getItemDetail({ itemId: 1, regionId: "1121510100", token: "access-token" });
+
+    expect(springFetchMock).toHaveBeenCalledWith(
+      expect.objectContaining({ token: "access-token", cache: "no-store" }),
+    );
   });
 });
