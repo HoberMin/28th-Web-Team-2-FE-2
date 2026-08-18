@@ -28,6 +28,7 @@ export interface KakaoSetLevelOptions {
 export interface KakaoMap {
   setCenter(latlng: KakaoLatLng): void;
   setLevel(level: number, options?: KakaoSetLevelOptions): void;
+  getCenter(): KakaoLatLng;
   getLevel(): number;
   getProjection(): KakaoMapProjection;
 }
