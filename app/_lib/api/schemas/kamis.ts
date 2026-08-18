@@ -37,7 +37,14 @@ export const kamisDailyPriceSchema = z.object({
 });
 export type KamisDailyPrice = z.infer<typeof kamisDailyPriceSchema>;
 
-/** KAMIS는 성공해도 errorCode를 실어 보낼 수 있다. `"000"`만 정상으로 본다. */
+/**
+ * KAMIS는 성공해도 errorCode를 실어 보낼 수 있다. `"000"`만 정상으로 본다.
+ *
+ * TODO(✍️): `"000"`은 KAMIS OpenAPI 관례이지 **Spring이 문서화한 계약이 아니다**
+ * (스펙의 errorCode에 enum·example이 없다). Spring이 값을 `"SUCCESS"` 같은 걸로
+ * 정규화하면 이 함수가 항상 true가 되어 모든 호출이 실패로 뒤집힌다.
+ * 실호출 1회로 확정할 것 — `농산물-문서/be-요청사항.md` C표에 올려 뒀다.
+ */
 export function isKamisFailure(response: KamisDailyPrice): boolean {
   return Boolean(response.errorCode && response.errorCode !== "000");
 }
