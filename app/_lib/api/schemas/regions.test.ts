@@ -12,8 +12,9 @@ describe("regionSchema", () => {
   });
 
   it("보정 후에도 10자리가 아닌 법정동 코드는 거부한다", () => {
-    expect(regionSchema.safeParse({ regionId: 12_345_678, regionName: "잘못된 동네" }).success)
-      .toBe(false);
+    expect(
+      regionSchema.safeParse({ regionId: 12_345_678_901, regionName: "잘못된 동네" }).success,
+    ).toBe(false);
   });
 });
 
