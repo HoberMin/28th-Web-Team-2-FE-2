@@ -25,6 +25,10 @@ const INITIAL_SEARCH_STATE: RegionOptionsState = {
   message: "",
 };
 
+interface RegionSearchState extends RegionOptionsState {
+  keyword: string;
+}
+
 const INITIAL_NEARBY_STATE: RegionOptionsState = {
   status: "loading",
   regions: [],
@@ -39,46 +43,37 @@ function failedMessage(error: unknown): string {
 }
 
 export function useRegionSearchOptions(query: string): RegionOptionsState {
-  const [state, setState] = useState<RegionOptionsState>(INITIAL_SEARCH_STATE);
+  const keyword = query.trim();
+  const validKeyword = canSearchRegions(keyword);
+  const [state, setState] = useState<RegionSearchState>({
+    ...INITIAL_SEARCH_STATE,
+    keyword: "",
+  });
 
   useEffect(() => {
-    const keyword = query.trim();
-    if (!keyword) {
-      setState(INITIAL_SEARCH_STATE);
-      return;
-    }
-    if (keyword.length < REGION_SEARCH_MIN_LENGTH) {
-      setState({
-        status: "idle",
-        regions: [],
-        message: "동 이름을 두 글자 이상 입력해 주세요.",
-      });
-      return;
-    }
-    if (!canSearchRegions(keyword)) {
-      setState({
-        status: "error",
-        regions: [],
-        message: "한글 동 이름을 입력해 주세요.",
-      });
-      return;
-    }
+    if (!validKeyword) return;
 
     let active = true;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      setState({ status: "loading", regions: [], message: "동네를 검색하고 있어요." });
+      setState({
+        keyword,
+        status: "loading",
+        regions: [],
+        message: "동네를 검색하고 있어요.",
+      });
       try {
         const regions = await searchRegionsAPI(keyword, controller.signal);
         if (!active) return;
         setState({
+          keyword,
           status: regions.length > 0 ? "success" : "empty",
           regions,
           message: regions.length > 0 ? "" : "검색 결과가 없어요.",
         });
       } catch (error) {
         if (!active || controller.signal.aborted) return;
-        setState({ status: "error", regions: [], message: failedMessage(error) });
+        setState({ keyword, status: "error", regions: [], message: failedMessage(error) });
       }
     }, REGION_SEARCH_DEBOUNCE_MS);
 
@@ -87,9 +82,20 @@ export function useRegionSearchOptions(query: string): RegionOptionsState {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [keyword, validKeyword]);
 
-  return state;
+  if (!keyword) return INITIAL_SEARCH_STATE;
+  if (keyword.length < REGION_SEARCH_MIN_LENGTH) {
+    return {
+      status: "idle",
+      regions: [],
+      message: "동 이름을 두 글자 이상 입력해 주세요.",
+    };
+  }
+  if (!validKeyword) {
+    return { status: "error", regions: [], message: "한글 동 이름을 입력해 주세요." };
+  }
+  return state.keyword === keyword ? state : INITIAL_SEARCH_STATE;
 }
 
 export function useNearbyRegionOptions(): RegionOptionsState {
