@@ -6,6 +6,7 @@ export interface FavoriteState {
 }
 
 export type FavoriteStateEvent =
+  | { type: "hydrate"; liked: boolean }
   | { type: "request"; liked: boolean }
   | { type: "success" }
   | { type: "failure"; message: string }
@@ -20,6 +21,9 @@ export function reduceFavoriteState(
   event: FavoriteStateEvent,
 ): FavoriteState {
   switch (event.type) {
+    case "hydrate":
+      if (state.pending || state.liked === event.liked) return state;
+      return createFavoriteState(event.liked);
     case "request":
       if (state.pending) return state;
       return {

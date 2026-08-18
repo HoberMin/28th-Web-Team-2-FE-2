@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useRef, useTransition } from "react";
+import { useEffect, useReducer, useRef, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -61,6 +61,10 @@ export function PriceVegetableCard({
   );
   const [isPending, startTransition] = useTransition();
   const inFlight = useRef(false);
+
+  useEffect(() => {
+    dispatch({ type: "hydrate", liked: initialFavorite });
+  }, [initialFavorite]);
 
   const toggleFavorite = () => {
     if (!canFavorite) {
