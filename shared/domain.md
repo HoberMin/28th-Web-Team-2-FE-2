@@ -18,6 +18,9 @@
   - `TODO(✍️):` 신규/기존 회원 구분 — 로그인 응답에 단서가 없어 온보딩 재진입 분기가 미구현
 - `TODO(✍️):` 유저 플로우
 - `TODO(✍️):` 핵심 엔티티·상태머신
+  - `TODO(✍️):` 품목 식별자 계약 — Spring items API는 숫자 `itemId`, 기존 시세 상세 URL은
+    46종 prototype의 영문 slug를 사용한다. 둘 사이 매핑·숫자 상세 API가 확정되기 전에는 API
+    목록 카드를 `/prices/[itemId]`에 연결하지 않는다(숫자를 slug로 추측 금지).
 
 ## 3. 아키텍처 제약 (확정분)
 - **단일 루트 Next.js 프로젝트** (2026-08-05 모노레포 해체): 루트 `app/`(App Router). 디자인 시스템은 서비스에 병합 — `app/_components/`(공통 컴포넌트) + `app/globals.css` `@theme`(토큰)

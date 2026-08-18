@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { TabBar } from "../../_components/tab-bar";
+import { getAccessToken } from "@/app/_lib/api/auth/session";
+import { getItems } from "@/app/_lib/api/server/items";
+import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { ROUTES } from "../../_lib/routes";
+import { mapItemToPriceView } from "../prices/_item-view";
 import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
 import { SavedVegetableList } from "./_components/saved-vegetable-list";
-import {
-  SAVED_STORES,
-  SAVED_VEGETABLES,
-  type SavedStore,
-  parseSavedTab,
-} from "./_data";
+import { SAVED_STORES, type SavedStore, parseSavedTab } from "./_data";
 
 // F04 찜 — Figma `화면GUI` 298-3576(찜_야채) · 298-3594(찜_가게), sync 2026-08-08.
 //
@@ -19,8 +18,8 @@ import {
 //
 // GNB는 이 화면이 그리지 않는다 — `app/(tabs)/layout.tsx`가 단독으로 렌더하고 본문만 스크롤한다.
 //
-// 데이터는 더미다(`_data.ts`) — 모듈 상수라 fetch가 없고, 따라서 선언할 캐싱 의도도 없다
-// (conventions #11). searchParams를 읽으므로 이 라우트는 동적 렌더링이다. 실연결은 별도 사이클.
+// 야채 탭은 `GET /api/v1/items?favoriteOnly=true`를 RSC에서 조회한다. 로그인 사용자 응답은
+// `isLiked`가 개인화되므로 no-store다. 가게 탭은 API 계약이 없어 기존 prototype 더미를 유지한다.
 //
 // ── Figma와 의도적으로 다르게 구현한 것 ──────────────────────────────────────
 //
@@ -59,25 +58,15 @@ function StorePhoto() {
 }
 
 interface SavedPageProps {
-  searchParams: Promise<{ tab?: string; empty?: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }
 
 export default async function SavedPage({ searchParams }: SavedPageProps) {
-  const { tab, empty } = await searchParams;
+  const { tab } = await searchParams;
   const activeTab = parseSavedTab(tab);
-
-  // ⚠️ 임시(더미 데이터 기간 한정): 시안 없는 빈 상태를 배포된 화면에서 눈으로 확인할 수단이
-  //    `?empty=1`밖에 없어 열어 뒀다. **삭제 조건은 코드 주석이 아니라 `shared/product-spec.md`의
-  //    `TODO(✍️)` 항목이 들고 있다** — 주석은 사람이 안 읽으면 영영 남기 때문이다.
-  const showEmpty = empty === "1";
-  const vegetables = showEmpty ? [] : SAVED_VEGETABLES;
-  const stores = showEmpty ? [] : SAVED_STORES;
-
-  // `?empty=1`이 켜져 있으면 탭을 옮겨도 유지되게 한다(위 임시 분기와 함께 삭제될 코드).
-  const emptyQuery = showEmpty ? "&empty=1" : "";
   const tabs = [
-    { href: `${ROUTES.saved}?tab=vegetable${emptyQuery}`, label: "야채" },
-    { href: `${ROUTES.saved}?tab=store${emptyQuery}`, label: "가게" },
+    { href: `${ROUTES.saved}?tab=vegetable`, label: "야채" },
+    { href: `${ROUTES.saved}?tab=store`, label: "가게" },
   ];
 
   return (
@@ -95,12 +84,45 @@ export default async function SavedPage({ searchParams }: SavedPageProps) {
       />
 
       {activeTab === "vegetable" ? (
-        <SavedVegetableList vegetables={vegetables} />
+        <VegetableTab />
       ) : (
-        <StoreTab stores={stores} />
+        <StoreTab stores={SAVED_STORES} />
       )}
     </div>
   );
+}
+
+async function VegetableTab() {
+  const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
+
+  if (!token) {
+    return (
+      <SavedEmpty
+        title="로그인이 필요해요"
+        description="카카오 로그인 후 찜한 야채를 모아볼 수 있어요."
+      />
+    );
+  }
+
+  if (!regionId) {
+    return (
+      <SavedEmpty
+        title="동네 정보가 필요해요"
+        description="온보딩에서 동네를 선택하면 찜한 야채의 시세를 볼 수 있어요."
+      />
+    );
+  }
+
+  const itemPage = await getItems({
+    regionId,
+    page: 0,
+    size: 100,
+    sort: "NAME_ASC",
+    favoriteOnly: true,
+    token,
+  });
+
+  return <SavedVegetableList vegetables={itemPage.items.map(mapItemToPriceView)} />;
 }
 
 function StoreTab({ stores }: { stores: SavedStore[] }) {

@@ -1,25 +1,15 @@
-"use client";
-
-import { useFavorites } from "../../../_lib/favorites-store";
+import type { PriceItemView } from "../../prices/_item-view";
 import { ROUTES } from "../../../_lib/routes";
 import { PriceVegetableCard } from "../../prices/_price-vegetable-card";
-import type { SavedVegetable } from "../_data";
 import { SavedEmpty } from "./saved-empty";
 
 export interface SavedVegetableListProps {
-  vegetables: SavedVegetable[];
+  vegetables: PriceItemView[];
 }
 
-/** 공용 찜 저장소와 동기화되는 F04 야채 목록. 하트를 해제한 카드는 즉시 목록에서 빠진다. */
+/** Spring이 `favoriteOnly=true`로 반환한 로그인 사용자의 찜 야채 목록. */
 export function SavedVegetableList({ vegetables }: SavedVegetableListProps) {
-  const favoriteIds = useFavorites();
-  const vegetableById = new Map(vegetables.map((vegetable) => [vegetable.id, vegetable]));
-  const favorites = favoriteIds.flatMap((id) => {
-    const vegetable = vegetableById.get(id);
-    return vegetable ? [vegetable] : [];
-  });
-
-  if (favorites.length === 0) {
+  if (vegetables.length === 0) {
     return (
       <SavedEmpty
         title="찜한 야채가 없어요"
@@ -32,10 +22,10 @@ export function SavedVegetableList({ vegetables }: SavedVegetableListProps) {
 
   return (
     <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
-      {favorites.map((vegetable) => (
-        <li key={vegetable.id}>
+      {vegetables.map((vegetable) => (
+        <li key={vegetable.itemId}>
           <PriceVegetableCard
-            id={vegetable.id}
+            itemId={vegetable.itemId}
             name={vegetable.name}
             image={vegetable.image}
             price={vegetable.price}
@@ -43,6 +33,8 @@ export function SavedVegetableList({ vegetables }: SavedVegetableListProps) {
             trendState={vegetable.trendState}
             trendAmount={vegetable.trendAmount}
             trendPercent={vegetable.trendPercent}
+            initialFavorite={vegetable.isLiked}
+            canFavorite
           />
         </li>
       ))}

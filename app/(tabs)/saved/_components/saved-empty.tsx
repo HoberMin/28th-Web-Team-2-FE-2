@@ -14,9 +14,9 @@ export interface SavedEmptyProps {
   title: string;
   /** 예: "시세 화면에서 하트를 누르면 여기에 모여요." */
   description: string;
-  actionHref: string;
+  actionHref?: string;
   /** 예: "야채 시세 보러 가기" */
-  actionLabel: string;
+  actionLabel?: string;
 }
 
 export function SavedEmpty({ title, description, actionHref, actionLabel }: SavedEmptyProps) {
@@ -24,12 +24,14 @@ export function SavedEmpty({ title, description, actionHref, actionLabel }: Save
     <div className="flex flex-col items-center gap-2 py-20 text-center">
       <p className="text-title-18-bold text-content-primary">{title}</p>
       <p className="text-body-14-regular text-content-secondary">{description}</p>
-      <Link
-        href={actionHref}
-        className="mt-2 inline-flex min-h-11 items-center px-2 text-body-16-semibold text-content-brand-medium underline"
-      >
-        {actionLabel}
-      </Link>
+      {actionHref && actionLabel ? (
+        <Link
+          href={actionHref}
+          className="mt-2 inline-flex min-h-11 items-center px-2 text-body-16-semibold text-content-brand-medium underline"
+        >
+          {actionLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }
