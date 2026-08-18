@@ -1,0 +1,104 @@
+"use client";
+
+import {
+  nearbyRegionsSchema,
+  regionSchema,
+  regionSearchRequestSchema,
+  type Region,
+} from "../schemas/regions";
+
+export const REGION_SEARCH_DEBOUNCE_MS = 300;
+
+export class RegionClientError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "RegionClientError";
+    this.status = status;
+  }
+}
+
+function messageOf(payload: unknown): string | null {
+  if (typeof payload !== "object" || payload === null || !("message" in payload)) return null;
+  return typeof payload.message === "string" ? payload.message : null;
+}
+
+async function responseError(response: Response): Promise<RegionClientError> {
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  return new RegionClientError(
+    response.status,
+    messageOf(payload) ?? "동네를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+  );
+}
+
+async function parseRegions(response: Response): Promise<Region[]> {
+  if (!response.ok) throw await responseError(response);
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new RegionClientError(502, "동네 응답을 읽지 못했어요. 잠시 후 다시 시도해 주세요.");
+  }
+
+  const parsed = nearbyRegionsSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new RegionClientError(502, "동네 응답이 올바르지 않아요. 잠시 후 다시 시도해 주세요.");
+  }
+  return parsed.data;
+}
+
+export function canSearchRegions(keyword: string): boolean {
+  return regionSearchRequestSchema.safeParse({ keyword }).success;
+}
+
+export async function searchRegionsAPI(keyword: string, signal?: AbortSignal): Promise<Region[]> {
+  const parsed = regionSearchRequestSchema.safeParse({ keyword });
+  if (!parsed.success) {
+    throw new RegionClientError(400, "한글 동 이름을 두 글자 이상 입력해 주세요.");
+  }
+
+  const params = new URLSearchParams({ keyword: parsed.data.keyword });
+  const response = await fetch(`/api/regions/search?${params.toString()}`, {
+    cache: "no-store",
+    signal,
+  });
+  return parseRegions(response);
+}
+
+export async function getNearbyRegionsAPI(
+  coordinates: { latitude: number; longitude: number },
+  signal?: AbortSignal,
+): Promise<Region[]> {
+  const params = new URLSearchParams({
+    latitude: String(coordinates.latitude),
+    longitude: String(coordinates.longitude),
+  });
+  const response = await fetch(`/api/regions/nearby?${params.toString()}`, {
+    cache: "no-store",
+    signal,
+  });
+  return parseRegions(response);
+}
+
+export async function saveSelectedRegionAPI(region: Region): Promise<void> {
+  const parsed = regionSchema.safeParse(region);
+  if (!parsed.success) {
+    throw new RegionClientError(400, "선택한 동네 정보가 올바르지 않아요.");
+  }
+
+  const response = await fetch("/api/regions/selection", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(parsed.data),
+    cache: "no-store",
+  });
+  if (!response.ok) throw await responseError(response);
+}
