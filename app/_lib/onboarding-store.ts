@@ -114,6 +114,10 @@ function getServerSnapshot(): OnboardingState {
   return DEFAULT_STATE;
 }
 
+function getHydratingServerSnapshot(): OnboardingState | null {
+  return null;
+}
+
 /**
  * 온보딩 상태 갱신(부분 patch) — nickname/district 입력 진행 중에도 사용 가능.
  * `patch.district`가 있으면 등록 목록(`districts`)에도 자동 반영(온보딩 완료 시 첫 등록이 되도록).
@@ -153,6 +157,18 @@ export function setActiveDistrict(name: string): void {
 /** 온보딩 상태 훅 — 화면에서 실시간 구독. */
 export function useOnboarding(): OnboardingState {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+/**
+ * 라우트 보호용 온보딩 상태. 서버 렌더와 hydration 첫 렌더에서는 `null`이고,
+ * 브라우저 저장소를 읽은 클라이언트 스냅샷이 준비된 뒤에만 실제 상태를 반환한다.
+ */
+export function useHydratedOnboarding(): OnboardingState | null {
+  return useSyncExternalStore<OnboardingState | null>(
+    subscribe,
+    getSnapshot,
+    getHydratingServerSnapshot,
+  );
 }
 
 /** 등록된 동네 목록 훅 — 홈 drawer·설정 화면의 "등록된 동네" 목록에서 사용. */
