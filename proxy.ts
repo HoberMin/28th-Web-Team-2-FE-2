@@ -20,9 +20,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCESS_COOKIE_OPTIONS,
+  BACKOFF_COOKIE_OPTIONS,
   extractRefreshToken,
   needsRefresh,
   REFRESH_COOKIE_OPTIONS,
+  REISSUE_BACKOFF_COOKIE,
   REFRESH_TOKEN_COOKIE,
   SPRING_REFRESH_COOKIE,
 } from "@/app/_lib/api/auth/tokens";
@@ -113,13 +115,22 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const nowSeconds = Math.floor(Date.now() / 1000);
   if (!needsRefresh(accessToken, nowSeconds)) return NextResponse.next();
 
+  // 직전 재발급이 회복 불가로 실패했다 — 쉬는 동안은 시도하지 않는다.
+  // 없으면 매 페이지뷰마다 Spring에 실패할 POST를 한 건씩 쏜다(탭·프리페치만큼 배수).
+  if (request.cookies.has(REISSUE_BACKOFF_COOKIE)) return NextResponse.next();
+
   // 갱신이 필요한데 수단이 없다 = 세션 종료. 낡은 쿠키를 남기면 매 요청이 401로 실패한다.
   if (!refreshToken) return signOut(request, false);
 
   const outcome = await reissueTokens(refreshToken);
 
-  // 서버에 닿지 못했다 — 세션은 멀쩡할 수 있으므로 쿠키를 건드리지 않고 이번 요청만 보낸다.
-  if (outcome.status === "unreachable") return NextResponse.next();
+  // 서버에 닿지 못했다 — 세션은 멀쩡할 수 있으므로 쿠키를 건드리지 않는다.
+  // 다만 곧바로 또 시도하지 않도록 백오프를 심는다(무한 재시도 방지).
+  if (outcome.status === "unreachable") {
+    const backedOff = NextResponse.next();
+    backedOff.cookies.set(REISSUE_BACKOFF_COOKIE, "1", BACKOFF_COOKIE_OPTIONS);
+    return backedOff;
+  }
 
   if (outcome.status === "rejected") return signOut(request, true);
 
@@ -129,6 +140,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (outcome.refreshToken) request.cookies.set(REFRESH_TOKEN_COOKIE, outcome.refreshToken);
 
   const response = NextResponse.next({ request });
+  response.cookies.delete(REISSUE_BACKOFF_COOKIE);
   response.cookies.set(ACCESS_TOKEN_COOKIE, outcome.accessToken, ACCESS_COOKIE_OPTIONS);
   if (outcome.refreshToken) {
     response.cookies.set(REFRESH_TOKEN_COOKIE, outcome.refreshToken, REFRESH_COOKIE_OPTIONS);

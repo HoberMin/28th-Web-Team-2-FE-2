@@ -57,6 +57,27 @@ export const REFRESH_COOKIE_OPTIONS = {
   maxAge: REFRESH_COOKIE_MAX_AGE,
 } as const;
 
+/**
+ * 재발급이 회복 불가로 실패했을 때 다음 시도까지 쉬는 시간(초).
+ *
+ * 왜 필요한가: refreshToken이 죽었는데 Spring이 401·403이 **아닌** 코드(400 등)로 답하면
+ * 우리는 "서버 사정"으로 보고 쿠키를 남긴다 → 다음 요청도 갱신 대상 → 또 실패.
+ * 사용자는 로그아웃도 안 된 채 **모든 요청마다 Spring에 재발급을 한 번씩 더 쏜다.**
+ * 백오프 쿠키로 그 빈도를 "요청당 1회"에서 "분당 1회"로 낮춘다.
+ *
+ * TODO(✍️): Spring이 무효 refreshToken에 어떤 상태 코드를 주는지 확인되면
+ * (`농산물-문서/be-요청사항.md` A-3) 그 코드를 세션 종료로 처리하고 이 백오프는 안전망만 된다.
+ */
+export const REISSUE_BACKOFF_SECONDS = 60;
+
+/** 백오프 중임을 표시하는 쿠키. 값은 쓰지 않고 존재 여부만 본다. */
+export const REISSUE_BACKOFF_COOKIE = "mg_reissue_backoff";
+
+export const BACKOFF_COOKIE_OPTIONS = {
+  ...BASE_COOKIE_OPTIONS,
+  maxAge: REISSUE_BACKOFF_SECONDS,
+} as const;
+
 /** JWT payload에서 `exp`만 꺼낸다. 서명은 보지 않는다. */
 export function readTokenExpiry(token: string): number | null {
   const payload = token.split(".")[1];
