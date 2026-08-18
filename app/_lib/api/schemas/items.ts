@@ -80,3 +80,20 @@ export const itemPageEnvelopeSchema = z.object({
   message: z.string().optional(),
   data: itemPageSchema,
 });
+
+// GET /api/v1/items/{itemId} — 품목 상세. items 목록과 달리 envelope 없이 flat으로 온다
+// (라이브 확인: `curl https://api.marketgo.kro.kr/api/v1/items/1?regionId=...`).
+export const itemDetailSchema = z.object({
+  itemId: z.number().int().safe(),
+  itemName: z.string(),
+  itemImageUrl: z.string().nullable().optional(),
+  defaultUnit: z.string().nullable().optional(),
+  isLiked: z.boolean().nullish().transform((value) => value ?? false),
+  latestLocalReportPrice: z.number().nullable().optional(),
+  todayPublicPrice: z.number().nullable().optional(),
+  onlineLowestPrice: z.number().nullable().optional(),
+  baseDate: z.iso.date().nullable().optional(),
+  priceGap: z.number().nullable().optional(),
+  priceDiffRate: z.number().nullable().optional(),
+});
+export type ItemDetail = z.infer<typeof itemDetailSchema>;

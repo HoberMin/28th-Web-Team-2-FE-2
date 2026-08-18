@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { itemPageEnvelopeSchema, itemPageRequestSchema, itemPageSchema } from "./items";
+import {
+  itemDetailSchema,
+  itemPageEnvelopeSchema,
+  itemPageRequestSchema,
+  itemPageSchema,
+} from "./items";
 
 describe("itemPageRequestSchema", () => {
   it("BFF 문자열 쿼리를 Spring 페이지 계약으로 바꾼다", () => {
@@ -144,5 +149,41 @@ describe("itemPageEnvelopeSchema", () => {
 
   it("예전 raw DTO 형태는 API 경계에서 거부한다", () => {
     expect(itemPageEnvelopeSchema.safeParse(data).success).toBe(false);
+  });
+});
+
+describe("itemDetailSchema", () => {
+  it("라이브 응답(flat, envelope 없음)을 그대로 파싱한다", () => {
+    const payload = {
+      itemId: 1,
+      itemName: "감자",
+      itemImageUrl: null,
+      defaultUnit: "1kg",
+      isLiked: false,
+      latestLocalReportPrice: null,
+      todayPublicPrice: 3500,
+      onlineLowestPrice: null,
+      baseDate: "2026-08-16",
+      priceGap: null,
+      priceDiffRate: null,
+    };
+
+    expect(itemDetailSchema.parse(payload)).toEqual(payload);
+  });
+
+  it("누락되거나 null인 찜 여부는 false로 취급한다", () => {
+    expect(
+      itemDetailSchema.parse({ itemId: 1, itemName: "감자", isLiked: null }).isLiked,
+    ).toBe(false);
+  });
+
+  it("envelope로 감싸진 형태는 거부한다(이 엔드포인트는 flat이 계약이다)", () => {
+    expect(
+      itemDetailSchema.safeParse({
+        code: "SUCCESS",
+        message: "요청이 성공적으로 처리되었습니다.",
+        data: { itemId: 1, itemName: "감자" },
+      }).success,
+    ).toBe(false);
   });
 });
