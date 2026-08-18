@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { itemPageSchema } from "./items";
+import { itemPageEnvelopeSchema, itemPageSchema } from "./items";
 
 describe("itemPageSchema", () => {
   it("기준일·가격·이미지가 없는 지역 응답을 거부하지 않는다", () => {
@@ -83,5 +83,35 @@ describe("itemPageSchema", () => {
     ],
   ])("%s은 API 경계에서 거부한다", (_case, payload) => {
     expect(itemPageSchema.safeParse(payload).success).toBe(false);
+  });
+});
+
+describe("itemPageEnvelopeSchema", () => {
+  const data = {
+    baseDate: "2026-08-16",
+    totalCount: 0,
+    categoryCounts: {},
+    items: [],
+    page: 0,
+    size: 18,
+    hasNext: false,
+  };
+
+  it("품목 응답의 endpoint 전용 envelope를 검증한다", () => {
+    expect(
+      itemPageEnvelopeSchema.parse({
+        code: "SUCCESS",
+        message: "요청이 성공적으로 처리되었습니다.",
+        data,
+      }).data,
+    ).toEqual(data);
+  });
+
+  it("스펙상 선택인 메타데이터가 없어도 data를 유지한다", () => {
+    expect(itemPageEnvelopeSchema.parse({ data }).data).toEqual(data);
+  });
+
+  it("예전 raw DTO 형태는 API 경계에서 거부한다", () => {
+    expect(itemPageEnvelopeSchema.safeParse(data).success).toBe(false);
   });
 });
