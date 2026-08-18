@@ -1,7 +1,7 @@
 import "server-only";
 
 import {
-  itemPageSchema,
+  itemPageEnvelopeSchema,
   type ItemCategory,
   type ItemPage,
   type ItemSort,
@@ -36,14 +36,15 @@ export interface GetItemsParams {
  * TODO(✍️): 비회원이 어디까지 쓸 수 있는지 BE 확인 대기 중
  * (`농산물-문서/be-요청사항.md` 3번). 답에 따라 비로그인 캐시 시간을 조정한다.
  */
-export function getItems({ token, ...query }: GetItemsParams): Promise<ItemPage> {
-  return springFetch({
+export async function getItems({ token, ...query }: GetItemsParams): Promise<ItemPage> {
+  const envelope = await springFetch({
     path: "/api/v1/items",
     query: { ...query },
     token,
-    schema: itemPageSchema,
+    schema: itemPageEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.items] },
   });
+  return envelope.data;
 }
 
 /**

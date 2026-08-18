@@ -1,7 +1,7 @@
 // GET /api/v1/items — 품목 목록과 공공가격
 //
-// ⚠️ 응답을 envelope로 감싸지 않는다. 이 백엔드는 엔드포인트마다 형태가 달라
-// 공통 unwrap 유틸을 두지 않는다 (`backend-api-reference` §2).
+// ⚠️ 이 엔드포인트는 `{ code, message, data }` envelope로 응답한다.
+// 응답 형태가 섞인 백엔드이므로 공통 unwrap 유틸은 두지 않고 품목 경계에서만 검증한다.
 
 import { z } from "zod";
 
@@ -55,3 +55,9 @@ export const itemPageSchema = z.object({
   hasNext: z.boolean(),
 });
 export type ItemPage = z.infer<typeof itemPageSchema>;
+
+export const itemPageEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: itemPageSchema,
+});

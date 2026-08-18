@@ -49,7 +49,7 @@ spec "console.log(JSON.stringify(d.components.schemas.ItemResponse,null,2))"
 
 이 백엔드는 응답 형태가 **엔드포인트마다 다르다.** 하나의 공통 envelope를 가정하고 짜면 깨진다.
 
-- **envelope 불일치**: `/api/v1/regions/search`만 `{ code, message, data }` 로 감싼다. `/api/v1/items`·`/api/v1/stores/nearby` 등은 DTO를 **그대로** 반환하고, `/api/v1/news`·`/api/v1/regions/nearby`는 **최상위 배열**을 반환한다.
+- **envelope 불일치**: `/api/v1/regions/search`·`/api/v1/items`는 `{ code, message, data }` 로 감싼다. `/api/v1/stores/nearby` 등은 DTO를 **그대로** 반환하고, `/api/v1/news`·`/api/v1/regions/nearby`는 **최상위 배열**을 반환한다. (`/api/v1/items` envelope는 2026-08-18 라이브 스펙·응답으로 재확인.)
   → **공통 unwrap 유틸을 만들지 않는다.** 엔드포인트별 zod 스키마가 각자의 모양을 그대로 검증한다.
 - **에러도 성공 스키마로 선언돼 있다**: 400/401/404/502가 성공과 같은 `$ref`를 가리킨다. 즉 **스펙만 보고 에러 body를 알 수 없다** — 실제 에러 응답 모양은 확인이 필요하고, 그때까지 BFF는 **HTTP status로 분기**하고 body는 신뢰하지 않는다.
 - **같은 개념의 타입이 갈린다**: `regionId`가 `SearchResult`에서는 `string`, `NearbyRegionResponse`에서는 `int64`, `/api/v1/items`의 쿼리에서는 `string`이다. → 프론트 내부 타입은 **`string`으로 통일**하고 경계에서 변환한다(숫자로 다루면 앞자리 0이 날아간다: `"0111010100"`).
