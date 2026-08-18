@@ -19,13 +19,21 @@ export async function POST(): Promise<Response> {
     await saveTokens(await reissue(refreshToken));
     return Response.json({ ok: true });
   } catch (error) {
+    // ApiError가 아니면 우리 버그다(쿠키 쓰기 실패 등). 503으로 포장하면 클라이언트가
+    // 재시도가 답이라고 믿고 영원히 재시도하며 진짜 원인은 로그에도 안 남는다.
+    // `app/api/auth/kakao`와 같은 정책으로 재던진다.
+    if (!(error instanceof ApiError)) throw error;
+
+    console.error("[auth] 재발급 실패", {
+      kind: error.kind,
+      status: error.status,
+      endpoint: error.endpoint,
+    });
+
     // **통신 실패와 세션 만료를 구분한다** — `proxy.ts`와 같은 규칙이다.
     // 5xx·타임아웃까지 세션으로 취급하면 Spring이 잠깐 죽었을 때 로그인 사용자 전원이
     // refreshToken까지 잃고 재로그인하게 된다. 서버 사정은 재시도로 회복된다.
-    const rejected =
-      error instanceof ApiError && (error.isAuthExpired || error.kind === "forbidden");
-
-    if (!rejected) {
+    if (!error.isAuthExpired && error.kind !== "forbidden") {
       return Response.json({ message: "잠시 후 다시 시도해 주세요." }, { status: 503 });
     }
 
