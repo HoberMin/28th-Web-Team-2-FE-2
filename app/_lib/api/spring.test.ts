@@ -13,6 +13,7 @@ interface NextFetchInit extends RequestInit {
 describe("Spring API client", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -36,6 +37,19 @@ describe("Spring API client", () => {
       favoriteOnly: "false",
       keyword: "감자",
     });
+  });
+
+  it("환경변수 base URL이 안전하지 않으면 요청 URL을 만들지 않는다", () => {
+    vi.stubEnv("SPRING_API_BASE_URL", "http://user:password@api.example.com/v1");
+
+    expect(() => springUrl("/api/v1/news")).toThrow("SPRING_API_BASE_URL");
+  });
+
+  it.each([
+    ["절대 URL", "https://attacker.example/collect"],
+    ["protocol-relative URL", "//attacker.example/collect"],
+  ])("%s 경로로 Spring origin을 벗어나지 못한다", (_case, path) => {
+    expect(() => springUrl(path)).toThrow("same-origin");
   });
 
   it("인증 POST를 no-store로 보내며 토큰을 서버 헤더에만 담는다", async () => {
@@ -65,6 +79,8 @@ describe("Spring API client", () => {
         Cookie: "refreshToken=refresh-token",
       },
     });
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    expect(init?.signal?.aborted).toBe(false);
   });
 
   it("공개 GET에 revalidate와 cache tag를 전달한다", async () => {
@@ -83,6 +99,18 @@ describe("Spring API client", () => {
       tags: ["news"],
     });
     expect(init?.cache).toBeUndefined();
+  });
+
+  it("요청 body 직렬화 오류를 network ApiError로 포장하지 않는다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    const body: { self?: unknown } = {};
+    body.self = body;
+
+    await expect(
+      springRaw({ path: "/api/v1/reports", method: "POST", body, cache: "no-store" }),
+    ).rejects.toBeInstanceOf(TypeError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("네트워크 실패를 endpoint가 있는 ApiError로 변환한다", async () => {

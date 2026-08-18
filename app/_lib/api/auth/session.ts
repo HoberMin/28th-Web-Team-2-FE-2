@@ -30,18 +30,33 @@ export async function getRefreshToken(): Promise<string | undefined> {
 // 부르고 싶어지는데, 그게 **앱 전체가 Full Route Cache를 잃는** 경로다(`auth-session` §5).
 // 로그인 여부가 필요한 화면이 생기면 배치를 같이 판단해서 넣는다.
 
-/**
- * 발급받은 토큰을 우리 도메인 쿠키에 심는다.
- *
- * **Route Handler나 Server Action에서만 호출된다** — RSC에서는 쿠키를 쓸 수 없다.
- * 재발급 시 refreshToken이 안 내려오면(무회전) 기존 값을 유지한다.
- */
-export async function saveTokens(tokens: SpringTokens): Promise<void> {
+async function saveTokens(tokens: SpringTokens, clearMissingRefreshToken: boolean): Promise<void> {
   const store = await cookies();
   store.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, ACCESS_COOKIE_OPTIONS);
   if (tokens.refreshToken) {
     store.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+  } else if (clearMissingRefreshToken) {
+    store.delete(REFRESH_TOKEN_COOKIE);
   }
+}
+
+/**
+ * 로그인으로 발급받은 토큰을 저장한다.
+ *
+ * 새 로그인 응답에 refreshToken이 없으면 이전 사용자의 refreshToken을 반드시 지운다.
+ * 남겨두면 accessToken 만료 뒤 이전 계정 세션으로 돌아갈 수 있다.
+ */
+export function saveLoginTokens(tokens: SpringTokens): Promise<void> {
+  return saveTokens(tokens, true);
+}
+
+/**
+ * 재발급으로 받은 토큰을 저장한다.
+ *
+ * refreshToken을 회전하지 않는 응답이면 기존 refreshToken을 유지한다.
+ */
+export function saveReissuedTokens(tokens: SpringTokens): Promise<void> {
+  return saveTokens(tokens, false);
 }
 
 export async function clearTokens(): Promise<void> {
