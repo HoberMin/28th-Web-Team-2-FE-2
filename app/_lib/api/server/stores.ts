@@ -5,7 +5,7 @@ import "server-only";
 // 더미를 집어오면 **조용히 가짜 데이터가 화면에 뜬다.** import 경로를 눈으로 확인할 것.
 // 더미를 걷어내는 시점에 이 주석도 지운다.
 
-import { nearbyStoresSchema, type NearbyStores } from "../schemas/stores";
+import { nearbyStoresEnvelopeSchema, type NearbyStores } from "../schemas/stores";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
 
@@ -29,15 +29,16 @@ export interface GetNearbyStoresParams {
  * `getItems`와 같은 이유로 로그인 상태에서는 캐시하지 않는다 — 응답의 `isLiked`가
  * 사용자별로 다르다.
  */
-export function getNearbyStores({
+export async function getNearbyStores({
   token,
   ...query
 }: GetNearbyStoresParams): Promise<NearbyStores> {
-  return springFetch({
+  const envelope = await springFetch({
     path: "/api/v1/stores/nearby",
     query: { ...query },
     token,
-    schema: nearbyStoresSchema,
+    schema: nearbyStoresEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
   });
+  return envelope.data;
 }
