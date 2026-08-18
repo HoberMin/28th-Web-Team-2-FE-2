@@ -101,6 +101,18 @@ describe("Spring API client", () => {
     expect(init?.cache).toBeUndefined();
   });
 
+  it("요청 body 직렬화 오류를 network ApiError로 포장하지 않는다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    const body: { self?: unknown } = {};
+    body.self = body;
+
+    await expect(
+      springRaw({ path: "/api/v1/reports", method: "POST", body, cache: "no-store" }),
+    ).rejects.toBeInstanceOf(TypeError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("네트워크 실패를 endpoint가 있는 ApiError로 변환한다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     fetchMock.mockRejectedValueOnce(new Error("connection refused"));
