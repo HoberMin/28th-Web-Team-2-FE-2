@@ -6,7 +6,11 @@ export const CACHE_TAGS = {
   news: "news",
   regions: "regions",
   kamisDailyPrices: "kamis-daily-prices",
-  /** 가게 목록은 좌표별로 갈리지만, 단골 토글은 전체를 한 번에 무효화한다. */
+  /**
+   * 가게 목록은 좌표별로 갈리지만 태그는 하나로 묶는다.
+   * 무효화하는 건 **제보 생성뿐**이다(`server/reports.ts`) — 단골 토글은 개인화 상태만
+   * 바꾸므로 공유 캐시를 건드리지 않는다(`auth-session` §5).
+   */
   stores: "stores",
 } as const;
 
