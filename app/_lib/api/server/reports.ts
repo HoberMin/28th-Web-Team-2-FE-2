@@ -7,7 +7,7 @@ import {
   type CreateReportResponse,
 } from "../schemas/reports";
 import { springFetch } from "../spring";
-import { CACHE_TAGS, REVALIDATE_PROFILE } from "../tags";
+import { CACHE_TAGS, REVALIDATE_IMMEDIATELY } from "../tags";
 
 /**
  * 우리 동네 가격 제보. 로그인이 필요하다(401).
@@ -29,8 +29,8 @@ export async function createReport(params: {
   });
 
   // 제보가 반영되면 품목 시세와 가게 정보가 같이 바뀐다.
-  revalidateTag(CACHE_TAGS.items, REVALIDATE_PROFILE);
-  revalidateTag(CACHE_TAGS.stores, REVALIDATE_PROFILE);
+  revalidateTag(CACHE_TAGS.items, REVALIDATE_IMMEDIATELY);
+  revalidateTag(CACHE_TAGS.stores, REVALIDATE_IMMEDIATELY);
 
   return created;
 }
