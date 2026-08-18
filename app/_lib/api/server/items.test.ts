@@ -18,11 +18,15 @@ const ITEM_PAGE = {
 describe("items server API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    springFetchMock.mockResolvedValue(ITEM_PAGE);
+    springFetchMock.mockResolvedValue({
+      code: "SUCCESS",
+      message: "요청이 성공적으로 처리되었습니다.",
+      data: ITEM_PAGE,
+    });
   });
 
   it("익명 품목 응답만 공개 캐시에 저장한다", async () => {
-    await getItems({
+    const result = await getItems({
       regionId: "1121510100",
       page: 0,
       size: 18,
@@ -38,6 +42,7 @@ describe("items server API", () => {
         cache: { revalidate: 300, tags: ["items"] },
       }),
     );
+    expect(result).toEqual(ITEM_PAGE);
   });
 
   it("인증 품목 응답은 사용자 찜 상태가 섞이므로 캐시하지 않는다", async () => {
