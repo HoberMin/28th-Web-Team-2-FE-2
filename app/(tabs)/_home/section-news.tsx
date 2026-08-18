@@ -1,5 +1,4 @@
 import { CardNews } from "../../_components/card-news";
-import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { HomeNewsItem } from "./_data";
 import { SectionEmpty } from "./section-empty";
 
@@ -30,9 +29,8 @@ import { SectionEmpty } from "./section-empty";
 // → 카드를 <a>로 감싸고 외부 링크라 `target="_blank"` + `rel="noopener noreferrer"`를 붙였다.
 //   (Figma에 새 탭 여부 정의는 없다 — 외부 도메인이라 코드 판단으로 새 탭을 골랐다.)
 //
-// 썸네일은 Figma 샘플 에셋(`images/news-thumbnail.png`)을 쓴다. 실제 기사마다 이미지가 달라지므로
-// CardNews의 슬롯 구조는 그대로 두고 여기서 그림만 꽂는다 — 기사 이미지 URL이 붙으면 이 자리를
-// 기사별 <Image>로 바꾸면 된다.
+// 썸네일은 뉴스 응답의 외부 URL을 쓴다. 수집처 도메인이 고정돼 있지 않아 Next Image의 원격 호스트를
+// 광범위하게 허용하지 않고, 스키마에서 http(s)만 통과시킨 뒤 일반 img로 렌더한다.
 // ⚠️ 대비: 날짜 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 → 14px 기준 4.5:1 미달.
 //    card/news 원본 규격 그대로라 여기서 바꾸지 않는다(figma-bridge §4).
 
@@ -41,15 +39,20 @@ export interface SectionNewsProps {
 }
 
 /**
- * 카드 썸네일(200×108). Figma 샘플 에셋을 카드 폭에 꽉 채워 자른다 —
- * `/playground` card-news 스토리와 같은 크기·같은 처리다.
+ * 카드 썸네일(200×108). 기사 링크가 이미 카드의 접근 가능한 이름을 제공하므로 이미지는 장식용이다.
  */
-function NewsThumbnail() {
+function NewsThumbnail({ src }: { src: string }) {
   return (
-    <FigmaImage
-      name="news-thumbnail.png"
+    // 수집처가 매번 달라 Next Image remotePatterns로 안전하게 열거할 수 없다.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
       width={200}
       height={108}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
       className="size-full object-cover"
     />
   );
@@ -73,7 +76,9 @@ export function SectionNews({ items }: SectionNewsProps) {
                 className="block rounded-md focus-visible:outline-2 focus-visible:outline-content-primary focus-visible:outline-offset-2"
               >
                 <CardNews
-                  thumbnail={<NewsThumbnail />}
+                  thumbnail={
+                    item.thumbnailUrl ? <NewsThumbnail src={item.thumbnailUrl} /> : undefined
+                  }
                   title={item.title}
                   date={item.date}
                 />
