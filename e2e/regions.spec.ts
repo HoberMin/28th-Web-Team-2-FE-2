@@ -51,8 +51,22 @@ async function prepareRegionStep(
               altitudeAccuracy: null,
               heading: null,
               speed: null,
+              toJSON: () => ({
+                latitude: 37.5796,
+                longitude: 126.967,
+                accuracy: 10,
+                altitude: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+              }),
             };
-            success({ coords, timestamp: Date.now() });
+            const timestamp = Date.now();
+            success({
+              coords,
+              timestamp,
+              toJSON: () => ({ coords: coords.toJSON(), timestamp }),
+            });
           },
         },
       });
