@@ -101,6 +101,115 @@ describe("Spring API client", () => {
     expect(init?.cache).toBeUndefined();
   });
 
+  it("개발 로그에 몸은 감추고 요청·응답 형태만 남긴다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SPRING_API_DEBUG", "");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ data: { items: [{ id: 7, name: "감자" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/items",
+      method: "POST",
+      query: { keyword: "감자", empty: "" },
+      body: { nickname: "민감정보" },
+      token: "sensitive-access-token",
+      cookie: "refreshToken=sensitive-refresh-token",
+      cache: "no-store",
+      schema: z.object({
+        data: z.object({ items: z.array(z.object({ id: z.number(), name: z.string() })) }),
+      }),
+    });
+
+    expect(infoSpy).toHaveBeenNthCalledWith(
+      1,
+      "[spring-api]",
+      expect.objectContaining({
+        event: "response",
+        traceId: expect.any(String),
+        method: "POST",
+        path: "/api/v1/items",
+        queryKeys: ["keyword"],
+        cache: "no-store",
+        auth: "bearer+cookie",
+        status: 200,
+        ok: true,
+        durationMs: expect.any(Number),
+      }),
+    );
+    expect(infoSpy).toHaveBeenNthCalledWith(
+      2,
+      "[spring-api]",
+      expect.objectContaining({
+        event: "validated",
+        endpoint: "POST /api/v1/items",
+        payload: expect.objectContaining({ kind: "object", fieldCount: 1, truncated: false }),
+      }),
+    );
+
+    const serializedLogs = JSON.stringify(infoSpy.mock.calls);
+    expect(serializedLogs).not.toContain("sensitive-access-token");
+    expect(serializedLogs).not.toContain("sensitive-refresh-token");
+    expect(serializedLogs).not.toContain("민감정보");
+    expect(serializedLogs).not.toContain("감자");
+  });
+
+  it("명시적으로 끈 운영 환경에서 디버그 로그를 비활성화한다", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("SPRING_API_DEBUG", "false");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json([]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/news",
+      cache: { revalidate: 60 },
+      schema: z.array(z.unknown()),
+    });
+
+    expect(infoSpy).not.toHaveBeenCalled();
+  });
+
+  it("Vercel Production에서는 디버그 플래그를 잘못 켜도 로그를 남기지 않는다", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("SPRING_API_DEBUG", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json([]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/news",
+      cache: { revalidate: 60 },
+      schema: z.array(z.unknown()),
+    });
+
+    expect(infoSpy).not.toHaveBeenCalled();
+  });
+
+  it("스키마 불일치 응답의 동적 object key를 로그에 노출하지 않는다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ "user@example.com": { count: 1 } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      springFetch({
+        path: "/api/v1/news",
+        cache: { revalidate: 60 },
+        schema: z.array(z.unknown()),
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+
+    expect(JSON.stringify(infoSpy.mock.calls)).not.toContain("user@example.com");
+  });
+
   it("요청 body 직렬화 오류를 network ApiError로 포장하지 않는다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetchMock);
