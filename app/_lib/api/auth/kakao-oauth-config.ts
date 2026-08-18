@@ -1,0 +1,51 @@
+import "server-only";
+
+import { z } from "zod";
+
+export const KAKAO_CALLBACK_PATH = "/api/auth/kakao/callback";
+
+export interface KakaoOAuthConfig {
+  clientSecret: string;
+  redirectUri: URL;
+  restKey: string;
+}
+
+const envSchema = z.object({
+  KAKAO_CLIENT_SECRET: z.string().trim().min(1),
+  KAKAO_REDIRECT_URI: z.string().trim().min(1),
+  KAKAO_REST_KEY: z.string().trim().min(1),
+});
+
+function validatedRedirectUri(raw: string): URL {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("KAKAO_REDIRECT_URI가 올바른 URL이 아닙니다.");
+  }
+
+  const isLocalHttp = url.protocol === "http:" && url.hostname === "localhost";
+  if (url.protocol !== "https:" && !isLocalHttp) {
+    throw new Error("KAKAO_REDIRECT_URI는 HTTPS 또는 localhost HTTP여야 합니다.");
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    throw new Error("KAKAO_REDIRECT_URI에는 인증정보·쿼리·해시를 넣을 수 없습니다.");
+  }
+  if (url.pathname !== KAKAO_CALLBACK_PATH) {
+    throw new Error(`KAKAO_REDIRECT_URI 경로는 ${KAKAO_CALLBACK_PATH}여야 합니다.`);
+  }
+  return url;
+}
+
+export function getKakaoOAuthConfig(): KakaoOAuthConfig {
+  const parsed = envSchema.safeParse(process.env);
+  if (!parsed.success) {
+    throw new Error("카카오 로그인 서버 환경값이 설정되지 않았습니다.");
+  }
+
+  return {
+    clientSecret: parsed.data.KAKAO_CLIENT_SECRET,
+    redirectUri: validatedRedirectUri(parsed.data.KAKAO_REDIRECT_URI),
+    restKey: parsed.data.KAKAO_REST_KEY,
+  };
+}
