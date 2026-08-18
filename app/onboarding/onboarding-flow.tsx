@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { saveSelectedRegionAPI } from "@/app/_lib/api/client/regions";
+import type { Region } from "@/app/_lib/api/schemas/regions";
 import { startKakaoLogin } from "@/app/_lib/kakao-auth";
 import { setOnboarding, useOnboarding } from "@/app/_lib/onboarding-store";
 import { ROUTES } from "@/app/_lib/routes";
@@ -48,8 +50,17 @@ export function OnboardingFlow() {
     setOnboarding({ nickname });
   }
 
-  function handleRegionComplete(district: string) {
-    setOnboarding({ district, completed: true });
+  async function handleRegionComplete(region: Region) {
+    await saveSelectedRegionAPI(region);
+
+    // 기존 prototype 소비자는 짧은 동 이름을 키로 사용한다. Spring의 전체 이름도 별도로 보존한다.
+    const district = region.regionName.split(" ").at(-1) ?? region.regionName;
+    setOnboarding({
+      district,
+      regionId: region.regionId,
+      regionName: region.regionName,
+      completed: true,
+    });
     router.replace(ROUTES.home);
   }
 
@@ -75,5 +86,10 @@ export function OnboardingFlow() {
     return <NicknameStep defaultValue={onboarding.nickname} onComplete={handleNicknameComplete} />;
   }
 
-  return <RegionStep defaultValue={onboarding.district} onComplete={handleRegionComplete} />;
+  const defaultRegion =
+    onboarding.regionId && onboarding.regionName
+      ? { regionId: onboarding.regionId, regionName: onboarding.regionName }
+      : null;
+
+  return <RegionStep defaultValue={defaultRegion} onComplete={handleRegionComplete} />;
 }
