@@ -9,6 +9,7 @@ import "server-only";
 
 import { z } from "zod";
 import { ApiError } from "./api-error";
+import { debugSpringPayload } from "./spring-payload-debug";
 import { getSpringBaseUrl, SPRING_REQUEST_TIMEOUT_MS } from "./spring-config";
 
 export function springUrl(path: string, query?: QueryParams): string {
@@ -239,6 +240,11 @@ export async function springFetch<TSchema extends z.ZodType | undefined = undefi
     }));
     throw ApiError.parse(endpoint, z.prettifyError(result.error));
   }
+  debugSpringPayload({
+    endpoint,
+    payload: result.data,
+    personalized: Boolean(request.token || request.cookie) || request.cache === "no-store",
+  });
   springDebug(() => ({
     event: "validated",
     traceId: responseTraceIds.get(response),
