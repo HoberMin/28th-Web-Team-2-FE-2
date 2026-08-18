@@ -6,6 +6,8 @@ const COMPLETED_STATE: OnboardingState = {
   authProvider: "kakao",
   nickname: "테스터",
   district: "광진구",
+  regionId: "",
+  regionName: "광진구",
   districts: ["광진구"],
   completed: true,
   avatar: "",
