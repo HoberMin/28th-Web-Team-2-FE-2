@@ -7,9 +7,11 @@
 // 받아봐야 새 토큰을 저장할 데가 없어서 다음 요청에 또 만료된 토큰으로 시작한다.
 // 미들웨어는 응답에 쿠키를 쓸 수 있어서 갱신 결과가 남는다.
 //
-// 부수 효과로 **동시 갱신 경쟁도 막힌다.** 한 페이지의 RSC 여러 개가 병렬로 fetch하다
-// 동시에 만료를 만나면 재발급이 여러 번 나가는데, BE가 refreshToken을 회전시키면
-// 그중 일부가 실패한다. 여기서 한 번만 갱신하면 그 상황이 생기지 않는다.
+// 갱신을 **한 요청당 1회**로 줄여준다 — 한 페이지의 RSC 여러 개가 각자 재발급을 부르는
+// 상황은 생기지 않는다. 다만 브라우저가 병렬로 보내는 요청(프리페치 + 내비게이션, 여러 탭)은
+// 각각 이 파일을 태우므로 **요청 간 경쟁까지 막지는 못한다.**
+// TODO(✍️): BE가 refreshToken을 회전시키는지 확인 중(`농산물-문서/be-요청사항.md` C표).
+// 회전한다면 진 쪽이 401을 받으므로 짧은 락이나 재시도가 필요해진다.
 //
 // ⚠️ 여기서 토큰을 **검증하지 않는다.** 서명 검증은 Spring이 한다(`auth/tokens.ts` 참고).
 // zod·검증 라이브러리를 들이지 않는 것도 Edge 번들을 가볍게 두기 위해서다.
@@ -17,30 +19,39 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   ACCESS_TOKEN_COOKIE,
-  AUTH_COOKIE_OPTIONS,
+  ACCESS_COOKIE_OPTIONS,
   extractRefreshToken,
   needsRefresh,
+  REFRESH_COOKIE_OPTIONS,
   REFRESH_TOKEN_COOKIE,
   SPRING_REFRESH_COOKIE,
 } from "@/app/_lib/api/auth/tokens";
 
 const SPRING_BASE_URL = process.env.SPRING_API_BASE_URL ?? "https://api.marketgo.kro.kr";
 
-interface ReissuedTokens {
-  accessToken: string;
-  refreshToken: string | null;
-}
+/**
+ * 재발급 결과. **인증 실패와 통신 실패를 반드시 구분한다** — 둘을 뭉치면
+ * Spring이 잠깐 죽었을 때 로그인 사용자 전원의 refreshToken까지 지워버린다.
+ */
+type ReissueOutcome =
+  | { status: "renewed"; accessToken: string; refreshToken: string | null }
+  /** 서버가 거절했다 — 세션이 끝난 것이므로 쿠키를 지운다. */
+  | { status: "rejected" }
+  /** 서버에 닿지 못했거나 응답이 이상하다 — 세션은 살아 있을 수 있으니 건드리지 않는다. */
+  | { status: "unreachable" };
 
 /**
- * Spring 재발급 직호출.
+ * Spring 재발급 직호출. (여기서 부르는 `/api/auth/reissue`는 **Spring 쪽** 경로다.
+ * 우리 BFF에도 같은 경로가 있지만 base URL이 달라 서로 다른 엔드포인트다.)
  *
  * 서버 fetch에는 쿠키 저장소가 없어 `Cookie` 헤더를 손으로 붙인다.
  * `server/auth.ts`에 같은 일을 하는 함수가 있지만, 그쪽은 zod를 끌고 와서
  * Edge 번들이 커진다 — 미들웨어에서는 최소 구현을 따로 둔다.
  */
-async function reissueTokens(refreshToken: string): Promise<ReissuedTokens | null> {
+async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
+  let response: Response;
   try {
-    const response = await fetch(new URL("/api/auth/reissue", SPRING_BASE_URL), {
+    response = await fetch(new URL("/api/auth/reissue", SPRING_BASE_URL), {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -48,23 +59,46 @@ async function reissueTokens(refreshToken: string): Promise<ReissuedTokens | nul
       },
       cache: "no-store",
     });
-    if (!response.ok) return null;
+  } catch {
+    return { status: "unreachable" };
+  }
 
+  // 5xx는 서버 사정이지 세션 만료가 아니다. 이걸로 로그아웃시키면 장애가 재로그인으로 번진다.
+  if (response.status >= 500) return { status: "unreachable" };
+  if (!response.ok) return { status: "rejected" };
+
+  try {
     const payload: unknown = await response.json();
     const accessToken =
       typeof payload === "object" && payload !== null
         ? (payload as { accessToken?: unknown }).accessToken
         : undefined;
-    if (typeof accessToken !== "string" || accessToken.length === 0) return null;
-
+    // 200인데 토큰이 없다 = 우리가 모르는 상태. 세션을 지우기보다 이번 요청만 넘긴다.
+    if (typeof accessToken !== "string" || accessToken.length === 0) {
+      return { status: "unreachable" };
+    }
     return {
+      status: "renewed",
       accessToken,
       refreshToken: extractRefreshToken(response.headers.getSetCookie()),
     };
   } catch {
-    // 네트워크 실패는 세션 만료와 다르다 — 쿠키를 지우지 않고 이번 요청만 그대로 보낸다.
-    return null;
+    return { status: "unreachable" };
   }
+}
+
+/**
+ * 세션 종료 — 요청·응답 쿠키를 **둘 다** 지운다.
+ * 응답 쿠키만 지우면 이번 렌더의 RSC가 죽은 토큰을 그대로 읽어 401 에러 화면이 뜬다.
+ */
+function signOut(request: NextRequest, alsoRefresh: boolean): NextResponse {
+  request.cookies.delete(ACCESS_TOKEN_COOKIE);
+  if (alsoRefresh) request.cookies.delete(REFRESH_TOKEN_COOKIE);
+
+  const response = NextResponse.next({ request });
+  response.cookies.delete(ACCESS_TOKEN_COOKIE);
+  if (alsoRefresh) response.cookies.delete(REFRESH_TOKEN_COOKIE);
+  return response;
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
@@ -78,30 +112,24 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (!needsRefresh(accessToken, nowSeconds)) return NextResponse.next();
 
   // 갱신이 필요한데 수단이 없다 = 세션 종료. 낡은 쿠키를 남기면 매 요청이 401로 실패한다.
-  if (!refreshToken) {
-    const expired = NextResponse.next();
-    expired.cookies.delete(ACCESS_TOKEN_COOKIE);
-    return expired;
-  }
+  if (!refreshToken) return signOut(request, false);
 
-  const tokens = await reissueTokens(refreshToken);
+  const outcome = await reissueTokens(refreshToken);
 
-  if (!tokens) {
-    const signedOut = NextResponse.next();
-    signedOut.cookies.delete(ACCESS_TOKEN_COOKIE);
-    signedOut.cookies.delete(REFRESH_TOKEN_COOKIE);
-    return signedOut;
-  }
+  // 서버에 닿지 못했다 — 세션은 멀쩡할 수 있으므로 쿠키를 건드리지 않고 이번 요청만 보낸다.
+  if (outcome.status === "unreachable") return NextResponse.next();
+
+  if (outcome.status === "rejected") return signOut(request, true);
 
   // 요청 쿠키까지 바꿔야 **이번 렌더의 RSC가** 새 토큰을 읽는다.
   // 응답 쿠키만 세팅하면 다음 요청부터 적용돼 이번 화면은 만료된 토큰으로 그려진다.
-  request.cookies.set(ACCESS_TOKEN_COOKIE, tokens.accessToken);
-  if (tokens.refreshToken) request.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken);
+  request.cookies.set(ACCESS_TOKEN_COOKIE, outcome.accessToken);
+  if (outcome.refreshToken) request.cookies.set(REFRESH_TOKEN_COOKIE, outcome.refreshToken);
 
   const response = NextResponse.next({ request });
-  response.cookies.set(ACCESS_TOKEN_COOKIE, tokens.accessToken, AUTH_COOKIE_OPTIONS);
-  if (tokens.refreshToken) {
-    response.cookies.set(REFRESH_TOKEN_COOKIE, tokens.refreshToken, AUTH_COOKIE_OPTIONS);
+  response.cookies.set(ACCESS_TOKEN_COOKIE, outcome.accessToken, ACCESS_COOKIE_OPTIONS);
+  if (outcome.refreshToken) {
+    response.cookies.set(REFRESH_TOKEN_COOKIE, outcome.refreshToken, REFRESH_COOKIE_OPTIONS);
   }
   return response;
 }
@@ -118,6 +146,6 @@ export const config = {
      * - `_next/*`     빌드 산출물
      * - `fonts`·정적 파일 — 쿠키와 무관한데 미들웨어를 태우면 응답만 느려진다
      */
-    "/((?!api/auth|_next/static|_next/image|fonts|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
+    "/((?!api/auth/|_next/static|_next/image|fonts|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
   ],
 };
