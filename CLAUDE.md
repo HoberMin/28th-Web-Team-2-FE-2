@@ -78,6 +78,7 @@
 | 플로우 검수·CRUD 누락 | flow-reviewer |
 | "에러 나", "버그", "왜 안 돼?" | bug-investigator (수정 X) → 구현 agent |
 | BFF Route Handler·외부 Spring 연동·캐싱 전략 | api-developer |
+| **로그인·토큰·세션·보호 라우트** | **api-developer** — 규격은 `auth-session` 스킬. 토큰은 우리 도메인 httpOnly 쿠키, 갱신은 루트 `proxy.ts`. **위험 경로라 L급**(계획+게이트+리뷰) |
 | **"스웨거 보고 붙여줘"·BE API 연결** | **api-developer** — 되묻기 전에 `curl -s https://api.marketgo.kro.kr/v3/api-docs`로 스펙을 먼저 읽는다. 절차·함정은 `backend-api-reference` 스킬 |
 | 페이지·화면·인터랙션 구현 | frontend-dev |
 | **디자인 시스템 컴포넌트·토큰 (바이브코딩)** | **design-system-builder** |
@@ -102,6 +103,7 @@
 - **토큰 갱신**(디자이너가 Figma 값을 바꿨을 때 — 가장 빈번): figma-implementer가 분류 → `@theme static` 갱신 → **검산 3종**(`/playground` 스토리 라벨 갱신 · 대비 계산 · 빌드 후 산출물 토큰 emit 확인) → 푸시 → **"화면에서 보일 차이 1개"를 알려주며 배포 확인 안내**. 게이트는 매핑 공백·MCP 접근 실패뿐 — `get_variable_defs` 빈 응답은 폴백이 있으니 멈추지 않는다. **단 폴백은 MCP 안에서만**(REST 금지) (`figma-bridge` §0-0·§2·§4·§7)
 - **신규 화면**(디자인 확정 후): Figma 확정(⏸) → figma-implementer → code-reviewer
 - **BE API 연동**(marketgo Spring): api-developer가 `/v3/api-docs` 실조회 → 엔드포인트별 zod 스키마 → 서버 fetch 함수(`server-only`+캐싱 태그) → BFF Route Handler → 필요 시 클라 훅 → 빌드 1회 → 리뷰 1회 → 푸시. **스펙 조회 실패·스펙에 없는 것이 필요하면 게이트**(상상 금지). 응답 envelope가 엔드포인트마다 다르니 공통 unwrap 유틸을 만들지 않는다
+- **인증**(위험 경로 · L급): 계획 확인(⏸) → api-developer → **code-reviewer 필수** → 푸시. 토큰 보관·갱신 규격은 `auth-session` 스킬이 진실 소스 — 새로 설계하지 말고 따를 것. 미정(비회원 경계·신규회원 구분)은 `농산물-문서/be-요청사항.md` 답변 대기
 - **Bug**: bug-investigator(수정X) → 구현 agent → code-reviewer
 - **전수검색**: auditor → 구현(일괄) → code-reviewer
 - 리뷰는 "리뷰해줘" 자연어로 트리거 (슬래시 커맨드 안 씀)
@@ -132,7 +134,7 @@ shared/*.md (규격) ── 참조 ──▶ CLAUDE.md(Claude) · AGENTS.md(Code
 ## 미정 (TODO)
 
 - `TODO(✍️):` 도메인·제품 스펙 전체 (`domain.md`·`product-spec.md` 스켈레톤 상태 — 서비스 확정 시 채움)
-- `TODO(✍️):` 위험 경로 목록 (인증·결제 등 — 백엔드 스펙 나오면)
+- 위험 경로: **인증**(`app/_lib/api/auth/*`·`proxy.ts`·`app/api/auth/*`) — 2026-08-18 확정. `TODO(✍️):` 결제 등 나머지는 스펙 나오면
 - `TODO(✍️):` PPR(Partial Prerendering) 도입 — Next에서 stable 승격 시 재검토 (지금은 안 씀)
 - `TODO(✍️):` Evals — 하네스 개선 측정(리뷰 적중률·재작업률 등). 팀·작업량이 늘면 도입
 - `TODO(✍️):` codex 모델 id (`.codex/config.toml`·agents toml)
