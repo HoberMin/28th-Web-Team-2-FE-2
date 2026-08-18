@@ -1,6 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 test("뉴스 API 상태와 관계없이 홈의 각 섹션을 안전하게 제공한다", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "veg-onboarding-v1",
+      JSON.stringify({
+        authProvider: "kakao",
+        nickname: "테스터",
+        district: "광진구",
+        districts: ["광진구"],
+        completed: true,
+        avatar: "",
+      }),
+    );
+  });
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "오늘은 이 가게가 저렴해요" })).toBeVisible();
