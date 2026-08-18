@@ -11,7 +11,11 @@ export interface GetNearbyStoresParams {
   radius?: number;
   onlyLiked?: boolean;
   keyword?: string;
-  token?: string;
+  /**
+   * 로그인 상태면 넘긴다. **키는 필수다** — 빠뜨려서 익명 호출이 되는 걸 막기 위해
+   * 호출부가 매번 "이 요청은 익명인가"를 명시하게 한다(`undefined`를 직접 적어야 한다).
+   */
+  token: string | undefined;
 }
 
 /**
