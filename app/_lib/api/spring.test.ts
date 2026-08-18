@@ -45,6 +45,13 @@ describe("Spring API client", () => {
     expect(() => springUrl("/api/v1/news")).toThrow("SPRING_API_BASE_URL");
   });
 
+  it.each([
+    ["절대 URL", "https://attacker.example/collect"],
+    ["protocol-relative URL", "//attacker.example/collect"],
+  ])("%s 경로로 Spring origin을 벗어나지 못한다", (_case, path) => {
+    expect(() => springUrl(path)).toThrow("same-origin");
+  });
+
   it("인증 POST를 no-store로 보내며 토큰을 서버 헤더에만 담는다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     fetchMock.mockResolvedValueOnce(Response.json({ ok: true }));
