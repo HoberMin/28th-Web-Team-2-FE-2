@@ -14,9 +14,8 @@ import { buildPricesHref } from "./_href";
 //     고르는 순간 깨진다. hug(내용 폭)로 둔다.
 //   · **실제 <button>으로 만들었다.** Figma에는 버튼 정의가 없고 프레임만 있다.
 //     시트를 여는 조작이므로 `aria-haspopup="dialog"` + `aria-expanded`를 함께 낸다.
-//   · **min-h-11(44px)을 줬다.** Figma 실측 높이는 38px로 권장 터치 타겟에 미달한다.
-//     이 화면에서 유일하게 시트를 여는 조작이라 원본 높이 대신 터치 타겟을 택했다.
-//     → 이 때문에 정렬 행 전체 높이가 38 → 44로 6px 커진다. 디자이너 확인 필요.
+//   · 시각 높이는 Figma 실측 38px을 유지한다. 대신 버튼의 after 영역을 위아래 3px씩
+//     확장해 실제 포인터 타겟은 44px로 확보한다.
 //
 // 아이콘은 Figma 원본 SVG(`public/figma/design-library/icons/`)를 쓴다:
 //   icon/chevron-down 16×16 — 이 인스턴스(298-3446)는 get_variable_defs가 `content/secondary`를
@@ -52,7 +51,7 @@ export function PricesSortControl({ options, value, label, query, group }: Price
         aria-expanded={open}
         aria-label={`정렬 기준: ${label}`}
         onClick={() => setOpen(true)}
-        className="flex min-h-11 shrink-0 items-center gap-1 p-2 text-body-14-medium text-content-secondary"
+        className="relative flex h-9.5 shrink-0 items-center gap-1 p-2 text-body-14-medium text-content-secondary after:absolute after:inset-x-0 after:-inset-y-0.75 after:content-['']"
       >
         <span>{label}</span>
         <FigmaIcon name="chevron-down" width={16} currentColor />
