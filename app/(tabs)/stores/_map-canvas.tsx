@@ -66,7 +66,22 @@ export function MapCanvas({
 
   useEffect(() => {
     storesRef.current = stores;
-    refreshViewportRef.current?.();
+    const refreshViewport = refreshViewportRef.current;
+    if (refreshViewport) {
+      refreshViewport();
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+    const points: Record<string, MapScreenPoint> = {};
+    for (const store of stores) {
+      points[store.id] = {
+        x: (container.clientWidth * store.x) / 100,
+        y: (container.clientHeight * store.y) / 100,
+      };
+    }
+    onViewportChangeRef.current?.({ level: INITIAL_MAP_LEVEL, center: MAP_CENTER, points });
   }, [stores]);
 
   useEffect(() => {
