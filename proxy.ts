@@ -1,5 +1,8 @@
 // 토큰 갱신 — RSC 렌더 **전에** 도는 유일한 지점.
 //
+// 파일명이 `proxy.ts`인 이유: Next 16에서 `middleware` 컨벤션이 **`proxy`로 이름이 바뀌었다.**
+// `middleware.ts`로 두면 deprecated 경고가 뜬다. export 이름도 `proxy`여야 한다.
+//
 // 왜 여기냐: Server Component는 쿠키를 **읽을 수만 있고 쓸 수 없다.** RSC 안에서 재발급을
 // 받아봐야 새 토큰을 저장할 데가 없어서 다음 요청에 또 만료된 토큰으로 시작한다.
 // 미들웨어는 응답에 쿠키를 쓸 수 있어서 갱신 결과가 남는다.
@@ -64,7 +67,7 @@ async function reissueTokens(refreshToken: string): Promise<ReissuedTokens | nul
   }
 }
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
 
