@@ -209,28 +209,3 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
 
 /** 접힌 상태에서 보이는 행 수. Figma F01_홈이 5행이다. */
 export const HOME_LOWEST_COLLAPSED_COUNT = 5;
-
-/**
- * 최근 시세 뉴스. 제목·날짜는 Figma 시안 값, URL은 Figma 개발 주석에 적힌 참고용 링크다
- * (298:3537 "카드 클릭 시 뉴스로 이동(링크)").
- */
-export const HOME_NEWS: HomeNewsItem[] = [
-  {
-    id: "news-1",
-    title: "양파 가격 폭락에 농가 울상...'상생' 할인 판매",
-    date: "2026.08.01",
-    url: "https://www.ytn.co.kr/_ln/0115_202608010201332426",
-  },
-  {
-    id: "news-2",
-    title: "올해 보리 생산량 47.3% 증가…마늘·양파도 소폭 늘어",
-    date: "2026.07.30",
-    url: "https://www.newsis.com/view/NISX20260730_0003729538",
-  },
-  {
-    id: "news-3",
-    title: "올해 보리 생산량 47.3% 증가…마늘·양파도 소폭 늘어",
-    date: "2026.07.30",
-    url: "https://www.newsis.com/view/NISX20260730_0003729538",
-  },
-];

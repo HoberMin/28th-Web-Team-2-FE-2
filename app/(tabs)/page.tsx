@@ -1,14 +1,15 @@
 import {
   HOME_LOWEST_COLLAPSED_COUNT,
   HOME_LOWEST_VEGETABLES,
-  HOME_NEWS,
   HOME_RECOMMENDED_STORE,
   HOME_REGION,
 } from "./_home/_data";
 import { HomeHeader } from "./_home/home-header";
+import { loadHomeNewsItems } from "./_home/news";
 import { SectionLowestVegetables } from "./_home/section-lowest-vegetables";
 import { SectionNews } from "./_home/section-news";
 import { SectionRecommendedStore } from "./_home/section-recommended-store";
+import { getNews } from "@/app/_lib/api/server/news";
 
 // F01 홈 — Figma `화면GUI` 298:3477(F01_홈) · 298:3509(F01_홈_더보기).
 //
@@ -33,11 +34,12 @@ import { SectionRecommendedStore } from "./_home/section-recommended-store";
 //
 // ── 상태 3종 ──────────────────────────────────────────────────────────────────
 //  · 빈 상태: 구현했다(각 섹션이 처리 — `_home/section-empty.tsx`). **Figma 시안 없는 임시 구현이다.**
-//    제보 기반 서비스라 출시 초기엔 제보 0건이 사실상 기본 화면이어서 비워 둘 수 없었다.
-//  · 로딩·에러: 지금 데이터가 모듈 상수(더미)라 실패하거나 기다릴 지점이 없다 → 해당 없음.
-//    서버 fetch로 바뀌는 시점에 Suspense·error boundary를 붙인다.
+//    뉴스 API가 빈 배열을 주거나 ApiError가 나도 뉴스 섹션만 빈 상태를 보여 준다.
+//  · 추천 가게·최저가 야채는 아직 모듈 상수(더미)다. 이번 연동은 뉴스만 교체한다.
 
-export default function HomePage() {
+export default async function HomePage() {
+  const newsItems = await loadHomeNewsItems(getNews);
+
   return (
     // pb-20: 스크롤 끝 여백. (tabs) 레이아웃의 GNB는 본문 위를 덮지 않고 옆에 붙지만,
     // 마지막 카드가 GNB 경계선에 딱 붙어 끝나지 않도록 확보한다.
@@ -50,7 +52,7 @@ export default function HomePage() {
           items={HOME_LOWEST_VEGETABLES}
           collapsedCount={HOME_LOWEST_COLLAPSED_COUNT}
         />
-        <SectionNews items={HOME_NEWS} />
+        <SectionNews items={newsItems} />
       </div>
     </div>
   );
