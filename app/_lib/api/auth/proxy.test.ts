@@ -82,6 +82,25 @@ describe("auth proxy", () => {
     expect(response.cookies.get(REFRESH_TOKEN_COOKIE)?.value).toBe("renewed-refresh");
   });
 
+  it("재발급 응답에 refresh 쿠키가 없으면 기존 refresh를 유지한다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ accessToken: "renewed-access" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const request = sessionRequest({ accessToken: "invalid", refreshToken: "stored-refresh" });
+    const response = await proxy(request);
+
+    expect(request.cookies.get(ACCESS_TOKEN_COOKIE)?.value).toBe("renewed-access");
+    expect(request.cookies.get(REFRESH_TOKEN_COOKIE)?.value).toBe("stored-refresh");
+    expect(response.cookies.get(ACCESS_TOKEN_COOKIE)?.value).toBe("renewed-access");
+    expect(response.cookies.get(REFRESH_TOKEN_COOKIE)).toBeUndefined();
+    expect(
+      response.headers
+        .getSetCookie()
+        .some((header) => header.startsWith(`${REFRESH_TOKEN_COOKIE}=`)),
+    ).toBe(false);
+  });
+
   it("timeout이면 세션을 지우지 않고 재발급 백오프를 설정한다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     fetchMock.mockRejectedValueOnce(new DOMException("timed out", "TimeoutError"));
