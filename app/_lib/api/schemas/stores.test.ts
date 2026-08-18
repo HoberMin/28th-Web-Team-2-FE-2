@@ -66,4 +66,20 @@ describe("nearbyStoresSchema", () => {
       }).stores.map((store) => store.isLiked),
     ).toEqual([false, false]);
   });
+
+  it.each([1.5, Number.MAX_SAFE_INTEGER + 1])("안전한 정수가 아닌 storeId를 거부한다: %s", (storeId) => {
+    expect(
+      nearbyStoresSchema.safeParse({
+        totalCount: 1,
+        stores: [
+          {
+            storeId,
+            storeName: "장보고 마트",
+            latitude: 37.5088,
+            longitude: 127.0632,
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
 });
