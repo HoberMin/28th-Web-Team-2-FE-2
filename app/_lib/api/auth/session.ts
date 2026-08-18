@@ -16,7 +16,7 @@ import {
  * 로그인 상태가 필요 없는 화면에서는 부르지 않는다 — 정적 렌더링을 공짜로 잃는다.
  *
  * 갱신은 여기서 하지 않는다. Server Component는 쿠키를 **쓸 수 없어서** 갱신 결과를
- * 저장할 데가 없기 때문이다. 그래서 갱신은 렌더 전에 도는 `middleware.ts`가 맡는다.
+ * 저장할 데가 없기 때문이다. 그래서 갱신은 렌더 전에 도는 `proxy.ts`가 맡는다.
  */
 export async function getAccessToken(): Promise<string | undefined> {
   return (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;

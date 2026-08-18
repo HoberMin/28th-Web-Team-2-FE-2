@@ -1,6 +1,6 @@
 // BFF — accessToken 재발급.
 //
-// 평상시 갱신은 `middleware.ts`가 렌더 전에 처리하므로 이 라우트는 잘 안 불린다.
+// 평상시 갱신은 `proxy.ts`가 렌더 전에 처리하므로 이 라우트는 잘 안 불린다.
 // 남겨두는 이유는 클라이언트 인터랙션(폼 제출 등)이 401을 만났을 때 쓸 복구 경로가 필요해서다.
 
 import { clearTokens, getRefreshToken, saveTokens } from "@/app/_lib/api/auth/session";
