@@ -4,6 +4,7 @@
 // 남겨두는 이유는 클라이언트 인터랙션(폼 제출 등)이 401을 만났을 때 쓸 복구 경로가 필요해서다.
 
 import { ApiError } from "@/app/_lib/api/api-error";
+import { crossOriginResponse } from "@/app/_lib/api/auth/request-origin";
 import {
   clearTokens,
   getRefreshToken,
@@ -13,7 +14,10 @@ import { reissue } from "@/app/_lib/api/server/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
+  const originError = crossOriginResponse(request);
+  if (originError) return originError;
+
   const refreshToken = await getRefreshToken();
   if (!refreshToken) {
     return Response.json({ message: "다시 로그인해 주세요." }, { status: 401 });

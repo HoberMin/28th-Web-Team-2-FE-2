@@ -7,6 +7,7 @@
 // **우리 도메인 httpOnly 쿠키로 옮겨 심는다.** 응답 본문에는 토큰을 담지 않는다.
 
 import { ApiError } from "@/app/_lib/api/api-error";
+import { crossOriginResponse } from "@/app/_lib/api/auth/request-origin";
 import { saveLoginTokens } from "@/app/_lib/api/auth/session";
 import { loginRequestSchema } from "@/app/_lib/api/schemas/auth";
 import { login } from "@/app/_lib/api/server/auth";
@@ -14,6 +15,9 @@ import { login } from "@/app/_lib/api/server/auth";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<Response> {
+  const originError = crossOriginResponse(request);
+  if (originError) return originError;
+
   let payload: unknown;
   try {
     payload = await request.json();
