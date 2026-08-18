@@ -1,13 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/app/_lib/api/api-error";
 
-const { getAccessTokenMock, revalidatePathMock, setItemFavoriteMock } = vi.hoisted(() => ({
+const { getAccessTokenMock, setItemFavoriteMock } = vi.hoisted(() => ({
   getAccessTokenMock: vi.fn(),
-  revalidatePathMock: vi.fn(),
   setItemFavoriteMock: vi.fn(),
 }));
 
-vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("@/app/_lib/api/auth/session", () => ({ getAccessToken: getAccessTokenMock }));
 vi.mock("@/app/_lib/api/server/items", () => ({ setItemFavorite: setItemFavoriteMock }));
 
@@ -20,7 +18,7 @@ describe("updateItemFavorite", () => {
     setItemFavoriteMock.mockResolvedValue(undefined);
   });
 
-  it("httpOnly 세션 토큰으로 찜을 변경하고 관련 화면을 갱신한다", async () => {
+  it("httpOnly 세션 토큰으로 찜을 변경한다", async () => {
     await expect(updateItemFavorite(7, true)).resolves.toEqual({ status: "success" });
 
     expect(setItemFavoriteMock).toHaveBeenCalledWith({
@@ -28,8 +26,6 @@ describe("updateItemFavorite", () => {
       liked: true,
       token: "access-token",
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/prices");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/saved");
   });
 
   it("세션 토큰이 없으면 Spring mutation을 호출하지 않는다", async () => {
@@ -45,6 +41,5 @@ describe("updateItemFavorite", () => {
     await expect(updateItemFavorite(7, true)).resolves.toMatchObject({
       status: status === 401 ? "unauthorized" : "error",
     });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 });
