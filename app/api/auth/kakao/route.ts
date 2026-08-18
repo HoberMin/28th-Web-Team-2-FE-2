@@ -44,8 +44,20 @@ export async function POST(request: Request): Promise<Response> {
     if (error instanceof ApiError) {
       // 원인을 뭉개지 않는다 — 전부 502로 내보내면 "카카오 토큰이 틀렸다"와
       // "Spring이 죽었다"가 구분되지 않아 디버깅이 어려워진다.
-      if (error.isAuthExpired || error.kind === "badRequest") {
+      console.error("[auth] 카카오 로그인 실패", {
+        kind: error.kind,
+        status: error.status,
+        endpoint: error.endpoint,
+      });
+
+      if (error.isAuthExpired || error.kind === "forbidden") {
         return Response.json({ message: "로그인 정보가 올바르지 않아요." }, { status: 401 });
+      }
+      // 400은 재로그인으로 안 풀린다 — 우리 body가 위 bodySchema를 이미 통과했으므로
+      // Spring이 400을 준다면 대개 필드명·경로 계약 불일치, 즉 **우리 버그**다.
+      // 이걸 401로 보내면 사용자가 재로그인만 반복하게 된다.
+      if (error.kind === "badRequest") {
+        return Response.json({ message: "로그인 요청이 처리되지 않았어요." }, { status: 400 });
       }
       return Response.json(
         { message: "로그인에 실패했어요. 잠시 후 다시 시도해 주세요." },
