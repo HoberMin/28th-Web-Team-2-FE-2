@@ -9,7 +9,7 @@ const { getAccessTokenMock, getNearbyStoresMock } = vi.hoisted(() => ({
 vi.mock("@/app/_lib/api/auth/session", () => ({ getAccessToken: getAccessTokenMock }));
 vi.mock("@/app/_lib/api/server/stores", () => ({ getNearbyStores: getNearbyStoresMock }));
 
-import { loadInitialNearbyStores } from "./page";
+import { loadInitialNearbyStores } from "./_initial-nearby";
 
 describe("loadInitialNearbyStores", () => {
   beforeEach(() => {

@@ -3,33 +3,33 @@
 import { type FormEvent, type PointerEvent, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/app/_components/button";
-
-const MIN_NICKNAME_LENGTH = 2;
-const MAX_NICKNAME_LENGTH = 8;
+import { NICKNAME_MAX, nicknameValidationMessage } from "@/app/_lib/nickname";
 
 interface NicknameStepProps {
   defaultValue: string;
-  onComplete: (nickname: string) => void;
+  isLoading: boolean;
+  serverError: string;
+  onValueChange: () => void;
+  onComplete: (nickname: string) => Promise<void>;
 }
 
-function validationMessage(value: string): string {
-  const length = value.trim().length;
-  if (length === 0) return "";
-  if (length < MIN_NICKNAME_LENGTH) return "2자 이상 적어주세요";
-  if (length > MAX_NICKNAME_LENGTH) return "8자 이하로 적어주세요";
-  return "";
-}
-
-export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
+export function NicknameStep({
+  defaultValue,
+  isLoading,
+  serverError,
+  onValueChange,
+  onComplete,
+}: NicknameStepProps) {
   const [nickname, setNickname] = useState(defaultValue);
-  const error = validationMessage(nickname);
-  const isValid = nickname.trim().length >= MIN_NICKNAME_LENGTH && !error;
+  const clientError = nicknameValidationMessage(nickname);
+  const error = clientError || serverError;
+  const isValid = nickname.trim().length > 0 && !clientError;
   const describedBy = error ? "nickname-error" : undefined;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isValid) return;
-    onComplete(nickname.trim());
+    if (!isValid || isLoading) return;
+    void onComplete(nickname.trim());
   }
 
   function handleBackgroundPointerDown(event: PointerEvent<HTMLFormElement>) {
@@ -75,6 +75,7 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
               name="nickname"
               type="text"
               value={nickname}
+              maxLength={NICKNAME_MAX}
               autoComplete="nickname"
               aria-invalid={Boolean(describedBy)}
               aria-describedby={describedBy}
@@ -84,7 +85,10 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
                   ? "border-content-error focus-visible:outline-content-error"
                   : "border-border-primary focus-visible:outline-border-tertiary"
               }`}
-              onChange={(event) => setNickname(event.target.value)}
+              onChange={(event) => {
+                setNickname(event.target.value);
+                onValueChange();
+              }}
             />
             {describedBy ? (
               // Figma 364:8010 실측: 에러 문구는 **body/16-medium**이다(14가 아니다).
@@ -100,7 +104,9 @@ export function NicknameStep({ defaultValue, onComplete }: NicknameStepProps) {
           <Button
             type="submit"
             className="h-12.25 w-full"
-            disabled={!isValid}
+            disabled={!isValid || isLoading}
+            state={isLoading ? "loading" : "normal"}
+            aria-disabled={isLoading || undefined}
             leading={false}
             trailing={false}
           >
