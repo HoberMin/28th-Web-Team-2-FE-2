@@ -122,11 +122,13 @@ async function installKakaoMapMock(page: Page): Promise<void> {
     }
 
     let activeMap: KakaoMapMock | null = null;
-    class RegisteredMapMock extends KakaoMapMock {
-      constructor(container: HTMLElement, options: { center: LatLngMock; level: number }) {
-        super(container, options);
-        activeMap = this;
-      }
+    function RegisteredMapMock(
+      container: HTMLElement,
+      options: { center: LatLngMock; level: number },
+    ): KakaoMapMock {
+      const map = new KakaoMapMock(container, options);
+      activeMap = map;
+      return map;
     }
 
     const browserWindow = window as unknown as Record<string, unknown>;
