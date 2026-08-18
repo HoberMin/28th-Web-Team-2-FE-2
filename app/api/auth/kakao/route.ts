@@ -7,7 +7,7 @@
 // **우리 도메인 httpOnly 쿠키로 옮겨 심는다.** 응답 본문에는 토큰을 담지 않는다.
 
 import { ApiError } from "@/app/_lib/api/api-error";
-import { saveTokens } from "@/app/_lib/api/auth/session";
+import { saveLoginTokens } from "@/app/_lib/api/auth/session";
 import { loginRequestSchema } from "@/app/_lib/api/schemas/auth";
 import { login } from "@/app/_lib/api/server/auth";
 
@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const tokens = await login({ provider: "kakao", idToken: parsed.data.idToken });
-    await saveTokens(tokens);
+    await saveLoginTokens(tokens);
 
     if (!tokens.refreshToken) {
       // 재발급 수단 없이 accessToken만 있는 상태 — 만료되면 다시 로그인해야 한다.

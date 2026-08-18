@@ -4,7 +4,11 @@
 // 남겨두는 이유는 클라이언트 인터랙션(폼 제출 등)이 401을 만났을 때 쓸 복구 경로가 필요해서다.
 
 import { ApiError } from "@/app/_lib/api/api-error";
-import { clearTokens, getRefreshToken, saveTokens } from "@/app/_lib/api/auth/session";
+import {
+  clearTokens,
+  getRefreshToken,
+  saveReissuedTokens,
+} from "@/app/_lib/api/auth/session";
 import { reissue } from "@/app/_lib/api/server/auth";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +20,7 @@ export async function POST(): Promise<Response> {
   }
 
   try {
-    await saveTokens(await reissue(refreshToken));
+    await saveReissuedTokens(await reissue(refreshToken));
     return Response.json({ ok: true });
   } catch (error) {
     // ApiError가 아니면 우리 버그다(쿠키 쓰기 실패 등). 503으로 포장하면 클라이언트가

@@ -16,7 +16,13 @@ const cookieMocks = vi.hoisted(() => {
 
 vi.mock("next/headers", () => ({ cookies: cookieMocks.cookies }));
 
-import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from "./session";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  saveLoginTokens,
+  saveReissuedTokens,
+} from "./session";
 
 describe("auth session", () => {
   beforeEach(() => {
@@ -45,7 +51,7 @@ describe("auth session", () => {
   });
 
   it("발급받은 accessToken과 refreshToken을 지정 옵션으로 저장한다", async () => {
-    await saveTokens({ accessToken: "new-access", refreshToken: "new-refresh" });
+    await saveLoginTokens({ accessToken: "new-access", refreshToken: "new-refresh" });
 
     expect(cookieMocks.set).toHaveBeenNthCalledWith(
       1,
@@ -61,8 +67,16 @@ describe("auth session", () => {
     );
   });
 
+  it("로그인 응답에 refreshToken이 없으면 이전 refresh 쿠키를 제거한다", async () => {
+    await saveLoginTokens({ accessToken: "new-access", refreshToken: null });
+
+    expect(cookieMocks.set).toHaveBeenCalledOnce();
+    expect(cookieMocks.remove).toHaveBeenCalledOnce();
+    expect(cookieMocks.remove).toHaveBeenCalledWith(REFRESH_TOKEN_COOKIE);
+  });
+
   it("재발급 응답에 refreshToken이 없으면 기존 refresh 쿠키를 유지한다", async () => {
-    await saveTokens({ accessToken: "new-access", refreshToken: null });
+    await saveReissuedTokens({ accessToken: "new-access", refreshToken: null });
 
     expect(cookieMocks.set).toHaveBeenCalledOnce();
     expect(cookieMocks.set).toHaveBeenCalledWith(
