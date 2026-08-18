@@ -177,24 +177,36 @@ export function MapCanvas({
   }, [focusRequest, status]);
 
   return (
-    <div
-      aria-hidden="true"
-      onClick={status === "ready" ? undefined : onMapClick}
-      className="absolute inset-0 bg-surface-secondary"
-    >
-      <div ref={containerRef} className="absolute inset-0" />
+    <>
+      <div
+        aria-hidden="true"
+        onClick={status === "ready" ? undefined : onMapClick}
+        className="absolute inset-0 bg-surface-secondary"
+      >
+        <div ref={containerRef} className="absolute inset-0" />
 
-      {status !== "ready" ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
-          <p className="text-body-14-regular text-content-disabled">
-            {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
-          </p>
-        </div>
-      ) : null}
+        {status !== "ready" ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+            <p className="text-body-14-regular text-content-disabled">
+              {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
+            </p>
+          </div>
+        ) : null}
 
-      {status === "ready" ? (
-        <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+        {status === "ready" ? (
+          <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+        ) : null}
+      </div>
+      {status === "loading" ? (
+        <p role="status" aria-atomic="true" className="sr-only">
+          지도 준비 중
+        </p>
       ) : null}
-    </div>
+      {status === "failed" ? (
+        <p role="alert" aria-atomic="true" className="sr-only">
+          지도를 불러오지 못했어요
+        </p>
+      ) : null}
+    </>
   );
 }
