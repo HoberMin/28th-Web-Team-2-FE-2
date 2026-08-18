@@ -53,9 +53,11 @@ type ReissueOutcome =
  * Edge 번들이 커진다 — 미들웨어에서는 최소 구현을 따로 둔다.
  */
 async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
+  // 환경변수 오류는 통신 실패가 아니라 배포 설정 버그다. catch 밖에서 검증해 숨기지 않는다.
+  const reissueUrl = new URL("/api/auth/reissue", getSpringBaseUrl());
   let response: Response;
   try {
-    response = await fetch(new URL("/api/auth/reissue", getSpringBaseUrl()), {
+    response = await fetch(reissueUrl, {
       method: "POST",
       headers: {
         Accept: "application/json",
