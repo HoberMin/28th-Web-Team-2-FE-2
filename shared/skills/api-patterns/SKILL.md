@@ -20,9 +20,14 @@ app/_lib/api/
     tokens.ts      #   쿠키 이름·옵션·JWT exp 판단. **Edge에서도 import되므로 server-only 금지**
     session.ts     #   cookies() 기반 읽기/쓰기. `server-only`
   client/          # (아직 없음) "use client"용 TanStack Query 훅 — 화면이 필요해질 때
-app/api/auth/*     # 인증 BFF (login·reissue·logout) — 쿠키를 써야 해서 라우트여야 한다
+app/api/auth/      # 인증 BFF — kakao/(로그인) · reissue/ · logout/. 쿠키를 써야 해서 라우트여야 한다
 proxy.ts           # 토큰 선제 갱신. Next 16에서 middleware→proxy로 개명됐다
 ```
+
+⚠️ **프로토타입 더미와 이름이 겹치는 것들이 있다** — `getNearbyStores`·`searchRegions`·`Region`·
+`NearbyStore`가 `app/_lib/nearby-stores.ts`·`app/_lib/regions.ts`에도 있다. 화면을 연결할 때
+자동 import가 더미를 집어오면 **조용히 가짜 데이터가 뜬다.** import 경로를 눈으로 확인하고,
+더미를 걷어낼 때 같이 정리한다.
 
 **타입은 스키마 파일에 같이 둔다** (`export type X = z.infer<typeof xSchema>`). 별도 `types/` 폴더를
 만들면 infer를 재수출하는 파일만 늘어나 barrel(conventions #2)에 가까워진다.
