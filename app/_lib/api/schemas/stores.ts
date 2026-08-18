@@ -2,6 +2,33 @@
 
 import { z } from "zod";
 
+export const DEFAULT_NEARBY_STORE_RADIUS = 2000;
+
+const optionalKeywordSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().trim().optional(),
+);
+
+const booleanQuerySchema = z.preprocess((value) => {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return value;
+}, z.boolean());
+
+export const nearbyStoresRequestSchema = z.object({
+  latitude: z.coerce.number().finite().min(-90).max(90),
+  longitude: z.coerce.number().finite().min(-180).max(180),
+  radius: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(5000)
+    .default(DEFAULT_NEARBY_STORE_RADIUS),
+  onlyLiked: booleanQuerySchema.default(false),
+  keyword: optionalKeywordSchema,
+});
+export type NearbyStoresRequest = z.infer<typeof nearbyStoresRequestSchema>;
+
 export const nearbyStoreSchema = z.object({
   storeId: z.number(),
   storeName: z.string(),
