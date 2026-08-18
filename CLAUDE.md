@@ -78,6 +78,7 @@
 | 플로우 검수·CRUD 누락 | flow-reviewer |
 | "에러 나", "버그", "왜 안 돼?" | bug-investigator (수정 X) → 구현 agent |
 | BFF Route Handler·외부 Spring 연동·캐싱 전략 | api-developer |
+| **"스웨거 보고 붙여줘"·BE API 연결** | **api-developer** — 되묻기 전에 `curl -s https://api.marketgo.kro.kr/v3/api-docs`로 스펙을 먼저 읽는다. 절차·함정은 `backend-api-reference` 스킬 |
 | 페이지·화면·인터랙션 구현 | frontend-dev |
 | **디자인 시스템 컴포넌트·토큰 (바이브코딩)** | **design-system-builder** |
 | **Figma 링크만 받음 / "이거 반영해줘"** | **figma-implementer** — 되묻지 말고 `get_metadata`로 정체를 먼저 분류(토큰/타이포/화면/컴포넌트)한 뒤 진행. **MCP 전용**. 절차는 `figma-bridge` 스킬 §0-0·§1 |
@@ -88,7 +89,7 @@
 | "리뷰해줘" (코드) | code-reviewer |
 | 디자인 정합·토큰 위반·a11y 검토 | code-reviewer (구 design-reviewer 흡수) |
 | 테스트 작성·수정 | test-writer |
-| 커밋 정리·푸시 | diff-organizer |
+| 커밋 정리·푸시 | diff-organizer (**최대 분해** — `git-commit` 스킬) |
 | 디자이너 질문 (핸드오프/제품 맥락) | design-advisor (통합) |
 
 - 모델 티어(판단 밀도, **2026-08-05 Opus 5 기준으로 갱신**): **높음=opus + `effort: high` / 중간=sonnet / 낮음=haiku** — `shared/agent-roles.md`가 진실 소스. 구 `fable` 티어는 조직 가용성에 따라 대체될 수 있어 팀 공유 하네스에서 `opus`로 내렸다.
@@ -100,6 +101,7 @@
 - **와이어프레임 초안**(디자인 전): 유저 플로우 → flow-reviewer → [⏸] → wireframe-builder(더미 데이터·저충실도) → 배포(⏸) → 피드백. ※ 토큰 검사 면제
 - **토큰 갱신**(디자이너가 Figma 값을 바꿨을 때 — 가장 빈번): figma-implementer가 분류 → `@theme static` 갱신 → **검산 3종**(`/playground` 스토리 라벨 갱신 · 대비 계산 · 빌드 후 산출물 토큰 emit 확인) → 푸시 → **"화면에서 보일 차이 1개"를 알려주며 배포 확인 안내**. 게이트는 매핑 공백·MCP 접근 실패뿐 — `get_variable_defs` 빈 응답은 폴백이 있으니 멈추지 않는다. **단 폴백은 MCP 안에서만**(REST 금지) (`figma-bridge` §0-0·§2·§4·§7)
 - **신규 화면**(디자인 확정 후): Figma 확정(⏸) → figma-implementer → code-reviewer
+- **BE API 연동**(marketgo Spring): api-developer가 `/v3/api-docs` 실조회 → 엔드포인트별 zod 스키마 → 서버 fetch 함수(`server-only`+캐싱 태그) → BFF Route Handler → 필요 시 클라 훅 → 빌드 1회 → 리뷰 1회 → 푸시. **스펙 조회 실패·스펙에 없는 것이 필요하면 게이트**(상상 금지). 응답 envelope가 엔드포인트마다 다르니 공통 unwrap 유틸을 만들지 않는다
 - **Bug**: bug-investigator(수정X) → 구현 agent → code-reviewer
 - **전수검색**: auditor → 구현(일괄) → code-reviewer
 - 리뷰는 "리뷰해줘" 자연어로 트리거 (슬래시 커맨드 안 씀)
