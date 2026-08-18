@@ -16,13 +16,14 @@ describe("getNearbyStores", () => {
   });
 
   it("익명 주변 가게 응답만 300초 공유 캐시에 저장한다", async () => {
-    await getNearbyStores({
+    const result = await getNearbyStores({
       latitude: 37.5384,
       longitude: 127.0822,
       radius: 2000,
       token: undefined,
     });
 
+    expect(result).toEqual({ totalCount: 0, stores: [] });
     expect(springFetchMock).toHaveBeenCalledWith(
       expect.objectContaining({
         token: undefined,
