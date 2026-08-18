@@ -12,17 +12,17 @@ describe("auth request origin", () => {
     expect(crossOriginResponse(request)).toBeNull();
   });
 
-  it("Vercel forwarded host와 proto로 외부 origin을 복원한다", () => {
-    const request = new Request("http://internal:3000/api/auth/reissue", {
+  it("forwarded 헤더가 요청 URL의 origin을 덮어쓰지 못한다", () => {
+    const request = new Request("https://app.example.com/api/auth/reissue", {
       method: "POST",
       headers: {
-        Origin: "https://preview.example.com",
-        "X-Forwarded-Host": "preview.example.com",
+        Origin: "https://attacker.example",
+        "X-Forwarded-Host": "attacker.example",
         "X-Forwarded-Proto": "https",
       },
     });
 
-    expect(isSameOriginRequest(request)).toBe(true);
+    expect(isSameOriginRequest(request)).toBe(false);
   });
 
   it.each<[string, HeadersInit]>([
