@@ -31,6 +31,19 @@ describe("GET /api/stores/nearby", () => {
     expect(apiMocks.getNearbyStores).not.toHaveBeenCalled();
   });
 
+  it.each([
+    "http://localhost/api/stores/nearby?latitude=&longitude=127.0632",
+    "http://localhost/api/stores/nearby?latitude=%20%20&longitude=127.0632",
+    "http://localhost/api/stores/nearby?latitude=37.5088&longitude=",
+    "http://localhost/api/stores/nearby?latitude=37.5088&longitude=%20%20",
+  ])("빈 필수 좌표를 0으로 바꾸지 않고 400으로 거부한다: %s", async (url) => {
+    const response = await GET(new Request(url));
+
+    expect(response.status).toBe(400);
+    expect(apiMocks.getAccessToken).not.toHaveBeenCalled();
+    expect(apiMocks.getNearbyStores).not.toHaveBeenCalled();
+  });
+
   it("httpOnly 세션 토큰과 검증된 조건을 서버 API에 전달한다", async () => {
     apiMocks.getAccessToken.mockResolvedValue("access-token");
     apiMocks.getNearbyStores.mockResolvedValue({ totalCount: 0, stores: [] });

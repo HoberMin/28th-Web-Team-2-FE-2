@@ -34,6 +34,12 @@ describe("nearbyStoresRequestSchema", () => {
 
   it.each([
     { latitude: undefined, longitude: 127.0632 },
+    { latitude: "", longitude: 127.0632 },
+    { latitude: "   ", longitude: 127.0632 },
+    { latitude: null, longitude: 127.0632 },
+    { latitude: 37.5088, longitude: "" },
+    { latitude: 37.5088, longitude: "   " },
+    { latitude: 37.5088, longitude: null },
     { latitude: 91, longitude: 127.0632 },
     { latitude: 37.5088, longitude: -181 },
     { latitude: 37.5088, longitude: 127.0632, radius: 5001 },
