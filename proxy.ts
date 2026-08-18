@@ -28,8 +28,7 @@ import {
   REFRESH_TOKEN_COOKIE,
   SPRING_REFRESH_COOKIE,
 } from "@/app/_lib/api/auth/tokens";
-
-const SPRING_BASE_URL = process.env.SPRING_API_BASE_URL ?? "https://api.marketgo.kro.kr";
+import { getSpringBaseUrl } from "@/app/_lib/api/spring-config";
 
 /**
  * 재발급 결과. **인증 실패와 통신 실패를 반드시 구분한다** — 둘을 뭉치면
@@ -53,7 +52,7 @@ type ReissueOutcome =
 async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
   let response: Response;
   try {
-    response = await fetch(new URL("/api/auth/reissue", SPRING_BASE_URL), {
+    response = await fetch(new URL("/api/auth/reissue", getSpringBaseUrl()), {
       method: "POST",
       headers: {
         Accept: "application/json",

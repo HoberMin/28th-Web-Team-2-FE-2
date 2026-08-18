@@ -13,6 +13,7 @@ interface NextFetchInit extends RequestInit {
 describe("Spring API client", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -36,6 +37,12 @@ describe("Spring API client", () => {
       favoriteOnly: "false",
       keyword: "감자",
     });
+  });
+
+  it("환경변수 base URL이 안전하지 않으면 요청 URL을 만들지 않는다", () => {
+    vi.stubEnv("SPRING_API_BASE_URL", "http://user:password@api.example.com/v1");
+
+    expect(() => springUrl("/api/v1/news")).toThrow("SPRING_API_BASE_URL");
   });
 
   it("인증 POST를 no-store로 보내며 토큰을 서버 헤더에만 담는다", async () => {

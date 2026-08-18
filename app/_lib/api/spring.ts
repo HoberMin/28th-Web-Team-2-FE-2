@@ -9,12 +9,10 @@ import "server-only";
 
 import { z } from "zod";
 import { ApiError } from "./api-error";
-
-/** 환경변수 미설정 시 운영 주소로 폴백. **서버 전용** — `NEXT_PUBLIC_` 금지(conventions #7). */
-const BASE_URL = process.env.SPRING_API_BASE_URL ?? "https://api.marketgo.kro.kr";
+import { getSpringBaseUrl } from "./spring-config";
 
 export function springUrl(path: string, query?: QueryParams): string {
-  const url = new URL(path, BASE_URL);
+  const url = new URL(path, getSpringBaseUrl());
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value === undefined || value === null || value === "") continue;
