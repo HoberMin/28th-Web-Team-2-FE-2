@@ -40,12 +40,23 @@ function validatedRedirectUri(raw: string): URL {
 export function getKakaoOAuthConfig(): KakaoOAuthConfig {
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
+    // 값 자체는 절대 안 찍는다 — 어떤 키가 비어있는지(이름)만 남긴다.
+    console.error("[auth] 카카오 OAuth 환경변수 누락", {
+      missing: parsed.error.issues.map((issue) => issue.path.join(".")),
+    });
     throw new Error("카카오 로그인 서버 환경값이 설정되지 않았습니다.");
   }
 
-  return {
-    clientSecret: parsed.data.KAKAO_CLIENT_SECRET,
-    redirectUri: validatedRedirectUri(parsed.data.KAKAO_REDIRECT_URI),
-    restKey: parsed.data.KAKAO_REST_KEY,
-  };
+  try {
+    return {
+      clientSecret: parsed.data.KAKAO_CLIENT_SECRET,
+      redirectUri: validatedRedirectUri(parsed.data.KAKAO_REDIRECT_URI),
+      restKey: parsed.data.KAKAO_REST_KEY,
+    };
+  } catch (error) {
+    console.error("[auth] 카카오 OAuth redirect URI 검증 실패", {
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
