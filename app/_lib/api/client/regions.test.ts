@@ -10,9 +10,9 @@ beforeEach(() => {
 
 describe("searchRegionsAPI", () => {
   it("두 글자 미만이면 BFF를 호출하지 않는다", async () => {
-    await expect(searchRegionsAPI("동")).rejects.toMatchObject<Partial<RegionClientError>>({
+    await expect(searchRegionsAPI("동")).rejects.toMatchObject({
       status: 400,
-    });
+    } satisfies Partial<RegionClientError>);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -31,9 +31,9 @@ describe("searchRegionsAPI", () => {
       Response.json({ message: "동네를 불러오지 못했어요." }, { status: 502 }),
     );
 
-    await expect(searchRegionsAPI("청운동")).rejects.toMatchObject<Partial<RegionClientError>>({
+    await expect(searchRegionsAPI("청운동")).rejects.toMatchObject({
       status: 502,
       message: "동네를 불러오지 못했어요.",
-    });
+    } satisfies Partial<RegionClientError>);
   });
 });
