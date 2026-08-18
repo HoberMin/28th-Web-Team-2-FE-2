@@ -63,9 +63,11 @@ async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
     return { status: "unreachable" };
   }
 
-  // 5xx는 서버 사정이지 세션 만료가 아니다. 이걸로 로그아웃시키면 장애가 재로그인으로 번진다.
-  if (response.status >= 500) return { status: "unreachable" };
-  if (!response.ok) return { status: "rejected" };
+  // **세션 종료로 보는 건 401·403뿐이다.** 나머지는 전부 서버 사정으로 취급한다 —
+  // 경로가 바뀌어 404가 나거나 레이트리밋 429가 떴다고 로그인 사용자를 로그아웃시키면
+  // 이 분리를 만든 이유가 무색해진다.
+  if (response.status === 401 || response.status === 403) return { status: "rejected" };
+  if (!response.ok) return { status: "unreachable" };
 
   try {
     const payload: unknown = await response.json();
