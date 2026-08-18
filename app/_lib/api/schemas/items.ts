@@ -44,7 +44,8 @@ export const itemSchema = z.object({
 export type Item = z.infer<typeof itemSchema>;
 
 export const itemPageSchema = z.object({
-  baseDate: z.string(),
+  /** 지역에 표시할 공공가격이 하나도 없으면 라이브 응답은 `null`이다. */
+  baseDate: z.iso.date().nullable(),
   totalCount: z.number(),
   /** 카테고리별 개수 — 키가 고정이 아니라 record로 받는다. */
   categoryCounts: z.record(z.string(), z.number()).optional(),
