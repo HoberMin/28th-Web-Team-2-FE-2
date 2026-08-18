@@ -22,7 +22,7 @@
 
 ## 스택 (확정)
 
-- 구조: **단일 루트 Next.js 프로젝트** (모노레포 아님 — 2026-08-05 전환) — 루트에 `app/`(App Router). 디자인 시스템은 별도 패키지·폴더가 아니라 **서비스 안에 병합**: 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/`, **토큰은 `app/globals.css`의 `@theme` 블록**. 워크스페이스·패키지 경계 없음. **2026-08-05 현재 `app/_components/`·`app/_lib/`는 존재하지 않는다** — Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없기 때문. 규격이 올라오면 그때 생성한다
+- 구조: **단일 루트 Next.js 프로젝트** (모노레포 아님 — 2026-08-05 전환) — 루트에 `app/`(App Router). 디자인 시스템은 별도 패키지·폴더가 아니라 **서비스 안에 병합**: 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/`, **토큰은 `app/globals.css`의 `@theme` 블록**. 워크스페이스·패키지 경계 없음. **2026-08-18 현재 `app/_components/`·`app/_lib/` 둘 다 존재한다** (구 "아직 없다" 서술은 낡았다). `app/_lib/api/`가 외부 Spring 연동 레이어이고, 루트 `proxy.ts`가 토큰 갱신이다. 다만 `app/_components/`에 있는 건 아직 프로토타입 화면용 부품이라 **정식 DS 컴포넌트는 Figma 규격이 올라온 뒤에 만든다**는 규칙은 그대로다
 - 프론트: **Next.js (App Router) + Tailwind CSS v4**
 - 백엔드: **외부 Spring (별도 레포)** — 이 레포엔 도메인 백엔드 구현 없음
 - **렌더링 전략 (확정 2026-07-13)**: **풀 RSC + BFF.**
@@ -33,7 +33,7 @@
 - **캐싱 (적극 활용 — 이 프로젝트의 학습 목표)**: 정적 렌더링/Full Route Cache 기본 → 동적 필요 시에만 opt-out. `fetch(..., { next: { revalidate, tags } })` + 뮤테이션에서 `revalidateTag`/`revalidatePath`. 비-fetch 데이터는 `unstable_cache`. Route Segment Config(`export const revalidate/dynamic`)로 라우트 단위 선언. → `data-fetching` 스킬이 상세.
 - **React Compiler**: opt-in 활성 (자동 메모이제이션 — 수동 `memo`/`useMemo` 남발 금지)
 - 컴포넌트: **shadcn/ui(Radix 기반)** 위에 `app/_components/` 구축 — a11y가 기본 내장되는 최대 지렛대
-- 폼: **react-hook-form + zod** (Server Actions와 병용 시 zod 스키마 공유)
+- 폼: **react-hook-form + zod** (Server Actions와 병용 시 zod 스키마 공유). **zod는 2026-08-18 설치됨**(v4) — 외부 Spring 응답 경계 검증에 먼저 쓰이고 있다. react-hook-form은 폼 화면을 만들 때 추가
 - 패키지 매니저: **pnpm** (워크스페이스 없음 — 단일 프로젝트)
 - 테스트: **Vitest(유닛) + Playwright(E2E + `toHaveScreenshot` 시각 회귀 + axe a11y)**
 - 디자인 검증: **`app/playground`** 갤러리 라우트 (스토리북 안 씀) — **런칭 전까진 배포에서도 공개**(팀 검증용 Vercel이 보는 화면). 실사용자 릴리즈 시 Vercel env `PLAYGROUND_DISABLED=1`로 숨김 (`TODO(✍️):` 런칭 시점에 설정). 스토리 규약(Figma 규격만·1규격 1파일·흰 배경 고정·좌측 목차)은 `design-guide.md §1-1`
