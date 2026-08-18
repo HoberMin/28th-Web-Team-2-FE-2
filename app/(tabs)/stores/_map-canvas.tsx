@@ -7,7 +7,7 @@ import {
   type KakaoMapsApi,
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
-import { MAP_CENTER } from "./_data";
+import { MAP_CENTER, type MapCenter } from "./_data";
 import type { MapScreenPoint } from "./_cluster";
 
 const INITIAL_MAP_LEVEL = 4;
@@ -23,6 +23,7 @@ export interface MapCanvasStorePosition {
 
 export interface MapViewport {
   level: number;
+  center: MapCenter;
   points: Readonly<Record<string, MapScreenPoint>>;
 }
 
@@ -54,12 +55,19 @@ export function MapCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const kakaoMapsRef = useRef<KakaoMapsApi | null>(null);
+  const storesRef = useRef(stores);
+  const refreshViewportRef = useRef<(() => void) | null>(null);
   const onViewportChangeRef = useRef(onViewportChange);
   const [status, setStatus] = useState<MapLoadStatus>("idle");
 
   useEffect(() => {
     onViewportChangeRef.current = onViewportChange;
   }, [onViewportChange]);
+
+  useEffect(() => {
+    storesRef.current = stores;
+    refreshViewportRef.current?.();
+  }, [stores]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -72,13 +80,17 @@ export function MapCanvas({
     setStatus("loading");
 
     const fallbackPoints: Record<string, MapScreenPoint> = {};
-    for (const store of stores) {
+    for (const store of storesRef.current) {
       fallbackPoints[store.id] = {
         x: (container.clientWidth * store.x) / 100,
         y: (container.clientHeight * store.y) / 100,
       };
     }
-    onViewportChangeRef.current?.({ level: INITIAL_MAP_LEVEL, points: fallbackPoints });
+    onViewportChangeRef.current?.({
+      level: INITIAL_MAP_LEVEL,
+      center: MAP_CENTER,
+      points: fallbackPoints,
+    });
 
     void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
       .then((kakao) => {
@@ -98,13 +110,19 @@ export function MapCanvas({
           if (!map || !kakaoMaps) return;
           const projection = map.getProjection();
           const points: Record<string, MapScreenPoint> = {};
-          for (const store of stores) {
+          for (const store of storesRef.current) {
             const coordinate = new kakaoMaps.LatLng(store.lat, store.lng);
             const point = projection.containerPointFromCoords(coordinate);
             points[store.id] = { x: point.x, y: point.y };
           }
-          onViewportChangeRef.current?.({ level: map.getLevel(), points });
+          const center = map.getCenter();
+          onViewportChangeRef.current?.({
+            level: map.getLevel(),
+            center: { lat: center.getLat(), lng: center.getLng() },
+            points,
+          });
         };
+        refreshViewportRef.current = updateViewport;
 
         if (onMapClick) kakao.maps.event.addListener(map, "click", onMapClick);
         kakao.maps.event.addListener(map, "idle", updateViewport);
@@ -125,9 +143,10 @@ export function MapCanvas({
       }
       mapRef.current = null;
       kakaoMapsRef.current = null;
+      refreshViewportRef.current = null;
       container.replaceChildren();
     };
-  }, [onMapClick, stores]);
+  }, [onMapClick]);
 
   useEffect(() => {
     const map = mapRef.current;
