@@ -5,9 +5,8 @@ import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { ROUTES } from "@/app/_lib/routes";
 import { PricesGroupChips } from "./_group-chips";
-import { buildPricesHref } from "./_href";
-import { formatItemBaseDateLabel, mapItemToPriceView } from "./_item-view";
-import { PriceVegetableCard } from "./_price-vegetable-card";
+import { PricesInfiniteList } from "./_infinite-list";
+import { formatItemBaseDateLabel } from "./_item-view";
 import {
   DEFAULT_PRICES_SORT,
   PRICE_GROUPS,
@@ -56,59 +55,8 @@ function MissingRegion() {
   );
 }
 
-function Pagination({
-  currentPage,
-  hasNext,
-  query,
-  group,
-  sort,
-}: {
-  currentPage: number;
-  hasNext: boolean;
-  query: string;
-  group?: string;
-  sort?: string;
-}) {
-  if (currentPage === 1 && !hasNext) return null;
-
-  return (
-    <nav aria-label="야채 시세 페이지" className="mt-10 flex items-center justify-center gap-4">
-      {currentPage > 1 ? (
-        <Link
-          href={buildPricesHref({ q: query, group, sort, page: currentPage - 1 })}
-          className="inline-flex min-h-11 items-center px-3 text-body-14-medium text-content-primary underline"
-        >
-          이전
-        </Link>
-      ) : (
-        <span className="inline-flex min-h-11 items-center px-3 text-body-14-medium text-content-disabled">
-          이전
-        </span>
-      )}
-      <span className="text-body-14-regular text-content-secondary">{currentPage}페이지</span>
-      {hasNext ? (
-        <Link
-          href={buildPricesHref({ q: query, group, sort, page: currentPage + 1 })}
-          className="inline-flex min-h-11 items-center px-3 text-body-14-medium text-content-primary underline"
-        >
-          다음
-        </Link>
-      ) : (
-        <span className="inline-flex min-h-11 items-center px-3 text-body-14-medium text-content-disabled">
-          다음
-        </span>
-      )}
-    </nav>
-  );
-}
-
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function parsePage(value: string | undefined): number {
-  const page = Number(value);
-  return Number.isSafeInteger(page) && page > 0 ? page : 1;
 }
 
 export default async function PricesPage({
@@ -120,7 +68,6 @@ export default async function PricesPage({
   const query = (first(params.q) ?? "").trim();
   const group = normalizeGroup(first(params.group));
   const sort = normalizeSort(first(params.sort));
-  const requestedPage = parsePage(first(params.page));
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
 
   if (!regionId) {
@@ -132,22 +79,22 @@ export default async function PricesPage({
     );
   }
 
+  const apiSort = mapSortToApi(sort);
+  const category = mapGroupToApi(group);
   const itemPage = await getItems({
     regionId,
-    page: requestedPage - 1,
+    page: 0,
     size: ITEMS_PAGE_SIZE,
-    sort: mapSortToApi(sort),
+    sort: apiSort,
     keyword: query || undefined,
-    category: mapGroupToApi(group),
+    category,
     favoriteOnly: false,
     token,
   });
-  const rows = itemPage.items.map(mapItemToPriceView);
   const counts = mapCategoryCounts(itemPage.categoryCounts);
   const catalogTotalCount = itemPage.categoryCounts
     ? Object.values(counts).reduce((total, count) => total + count, 0)
     : itemPage.totalCount;
-  const currentPage = itemPage.page + 1;
   const sortParam = sort === DEFAULT_PRICES_SORT ? undefined : sort;
 
   return (
@@ -186,38 +133,19 @@ export default async function PricesPage({
       </div>
 
       <div className="mt-2 px-4">
-        <p role="status" className="sr-only">
-          조건에 맞는 야채 {itemPage.totalCount}개 중 {rows.length}개
-        </p>
-        {rows.length === 0 ? (
+        {itemPage.items.length === 0 ? (
           <EmptyResult query={query} />
         ) : (
-          <ul className="grid grid-cols-3 gap-x-3 gap-y-10">
-            {rows.map((row) => (
-              <li key={row.itemId}>
-                <PriceVegetableCard
-                  itemId={row.itemId}
-                  name={row.name}
-                  image={row.image}
-                  price={row.price}
-                  unit={row.unit}
-                  trendState={row.trendState}
-                  trendAmount={row.trendAmount}
-                  trendPercent={row.trendPercent}
-                  initialFavorite={row.isLiked}
-                  canFavorite={Boolean(token)}
-                />
-              </li>
-            ))}
-          </ul>
+          <PricesInfiniteList
+            key={JSON.stringify([query, group, sort])}
+            initialPage={itemPage}
+            pageSize={ITEMS_PAGE_SIZE}
+            sort={apiSort}
+            query={query}
+            category={category}
+            canFavorite={Boolean(token)}
+          />
         )}
-        <Pagination
-          currentPage={currentPage}
-          hasNext={itemPage.hasNext}
-          query={query}
-          group={group}
-          sort={sortParam}
-        />
       </div>
     </div>
   );
