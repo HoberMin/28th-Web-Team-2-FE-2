@@ -30,8 +30,12 @@ export const itemSchema = z.object({
   priceGap: z.number(),
   /** 직전 대비 변동률. */
   priceDiffRate: z.number(),
-  /** 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.** */
-  isLiked: z.boolean(),
+  /**
+   * 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.**
+   * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없으면 false로 본다.
+   * 필수로 두면 게스트의 시세 화면 전체가 파싱 에러로 사라진다.
+   */
+  isLiked: z.boolean().default(false),
 });
 export type Item = z.infer<typeof itemSchema>;
 
