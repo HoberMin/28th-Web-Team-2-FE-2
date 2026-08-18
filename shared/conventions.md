@@ -44,7 +44,7 @@
 ## 미정 (TODO — 건드리는 작업이면 사용자에게 묻고 여기 기록)
 
 - `TODO(✍️):` 도메인·서비스 정의 (`domain.md` 참조 — 스켈레톤 상태)
-- `TODO(✍️):` 외부 Spring API 스펙 (나오면 `backend-api-reference` 스킬 채움)
+- ~~외부 Spring API 스펙~~ → **확보(2026-08-18)**: marketgo Swagger `https://api.marketgo.kro.kr/v3/api-docs`. **라이브가 진실 소스** — 매 작업마다 조회하고 문서에 필드를 복제하지 않는다 (`backend-api-reference` 스킬). 남은 미정은 그 스킬 §4
 - `TODO(✍️):` PWA(Serwist) 도입 여부 — 전신에선 확정이었으나 이 프로젝트에선 미정
 - `TODO(✍️):` 전역 클라이언트 상태 도구 (필요해질 때)
 - `TODO(✍️):` PPR — Next stable 승격 시 재검토

@@ -20,7 +20,7 @@
 ## 3. 아키텍처 제약 (확정분)
 - **단일 루트 Next.js 프로젝트** (2026-08-05 모노레포 해체): 루트 `app/`(App Router). 디자인 시스템은 서비스에 병합 — `app/_components/`(공통 컴포넌트) + `app/globals.css` `@theme`(토큰)
 - **풀 RSC + BFF** — Server Component 기본, `app/api/*` Route Handler가 외부 Spring 앞단. 상세 → `conventions.md`
-- 외부 백엔드: **Spring (별도 레포)** — `TODO(✍️):` API 스펙
+- 외부 백엔드: **Spring (별도 레포)** — 스펙: marketgo Swagger `https://api.marketgo.kro.kr/v3/api-docs` (2026-08-18 확보). 인증은 JWT Bearer + refreshToken 쿠키. 읽는 법·함정은 `backend-api-reference` 스킬
 - 캐싱 적극 활용 (revalidate/tags 명시 의무) → `data-fetching` 스킬
 
 ## 4. 코딩 컨벤션
