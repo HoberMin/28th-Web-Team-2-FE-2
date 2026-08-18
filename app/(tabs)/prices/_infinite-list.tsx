@@ -9,6 +9,7 @@ import {
   type ItemSort,
 } from "@/app/_lib/api/schemas/items";
 import { LoadingCircular } from "@/app/_components/loading-circular";
+import { ROUTES } from "@/app/_lib/routes";
 import { mapItemToPriceView } from "./_item-view";
 import { PriceVegetableCard } from "./_price-vegetable-card";
 
@@ -126,6 +127,7 @@ function PricesInfiniteListContent({
               trendPercent={row.trendPercent}
               initialFavorite={row.isLiked}
               canFavorite={canFavorite}
+              detailHref={ROUTES.priceDetail(String(row.itemId))}
             />
           </li>
         ))}

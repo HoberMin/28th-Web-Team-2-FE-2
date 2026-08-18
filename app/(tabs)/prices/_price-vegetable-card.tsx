@@ -35,7 +35,6 @@ export interface PriceVegetableCardProps {
   trendPercent: string;
   initialFavorite: boolean;
   canFavorite: boolean;
-  /** API 숫자 ID와 기존 slug 상세 경로의 계약이 생기기 전까지 실제 화면에서는 넘기지 않는다. */
   detailHref?: string;
 }
 
