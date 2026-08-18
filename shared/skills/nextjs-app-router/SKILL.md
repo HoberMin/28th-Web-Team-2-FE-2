@@ -18,7 +18,7 @@ description: Next.js App Router best practice — 풀 RSC + BFF 기준. Server C
 
 ```
 RSC (async 컴포넌트, 서버 fetch)
-  → lib/api/* 서버 함수 (server-only 가드)
+  → app/_lib/api/server/* 서버 함수 (server-only 가드)
     → 외부 Spring  ← 토큰·시크릿은 여기까지만
 클라 인터랙션 → app/api/* Route Handler(BFF) or Server Action
 ```
