@@ -67,7 +67,11 @@ export class ApiError extends Error {
     });
   }
 
-  /** 재발급으로 회복 가능한 실패인지 — middleware·BFF가 판단에 쓴다. */
+  /**
+   * 서버가 인증을 거절한 것인지(세션 종료) 판단한다.
+   * **통신 실패(`network`·`server`)와 구분하는 게 목적이다** — 뭉치면 서버 장애가
+   * 전원 재로그인으로 번진다. `app/api/auth/reissue`가 이 판단으로 401/503을 가른다.
+   */
   get isAuthExpired(): boolean {
     return this.kind === "unauthorized";
   }
