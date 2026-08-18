@@ -15,9 +15,18 @@ const booleanQuerySchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const requiredNumberQuerySchema = z.preprocess(
+  (value) => {
+    if (value === null) return undefined;
+    if (typeof value === "string" && value.trim() === "") return undefined;
+    return value;
+  },
+  z.coerce.number().finite(),
+);
+
 export const nearbyStoresRequestSchema = z.object({
-  latitude: z.coerce.number().finite().min(-90).max(90),
-  longitude: z.coerce.number().finite().min(-180).max(180),
+  latitude: requiredNumberQuerySchema.pipe(z.number().min(-90).max(90)),
+  longitude: requiredNumberQuerySchema.pipe(z.number().min(-180).max(180)),
   radius: z.coerce
     .number()
     .int()
