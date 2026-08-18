@@ -30,8 +30,8 @@ export const REFRESH_LEEWAY_SECONDS = 60;
 const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 /**
- * 두 쿠키가 옵션을 공유하지 않는다 — 수명 의미가 다르기 때문이다.
- * 하나로 묶어두면 나중에 refresh 수명을 고칠 때 access 쿠키까지 딸려 바뀐다.
+ * 두 쿠키의 옵션을 따로 둔다. **지금 값은 같지만** 수명의 의미가 달라서 갈라질 자리다 —
+ * 하나로 묶어두면 나중에 refresh 수명만 고치려다 access 쿠키까지 딸려 바뀐다.
  *
  * `secure`가 프로덕션 조건인 건 로컬 http 개발 때문이다. Vercel은 프리뷰 빌드도
  * `NODE_ENV=production`이라 배포 환경에서는 항상 켜진다.
