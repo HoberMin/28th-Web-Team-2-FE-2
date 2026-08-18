@@ -1,11 +1,11 @@
-// F01 홈 화면 로컬 더미 데이터.
+// F01 홈 화면의 추천 가게·최저가 야채 로컬 더미 데이터 + 화면 전용 타입.
 //
 // 왜 여기에 있나: `app/_lib/`에 이미 있는 홈 관련 모듈(home-data.ts·card-news.ts)은
 // **프로토타입(app/prototype)의 46종 그리드**를 위한 것이라 F01의 화면 요구와 모양이 다르다.
 //   · home-data.ts  → server-only + KAMIS 인증키 의존. F01은 "가게별 제보 최저가"라 형태가 다르다.
 //   · card-news.ts  → {title, body, changePct}. Figma card/news는 {썸네일, 제목, 날짜, 외부링크}다.
-// 두 파일 모두 이 작업의 수정 대상이 아니므로(다른 화면이 쓰고 있다) F01은 화면 로컬 더미를 쓴다.
-// 실제 API가 붙으면 이 파일을 서버 fetch로 교체하면 되고, 컴포넌트 시그니처는 그대로다.
+// 두 파일 모두 이 작업의 수정 대상이 아니므로(다른 화면이 쓰고 있다) 추천·최저가는 로컬 더미를 쓴다.
+// 최근 뉴스만 `app/_lib/api/server/news.ts` → `_home/news.ts` mapper로 실 API에 연결돼 있다.
 //
 // ⚠️ Figma 시안의 더미는 10행이 전부 "양파 / 농협하나로마트 / 24,900원 / (-7.4%)"로 동일하다.
 //    그대로 옮기면 한국어 말줄임·가변폭이 실제로 되는지 확인할 수 없어서, 1행만 Figma 원본과
@@ -79,6 +79,8 @@ export interface HomeNewsItem {
   date: string;
   /** Figma 개발 주석: "카드 클릭 시 뉴스로 이동(링크)". 외부 기사 URL. */
   url: string;
+  /** 외부 기사 썸네일. 응답에 없거나 안전한 URL이 아니면 렌더하지 않는다. */
+  thumbnailUrl?: string;
 }
 
 /** 위치 칩에 뜨는 현재 지역. Figma 시안 값. */
@@ -207,28 +209,3 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
 
 /** 접힌 상태에서 보이는 행 수. Figma F01_홈이 5행이다. */
 export const HOME_LOWEST_COLLAPSED_COUNT = 5;
-
-/**
- * 최근 시세 뉴스. 제목·날짜는 Figma 시안 값, URL은 Figma 개발 주석에 적힌 참고용 링크다
- * (298:3537 "카드 클릭 시 뉴스로 이동(링크)").
- */
-export const HOME_NEWS: HomeNewsItem[] = [
-  {
-    id: "news-1",
-    title: "양파 가격 폭락에 농가 울상...'상생' 할인 판매",
-    date: "2026.08.01",
-    url: "https://www.ytn.co.kr/_ln/0115_202608010201332426",
-  },
-  {
-    id: "news-2",
-    title: "올해 보리 생산량 47.3% 증가…마늘·양파도 소폭 늘어",
-    date: "2026.07.30",
-    url: "https://www.newsis.com/view/NISX20260730_0003729538",
-  },
-  {
-    id: "news-3",
-    title: "올해 보리 생산량 47.3% 증가…마늘·양파도 소폭 늘어",
-    date: "2026.07.30",
-    url: "https://www.newsis.com/view/NISX20260730_0003729538",
-  },
-];

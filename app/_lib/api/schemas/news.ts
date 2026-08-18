@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 
+const httpUrlSchema = z.url({ protocol: /^https?$/ });
+
 export const newsArticleSchema = z.object({
   title: z.string(),
   summary: z.string().optional(),
@@ -11,9 +13,16 @@ export const newsArticleSchema = z.object({
    * `javascript:alert(1)`·`data:text/html,...`을 통과시킨다. BE가 외부에서 수집해 오는
    * 값이라 신뢰 경계 밖이고, 화면에 붙는 순간 클릭 XSS가 된다.
    */
-  originalUrl: z.url({ protocol: /^https?$/ }),
+  originalUrl: httpUrlSchema,
   publishedAt: z.string(),
-  thumbnailUrl: z.string().optional(),
+  // 썸네일은 보조 정보다. 값이 깨져도 기사 자체는 버리지 않고 이미지만 생략한다.
+  thumbnailUrl: z
+    .unknown()
+    .optional()
+    .transform((value) => {
+      const parsed = httpUrlSchema.safeParse(value);
+      return parsed.success ? parsed.data : undefined;
+    }),
 });
 export type NewsArticle = z.infer<typeof newsArticleSchema>;
 
