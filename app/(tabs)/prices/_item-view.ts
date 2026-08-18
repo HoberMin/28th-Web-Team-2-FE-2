@@ -22,9 +22,7 @@ function safeItemImage(image: string | null | undefined): string {
 
   try {
     const url = new URL(image);
-    return url.protocol === "http:" || url.protocol === "https:"
-      ? url.toString()
-      : FALLBACK_ITEM_IMAGE;
+    return url.protocol === "https:" ? url.toString() : FALLBACK_ITEM_IMAGE;
   } catch {
     return FALLBACK_ITEM_IMAGE;
   }
