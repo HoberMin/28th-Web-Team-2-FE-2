@@ -210,6 +210,158 @@ describe("Spring API client", () => {
     expect(JSON.stringify(infoSpy.mock.calls)).not.toContain("user@example.com");
   });
 
+  it("명시적으로 켠 로컬 환경에서 공개 GET 응답 값을 제한된 JSON으로 출력한다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("SPRING_API_DEBUG_PAYLOAD", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const items = Array.from({ length: 12 }, (_, index) => ({
+      id: index + 1,
+      name:
+        index === 0 ? "first-visible" : index === 10 ? "hidden-eleven" : `item-${index + 1}`,
+    }));
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(
+      Response.json({
+        accessToken: "sensitive-access-token",
+        p_cert_key: "sensitive-cert-key",
+        data: { items },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/items",
+      cache: { revalidate: 60 },
+      schema: z.object({
+        accessToken: z.string(),
+        p_cert_key: z.string(),
+        data: z.object({ items: z.array(z.object({ id: z.number(), name: z.string() })) }),
+      }),
+    });
+
+    const payloadLog = infoSpy.mock.calls
+      .map(([message]) => message)
+      .find(
+        (message) =>
+          typeof message === "string" && message.startsWith("[spring-api:payload] GET /api/v1/items"),
+      );
+    expect(payloadLog).toContain("first-visible");
+    expect(payloadLog).toContain('"$omittedItems": 2');
+    expect(payloadLog).toContain("[REDACTED]");
+    expect(payloadLog).not.toContain("hidden-eleven");
+    expect(payloadLog).not.toContain("sensitive-access-token");
+    expect(payloadLog).not.toContain("sensitive-cert-key");
+  });
+
+  it("인증되거나 no-store인 공개 GET 응답 값은 payload 로그에서 제외한다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SPRING_API_DEBUG_PAYLOAD", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock
+      .mockResolvedValueOnce(Response.json({ data: [{ name: "authenticated-private" }] }))
+      .mockResolvedValueOnce(Response.json({ data: [{ name: "no-store-private" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/items",
+      token: "access-token",
+      cache: { revalidate: 60 },
+      schema: z.object({ data: z.array(z.object({ name: z.string() })) }),
+    });
+    await springFetch({
+      path: "/api/v1/items",
+      cache: "no-store",
+      schema: z.object({ data: z.array(z.object({ name: z.string() })) }),
+    });
+
+    const serializedLogs = JSON.stringify(infoSpy.mock.calls);
+    expect(serializedLogs).not.toContain("[spring-api:payload]");
+    expect(serializedLogs).not.toContain("authenticated-private");
+    expect(serializedLogs).not.toContain("no-store-private");
+  });
+
+  it("스키마 검증에 실패한 원본 응답 값은 payload 로그에서 제외한다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SPRING_API_DEBUG_PAYLOAD", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ unexpected: "schema-mismatch-secret" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      springFetch({
+        path: "/api/v1/news",
+        cache: { revalidate: 60 },
+        schema: z.array(z.unknown()),
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+
+    const serializedLogs = JSON.stringify(infoSpy.mock.calls);
+    expect(serializedLogs).not.toContain("[spring-api:payload]");
+    expect(serializedLogs).not.toContain("schema-mismatch-secret");
+  });
+
+  it("payload 로그의 긴 동적 key와 문자열을 제한한다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("SPRING_API_DEBUG_PAYLOAD", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const longKey = `dynamic-${"k".repeat(200)}`;
+    const longValue = `visible-${"v".repeat(600)}`;
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ [longKey]: longValue }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/items",
+      cache: { revalidate: 60 },
+      schema: z.record(z.string(), z.string()),
+    });
+
+    const payloadLog = infoSpy.mock.calls
+      .map(([message]) => message)
+      .find(
+        (message) =>
+          typeof message === "string" && message.startsWith("[spring-api:payload] GET /api/v1/items"),
+      );
+    expect(payloadLog).toContain("chars omitted");
+    expect(payloadLog).not.toContain(longKey);
+    expect(payloadLog).not.toContain(longValue);
+  });
+
+  it("인증 API와 Vercel 환경에서는 payload 플래그를 켜도 응답 값을 출력하지 않는다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("SPRING_API_DEBUG_PAYLOAD", "true");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock
+      .mockResolvedValueOnce(Response.json({ data: [{ title: "preview-secret" }] }))
+      .mockResolvedValueOnce(Response.json({ accessToken: "auth-secret" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await springFetch({
+      path: "/api/v1/news",
+      cache: { revalidate: 60 },
+      schema: z.object({ data: z.array(z.object({ title: z.string() })) }),
+    });
+
+    vi.stubEnv("VERCEL_ENV", "");
+    await springFetch({
+      path: "/api/auth/reissue",
+      method: "POST",
+      cache: "no-store",
+      schema: z.object({ accessToken: z.string() }),
+    });
+
+    const serializedLogs = JSON.stringify(infoSpy.mock.calls);
+    expect(serializedLogs).not.toContain("[spring-api:payload]");
+    expect(serializedLogs).not.toContain("preview-secret");
+    expect(serializedLogs).not.toContain("auth-secret");
+  });
+
   it("요청 body 직렬화 오류를 network ApiError로 포장하지 않는다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     vi.stubGlobal("fetch", fetchMock);
