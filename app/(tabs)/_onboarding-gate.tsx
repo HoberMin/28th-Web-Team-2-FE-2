@@ -2,12 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { nextOnboardingRoute, useOnboarding } from "@/app/_lib/onboarding-store";
+import { useHydratedOnboarding } from "@/app/_lib/onboarding-store";
+import { decideOnboardingGate } from "./_onboarding-gate-state";
 
 export function OnboardingGate() {
   const router = useRouter();
-  const onboarding = useOnboarding();
-  const target = nextOnboardingRoute(onboarding);
+  const onboarding = useHydratedOnboarding();
+  const { target, shouldBlock } = decideOnboardingGate(onboarding);
 
   useEffect(() => {
     if (target) {
@@ -15,7 +16,7 @@ export function OnboardingGate() {
     }
   }, [router, target]);
 
-  if (!target) return null;
+  if (!shouldBlock) return null;
 
   return (
     <div className="absolute inset-0 z-50 bg-surface-primary" role="status">

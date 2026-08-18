@@ -9,12 +9,18 @@ import "server-only";
 
 import { z } from "zod";
 import { ApiError } from "./api-error";
-
-/** 환경변수 미설정 시 운영 주소로 폴백. **서버 전용** — `NEXT_PUBLIC_` 금지(conventions #7). */
-const BASE_URL = process.env.SPRING_API_BASE_URL ?? "https://api.marketgo.kro.kr";
+import { getSpringBaseUrl, SPRING_REQUEST_TIMEOUT_MS } from "./spring-config";
 
 export function springUrl(path: string, query?: QueryParams): string {
-  const url = new URL(path, BASE_URL);
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Spring API path는 /로 시작하는 same-origin 상대 경로여야 합니다.");
+  }
+
+  const baseUrl = getSpringBaseUrl();
+  const url = new URL(path, baseUrl);
+  if (url.origin !== baseUrl.origin) {
+    throw new Error("Spring API path는 base URL과 같은 origin이어야 합니다.");
+  }
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value === undefined || value === null || value === "") continue;
@@ -66,12 +72,14 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (cookie) headers.Cookie = cookie;
+  const serializedBody = body === undefined ? undefined : JSON.stringify(body);
 
   try {
     return await fetch(url, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: serializedBody,
+      signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
       ...cacheInit(cache),
     });
   } catch (cause) {

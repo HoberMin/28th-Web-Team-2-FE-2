@@ -26,6 +26,10 @@ export interface OnboardingState {
   nickname: string;
   /** 지금 활성화된 동네 — 20개+ 소비처가 이 단일 값을 읽으므로 배열로 바꾸지 않는다. */
   district: string;
+  /** Spring 품목 조회에 넘기는 10자리 법정동 코드. */
+  regionId: string;
+  /** Spring이 내려준 전체 법정동 이름. `district`는 기존 프로토타입 소비자용 짧은 이름이다. */
+  regionName: string;
   /** 등록된 동네 목록(최대 3개). 활성은 항상 `district` 하나. */
   districts: string[];
   completed: boolean;
@@ -40,6 +44,8 @@ const DEFAULT_STATE: OnboardingState = {
   authProvider: "",
   nickname: "",
   district: "",
+  regionId: "",
+  regionName: "",
   districts: [],
   completed: false,
   avatar: "",
@@ -53,11 +59,13 @@ let cache: OnboardingState | null = null;
  * - v1(`districts` 없음): 있던 단일 `district`를 등록 목록의 첫 항목으로 채운다.
  * - v2(`authProvider` 없음): 이미 온보딩을 마친 사람은 `kakao`로 본다. 안 그러면 F00-0 신설로
  *   기존 사용자가 전부 소개 화면으로 튕긴다.
+ * - v3(`regionName` 없음): 예전 짧은 동네 이름을 표시 이름으로 보존한다. regionId는 추측하지 않는다.
  */
 function migrate(state: OnboardingState): OnboardingState {
   let next = state;
   if (!next.authProvider && next.completed) next = { ...next, authProvider: "kakao" };
   if (next.districts.length === 0 && next.district) next = { ...next, districts: [next.district] };
+  if (!next.regionName && next.district) next = { ...next, regionName: next.district };
   return next;
 }
 
@@ -106,6 +114,10 @@ function getServerSnapshot(): OnboardingState {
   return DEFAULT_STATE;
 }
 
+function getHydratingServerSnapshot(): OnboardingState | null {
+  return null;
+}
+
 /**
  * 온보딩 상태 갱신(부분 patch) — nickname/district 입력 진행 중에도 사용 가능.
  * `patch.district`가 있으면 등록 목록(`districts`)에도 자동 반영(온보딩 완료 시 첫 등록이 되도록).
@@ -145,6 +157,18 @@ export function setActiveDistrict(name: string): void {
 /** 온보딩 상태 훅 — 화면에서 실시간 구독. */
 export function useOnboarding(): OnboardingState {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+/**
+ * 라우트 보호용 온보딩 상태. 서버 렌더와 hydration 첫 렌더에서는 `null`이고,
+ * 브라우저 저장소를 읽은 클라이언트 스냅샷이 준비된 뒤에만 실제 상태를 반환한다.
+ */
+export function useHydratedOnboarding(): OnboardingState | null {
+  return useSyncExternalStore<OnboardingState | null>(
+    subscribe,
+    getSnapshot,
+    getHydratingServerSnapshot,
+  );
 }
 
 /** 등록된 동네 목록 훅 — 홈 drawer·설정 화면의 "등록된 동네" 목록에서 사용. */

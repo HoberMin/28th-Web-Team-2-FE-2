@@ -20,16 +20,18 @@ export const ITEM_CATEGORIES = [
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
 
 export const itemSchema = z.object({
-  itemId: z.number(),
+  itemId: z.number().int().safe(),
   itemName: z.string(),
-  itemImageUrl: z.string().optional(),
+  /** 라이브 응답은 이미지가 없을 때 `null`을 반환한다(Swagger의 string 선언과 불일치). */
+  itemImageUrl: z.string().nullable().optional(),
   /** 스펙상 nullable — 단위가 정해지지 않은 품목이 있다. */
   defaultUnit: z.string().nullable().optional(),
-  price: z.number(),
+  /** 기준일 가격이 없는 계절 품목은 라이브 응답에서 `null`이다. */
+  price: z.number().nullable(),
   /** 직전 대비 가격 차이(원). */
-  priceGap: z.number(),
+  priceGap: z.number().nullable(),
   /** 직전 대비 변동률. */
-  priceDiffRate: z.number(),
+  priceDiffRate: z.number().nullable(),
   /**
    * 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.**
    * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없거나 null이면 false로 본다.
@@ -42,13 +44,14 @@ export const itemSchema = z.object({
 export type Item = z.infer<typeof itemSchema>;
 
 export const itemPageSchema = z.object({
-  baseDate: z.string(),
-  totalCount: z.number(),
+  /** 지역에 표시할 공공가격이 하나도 없으면 라이브 응답은 `null`이다. */
+  baseDate: z.iso.date().nullable(),
+  totalCount: z.number().int().safe().min(0),
   /** 카테고리별 개수 — 키가 고정이 아니라 record로 받는다. */
-  categoryCounts: z.record(z.string(), z.number()).optional(),
+  categoryCounts: z.record(z.string(), z.number().int().safe().min(0)).optional(),
   items: z.array(itemSchema),
-  page: z.number(),
-  size: z.number(),
+  page: z.number().int().safe().min(0),
+  size: z.number().int().safe().min(1),
   hasNext: z.boolean(),
 });
 export type ItemPage = z.infer<typeof itemPageSchema>;

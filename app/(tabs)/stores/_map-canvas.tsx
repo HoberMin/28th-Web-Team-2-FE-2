@@ -7,7 +7,7 @@ import {
   type KakaoMapsApi,
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
-import { MAP_CENTER } from "./_data";
+import { MAP_CENTER, type MapCenter } from "./_data";
 import type { MapScreenPoint } from "./_cluster";
 
 const INITIAL_MAP_LEVEL = 4;
@@ -23,6 +23,7 @@ export interface MapCanvasStorePosition {
 
 export interface MapViewport {
   level: number;
+  center: MapCenter;
   points: Readonly<Record<string, MapScreenPoint>>;
 }
 
@@ -54,12 +55,34 @@ export function MapCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const kakaoMapsRef = useRef<KakaoMapsApi | null>(null);
+  const storesRef = useRef(stores);
+  const refreshViewportRef = useRef<(() => void) | null>(null);
   const onViewportChangeRef = useRef(onViewportChange);
   const [status, setStatus] = useState<MapLoadStatus>("idle");
 
   useEffect(() => {
     onViewportChangeRef.current = onViewportChange;
   }, [onViewportChange]);
+
+  useEffect(() => {
+    storesRef.current = stores;
+    const refreshViewport = refreshViewportRef.current;
+    if (refreshViewport) {
+      refreshViewport();
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+    const points: Record<string, MapScreenPoint> = {};
+    for (const store of stores) {
+      points[store.id] = {
+        x: (container.clientWidth * store.x) / 100,
+        y: (container.clientHeight * store.y) / 100,
+      };
+    }
+    onViewportChangeRef.current?.({ level: INITIAL_MAP_LEVEL, center: MAP_CENTER, points });
+  }, [stores]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -72,13 +95,17 @@ export function MapCanvas({
     setStatus("loading");
 
     const fallbackPoints: Record<string, MapScreenPoint> = {};
-    for (const store of stores) {
+    for (const store of storesRef.current) {
       fallbackPoints[store.id] = {
         x: (container.clientWidth * store.x) / 100,
         y: (container.clientHeight * store.y) / 100,
       };
     }
-    onViewportChangeRef.current?.({ level: INITIAL_MAP_LEVEL, points: fallbackPoints });
+    onViewportChangeRef.current?.({
+      level: INITIAL_MAP_LEVEL,
+      center: MAP_CENTER,
+      points: fallbackPoints,
+    });
 
     void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
       .then((kakao) => {
@@ -98,13 +125,19 @@ export function MapCanvas({
           if (!map || !kakaoMaps) return;
           const projection = map.getProjection();
           const points: Record<string, MapScreenPoint> = {};
-          for (const store of stores) {
+          for (const store of storesRef.current) {
             const coordinate = new kakaoMaps.LatLng(store.lat, store.lng);
             const point = projection.containerPointFromCoords(coordinate);
             points[store.id] = { x: point.x, y: point.y };
           }
-          onViewportChangeRef.current?.({ level: map.getLevel(), points });
+          const center = map.getCenter();
+          onViewportChangeRef.current?.({
+            level: map.getLevel(),
+            center: { lat: center.getLat(), lng: center.getLng() },
+            points,
+          });
         };
+        refreshViewportRef.current = updateViewport;
 
         if (onMapClick) kakao.maps.event.addListener(map, "click", onMapClick);
         kakao.maps.event.addListener(map, "idle", updateViewport);
@@ -125,9 +158,10 @@ export function MapCanvas({
       }
       mapRef.current = null;
       kakaoMapsRef.current = null;
+      refreshViewportRef.current = null;
       container.replaceChildren();
     };
-  }, [onMapClick, stores]);
+  }, [onMapClick]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -143,24 +177,36 @@ export function MapCanvas({
   }, [focusRequest, status]);
 
   return (
-    <div
-      aria-hidden="true"
-      onClick={status === "ready" ? undefined : onMapClick}
-      className="absolute inset-0 bg-surface-secondary"
-    >
-      <div ref={containerRef} className="absolute inset-0" />
+    <>
+      <div
+        aria-hidden="true"
+        onClick={status === "ready" ? undefined : onMapClick}
+        className="absolute inset-0 bg-surface-secondary"
+      >
+        <div ref={containerRef} className="absolute inset-0" />
 
-      {status !== "ready" ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
-          <p className="text-body-14-regular text-content-disabled">
-            {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
-          </p>
-        </div>
-      ) : null}
+        {status !== "ready" ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+            <p className="text-body-14-regular text-content-disabled">
+              {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
+            </p>
+          </div>
+        ) : null}
 
-      {status === "ready" ? (
-        <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+        {status === "ready" ? (
+          <span className="absolute top-1/2 left-1/2 flex size-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface-primary bg-blue-500 shadow-floating" />
+        ) : null}
+      </div>
+      {status === "loading" ? (
+        <p role="status" aria-atomic="true" className="sr-only">
+          지도 준비 중
+        </p>
       ) : null}
-    </div>
+      {status === "failed" ? (
+        <p role="alert" aria-atomic="true" className="sr-only">
+          지도를 불러오지 못했어요
+        </p>
+      ) : null}
+    </>
   );
 }

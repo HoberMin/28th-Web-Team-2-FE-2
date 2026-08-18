@@ -15,14 +15,17 @@ export interface PricesQuery {
   group?: string;
   /** 정렬 키. 기본값이면 쿼리에서 뺀다. */
   sort?: string;
+  /** 사용자에게 보이는 1-based 페이지. 첫 페이지면 쿼리에서 뺀다. */
+  page?: number;
 }
 
 /** 빈 값·기본값은 URL에 남기지 않는다 — 주소가 짧아야 공유·비교가 쉽다. */
-export function buildPricesHref({ q, group, sort }: PricesQuery): string {
+export function buildPricesHref({ q, group, sort, page }: PricesQuery): string {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (group) params.set("group", group);
   if (sort) params.set("sort", sort);
+  if (page && page > 1) params.set("page", String(page));
   const search = params.toString();
   return search ? `${ROUTES.prices}?${search}` : ROUTES.prices;
 }

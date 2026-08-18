@@ -3,16 +3,17 @@
 import { type FormEvent, type PointerEvent, useState } from "react";
 import { Button } from "@/app/_components/button";
 import { TextField } from "@/app/_components/text-field";
+import type { Region } from "@/app/_lib/api/schemas/regions";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
-import { regionsByProximity, searchRegions, type Region } from "@/app/_lib/regions";
-import { DEFAULT_DISTRICT } from "@/app/_lib/vegetables";
-
-const RECOMMENDATION_COUNT = 5;
-const NEARBY_REGIONS = regionsByProximity(DEFAULT_DISTRICT, RECOMMENDATION_COUNT);
+import {
+  type RegionOptionsState,
+  useNearbyRegionOptions,
+  useRegionSearchOptions,
+} from "./use-region-options";
 
 interface RegionStepProps {
-  defaultValue: string;
-  onComplete: (district: string) => void;
+  defaultValue: Region | null;
+  onComplete: (region: Region) => Promise<void>;
 }
 
 interface RegionRowProps {
@@ -42,7 +43,7 @@ function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
               selected ? "text-body-16-bold" : "text-body-16-medium"
             } text-content-primary`}
           >
-            {region.label}
+            {region.regionName}
           </span>
           {current ? (
             // Figma `badge/current-location` 364:6171 실측: surface/brand · radius/sm 4 ·
@@ -63,16 +64,40 @@ function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
   );
 }
 
+function RegionStateMessage({ state }: { state: RegionOptionsState }) {
+  if (!state.message) return null;
+  return (
+    <p
+      className="px-4 py-12 text-center text-body-16-medium text-content-secondary"
+      role={state.status === "error" ? "alert" : "status"}
+    >
+      {state.message}
+    </p>
+  );
+}
+
 export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState(defaultValue);
+  const [selected, setSelected] = useState<Region | null>(defaultValue);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const searchState = useRegionSearchOptions(query);
+  const nearbyState = useNearbyRegionOptions();
   const isSearching = query.trim().length > 0;
-  const visibleRegions = isSearching ? searchRegions(query).slice(0, 30) : NEARBY_REGIONS;
+  const optionsState = isSearching ? searchState : nearbyState;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selected) return;
-    onComplete(selected);
+    if (!selected || isSaving) return;
+
+    setIsSaving(true);
+    setSaveError("");
+    try {
+      await onComplete(selected);
+    } catch {
+      setSaveError("동네를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      setIsSaving(false);
+    }
   }
 
   function handleBackgroundPointerDown(event: PointerEvent<HTMLFormElement>) {
@@ -113,7 +138,10 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
                   type="button"
                   aria-label="검색어 지우기"
                   className="flex size-6 items-center justify-center text-content-secondary"
-                  onClick={() => setQuery("")}
+                  onClick={() => {
+                    setQuery("");
+                    setSelected(null);
+                  }}
                 >
                   <FigmaIcon name="close-fill" width={20} currentColor />
                 </button>
@@ -125,7 +153,8 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
             }
             onChange={(event) => {
               setQuery(event.target.value);
-              setSelected("");
+              setSelected(null);
+              setSaveError("");
             }}
           />
         </div>
@@ -142,34 +171,42 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
             {isSearching ? "검색 결과" : "근처 동네"}
           </h2>
 
-          {visibleRegions.length > 0 ? (
+          {optionsState.status === "success" ? (
             <ul className="px-4">
-              {visibleRegions.map((region, index) => (
+              {optionsState.regions.map((region, index) => (
                 <RegionRow
-                  key={region.id}
+                  key={region.regionId}
                   region={region}
                   current={!isSearching && index === 0}
-                  selected={region.label === selected}
-                  onSelect={(next) => setSelected(next.label)}
+                  selected={region.regionId === selected?.regionId}
+                  onSelect={(next) => {
+                    setSelected(next);
+                    setSaveError("");
+                  }}
                 />
               ))}
             </ul>
           ) : (
-            <p className="px-4 py-12 text-center text-body-16-medium text-content-secondary">
-              검색 결과가 없어요
-            </p>
+            <RegionStateMessage state={optionsState} />
           )}
+          {saveError ? (
+            <p className="px-4 py-3 text-center text-body-14-medium text-content-error" role="alert">
+              {saveError}
+            </p>
+          ) : null}
         </section>
 
         <footer className="h-20.25 shrink-0 bg-surface-primary px-5 pb-6 pt-2">
           <Button
             type="submit"
             className="h-12.25 w-full"
-            disabled={!selected}
+            disabled={!selected || isSaving}
+            aria-busy={isSaving}
+            style={selected ? { color: "var(--color-content-primary)" } : undefined}
             leading={false}
             trailing={false}
           >
-            확인
+            {isSaving ? "저장 중" : "확인"}
           </Button>
         </footer>
       </form>

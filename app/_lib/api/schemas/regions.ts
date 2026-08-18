@@ -10,6 +10,9 @@ import { z } from "zod";
 /** 법정동 코드 자릿수. 스펙 예시가 양쪽 다 10자리다(`"0111010100"` / `4413310500`). */
 const REGION_ID_LENGTH = 10;
 
+export const REGION_SEARCH_MIN_LENGTH = 2;
+export const REGION_SEARCH_MAX_LENGTH = 20;
+
 /**
  * 앞자리 0이 있는 코드값이라 항상 문자열로 다룬다.
  *
@@ -35,6 +38,22 @@ export const regionSchema = z.object({
   regionName: z.string(),
 });
 export type Region = z.infer<typeof regionSchema>;
+
+/** `RegionSearchRequest` — 실제 쿼리 키는 springdoc 표기의 `request`가 아니라 `keyword`다. */
+export const regionSearchRequestSchema = z.object({
+  keyword: z
+    .string()
+    .trim()
+    .min(REGION_SEARCH_MIN_LENGTH)
+    .max(REGION_SEARCH_MAX_LENGTH)
+    .regex(/^[가-힣]+(?: [가-힣]+)*$/),
+});
+
+/** `NearbyRegionRequest` — 위·경도 범위는 WGS84의 유효 범위다. */
+export const nearbyRegionRequestSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
 
 /** `/regions/search` 전용 envelope — 이 엔드포인트에만 있다. */
 export const regionSearchEnvelopeSchema = z.object({
