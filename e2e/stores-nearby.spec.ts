@@ -270,7 +270,9 @@ test("가게 API 오류를 지도 위 오류 상태로 표시한다", async ({ p
   await page.goto("/stores");
   await loadClientNearbyStores(page);
 
-  await expect(page.getByRole("alert")).toContainText("주변 가게를 불러오지 못했어요");
+  await expect(
+    page.getByRole("region", { name: "동네 가게 지도" }).getByRole("alert"),
+  ).toContainText("주변 가게를 불러오지 못했어요");
 });
 
 test("지도 중심 이동을 debounce하고 늦은 이전 응답으로 최신 마커를 덮지 않는다", async ({
