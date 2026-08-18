@@ -79,6 +79,8 @@ export interface HomeNewsItem {
   date: string;
   /** Figma 개발 주석: "카드 클릭 시 뉴스로 이동(링크)". 외부 기사 URL. */
   url: string;
+  /** 외부 기사 썸네일. 응답에 없거나 안전한 URL이 아니면 렌더하지 않는다. */
+  thumbnailUrl?: string;
 }
 
 /** 위치 칩에 뜨는 현재 지역. Figma 시안 값. */
