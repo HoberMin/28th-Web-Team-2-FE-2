@@ -15,12 +15,15 @@ import { RegionStep } from "./steps/region-step";
 interface OnboardingFlowProps {
   freshLogin: boolean;
   initialLoginError: string;
+  /** 로그인 설정 실패 사유(키 이름만, 값 없음) — 서버 로그 접근 없이 브라우저 콘솔로 확인하기 위함. */
+  initialLoginDebug: string;
   isAuthenticated: boolean;
 }
 
 export function OnboardingFlow({
   freshLogin,
   initialLoginError,
+  initialLoginDebug,
   isAuthenticated,
 }: OnboardingFlowProps) {
   const router = useRouter();
@@ -34,6 +37,12 @@ export function OnboardingFlow({
     isAuthenticated &&
     (freshLogin || onboarding.authProvider !== "kakao");
   const onboardingCompleted = onboarding?.completed ?? false;
+
+  useEffect(() => {
+    if (initialLoginDebug) {
+      console.error("[auth] 카카오 로그인 설정 실패", { reason: initialLoginDebug });
+    }
+  }, [initialLoginDebug]);
 
   useEffect(() => {
     if (needsSessionSync) {

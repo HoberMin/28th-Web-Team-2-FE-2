@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 interface OnboardingPageProps {
-  searchParams: Promise<{ freshLogin?: string; loginError?: string }>;
+  searchParams: Promise<{ freshLogin?: string; loginError?: string; loginDebug?: string }>;
 }
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
@@ -31,6 +31,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
     <OnboardingFlow
       freshLogin={freshLogin}
       initialLoginError={params.loginError ? LOGIN_ERROR_MESSAGES[params.loginError] ?? "" : ""}
+      initialLoginDebug={params.loginDebug ?? ""}
       isAuthenticated={Boolean(accessToken)}
     />
   );

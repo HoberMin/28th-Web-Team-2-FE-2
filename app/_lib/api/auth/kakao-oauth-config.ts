@@ -10,6 +10,21 @@ export interface KakaoOAuthConfig {
   restKey: string;
 }
 
+/**
+ * 값은 절대 담지 않는다 — 어떤 env var가 비었는지(키 이름) 또는 어떤 형식 규칙을
+ * 어겼는지(고정 문구)만 담는다. 이 reason은 로그인 실패 리다이렉트의 쿼리로도 나간다
+ * (Vercel 로그 접근 권한이 없는 사람도 브라우저 콘솔에서 원인을 볼 수 있게 하기 위해서다).
+ */
+export class KakaoOAuthConfigError extends Error {
+  readonly reason: string;
+
+  constructor(reason: string) {
+    super("카카오 로그인 서버 환경값이 올바르지 않습니다.");
+    this.name = "KakaoOAuthConfigError";
+    this.reason = reason;
+  }
+}
+
 const envSchema = z.object({
   KAKAO_CLIENT_SECRET: z.string().trim().min(1),
   KAKAO_REDIRECT_URI: z.string().trim().min(1),
@@ -40,23 +55,23 @@ function validatedRedirectUri(raw: string): URL {
 export function getKakaoOAuthConfig(): KakaoOAuthConfig {
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
-    // 값 자체는 절대 안 찍는다 — 어떤 키가 비어있는지(이름)만 남긴다.
-    console.error("[auth] 카카오 OAuth 환경변수 누락", {
-      missing: parsed.error.issues.map((issue) => issue.path.join(".")),
-    });
-    throw new Error("카카오 로그인 서버 환경값이 설정되지 않았습니다.");
+    const missing = parsed.error.issues.map((issue) => issue.path.join("."));
+    console.error("[auth] 카카오 OAuth 환경변수 누락", { missing });
+    throw new KakaoOAuthConfigError(`missing:${missing.join(",")}`);
   }
 
+  let redirectUri: URL;
   try {
-    return {
-      clientSecret: parsed.data.KAKAO_CLIENT_SECRET,
-      redirectUri: validatedRedirectUri(parsed.data.KAKAO_REDIRECT_URI),
-      restKey: parsed.data.KAKAO_REST_KEY,
-    };
+    redirectUri = validatedRedirectUri(parsed.data.KAKAO_REDIRECT_URI);
   } catch (error) {
-    console.error("[auth] 카카오 OAuth redirect URI 검증 실패", {
-      reason: error instanceof Error ? error.message : String(error),
-    });
-    throw error;
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error("[auth] 카카오 OAuth redirect URI 검증 실패", { reason });
+    throw new KakaoOAuthConfigError(reason);
   }
+
+  return {
+    clientSecret: parsed.data.KAKAO_CLIENT_SECRET,
+    redirectUri,
+    restKey: parsed.data.KAKAO_REST_KEY,
+  };
 }

@@ -3,7 +3,10 @@ import {
   createKakaoAuthorizationUrl,
   createOAuthRandomValue,
 } from "@/app/_lib/api/auth/kakao-oauth";
-import { getKakaoOAuthConfig } from "@/app/_lib/api/auth/kakao-oauth-config";
+import {
+  getKakaoOAuthConfig,
+  KakaoOAuthConfigError,
+} from "@/app/_lib/api/auth/kakao-oauth-config";
 import {
   clearKakaoOAuthCookies,
   KAKAO_OAUTH_COOKIE_OPTIONS,
@@ -21,11 +24,10 @@ export async function GET(request: Request): Promise<Response> {
   let config;
   try {
     config = getKakaoOAuthConfig();
-  } catch {
-    const response = new NextResponse(null, {
-      status: 303,
-      headers: { Location: "/onboarding?loginError=configuration" },
-    });
+  } catch (error) {
+    const debug = error instanceof KakaoOAuthConfigError ? error.reason : "unknown";
+    const location = `/onboarding?loginError=configuration&loginDebug=${encodeURIComponent(debug)}`;
+    const response = new NextResponse(null, { status: 303, headers: { Location: location } });
     clearKakaoOAuthCookies(response);
     response.headers.set("Cache-Control", "no-store");
     return response;

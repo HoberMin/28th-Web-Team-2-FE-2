@@ -7,7 +7,10 @@ import {
   KakaoOAuthError,
   verifyKakaoIdToken,
 } from "@/app/_lib/api/auth/kakao-oauth";
-import { getKakaoOAuthConfig } from "@/app/_lib/api/auth/kakao-oauth-config";
+import {
+  getKakaoOAuthConfig,
+  KakaoOAuthConfigError,
+} from "@/app/_lib/api/auth/kakao-oauth-config";
 import {
   clearKakaoOAuthCookies,
   KAKAO_LOGIN_TRANSITION_COOKIE,
@@ -21,9 +24,12 @@ export const dynamic = "force-dynamic";
 
 type LoginErrorCode = "cancelled" | "configuration" | "expired" | "unavailable";
 
-function onboardingRedirect(params: { error?: LoginErrorCode; freshLogin?: string } = {}) {
+function onboardingRedirect(
+  params: { error?: LoginErrorCode; freshLogin?: string; debug?: string } = {},
+) {
   const searchParams = new URLSearchParams();
   if (params.error) searchParams.set("loginError", params.error);
+  if (params.debug) searchParams.set("loginDebug", params.debug);
   if (params.freshLogin) searchParams.set("freshLogin", params.freshLogin);
   const query = searchParams.toString();
   const location = query ? `/onboarding?${query}` : "/onboarding";
@@ -45,8 +51,9 @@ export async function GET(request: NextRequest): Promise<Response> {
   let config;
   try {
     config = getKakaoOAuthConfig();
-  } catch {
-    return onboardingRedirect({ error: "configuration" });
+  } catch (error) {
+    const debug = error instanceof KakaoOAuthConfigError ? error.reason : "unknown";
+    return onboardingRedirect({ error: "configuration", debug });
   }
 
   if (

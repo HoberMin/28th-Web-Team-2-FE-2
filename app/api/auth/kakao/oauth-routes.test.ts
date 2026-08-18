@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { ApiError } from "@/app/_lib/api/api-error";
+import { KakaoOAuthConfigError } from "@/app/_lib/api/auth/kakao-oauth-config";
 import {
   KAKAO_LOGIN_TRANSITION_COOKIE,
   KAKAO_OAUTH_NONCE_COOKIE,
@@ -28,9 +29,11 @@ vi.mock("@/app/_lib/api/auth/kakao-oauth", async (importOriginal) => {
   };
 });
 
-vi.mock("@/app/_lib/api/auth/kakao-oauth-config", () => ({
-  getKakaoOAuthConfig: mocks.getKakaoOAuthConfig,
-}));
+vi.mock("@/app/_lib/api/auth/kakao-oauth-config", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("@/app/_lib/api/auth/kakao-oauth-config")>();
+  return { ...original, getKakaoOAuthConfig: mocks.getKakaoOAuthConfig };
+});
 vi.mock("@/app/_lib/api/server/auth", () => ({ login: mocks.login }));
 vi.mock("@/app/_lib/api/auth/session", () => ({ saveLoginTokens: mocks.saveLoginTokens }));
 
@@ -81,6 +84,23 @@ describe("Kakao OAuth routes", () => {
     expect(setCookies).toContain("Path=/api/auth/kakao");
   });
 
+  it("설정 오류는 Vercel 로그 접근 없이도 볼 수 있도록 사유를 loginDebug 쿼리로 남긴다", async () => {
+    mocks.getKakaoOAuthConfig.mockImplementation(() => {
+      throw new KakaoOAuthConfigError("missing:KAKAO_REDIRECT_URI");
+    });
+
+    const response = await start(
+      new Request("http://localhost:3000/api/auth/kakao/start", {
+        headers: { "Sec-Fetch-Site": "same-origin" },
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe(
+      "/onboarding?loginError=configuration&loginDebug=missing%3AKAKAO_REDIRECT_URI",
+    );
+  });
+
   it("cross-site top-level GET은 state·nonce를 덮어쓰기 전에 거부한다", async () => {
     const response = await start(
       new Request("http://localhost:3000/api/auth/kakao/start", {
@@ -91,6 +111,20 @@ describe("Kakao OAuth routes", () => {
     expect(response.status).toBe(403);
     expect(mocks.getKakaoOAuthConfig).not.toHaveBeenCalled();
     expect(mocks.createOAuthRandomValue).not.toHaveBeenCalled();
+  });
+
+  it("callback도 설정 오류 사유를 loginDebug 쿼리로 남긴다", async () => {
+    mocks.getKakaoOAuthConfig.mockImplementation(() => {
+      throw new KakaoOAuthConfigError("KAKAO_REDIRECT_URI는 HTTPS 또는 localhost HTTP여야 합니다.");
+    });
+
+    const response = await callback(callbackRequest("code=code&state=stored-state"));
+
+    const expected = new URLSearchParams({
+      loginError: "configuration",
+      loginDebug: "KAKAO_REDIRECT_URI는 HTTPS 또는 localhost HTTP여야 합니다.",
+    });
+    expect(response.headers.get("Location")).toBe(`/onboarding?${expected}`);
   });
 
   it("state가 다르면 code 교환 전에 요청을 폐기한다", async () => {
