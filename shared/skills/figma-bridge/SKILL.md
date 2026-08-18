@@ -153,7 +153,10 @@ Figma가 스케일·컴포넌트를 지우면 코드에 남은 사용처를 옮�
 - **단일 루트 Next.js 프로젝트.** 모노레포·워크스페이스·`packages/`·`apps/` **없음**. 루트가 곧 Next 프로젝트다
 - `app/`(App Router) · `app/api/*`(외부 Spring 앞단 BFF) · `app/prototype/*`(프로토타입 화면 — 실데이터 연동, **구조 유지 대상이니 삭제·대규모 개편 금지**) · `app/playground`(디자인 갤러리)
 - **디자인 토큰은 `app/globals.css`의 `@theme static` 블록 한 곳** — 별도 `tokens.css`·패키지 없음. `static`은 미사용 토큰까지 항상 emit하려는 것(시맨틱 alias·SEED 오버라이드가 끊기지 않게) — **`@theme`으로 되돌리지 말 것**
-- 정식 공통 컴포넌트 자리는 `app/_components/`, 유틸은 `app/_lib/`다. **아직 없다** — Figma에 컴포넌트 규격이 없어서(토큰만 있다) 만들 게 없는 것이고 이 상태가 정상이다. 규격이 올라오면 그때 생성한다. (프로토타입 전용 부품은 `app/prototype/_components/`에 이미 있고, 그건 정식 DS가 아니다)
+- 정식 공통 컴포넌트는 `app/_components/`, 유틸은 `app/_lib/`. **둘 다 존재한다** (2026-08-18 갱신 — 이전엔 "아직 없다"였는데 낡았다). 다만 `app/_components/`에 있는 것은 아직 Figma 규격 컴포넌트가 아니라 프로토타입 화면이 쓰는 부품이다 — **정식 DS 컴포넌트는 Figma에 규격이 올라온 뒤에 만든다**는 규칙은 그대로다
+- **API 레이어는 `app/_lib/api/`** (2026-08-18 신설): `schemas/`(zod) · `server/`(서버 fetch, `server-only`) · `auth/`(토큰 쿠키·세션) · `spring.ts`(외부 Spring 호출 창구) · `api-error.ts` · `tags.ts`. 상세 규약은 `api-patterns` 스킬
+- **루트 `proxy.ts`** = 토큰 선제 갱신. Next 16에서 `middleware` 컨벤션이 `proxy`로 개명됐다 — `middleware.ts`로 만들지 말 것
+- ⚠️ `app/` 안에 **`error.ts`라는 이름의 파일을 두지 않는다.** 비공개 폴더(`_lib` 등) 안이어도 Next가 에러 바운더리 컨벤션으로 보고 "Client Component여야 한다"며 빌드를 세운다 (실제로 겪었다 → `api-error.ts`로 개명)
 - **barrel export 예외 없음** (conventions #2)
 - 폰트: **Wanted Sans Variable 1종**(동적 서브셋 92분할 self-host — `public/fonts/wanted-sans/`, `@font-face`는 `app/fonts/wanted-sans-subset.css`). Pretendard·head1/head2 3종 체계는 폐기
 
