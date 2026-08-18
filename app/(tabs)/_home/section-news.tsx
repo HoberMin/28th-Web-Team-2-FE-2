@@ -60,8 +60,10 @@ function NewsThumbnail({ src }: { src: string }) {
 
 export function SectionNews({ items }: SectionNewsProps) {
   return (
-    <section className="flex w-full flex-col items-start gap-4">
-      <h2 className="w-full text-title-18-bold text-content-primary">최근 시세 뉴스</h2>
+    <section aria-labelledby="home-news-title" className="flex w-full flex-col items-start gap-4">
+      <h2 id="home-news-title" className="w-full text-title-18-bold text-content-primary">
+        최근 시세 뉴스
+      </h2>
 
       {items.length > 0 ? (
         // self-stretch가 필요하다: 섹션이 `items-start`라 자식이 늘어나지 않는데, 이 목록은
