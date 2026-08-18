@@ -32,7 +32,7 @@ export async function searchRegions(keyword: string): Promise<Region[]> {
  * 좌표로 법정동 조회. 최상위 배열을 그대로 준다(envelope 없음).
  *
  * ⚠️ 여기 `regionId`는 스펙상 int64라 앞자리 0이 이미 사라진 채 온다.
- * 스키마에서 문자열로 바꾸지만, **원본에서 유실된 0은 복구할 수 없다** — BE에 통일을 요청해 뒀다.
+ * 스키마가 10자리로 `padStart`해 복원한다(자릿수 고정 가정 — BE 확인 대기).
  */
 export function getNearbyRegions(params: {
   latitude: number;
