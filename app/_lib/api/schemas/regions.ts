@@ -22,7 +22,13 @@ const REGION_ID_LENGTH = 10;
  */
 const regionIdSchema = z
   .union([z.string(), z.number()])
-  .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0"));
+  .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0"))
+  // 보정만 하고 검증을 안 하면 padStart가 **그럴듯하게 생긴 틀린 코드**를 만든다.
+  // 예: 8자리 시군구 코드가 오면 "00"+8자리가 되어 `/items?regionId=`에서 조용히 빈 목록이 된다.
+  // 여기서 터뜨리면 최소한 원인이 드러난다.
+  .refine((value) => /^\d{10}$/.test(value), {
+    message: `법정동 코드는 숫자 ${REGION_ID_LENGTH}자리여야 합니다.`,
+  });
 
 export const regionSchema = z.object({
   regionId: regionIdSchema,
