@@ -6,7 +6,8 @@
 ## 기본 흐름 (main 직접)
 
 ```
-세션 시작(자동 pull) → 작업 → 푸시 전 code-reviewer 1회 (Critical만 수정) → git pull --rebase origin main → git push origin main
+세션 시작(자동 pull) → 작업(조각마다 커밋) → 푸시 전 code-reviewer 1회 (Critical만 수정)
+→ pnpm build 1회 → git pull --rebase origin main → git push origin main
 ```
 
 - **작업이 끝나면 바로 커밋·푸시한다** — 로컬에 쌓아두지 않는다. 푸시 전엔 pull 항목 확인(`git pull --rebase`)만.
@@ -43,7 +44,7 @@
   **타입 하나 / 함수 하나 / 캐싱 옵션 하나 / 상태 하나**를 각각 커밋한다. 기능 하나가 보통 **5~15 커밋**.
   분해 축·예외·스테이징 절차(`git add -p`)·빌드 깨짐 허용 범위는 **`git-commit` 스킬이 진실 소스**.
   - 팀이 커밋 수를 활동 지표로 보고 있어서 택한 기본값이다. 부수 효과로 리뷰·되돌리기 단위도 작아진다.
-  - **중간 커밋은 빌드를 깨도 된다** (CI는 푸시 단위). 단 **푸시 시점의 HEAD는 `pnpm build` 통과** 필수.
+  - **중간 커밋은 빌드를 깨도 된다** (CI는 푸시 단위). 단 **푸시 시점의 HEAD는 `pnpm build` 통과** 필수 — 위 흐름의 빌드 1회가 이 허용의 안전판이다. (conventions #6 "빌드는 최종 1회만"과 충돌하지 않는다: #6은 *실행 횟수*, 이건 *커밋 상태*다)
   - 커밋 수를 늘리려고 요청에 없는 정리를 끼워 넣지 않는다 (conventions #4 위반이고 분해도 아니다).
 
 ## 계정·인증 (이 레포 고정)
