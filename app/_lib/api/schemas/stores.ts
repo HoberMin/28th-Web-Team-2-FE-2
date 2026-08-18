@@ -14,9 +14,9 @@ export const nearbyStoreSchema = z.object({
   distanceMeters: z.number().optional(),
   /**
    * 로그인 사용자의 단골 여부 — 개인화 필드다(공유 캐시 금지).
-   * items와 같은 이유로 없으면 false로 본다(BE 요청 3번 대기).
+   * items와 같은 이유로 없거나 null이면 false로 본다(BE 요청 3번 대기).
    */
-  isLiked: z.boolean().default(false),
+  isLiked: z.boolean().nullish().transform((value) => value ?? false),
 });
 export type NearbyStore = z.infer<typeof nearbyStoreSchema>;
 

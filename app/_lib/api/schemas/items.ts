@@ -32,10 +32,12 @@ export const itemSchema = z.object({
   priceDiffRate: z.number(),
   /**
    * 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.**
-   * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없으면 false로 본다.
+   * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없거나 null이면 false로 본다.
    * 필수로 두면 게스트의 시세 화면 전체가 파싱 에러로 사라진다.
+   * `.default()`가 아니라 `.nullish()`인 이유: `.default()`는 **필드 누락만** 흡수하고
+   * `null`은 그대로 실패시킨다. Jackson이 미설정 boolean을 null로 직렬화하는 일이 흔하다.
    */
-  isLiked: z.boolean().default(false),
+  isLiked: z.boolean().nullish().transform((value) => value ?? false),
 });
 export type Item = z.infer<typeof itemSchema>;
 
