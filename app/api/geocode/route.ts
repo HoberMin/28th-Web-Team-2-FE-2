@@ -4,6 +4,10 @@
 //   1) KAKAO_REST_KEY 있으면 Kakao(가장 정확)
 //   2) 없으면 OpenStreetMap Nominatim(무료·키 불필요)
 //   3) 둘 다 실패하면 삼성동(UT 테스트 장소) 폴백
+//
+// 좌표마다 결과가 다르고 외부 API를 실시간으로 부르므로 캐싱하지 않는다 (conventions #11).
+
+export const dynamic = "force-dynamic";
 
 interface KakaoRegionDoc {
   region_type: string;
