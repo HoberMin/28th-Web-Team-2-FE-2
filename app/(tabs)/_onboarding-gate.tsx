@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { nextOnboardingRoute, useOnboarding } from "@/app/_lib/onboarding-store";
+import { nextOnboardingRoute, useHydratedOnboarding } from "@/app/_lib/onboarding-store";
 
 export function OnboardingGate() {
   const router = useRouter();
-  const onboarding = useOnboarding();
-  const target = nextOnboardingRoute(onboarding);
+  const onboarding = useHydratedOnboarding();
+  const target = onboarding ? nextOnboardingRoute(onboarding) : null;
 
   useEffect(() => {
     if (target) {
@@ -15,7 +15,7 @@ export function OnboardingGate() {
     }
   }, [router, target]);
 
-  if (!target) return null;
+  if (onboarding && !target) return null;
 
   return (
     <div className="absolute inset-0 z-50 bg-surface-primary" role="status">
