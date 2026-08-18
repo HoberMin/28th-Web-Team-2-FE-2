@@ -1,5 +1,9 @@
 import "server-only";
 
+// ⚠️ **이름 충돌 주의**: `app/_lib/regions.ts`에 같은 이름의 프로토타입 더미
+// (`searchRegions`·`Region`)가 있다. 화면 연결 때 자동 import가 더미를 집어오지 않도록
+// import 경로를 눈으로 확인할 것. 더미를 걷어내는 시점에 이 주석도 지운다.
+
 import {
   nearbyRegionsSchema,
   regionSearchEnvelopeSchema,

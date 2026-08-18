@@ -1,5 +1,10 @@
 import "server-only";
 
+// ⚠️ **이름 충돌 주의**: `app/_lib/nearby-stores.ts`에 같은 이름의 프로토타입 더미
+// (`getNearbyStores`·`NearbyStore`)가 있다. 모양이 달라서, 화면 연결 때 에디터 자동 import가
+// 더미를 집어오면 **조용히 가짜 데이터가 화면에 뜬다.** import 경로를 눈으로 확인할 것.
+// 더미를 걷어내는 시점에 이 주석도 지운다.
+
 import { nearbyStoresSchema, type NearbyStores } from "../schemas/stores";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
