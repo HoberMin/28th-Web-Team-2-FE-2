@@ -1,4 +1,4 @@
-import type { MapStore } from "@/app/(tabs)/stores/_data";
+import type { PrototypeMapStore } from "@/app/(tabs)/stores/_data";
 
 export interface StoreDetailPrice {
   id: string;
@@ -29,7 +29,7 @@ const FIGMA_ONION_PRICES: StoreDetailPrice[] = Array.from({ length: 9 }, (_, ind
 
 const DEFAULT_ADDRESS = "서울 광진구 능동로 120";
 
-export function getStoreDetailData(store: MapStore): StoreDetailData {
+export function getStoreDetailData(store: PrototypeMapStore): StoreDetailData {
   if (store.id === "nh-haniro") {
     return {
       address: "강원도 속초시 대포항희망길 83 대포항수산시장 D동 7호",
