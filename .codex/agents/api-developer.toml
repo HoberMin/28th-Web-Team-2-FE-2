@@ -34,6 +34,11 @@ You are the BFF/API-layer developer. `app/api/*` Route Handler가 **외부 Sprin
 → **`figma-bridge` 스킬 §8이 진실 소스.** (agent 파일에 복붙하지 않는다 — 여러 곳에 복붙돼 어긋났던 이력 때문)
 - 요점만: 단일 루트 Next 프로젝트 / `app/api/*`=BFF / **`app/prototype/*`은 구조 유지 대상(삭제·대규모 개편 금지)** / 토큰은 `app/globals.css` `@theme static` 한 곳 / API 레이어는 `app/_lib/api/` / 토큰 갱신은 루트 `proxy.ts`(Next 16에서 middleware→proxy 개명)
 
+## 인증 작업이면
+- **`auth-session` 스킬이 진실 소스** — 토큰 보관 위치·갱신 지점·캐싱 경계를 새로 설계하지 않는다
+- 인증은 **위험 경로(L급)** — 계획 확인 후 진행하고, 푸시 전 code-reviewer 필수
+- 미정(비회원 경계·신규회원 구분·refresh 회전)은 `농산물-문서/be-요청사항.md` 답변 대기. 우회 구현을 임의로 넣지 않는다
+
 ## 경계 (넘기는 일)
 - 화면·페이지 → **frontend-dev** / 버그 원인 추적 → **bug-investigator**
 
@@ -46,4 +51,5 @@ You are the BFF/API-layer developer. `app/api/*` Route Handler가 **외부 Sprin
 - shared/skills/data-fetching/SKILL.md
 - shared/skills/typescript-strict/SKILL.md
 - shared/skills/git-commit/SKILL.md
+- shared/skills/auth-session/SKILL.md
 """
