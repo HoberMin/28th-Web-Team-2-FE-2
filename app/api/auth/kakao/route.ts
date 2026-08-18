@@ -6,14 +6,12 @@
 // 이 라우트가 하는 일: idToken을 Spring에 넘기고 → 돌아온 토큰을
 // **우리 도메인 httpOnly 쿠키로 옮겨 심는다.** 응답 본문에는 토큰을 담지 않는다.
 
-import { z } from "zod";
-import { saveTokens } from "@/app/_lib/api/auth/session";
 import { ApiError } from "@/app/_lib/api/api-error";
+import { saveTokens } from "@/app/_lib/api/auth/session";
+import { loginRequestSchema } from "@/app/_lib/api/schemas/auth";
 import { login } from "@/app/_lib/api/server/auth";
 
 export const dynamic = "force-dynamic";
-
-const bodySchema = z.object({ idToken: z.string().min(1) });
 
 export async function POST(request: Request): Promise<Response> {
   let payload: unknown;
@@ -23,7 +21,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ message: "요청 형식이 올바르지 않아요." }, { status: 400 });
   }
 
-  const parsed = bodySchema.safeParse(payload);
+  // Spring 요청 계약을 그대로 재사용한다 — 같은 모양을 두 번 선언하면 갈라진다.
+  const parsed = loginRequestSchema.safeParse(payload);
   if (!parsed.success) {
     return Response.json({ message: "idToken이 필요해요." }, { status: 400 });
   }
@@ -53,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
       if (error.isAuthExpired || error.kind === "forbidden") {
         return Response.json({ message: "로그인 정보가 올바르지 않아요." }, { status: 401 });
       }
-      // 400은 재로그인으로 안 풀린다 — 우리 body가 위 bodySchema를 이미 통과했으므로
+      // 400은 재로그인으로 안 풀린다 — 우리 body가 위 loginRequestSchema를 이미 통과했으므로
       // Spring이 400을 준다면 대개 필드명·경로 계약 불일치, 즉 **우리 버그**다.
       // 이걸 401로 보내면 사용자가 재로그인만 반복하게 된다.
       if (error.kind === "badRequest") {
