@@ -80,11 +80,11 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
       <div className="flex flex-col gap-3">
         <h1 className="w-full truncate text-title-20-bold text-content-primary">{store.name}</h1>
 
-        {/* store-profile-detail(364:7884) — flex-col gap-[12px] */}
+        {/* store-profile-detail(429:17635) — flex-col gap-[12px] */}
         <div className="flex flex-col gap-3">
-          {/* store-profile-meta(364:7885) — flex-col gap-[8px] */}
+          {/* store-profile-meta(429:17636) — flex-col gap-[8px] */}
           <div className="flex flex-col gap-2">
-            {/* address(364:7886) — gap-[4px] items-start · 아이콘 22 · body/14-regular · content/primary */}
+            {/* store-profile-address(429:17637) — gap-[4px] items-start · 아이콘 22 · body/14-regular · content/primary */}
             <div className="flex w-full items-start gap-1">
               <FigmaIcon name="map-pin-fill" width={22} className="shrink-0" />
               <p className="min-w-0 flex-1 text-body-14-regular text-content-primary">
@@ -93,9 +93,11 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
             </div>
 
             {/*
-              hours(364:7889) — gap-[4px] items-start · `icon/clock-filled` **22**
-              Figma 개발 주석(364:7892): "해당 텍스트박스 클릭시 아래로 영업 시간 상세 정보가 나옴"
-              → 접힘/펼침이 상태축이고, chevron 방향이 그걸 나른다(7897 down ↔ 7584 up).
+              store-profile-hours(429:17640) — gap-[4px] items-start · `icon/clock-filled` **22**
+              Figma 개발 주석(429:17643): "해당 텍스트박스 클릭시 아래로 영업 시간 상세 정보가 나옴"
+              → 접힘/펼침이 상태축이고, chevron 방향이 그걸 나른다.
+              ⚠️ v3 프레임 3개는 **전부 펼친 상태(icon/chevron-up 429:17648)**라 접힘 시안이 없다 —
+                 chevron-down은 v2 시안(구 364:7897) 근거로 유지한다.
             */}
             <button
               type="button"
@@ -105,9 +107,9 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
             >
               <IconClockFill aria-hidden="true" className="size-5.5 shrink-0 text-content-disabled" />
               <div className="min-w-0 flex-1">
-                {/* summary(364:7892) — gap-[4px] items-center */}
+                {/* store-profile-hours-summary(429:17643) — gap-[4px] items-center */}
                 <div className="flex items-center gap-1">
-                  {/* summary-text(364:7893) — gap-[6px] items-center */}
+                  {/* summary-text(429:17644) — gap-[6px] items-center */}
                   <div className="flex items-center gap-1.5">
                     <span className="text-body-14-semibold text-content-primary">영업종료</span>
                     <span
@@ -137,7 +139,7 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
           </div>
 
           {/*
-            stats(364:7898) — gap-[8px] items-center. 실측:
+            store-profile-stats(429:17652) — gap-[8px] items-center. 실측:
               배지  px-[8px] py-[4px] · radius/sm · gap-[4px]
                     라벨 caption/12-medium + 숫자 caption/12-bold
               1번   bg surface/accent/orange-subtle · text content/accent/badge
