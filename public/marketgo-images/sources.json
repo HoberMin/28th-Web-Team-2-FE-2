@@ -1,0 +1,1205 @@
+{
+  "generatedAt": "2026-08-19T09:35:49.224Z",
+  "vegetables": {
+    "count": 46,
+    "items": {
+      "potato": {
+        "query": "potato",
+        "assets": [
+          {
+            "path": "/marketgo-images/potato-01.webp",
+            "sourcePath": "/vegetables/coupang/potato.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/potato-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/08/05/22/30/potatoes-7367708_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/potato-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/06/22/10/56/potatoes-7277689_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "sweet-potato": {
+        "query": "sweet potato",
+        "assets": [
+          {
+            "path": "/marketgo-images/sweet-potato-01.webp",
+            "sourcePath": "/vegetables/coupang/sweet-potato.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/sweet-potato-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/09/13/08/51/sweet-potato-1666707_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/sweet-potato-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2014/08/06/20/32/potatoes-411975_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "garlic": {
+        "query": "garlic",
+        "assets": [
+          {
+            "path": "/marketgo-images/garlic-01.webp",
+            "sourcePath": "/vegetables/coupang/garlic.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/garlic-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2015/08/06/15/08/food-877968_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/garlic-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/01/27/21/27/garlic-1165336_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "onion": {
+        "query": "onion",
+        "assets": [
+          {
+            "path": "/marketgo-images/onion-01.webp",
+            "sourcePath": "/vegetables/coupang/onion.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/onion-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/10/10/21/03/onions-5644184_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/onion-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/12/26/10/46/onions-5861116_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "carrot": {
+        "query": "carrot",
+        "assets": [
+          {
+            "path": "/marketgo-images/carrot-01.webp",
+            "sourcePath": "/vegetables/coupang/carrot.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/carrot-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/07/31/03/46/carrot-2556382_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/carrot-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/11/12/03/51/carrot-5734303_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "ginger": {
+        "query": "ginger",
+        "assets": [
+          {
+            "path": "/marketgo-images/ginger-01.webp",
+            "sourcePath": "/vegetables/coupang/ginger.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/ginger-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/04/27/13/15/ginger-1356601_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/ginger-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/06/05/20/54/ginger-5264488_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "tomato": {
+        "query": "tomato",
+        "assets": [
+          {
+            "path": "/marketgo-images/tomato-01.webp",
+            "sourcePath": "/vegetables/coupang/tomato.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/tomato-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/08/16/12/12/tomatoes-5492597_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/tomato-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/11/07/18/30/tomatoes-2927757_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "cherry-tomato": {
+        "query": "cherry tomato",
+        "assets": [
+          {
+            "path": "/marketgo-images/cherry-tomato-01.webp",
+            "sourcePath": "/vegetables/coupang/cherry-tomato.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/cherry-tomato-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2015/09/18/08/47/cherry-tomato-945198_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/cherry-tomato-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2025/08/14/13/33/cherry-tomatoes-9774075_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "date-cherry-tomato": {
+        "query": "date tomato fresh produce",
+        "assets": [
+          {
+            "path": "/marketgo-images/date-cherry-tomato-01.webp",
+            "sourcePath": "/vegetables/coupang/date-cherry-tomato.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/date-cherry-tomato-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/01/23/16/36/cherry-tomatoes-4788137_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/date-cherry-tomato-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/10/01/20/12/tomatoes-5619630_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "bell-pepper": {
+        "query": "green bell pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/bell-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/bell-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/bell-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/11/11/07/19/green-pepper-5731720_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/bell-pepper-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/03/18/00/58/bell-peppers-1264209_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "paprika": {
+        "query": "paprika pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/paprika-01.webp",
+            "sourcePath": "/vegetables/coupang/paprika.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/paprika-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2018/10/23/14/35/paprika-3768053_640.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/paprika-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/01/16/15/13/paprika-1984291_1280.png",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "cucumber": {
+        "query": "cucumber",
+        "assets": [
+          {
+            "path": "/marketgo-images/cucumber-01.webp",
+            "sourcePath": "/vegetables/coupang/cucumber.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/cucumber-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/04/18/18/43/stack-of-green-cucumber-6189312_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/cucumber-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2015/07/17/13/44/cucumbers-849269_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "zucchini-korean": {
+        "query": "korean zucchini",
+        "assets": [
+          {
+            "path": "/marketgo-images/zucchini-korean-01.webp",
+            "sourcePath": "/vegetables/coupang/zucchini-korean.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/zucchini-korean-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/08/30/12/05/zucchini-1630518_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/zucchini-korean-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/01/15/08/13/zucchini-6938877_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "zucchini": {
+        "query": "zucchini",
+        "assets": [
+          {
+            "path": "/marketgo-images/zucchini-01.webp",
+            "sourcePath": "/vegetables/coupang/zucchini.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/zucchini-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/08/30/12/05/zucchini-1630518_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/zucchini-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/01/15/08/13/zucchini-6938877_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "green-pepper": {
+        "query": "green chili pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/green-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/green-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/green-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/09/10/22/28/green-chili-2737243_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/green-pepper-03.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/33661721/pexels-photo-33661721.jpeg?auto=compress&cs=tinysrgb&h=627&fit=crop&w=1200",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "kkwari-pepper": {
+        "query": "shishito pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/kkwari-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/kkwari-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/kkwari-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/01/06/18/37/peppers-7701883_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/kkwari-pepper-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2018/04/26/05/16/market-3351156_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "cheongyang-pepper": {
+        "query": "Korean chili pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/cheongyang-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/cheongyang-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/cheongyang-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2014/11/10/10/15/pepper-525260_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/cheongyang-pepper-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2015/07/26/19/39/chili-pepper-861670_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "mild-pepper": {
+        "query": "mild green pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/mild-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/mild-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/mild-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/11/11/07/19/green-pepper-5731720_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/mild-pepper-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2014/04/06/02/19/vegetables-317497_640.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "red-pepper": {
+        "query": "red chili pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/red-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/red-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/red-pepper-02.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/32564142/pexels-photo-32564142.jpeg?auto=compress&cs=tinysrgb&h=627&fit=crop&w=1200",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/red-pepper-03.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/31025269/pexels-photo-31025269/free-photo-of-fresh-red-chili-peppers-in-rustic-bowl.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "dried-pepper": {
+        "query": "dried chili pepper",
+        "assets": [
+          {
+            "path": "/marketgo-images/dried-pepper-01.webp",
+            "sourcePath": "/vegetables/coupang/dried-pepper.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/dried-pepper-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2015/11/12/07/41/paprika-1039766_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/dried-pepper-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/07/14/17/12/dried-pepper-6466627_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "pepper-powder-kr": {
+        "query": "gochugaru Korean chili flakes",
+        "assets": [
+          {
+            "path": "/marketgo-images/pepper-powder-kr-01.webp",
+            "sourcePath": "/vegetables/coupang/pepper-powder-kr.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/pepper-powder-kr-02.jpg",
+            "sourceUrl": "https://oasisprodproduct.edge.naverncp.com/75922/detail/detail_75922_0_1077d809-47f2-4fc8-a014-8ec0d298c1cb.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/pepper-powder-kr-03.jpg",
+            "sourceUrl": "https://flexgcdn-natural8127.moall.shop/data/goods/natural8127/small/thum2/1000000232_magnify_026.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "pepper-powder-cn": {
+        "query": "Chinese chili flakes market",
+        "assets": [
+          {
+            "path": "/marketgo-images/pepper-powder-cn-01.webp",
+            "sourcePath": "/vegetables/coupang/pepper-powder-cn.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/pepper-powder-cn-02.jpg",
+            "sourceUrl": "https://image.homeplus.kr/td/ddc19ac3-cb61-446e-b48c-6afde7ff8e5d",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/pepper-powder-cn-03.jpg",
+            "sourceUrl": "https://thumbnail.coupangcdn.com/thumbnails/remote/492x492ex/image/retail/images/25716524452952-ce1a7533-3f98-4b14-b92d-39db6db0f58d.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "napa-cabbage": {
+        "query": "napa cabbage",
+        "assets": [
+          {
+            "path": "/marketgo-images/napa-cabbage-01.webp",
+            "sourcePath": "/vegetables/coupang/napa-cabbage.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/napa-cabbage-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/07/04/18/00/produce-2472015__480.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/napa-cabbage-03.png",
+            "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Napa_cabbages.png/960px-Napa_cabbages.png",
+            "contentType": "image/png",
+            "kind": "search"
+          }
+        ]
+      },
+      "radish": {
+        "query": "radish",
+        "assets": [
+          {
+            "path": "/marketgo-images/radish-01.webp",
+            "sourcePath": "/vegetables/coupang/radish.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/radish-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/05/10/02/59/radish-5152094_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/radish-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/10/31/14/37/radishes-6757642_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "baby-napa-cabbage": {
+        "query": "baby napa cabbage",
+        "assets": [
+          {
+            "path": "/marketgo-images/baby-napa-cabbage-01.webp",
+            "sourcePath": "/vegetables/coupang/baby-napa-cabbage.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/baby-napa-cabbage-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/07/04/18/00/produce-2472015__480.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/baby-napa-cabbage-03.png",
+            "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Napa_cabbages.png/960px-Napa_cabbages.png",
+            "contentType": "image/png",
+            "kind": "search"
+          }
+        ]
+      },
+      "young-napa-cabbage": {
+        "query": "young cabbage",
+        "assets": [
+          {
+            "path": "/marketgo-images/young-napa-cabbage-01.webp",
+            "sourcePath": "/vegetables/coupang/young-napa-cabbage.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/young-napa-cabbage-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/12/20/21/42/cabbage-7668781_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/young-napa-cabbage-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/07/25/23/42/cabbage-2539966_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "cabbage": {
+        "query": "cabbage",
+        "assets": [
+          {
+            "path": "/marketgo-images/cabbage-01.webp",
+            "sourcePath": "/vegetables/coupang/cabbage.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/cabbage-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/12/20/21/42/cabbage-7668781_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/cabbage-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2025/08/07/07/05/white-cabbage-9760366_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "young-radish": {
+        "query": "young radish",
+        "assets": [
+          {
+            "path": "/marketgo-images/young-radish-01.webp",
+            "sourcePath": "/vegetables/coupang/young-radish.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/young-radish-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2024/10/31/13/05/radish-9164108_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/young-radish-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/05/10/02/59/radish-5152094_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "spinach": {
+        "query": "spinach",
+        "assets": [
+          {
+            "path": "/marketgo-images/spinach-01.webp",
+            "sourcePath": "/vegetables/coupang/spinach.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/spinach-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/07/16/16/30/spinach-1522283_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/spinach-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2018/02/04/04/48/vegetable-3129067_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "red-lettuce": {
+        "query": "red leaf lettuce",
+        "assets": [
+          {
+            "path": "/marketgo-images/red-lettuce-01.webp",
+            "sourcePath": "/vegetables/coupang/red-lettuce.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/red-lettuce-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/05/28/13/36/red-leaf-lettuce-7227306_640.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/red-lettuce-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/07/15/21/11/lettuce-8129657_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "green-lettuce": {
+        "query": "green leaf lettuce",
+        "assets": [
+          {
+            "path": "/marketgo-images/green-lettuce-01.webp",
+            "sourcePath": "/vegetables/coupang/green-lettuce.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/green-lettuce-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/03/05/22/01/lettuce-1239155_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/green-lettuce-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/11/15/11/24/lettuce-6797845_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "perilla-leaf": {
+        "query": "perilla leaves",
+        "assets": [
+          {
+            "path": "/marketgo-images/perilla-leaf-01.webp",
+            "sourcePath": "/vegetables/coupang/perilla-leaf.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/perilla-leaf-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2024/03/21/00/41/perilla-leaves-8646627_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/perilla-leaf-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/09/22/12/14/sesame-5592892_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "water-parsley": {
+        "query": "water parsley",
+        "assets": [
+          {
+            "path": "/marketgo-images/water-parsley-01.webp",
+            "sourcePath": "/vegetables/coupang/water-parsley.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/water-parsley-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2014/10/22/18/35/parsley-498614_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/water-parsley-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2013/10/19/21/43/parsley-198219_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "welsh-onion": {
+        "query": "green onion",
+        "assets": [
+          {
+            "path": "/marketgo-images/welsh-onion-01.webp",
+            "sourcePath": "/vegetables/coupang/welsh-onion.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/welsh-onion-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2017/07/12/22/01/green-onions-2498506_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/welsh-onion-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2019/04/29/08/56/fresh-green-onion-bunches-4165548_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "chive": {
+        "query": "chives",
+        "assets": [
+          {
+            "path": "/marketgo-images/chive-01.webp",
+            "sourcePath": "/vegetables/coupang/chive.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/chive-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/09/03/17/00/chives-8231068_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/chive-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2025/01/30/18/09/chives-9370740_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "broccoli": {
+        "query": "broccoli",
+        "assets": [
+          {
+            "path": "/marketgo-images/broccoli-01.webp",
+            "sourcePath": "/vegetables/coupang/broccoli.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/broccoli-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2026/04/07/17/58/17-58-15-667_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/broccoli-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/01/25/18/46/broccoli-7744338_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "mustard-green": {
+        "query": "mustard leaf bunch vegetable market",
+        "assets": [
+          {
+            "path": "/marketgo-images/mustard-green-01.webp",
+            "sourcePath": "/vegetables/coupang/mustard-green.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/mustard-green-02.jpg",
+            "sourceUrl": "https://image.homeplus.kr/td/f9abdf97-7317-4237-b5d0-8b30e79aa06f",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/mustard-green-03.webp",
+            "sourceUrl": "https://static.y-mart.de/media/d8e15937b2f9a68762f5433f89b0cc49/2170075700759-800.webp",
+            "contentType": "image/webp",
+            "kind": "search"
+          }
+        ]
+      },
+      "oyster-mushroom": {
+        "query": "fresh oyster mushrooms market",
+        "assets": [
+          {
+            "path": "/marketgo-images/oyster-mushroom-01.webp",
+            "sourcePath": "/vegetables/coupang/oyster-mushroom.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/oyster-mushroom-02.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/30460543/pexels-photo-30460543/free-photo-of-fresh-oyster-mushrooms-at-local-market-stall.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/oyster-mushroom-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/05/01/14/01/mushroom-5117233_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "enoki-mushroom": {
+        "query": "enoki mushroom supermarket fresh",
+        "assets": [
+          {
+            "path": "/marketgo-images/enoki-mushroom-01.webp",
+            "sourcePath": "/vegetables/coupang/enoki-mushroom.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/enoki-mushroom-02.jpg",
+            "sourceUrl": "https://th.bing.com/th/id/R.219afb21c45a9c42da7f7f543d6a5354?rik=GRE%2f3mM6rYIOmg&riu=http%3a%2f%2fdnmart.co.kr%2fattach%2fmain_img_2%2f67_2000094000007_000_main.jpg&ehk=xQGopVn2qliuoBUcQSlpuNF%2b1dbn%2fPl7AyVHhV22K5I%3d&risl=&pid=ImgRaw&r=0",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/enoki-mushroom-03.jpg",
+            "sourceUrl": "https://lottemartzetta.com/images-v3/932dcbc7-fca8-4d43-bcde-f73d1ce3cc7d/42d206c5-9ed1-4a8b-9f0e-e3439e553c35/500x500.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "king-oyster-mushroom": {
+        "query": "king oyster mushrooms",
+        "assets": [
+          {
+            "path": "/marketgo-images/king-oyster-mushroom-01.webp",
+            "sourcePath": "/vegetables/coupang/king-oyster-mushroom.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/king-oyster-mushroom-02.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/34245179/pexels-photo-34245179/free-photo-of-fresh-king-oyster-mushrooms-at-market.jpeg?w=1260&h=750&dpr=1",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/king-oyster-mushroom-03.jpg",
+            "sourceUrl": "https://images.pexels.com/photos/5569518/pexels-photo-5569518.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "sesame": {
+        "query": "sesame seeds",
+        "assets": [
+          {
+            "path": "/marketgo-images/sesame-01.webp",
+            "sourcePath": "/vegetables/coupang/sesame.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/sesame-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2020/09/05/05/12/sesame-5545599_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/sesame-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2016/03/22/18/02/sesame-1273388_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "peanut": {
+        "query": "peanuts",
+        "assets": [
+          {
+            "path": "/marketgo-images/peanut-01.webp",
+            "sourcePath": "/vegetables/coupang/peanut.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/peanut-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/10/14/12/12/peanuts-6708950_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/peanut-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/01/28/23/12/peanuts-7751881_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "watermelon": {
+        "query": "watermelon",
+        "assets": [
+          {
+            "path": "/marketgo-images/watermelon-01.webp",
+            "sourcePath": "/vegetables/coupang/watermelon.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/watermelon-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2024/02/16/16/33/watermelon-8577953_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/watermelon-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/08/20/17/13/watermelon-8202822_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "korean-melon": {
+        "query": "oriental melon Korean melon fresh market",
+        "assets": [
+          {
+            "path": "/marketgo-images/korean-melon-01.webp",
+            "sourcePath": "/vegetables/coupang/korean-melon.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/korean-melon-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/05/15/13/54/melon-7995153_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/korean-melon-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2023/05/15/13/47/melon-7995136_640.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "melon": {
+        "query": "melon",
+        "assets": [
+          {
+            "path": "/marketgo-images/melon-01.webp",
+            "sourcePath": "/vegetables/coupang/melon.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/melon-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2010/12/13/10/18/watermelons-2636_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/melon-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2022/08/19/09/15/melon-7396476_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "strawberry": {
+        "query": "strawberries",
+        "assets": [
+          {
+            "path": "/marketgo-images/strawberry-01.webp",
+            "sourcePath": "/vegetables/coupang/strawberry.webp",
+            "kind": "existing"
+          },
+          {
+            "path": "/marketgo-images/strawberry-02.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2012/03/01/00/30/strawberries-19648_1280.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          },
+          {
+            "path": "/marketgo-images/strawberry-03.jpg",
+            "sourceUrl": "https://cdn.pixabay.com/photo/2021/09/06/21/33/fruit-6602534_960_720.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      }
+    }
+  },
+  "stores": {
+    "count": 15,
+    "stores": {
+      "81": {
+        "name": "롯데슈퍼프레시 갈월가맹점",
+        "query": "롯데슈퍼프레시 갈월가맹점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-81.jpg",
+            "sourceUrl": "https://img.etoday.co.kr/pto_db/2023/12/20231219173223_1965103_1200_784.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "82": {
+        "name": "GS더프레시 서울역센트럴자이점",
+        "query": "GS더프레시 서울역센트럴자이점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-82.png",
+            "sourceUrl": "https://img.etnews.com/news/article/2025/10/14/news-p.v1.20251014.53cc924ee20d452cb4150d771bf927a3_P1.png",
+            "contentType": "image/png",
+            "kind": "search"
+          }
+        ]
+      },
+      "83": {
+        "name": "롯데슈퍼프레시 원효로점",
+        "query": "롯데슈퍼프레시 원효로점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-83.jpg",
+            "sourceUrl": "https://img.etoday.co.kr/pto_db/2023/12/20231219173223_1965103_1200_784.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "84": {
+        "name": "이마트 마포점",
+        "query": "이마트 마포점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-84.jpg",
+            "sourceUrl": "https://thumb.mt.co.kr/21/2020/02/2020020714392260405_1.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "85": {
+        "name": "아현식자재마트",
+        "query": "아현식자재마트 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-85.jpg",
+            "sourceUrl": "https://marukoblog.tw/wp-content/uploads/2023/10/超市_1.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "87": {
+        "name": "홈플러스익스프레스 도화점",
+        "query": "홈플러스익스프레스 도화점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-87.jpg",
+            "sourceUrl": "https://img.hankyung.com/photo/202604/01.43860269.1.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "88": {
+        "name": "GS더프레시 마포염리점",
+        "query": "GS더프레시 마포염리점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-88.jpg",
+            "sourceUrl": "https://img.etoday.co.kr/pto_db/2023/03/20230313083146_1861299_1200_786.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "89": {
+        "name": "이마트 용산점",
+        "query": "이마트 용산점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-89.jpg",
+            "sourceUrl": "https://www.ilyosisa.co.kr/data/photos/201910/209640_101464_5659.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "90": {
+        "name": "GS더프레시 신촌이대역점",
+        "query": "GS더프레시 신촌이대역점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-90.jpg",
+            "sourceUrl": "https://img.etoday.co.kr/pto_db/2023/03/20230313083146_1861299_1200_786.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "91": {
+        "name": "홈플러스익스프레스 용강점",
+        "query": "홈플러스익스프레스 용강점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-91.jpg",
+            "sourceUrl": "https://img2.daumcdn.net/thumb/R658x0.q70/?fname=https://t1.daumcdn.net/news/202406/05/BUSINESSWATCH/20240605070006937atbo.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "92": {
+        "name": "롯데슈퍼프레시 마포대흥점",
+        "query": "롯데슈퍼프레시 마포대흥점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-92.jpg",
+            "sourceUrl": "https://img.etoday.co.kr/pto_db/2023/12/20231219173223_1965103_1200_784.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "93": {
+        "name": "롯데프레시&델리 마포점",
+        "query": "롯데프레시&델리 마포점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-93.jpg",
+            "sourceUrl": "https://www.shinailbo.co.kr/news/photo/202111/1479122_672258_1434.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "94": {
+        "name": "이마트 신촌점",
+        "query": "이마트 신촌점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-94.jpg",
+            "sourceUrl": "https://pds.skyedaily.com/top_image/202007/108355_p.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "95": {
+        "name": "GS더프레시 마포아이파크점",
+        "query": "GS더프레시 마포아이파크점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-95.jpg",
+            "sourceUrl": "https://pimg.mk.co.kr/news/cms/202502/20/news-p.v1.20250220.0e71652564be41bc972f42b481e3d1a5_P1.jpg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      },
+      "96": {
+        "name": "서서울농협하나로마트 서강점",
+        "query": "서서울농협하나로마트 서강점 매장 외관 사진",
+        "assets": [
+          {
+            "path": "/marketgo-images/store-96.jpg",
+            "sourceUrl": "https://media.triple.guide/triple-cms/c_limit,f_auto,h_2048,w_2048/134c1461-5074-40b2-9fba-c4022c37722a.jpeg",
+            "contentType": "image/jpeg",
+            "kind": "search"
+          }
+        ]
+      }
+    }
+  }
+}
