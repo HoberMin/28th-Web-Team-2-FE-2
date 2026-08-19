@@ -156,6 +156,12 @@ const SEMANTIC: {
       { name: "content/primary", cls: "bg-content-primary", alias: "gray/900", usage: "기본 텍스트" },
       { name: "content/secondary", cls: "bg-content-secondary", alias: "gray/600", usage: "보조 텍스트" },
       { name: "content/disabled", cls: "bg-content-disabled", alias: "gray/400", usage: "비활성 텍스트" },
+      {
+        name: "content/selected",
+        cls: "bg-content-selected",
+        alias: "gray/800",
+        usage: "선택된 상태의 텍스트·아이콘 · 흰 배경 대비 10.33:1 ✅ (JDS_v2 신설)",
+      },
       { name: "content/inverse", cls: "bg-content-inverse", alias: "gray/50", usage: "어두운 배경 위 텍스트" },
       { name: "content/brand-light", cls: "bg-content-brand-light", alias: "green/600", usage: "브랜드 텍스트 · 밝게" },
       { name: "content/brand-medium", cls: "bg-content-brand-medium", alias: "green/700", usage: "브랜드 텍스트 · 중간" },
