@@ -12,8 +12,9 @@ import type { VegetableGroup } from "@/app/_lib/types";
 // 쓰지 않는다). 카테고리 목록만은 `(tabs)/prices/_query.ts`의 `PRICE_GROUPS`를 그대로
 // 재사용한다 — **7종 한글 그룹 ↔ Spring `ItemCategory` enum 매핑이 이미 그 파일에 있고**
 // 시세 탭과 제보 카테고리가 같은 7종이라 새로 매핑표를 만들면 두 곳이 어긋날 수 있다.
-// (⚠️ Figma 카테고리는 8종이라 코드 정본과 다르다 — `_group-chips.tsx`가 이미 같은 상황에서
-// "Figma 칩 라벨은 미완성 자리, 코드 정본 그룹으로 렌더한다"고 판단한 선례를 따랐다.)
+// (⚠️ 확정 카테고리는 **8종**인데 코드·Spring은 7종이다 — 빠진 하나가 `깨·견과류`이고
+// Spring `ItemCategory` enum에 대응 값이 없다. 참깨·땅콩은 지금 `마늘·파·생강`에 들어 있다.
+// BE 확장이 필요한 건이라 게이트. 상세는 `_group-chips.tsx` 머리말.)
 
 /** F04-2 1단 — 카테고리 목록. 코드 정본 7종(시세 탭과 동일). */
 export const REPORT_CATEGORIES: VegetableGroup[] = PRICE_GROUPS.map((group) => group.label);
