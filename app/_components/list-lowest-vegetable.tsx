@@ -21,7 +21,10 @@ import { cn } from "../_lib/cn";
 //     이름      body/16-semibold · content/primary · 한 줄 말줄임
 //     가게 줄   flex gap-[4px] items-start → gap-1 / 가게 아이콘 16×16 슬롯
 //               가게 이름 caption/12-regular · content/secondary · 한 줄 말줄임
-//   price-block flex-col gap-[2px] items-start w-[112px] → gap-0.5 w-28
+//   price-block flex-col gap-[2px] w-[112px] → gap-0.5 w-28
+//               **items-end**(우측 정렬) — UI QA 2026-08-20 #6 "제보된 야채 가격과 공공시세 비교가
+//               우측 정렬 되어야함". 이전엔 items-start라 가격 줄만 justify-end로 밀려 있고
+//               등락 줄은 왼쪽에 붙어 두 줄의 오른쪽 끝이 어긋났다.
 //     가격      text/vegetable-price size=16(body/16-bold) lines=1, **오른쪽 정렬**(justify-end)
 //     등락      text/vegetable-trend lines=1
 //   → 가격·등락은 이미 구현된 VegetablePrice·VegetableTrend를 그대로 재사용한다.
@@ -106,7 +109,7 @@ export function ListLowestVegetable({
           </div>
         </div>
       </div>
-      <div className="flex w-28 shrink-0 flex-col items-start gap-0.5">
+      <div className="flex w-28 shrink-0 flex-col items-end gap-0.5">
         <VegetablePrice value={price} unit={unit} size="16" lines={1} className="justify-end" />
         <VegetableTrend
           amount={trendAmount}
