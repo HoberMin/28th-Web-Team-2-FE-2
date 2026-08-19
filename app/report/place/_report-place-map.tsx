@@ -51,7 +51,11 @@ export function ReportPlaceMap({ center, level = 5 }: ReportPlaceMapProps) {
   }, [center.lat, center.lng, level]);
 
   return (
-    <div className="absolute inset-0 bg-surface-secondary">
+    // z-0으로 별도 stacking context를 만든다 — 카카오 SDK가 내부 DOM(타일·컨트롤)에
+    // 자체 z-index를 붙이는데, 이 래퍼가 명시적 z-index로 새 stacking context를 열지
+    // 않으면 그 값들이 형제 엘리먼트(마커·시트, z-index 미지정)와 같은 층에서 비교돼
+    // 지도가 위로 튀어나올 수 있다(실제로 이 증상이 신고됐다).
+    <div className="absolute inset-0 z-0 bg-surface-secondary">
       <div ref={containerRef} className="absolute inset-0" />
       {status !== "ready" ? (
         <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">

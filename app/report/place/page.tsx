@@ -134,7 +134,7 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
                 key={place.id}
                 href={hrefFor(place)}
                 aria-label={`${place.placeName} 선택`}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
+                className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
                 style={{ left: position.left, top: position.top }}
               >
                 <MarkerStoreMap
@@ -150,7 +150,7 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
             그림자는 Figma 값 그대로: 0 -4px 6px rgba(74, 86, 103, 0.2) = gray/700 20%.
           */}
           <div
-            className="absolute inset-x-0 bottom-0 flex max-h-full flex-col rounded-t-3xl bg-surface-primary px-4 pb-5 pt-7"
+            className="absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col rounded-t-3xl bg-surface-primary px-4 pb-5 pt-7"
             style={{ boxShadow: "0px -4px 6px 0px rgba(74, 86, 103, 0.2)" }}
           >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
