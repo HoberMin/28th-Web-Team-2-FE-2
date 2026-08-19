@@ -26,6 +26,7 @@ import {
   type PriceDetailReport,
 } from "./_price-detail-client";
 import { PriceDetailBackButton } from "./_back-button";
+import { PriceDetailHeader, PRICE_DETAIL_SCROLL_ID } from "./_detail-header";
 
 interface PriceDetailPageProps {
   params: Promise<{ itemId: string }>;
@@ -113,26 +114,32 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
-      <div className="flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
-        <header className="flex h-12.25 shrink-0 items-center justify-between border-b border-border-secondary px-1">
-          <PriceDetailBackButton />
-          <div className="flex min-w-0 items-center gap-1">
-            <p className="truncate text-body-16-semibold text-content-primary">
-              {detail.itemName} {unit}
-            </p>
-            {isTemporary ? (
-              <span
-                role="status"
-                data-data-source="temporary"
-                className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
-              >
-                예시 데이터
-              </span>
-            ) : null}
-          </div>
-          <span aria-hidden="true" className="size-12 shrink-0" />
-        </header>
-        <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+      {/* relative: 헤더가 본문 위에 겹쳐 뜬다(스크롤 전에는 배경이 투명해 요약 카드가 비친다). */}
+      <div className="relative flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
+        <PriceDetailHeader
+          backButton={<PriceDetailBackButton />}
+          title={
+            <>
+              <p className="truncate text-body-16-semibold text-content-primary">
+                {detail.itemName} {unit}
+              </p>
+              {isTemporary ? (
+                <span
+                  role="status"
+                  data-data-source="temporary"
+                  className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
+                >
+                  예시 데이터
+                </span>
+              ) : null}
+            </>
+          }
+        />
+        {/* pt-12.25: 겹쳐 뜨는 헤더 높이만큼 본문을 내려 첫 콘텐츠가 가리지 않게 한다. */}
+        <main
+          id={PRICE_DETAIL_SCROLL_ID}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-12.25"
+        >
           <h1 className="sr-only">{detail.itemName} 야채 시세 상세</h1>
           <PriceSummary
             name={detail.itemName}
@@ -214,7 +221,8 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         <footer className="shrink-0 border-t border-border-secondary bg-surface-primary px-4 py-3" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
           <Link
             href={vegetable ? `${ROUTES.report}?item=${vegetable.id}` : ROUTES.report}
-            className="flex w-full items-center justify-center rounded-lg bg-action-secondary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-content-secondary"
+            // UI QA 2026-08-20 #32: 이 CTA는 action-secondary가 아니라 action-primary/default다.
+            className="flex w-full items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
           >
             우리 동네 가격 제보하기
           </Link>
@@ -283,16 +291,18 @@ function PriceSummary({
           </p>
           {/*
             화면GUI(원본) 364:7185 — 공공 시세와 같은 형식의 두 번째 행이다.
-            온라인 가격이 없는 품목(getOnlinePrices가 undefined)에는 행 자체를 내지 않는다.
+            UI QA 2026-08-20 #27 "store-summary에 '온라인 최저가' 없음 → 온라인 최저가 제시":
+            전에는 값이 없으면 **행 자체를 지웠는데**, Spring이 `onlineLowestPrice`를 null로
+            주는 품목이 많아 실제 화면에서 이 줄이 통째로 사라져 있었다. 바로 위 "오늘 공공 시세"가
+            값이 없을 때 "시세 정보 없음"을 보여주는 것과 처리를 맞춘다 — 줄이 사라지면 요약 카드의
+            항목 수가 품목마다 달라져 세로 리듬도 흔들린다.
           */}
-          {onlineLowestPrice === undefined ? null : (
-            <p className="flex items-center justify-between">
-              <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>
-              <span className="text-body-14-medium text-content-secondary">
-                {formatWon(onlineLowestPrice)}
-              </span>
-            </p>
-          )}
+          <p className="flex items-center justify-between">
+            <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>
+            <span className="text-body-14-medium text-content-secondary">
+              {onlineLowestPrice === undefined ? "가격 정보 없음" : formatWon(onlineLowestPrice)}
+            </span>
+          </p>
           {/* 364:7188 `price-trend-row` — 위 두 행과 달리 **py-[2px]** 이 붙어 있다. */}
           <p className="flex items-center justify-between py-0.5">
             <span className="text-caption-12-medium text-content-disabled">어제 대비</span>
