@@ -136,16 +136,23 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
                 <button
                   type="button"
                   aria-label="검색어 지우기"
-                  className="flex size-6 items-center justify-center text-content-secondary"
+                  className="flex size-6 items-center justify-center"
                   onClick={() => {
                     setQuery("");
                     setSelected(null);
                   }}
                 >
-                  <FigmaIcon name="close-fill" width={24} currentColor />
+                  {/*
+                    UI QA 2026-08-20 #5 "검색 필드 X아이콘 크기가 작고, X가 안적혀있음".
+                    `close-fill.svg`는 회색 원(#697383) + 흰 X(#F9F9FB) **2색**인데
+                    `currentColor` 마스크로 그리면 알파만 쓰이므로 X 획이 원과 같은 색이 되어
+                    사라진다. 원본 색 그대로 렌더해 두 색을 살린다.
+                    (같은 파일의 `(tabs)/prices/_search-field.tsx`는 원래부터 이렇게 쓰고 있었다)
+                  */}
+                  <FigmaIcon name="close-fill" width={24} />
                 </button>
               ) : (
-                <span className="text-content-secondary">
+                <span className="flex size-6 items-center justify-center text-content-secondary">
                   <FigmaIcon name="search" width={24} currentColor />
                 </span>
               )
