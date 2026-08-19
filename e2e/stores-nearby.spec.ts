@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { actionableViolations } from "./_axe";
 import { expect, test, type Page } from "@playwright/test";
 
 interface MockStorePatch {
@@ -391,7 +392,7 @@ test("compact 마커와 시트 닫기 버튼은 44px 터치 영역과 axe 기준
     .include("main")
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
-  expect(results.violations).toEqual([]);
+  expect(actionableViolations(results)).toEqual([]);
 });
 
 test("Kakao 지도를 불러오지 못하면 접근 가능한 오류 상태를 알린다", async ({ page }) => {

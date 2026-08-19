@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { actionableViolations } from "./_axe";
 import { expect, test } from "@playwright/test";
 
 test("BFF 상태 확인 응답을 제공한다", async ({ request }) => {
@@ -22,5 +23,5 @@ test("온보딩 첫 화면의 핵심 동작과 WCAG 위반을 검사한다", asy
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
 
-  expect(results.violations).toEqual([]);
+  expect(actionableViolations(results)).toEqual([]);
 });

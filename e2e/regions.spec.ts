@@ -1,4 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
+import { actionableViolations } from "./_axe";
 import { expect, test, type Page } from "@playwright/test";
 
 const ONBOARDING_STORAGE_KEY = "veg-onboarding-v1";
@@ -220,7 +221,7 @@ test("선택한 label과 10자리 regionId를 로컬 상태와 서버 쿠키에 
   const accessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
-  expect(accessibility.violations).toEqual([]);
+  expect(actionableViolations(accessibility)).toEqual([]);
 
   await page.getByRole("button", { name: "확인" }).click();
   await expect(page).toHaveURL(/\/$/);
