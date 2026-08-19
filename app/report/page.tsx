@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getAccessToken } from "@/app/_lib/api/auth/session";
+import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "./_components/report-header";
-import { getReportPlace, getReportVegetable } from "./_data";
+import { getReportVegetable, parseCarriedStore } from "./_data";
 import { ReportForm } from "./_report-form";
 
 // ── 실측 출처 (검산용) ─────────────────────────────────────────────────────────
@@ -30,18 +32,28 @@ export const metadata: Metadata = {
 };
 
 interface ReportPageProps {
-  searchParams: Promise<{ item?: string; place?: string }>;
+  searchParams: Promise<{ item?: string; store?: string }>;
 }
 
 export default async function ReportPage({ searchParams }: ReportPageProps) {
-  const { item, place } = await searchParams;
-  const vegetable = getReportVegetable(item);
-  const selectedPlace = getReportPlace(place);
+  const { item, store } = await searchParams;
+  const parsedItemId = item ? Number(item) : NaN;
+  const itemId = Number.isSafeInteger(parsedItemId) ? parsedItemId : undefined;
+  const selectedStore = parseCarriedStore(store);
+
+  // itemId가 있어도 regionId가 없으면 조회할 수 없다 — 이 화면은 그런 경우에도 폼 자체는
+  // 보여준다(FieldSelect가 "선택해 주세요"로 남는다). regionId가 진짜 필요한 지점은
+  // 제출(Server Action)이고, 거기서 막힌다.
+  const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
+  const vegetable =
+    itemId !== undefined && regionId
+      ? await getReportVegetable({ itemId, regionId, token })
+      : undefined;
 
   // 품목·장소 화면으로 나갈 때 현재 선택을 함께 넘긴다.
   const carry = new URLSearchParams();
   if (item) carry.set("item", item);
-  if (place) carry.set("place", place);
+  if (store) carry.set("store", store);
   const carryQuery = carry.size > 0 ? `?${carry.toString()}` : "";
 
   return (
@@ -64,9 +76,13 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
         />
 
         <ReportForm
+          // vegetable 조회가 실패하면(품목이 없어졌거나 regionId 없음) itemId도 함께 비워
+          // "선택해 주세요" 상태로 일관되게 남긴다 — 이름만 있고 id가 없는 상태를 만들지 않는다.
+          itemId={vegetable ? itemId : undefined}
           vegetableName={vegetable?.name}
-          unitType={vegetable?.unitType}
-          placeName={selectedPlace?.name}
+          unitType={vegetable?.unit ?? undefined}
+          store={selectedStore}
+          placeName={selectedStore?.placeName}
           carryQuery={carryQuery}
         />
       </div>
