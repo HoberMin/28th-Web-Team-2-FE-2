@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   createOAuthRandomValue: vi.fn(),
   exchangeKakaoCode: vi.fn(),
   getKakaoOAuthConfig: vi.fn(),
+  getMe: vi.fn(),
   login: vi.fn(),
   saveLoginTokens: vi.fn(),
   verifyKakaoIdToken: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock("@/app/_lib/api/auth/kakao-oauth-config", async (importOriginal) => {
   return { ...original, getKakaoOAuthConfig: mocks.getKakaoOAuthConfig };
 });
 vi.mock("@/app/_lib/api/server/auth", () => ({ login: mocks.login }));
+vi.mock("@/app/_lib/api/server/users", () => ({ getMe: mocks.getMe }));
 vi.mock("@/app/_lib/api/auth/session", () => ({ saveLoginTokens: mocks.saveLoginTokens }));
 
 import { GET as callback } from "./callback/route";
@@ -63,6 +65,7 @@ describe("Kakao OAuth routes", () => {
     );
     mocks.verifyKakaoIdToken.mockResolvedValue(undefined);
     mocks.saveLoginTokens.mockResolvedValue(undefined);
+    mocks.getMe.mockResolvedValue({ onboardingStep: "NICKNAME" });
   });
 
   it("start는 일회용 state·nonce를 httpOnly 쿠키에 저장한 뒤 카카오로 이동한다", async () => {
@@ -162,7 +165,10 @@ describe("Kakao OAuth routes", () => {
     });
     expect(mocks.login).toHaveBeenCalledWith({ provider: "kakao", idToken: "header.payload.signature" });
     expect(mocks.saveLoginTokens).toHaveBeenCalledWith(tokens);
-    expect(response.headers.get("Location")).toBe("/onboarding?freshLogin=login-transition");
+    expect(mocks.getMe).toHaveBeenCalledWith(tokens.accessToken);
+    expect(response.headers.get("Location")).toBe(
+      "/onboarding?freshLogin=login-transition&onboardingStep=NICKNAME",
+    );
     expect(response.headers.getSetCookie().join("\n")).toContain(
       `${KAKAO_LOGIN_TRANSITION_COOKIE}=login-transition`,
     );
