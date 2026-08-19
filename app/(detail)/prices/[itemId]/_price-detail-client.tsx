@@ -315,7 +315,17 @@ function SortButton({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`min-h-10 flex-1 rounded-md border border-border-secondary p-2 ${selected ? "bg-surface-primary text-body-14-bold text-content-primary" : "bg-surface-secondary text-body-14-semibold text-content-secondary"}`}
+      // UI QA 2026-08-20 #30 "filter/sort-toggle가 이전 버전임 → 최신 디자인(filter/sort-segment)
+      // 으로 업데이트. 컬러가 달라요".
+      // Figma `filter/sort-segment`(1157:21343) 실측:
+      //   선택   bg content/selected(#354153) · border 같은 색 · content/inverse · body/14-semibold
+      //   미선택 bg surface/secondary        · border border/secondary · content/secondary · body/14-medium
+      // 전에는 선택을 "흰 배경 + 진한 글씨"로 반전시켜 두어 선택/미선택 대비가 뒤바뀌어 있었다.
+      className={`min-h-10 flex-1 rounded-md border p-2 ${
+        selected
+          ? "border-content-selected bg-content-selected text-body-14-semibold text-content-inverse"
+          : "border-border-secondary bg-surface-secondary text-body-14-medium text-content-secondary"
+      }`}
     >
       {children}
     </button>
