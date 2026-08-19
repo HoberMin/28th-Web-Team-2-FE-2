@@ -39,7 +39,8 @@ export interface PhotoPreviewProps {
 export function PhotoPreview({ children, removeButton, className }: PhotoPreviewProps) {
   return (
     <div className={cn("relative flex w-31 flex-col items-start", className)}>
-      <div className="aspect-square w-full overflow-hidden rounded-lg bg-surface-primary">
+      {/* border/img: UI QA 2026-08-20 #39 "야채 사진 등록 후 border 없음 → border/img". */}
+      <div className="aspect-square w-full overflow-hidden rounded-lg border border-border-img bg-surface-primary">
         {children}
       </div>
       {/* 48×48 터치 슬롯. Figma left-94 / top-−18 그대로 — 24px 원이 우상단에 걸친다. */}
