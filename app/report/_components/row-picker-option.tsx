@@ -45,7 +45,13 @@ export function RowPickerOption({ label, href, className }: RowPickerOptionProps
       )}
     >
       <span className="min-w-0 truncate">{label}</span>
-      <FigmaIcon name="chevron-right" width={20} className="shrink-0" />
+      {/* UI QA 2026-08-20 #43: category-list의 chevron 색이 디자인과 달랐다 → content/disabled. */}
+      <FigmaIcon
+        name="chevron-right"
+        width={20}
+        currentColor
+        className="shrink-0 text-content-disabled"
+      />
     </Link>
   );
 }
