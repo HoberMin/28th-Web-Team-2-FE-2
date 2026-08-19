@@ -293,7 +293,8 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
             </button>
           ))}
         </div>
-        <div className="mt-1 divide-y divide-border-secondary">
+        {/* 구분선은 row/saved 안쪽 `border-b border/primary`다 — border/secondary가 아니다 */}
+        <div className="mt-6 divide-y divide-border-primary">
           {filtered.slice(0, 4).map((item) => <PriceRow key={item.id} item={item} />)}
           {filtered.length === 0 && <p className="py-12 text-center text-body-14-medium text-content-secondary">아직 제보가 없어요</p>}
         </div>
