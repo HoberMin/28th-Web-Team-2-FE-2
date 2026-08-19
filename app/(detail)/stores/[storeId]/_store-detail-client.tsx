@@ -76,8 +76,9 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
   const [dayLabel, ...timeLines] = detail.hours;
 
   return (
-    // 화면GUI(원본) 364:7882 `store-profile-info` 실측(2026-08-13). 사진 bottom 220 → info y240 = pt-20.
-    <section className="px-4 pt-5">
+    // 화면GUI(원본) `F03_가게상세` 429:17633 `store-profile-info` 실측(2026-08-19 v3).
+    // 사진 bottom 220 → info y240 = pt-20. body가 flex-col gap-[28px]이라 아래로 pb-7(28px).
+    <section className="px-4 pt-5 pb-7">
       {/* store-profile-info — flex-col gap-[12px] */}
       <div className="flex flex-col gap-3">
         <h1 className="w-full truncate text-title-20-bold text-content-primary">{store.name}</h1>
