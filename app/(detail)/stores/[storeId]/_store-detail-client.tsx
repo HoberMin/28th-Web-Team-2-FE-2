@@ -270,14 +270,24 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
           <h2 className="text-body-16-semibold text-content-primary">가게에 제보된 야채</h2>
           <p className="w-28 text-right text-caption-12-medium text-content-secondary">최근 30일간 · 최신 순</p>
         </div>
-        <div className="mt-5 grid h-10 grid-cols-2 rounded-md bg-surface-secondary p-1">
+        {/*
+          `filter/sort-toggle`(429:17662) 실측 — h44 · bg surface/secondary · p-[2px] ·
+          gap-[4px] · radius/md. 세그먼트는 flex-1 · p-[8px] · radius/md · 1px 테두리:
+            선택   bg+border **content/selected**(gray/800 #354153) · body/14-semibold · content/inverse
+            비선택 bg surface/secondary · border border/secondary · body/14-medium · content/secondary
+          v2 구현은 "흰 알약 + shadow-sm + caption/12"였는데 Figma엔 그림자가 없고
+          선택 배경이 gray/800이다 — 오늘 신설된 content/selected가 쓰이는 자리가 여기다.
+          대비: content/inverse on content/selected 9.89:1 ✅ (선택 상태가 13.51→9.89로 내려가지만
+                둘 다 AA 통과라 매핑 오류 신호는 아니다)
+        */}
+        <div className="mt-6 flex h-11 items-center gap-1 rounded-md bg-surface-secondary p-0.5">
           {(["cheap", "expensive"] as const).map((value) => (
             <button
               key={value}
               type="button"
               aria-pressed={kind === value}
               onClick={() => setKind(value)}
-              className={`rounded-sm text-caption-12-semibold ${kind === value ? "bg-surface-primary text-content-primary shadow-sm" : "text-content-secondary"}`}
+              className={`flex min-w-0 flex-1 items-center justify-center rounded-md border p-2 ${kind === value ? "border-content-selected bg-content-selected text-body-14-semibold text-content-inverse" : "border-border-secondary bg-surface-secondary text-body-14-medium text-content-secondary"}`}
             >
               {value === "cheap" ? "저렴해요" : "비싸요"}
             </button>
