@@ -8,11 +8,18 @@ import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { submitReportAction } from "./_actions";
-import { FieldInput, FieldSelect, FieldUnitSelect } from "./_components/field-price";
+import {
+  FieldInput,
+  FieldSelect,
+  FieldUnitSelect,
+  normalizeReportUnit,
+  type ReportUnit,
+} from "./_components/field-price";
 import { PhotoDropzone } from "./_components/photo-dropzone";
 import { PhotoPreview } from "./_components/photo-preview";
 import { ReportCtaFooter } from "./_components/report-cta-footer";
 import { ScanModal } from "./_components/scan-modal";
+import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo-draft";
 
 // 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
 
@@ -40,16 +47,18 @@ import { ScanModal } from "./_components/scan-modal";
 //  · **인식 성공 시 품목·가격을 자동 입력한다는 안내문구가 dropzone에 있지만 그 동작 정의가 없다.**
 //    자동 입력은 하지 않는다(값을 발명하지 않는다).
 //  · 인식 **실패** 상태가 없다. 파일 로드가 실패하면 모달을 닫고 사진을 버린다.
-//  · 단위 선택 시트·목록이 없다 → `FieldUnitSelect`는 자리만 두고 동작을 붙이지 않았다.
+//  · 단위 선택은 `kg`·`g`·`개`·`포기` 네 가지를 제공한다. 현재 선택값은 제출 payload에도
+//    그대로 실어, 품목의 기본 단위와 사용자가 실제로 입력한 단위를 구분한다.
 //  · CTA "확인"의 이동 대상이 명시돼 있지 않다 → F04-4 제보 완료로 보냈다(플로우상 유일한 전진 경로).
 //
 // ── 2026-08-19: 실 Spring 연동으로 코드가 새로 내린 판단 ────────────────────────
 //  · **reportType을 "PURCHASE"로 고정한다.** Figma 어디에도 "구매/목격"을 고르는 토글이 없다.
 //    유일하게 UI가 있는 흐름(사진 찍어 가격 입력)이 "실제로 산 가격 확인"에 가깝다고 보고
 //    골랐다 — 토글이 생기면 `_actions.ts`의 `FIXED_REPORT_TYPE` 하나만 바꾸면 된다.
-//  · **photoUrl 없이 제출한다.** 파일 업로드 API가 스펙(`/v3/api-docs`)에 아예 없다 —
-//    지금 사진 미리보기는 로컬 blob URL이라 서버가 못 읽는다. 업로드 기능은 범위 밖이라
-//    새로 만들지 않았다(스펙에 없는 걸 지어내지 않는다).
+//  · **현재 제출 API에는 photoUrl만 있고 바이너리 업로드 계약이 없다.** 사진 원본은 품목·장소
+//    화면을 다녀와도 잃지 않도록 `_lib/photo-draft.ts`의 IndexedDB에 임시 보관한다. 백엔드가
+//    multipart 업로드 계약을 내면 `handleSubmit`의 단일 제출 어댑터에서 이 File을 FormData에
+//    함께 붙이면 된다. 지금은 존재하지 않는 업로드 엔드포인트를 프런트에서 지어내지 않는다.
 //  · **F04-2 카테고리 매핑**(한글 7종 ↔ Spring `ItemCategory`)은 `_data.ts`가 `(tabs)/prices`의
 //    기존 `PRICE_GROUPS` 매핑을 재사용한다 — 판단 근거는 그 파일 머리말 참고.
 //
@@ -63,7 +72,7 @@ export interface ReportFormProps {
   itemId?: number;
   /** F04-2에서 고른 품목. 없으면 고르라고 안내한다. */
   vegetableName?: string;
-  /** 선택된 품목의 defaultUnit — 표시와 제출에 함께 쓴다. */
+  /** 선택된 품목의 defaultUnit — 단위 선택의 초기값으로만 사용한다. */
   unitType?: string;
   /** F04-3에서 고른 판매 장소 — 제출 시 그대로 실어 보낸다. */
   store?: StoreRequest;
@@ -73,7 +82,18 @@ export interface ReportFormProps {
   carryQuery: string;
 }
 
-type PhotoState = { url: string; scanning: boolean } | null;
+type PhotoState = { file: File; url: string; scanning: boolean } | null;
+
+const MIN_SCAN_DURATION_MS = 1000;
+
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function formatPriceInput(value: string): string {
+  const digits = digitsOnly(value);
+  return digits ? Number(digits).toLocaleString("ko-KR") : "";
+}
 
 /** 사진 로드 실패 안내. Figma에 실패 시안이 없어 문구만 둔다(동작 공백은 메워야 한다). */
 const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
@@ -88,12 +108,28 @@ export function ReportForm({
 }: ReportFormProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const scanStartedAtRef = useRef<number | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
   const [photo, setPhoto] = useState<PhotoState>(null);
   const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
+  const [unit, setUnit] = useState<ReportUnit>(() => normalizeReportUnit(unitType));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  // 품목·장소 선택은 별도 라우트로 이동하므로 컴포넌트가 다시 마운트된다. 사진 원본은
+  // IndexedDB에 잠시 보관해 돌아왔을 때 미리보기와 제출용 File을 함께 복원한다.
+  useEffect(() => {
+    let active = true;
+    void loadReportPhoto().then((file) => {
+      if (!active || !file) return;
+      setPhoto({ file, url: URL.createObjectURL(file), scanning: false });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // 객체 URL은 컴포넌트가 사라질 때 반드시 해제한다 — 안 하면 탭을 떠날 때마다 누적된다.
   useEffect(() => {
@@ -102,6 +138,12 @@ export function ReportForm({
       if (url) URL.revokeObjectURL(url);
     };
   }, [photo?.url]);
+
+  useEffect(() => {
+    return () => {
+      if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    };
+  }, []);
 
   // Figma에 검증 규칙 정의가 없다(위 ⚠️). `shared/pages.md` F04-1이 "필수는 품목·가격·양"이라고
   // 적어 두었지만 **판매 장소도 포함시켰다** — "어디서 본 가격인가"가 이 플로우의 존재 이유이고,
@@ -121,7 +163,27 @@ export function ReportForm({
     event.target.value = "";
     if (!file) return;
     setPhotoError("");
-    setPhoto({ url: URL.createObjectURL(file), scanning: true });
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    scanStartedAtRef.current = performance.now();
+    setPhoto({ file, url: URL.createObjectURL(file), scanning: true });
+    void saveReportPhoto(file);
+  }
+
+  function finishScan() {
+    const startedAt = scanStartedAtRef.current ?? performance.now();
+    const remaining = Math.max(0, MIN_SCAN_DURATION_MS - (performance.now() - startedAt));
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    scanTimerRef.current = window.setTimeout(() => {
+      setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+      scanStartedAtRef.current = null;
+      scanTimerRef.current = null;
+    }, remaining);
+  }
+
+  function cancelScanTimer() {
+    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
+    scanTimerRef.current = null;
+    scanStartedAtRef.current = null;
   }
 
   async function handleSubmit() {
@@ -134,13 +196,12 @@ export function ReportForm({
       const result = await submitReportAction({
         itemId,
         store,
-        price: Number(price),
+        price: Number(digitsOnly(price)),
         amount: Number(amount),
-        // defaultUnit이 null인 품목은 빈 문자열로 보낸다 — "kg" 같은 값을 지어내 서버에
-        // 실제로 저장시키지 않는다(위 FieldUnitSelect의 "kg" 폴백은 화면 표시 전용이다).
-        unit: unitType ?? "",
+        unit,
       });
       if (result.status === "success") {
+        await clearReportPhoto();
         router.push(ROUTES.reportDone);
         return;
       }
@@ -153,7 +214,9 @@ export function ReportForm({
   }
 
   function handleCancelScan() {
+    cancelScanTimer();
     setPhoto(null);
+    void clearReportPhoto();
   }
 
   return (
@@ -175,7 +238,11 @@ export function ReportForm({
                       type="button"
                       aria-label="사진 삭제"
                       className="flex size-6 items-center justify-center rounded-full bg-surface-inverse"
-                      onClick={() => setPhoto(null)}
+                      onClick={() => {
+                        cancelScanTimer();
+                        setPhoto(null);
+                        void clearReportPhoto();
+                      }}
                     >
                       <FigmaIcon
                         name="close"
@@ -193,9 +260,11 @@ export function ReportForm({
                     height={124}
                     unoptimized
                     className="size-full object-cover"
-                    onLoad={() => setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev))}
+                    onLoad={finishScan}
                     onError={() => {
+                      cancelScanTimer();
                       setPhoto(null);
+                      void clearReportPhoto();
                       setPhotoError(PHOTO_ERROR);
                     }}
                   />
@@ -247,9 +316,11 @@ export function ReportForm({
               <FieldInput
                 id="report-price"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="가격을 입력해 주세요"
                 value={price}
-                onChange={(event) => setPrice(event.target.value)}
+                onChange={(event) => setPrice(formatPriceInput(event.target.value))}
+                suffix="원"
               />
             </FieldBlock>
 
@@ -259,17 +330,17 @@ export function ReportForm({
                 <FieldInput
                   id="report-amount"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="1"
                   value={amount}
                   className="min-w-0 flex-1"
-                  onChange={(event) => setAmount(event.target.value)}
+                  onChange={(event) => setAmount(digitsOnly(event.target.value))}
                 />
-                {/*
-                  Figma에 단위 선택 시트·목록이 없다(위 ⚠️). 탭으로 도달해 Enter를 눌러도
-                  아무 일도 안 하는 컨트롤은 "고장난 것"으로 읽히므로 상태를 정직하게 노출한다.
-                  시트가 생기면 `disabled`만 떼면 된다.
-                */}
-                <FieldUnitSelect unit={unitType ?? "kg"} aria-label="단위 선택" disabled />
+                <FieldUnitSelect
+                  unit={unit}
+                  onUnitChange={setUnit}
+                  aria-label="단위 선택"
+                />
               </div>
             </FieldBlock>
 

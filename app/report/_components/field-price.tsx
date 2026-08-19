@@ -1,4 +1,7 @@
-import type { ComponentPropsWithoutRef } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
@@ -52,6 +55,7 @@ function FieldAction({ label }: { label: string }) {
 
 export interface FieldInputProps extends ComponentPropsWithoutRef<"input"> {
   className?: string;
+  suffix?: ReactNode;
 }
 
 /**
@@ -61,13 +65,16 @@ export interface FieldInputProps extends ComponentPropsWithoutRef<"input"> {
  * Figma placeholder는 body/16-medium content/disabled, 입력값은 body/16-**semibold**
  * content/primary다. 굵기가 바뀌므로 `placeholder:` 변형으로 둘을 한 요소에 태운다.
  */
-export function FieldInput({ className, ...rest }: FieldInputProps) {
+export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
   return (
     <div className={cn(FIELD_BOX, "w-full", className)}>
       <input
         className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary placeholder:font-medium placeholder:text-content-disabled"
         {...rest}
       />
+      {suffix ? (
+        <span className="shrink-0 text-body-16-medium text-content-secondary">{suffix}</span>
+      ) : null}
     </div>
   );
 }
@@ -117,9 +124,17 @@ export function FieldSelect({
   );
 }
 
+export const REPORT_UNITS = ["kg", "g", "개", "포기"] as const;
+export type ReportUnit = (typeof REPORT_UNITS)[number];
+
+export function normalizeReportUnit(value: string | undefined): ReportUnit {
+  return REPORT_UNITS.find((unit) => value === unit || value?.endsWith(unit)) ?? "kg";
+}
+
 export interface FieldUnitSelectProps extends ComponentPropsWithoutRef<"button"> {
   /** 현재 단위. 예: "kg" */
   unit: string;
+  onUnitChange?: (unit: ReportUnit) => void;
 }
 
 /**
@@ -128,27 +143,88 @@ export interface FieldUnitSelectProps extends ComponentPropsWithoutRef<"button">
  * 실측: 같은 박스 + justify-between · **w-[124px] 고정** ·
  *       라벨 body/16-**medium** content/primary(입력값과 굵기가 다르다) · icon/chevron-down 16
  *
- * ⚠️ 단위 선택 시트·목록이 Figma에 없다 — 누를 대상이 정의되지 않았다.
- *    지금은 버튼만 두고 동작을 붙이지 않았다(GUI피드백.md에 기록).
- *    124px는 고정 폭이 규격이라 그대로 옮겼다 — 양 입력이 flex-1로 남은 폭을 먹는다.
+ * 단위 목록은 kg·g·개·포기 4가지다. 선택 목록은 필드 바로 아래에 겹쳐 열어
+ * 양 입력과 판매 장소의 세로 정렬을 밀지 않는다.
  *
  * ── 2026-08-19 재실측 (node 429:18069 · 구 364:8167은 파일 재생성으로 소멸) ──────
  *  · 폭 124 · gap 4 · px-16 py-12 · radius/lg · 라벨 body/16-medium content/primary ·
  *    icon/chevron-down 16 — **위 실측값이 지금도 전부 맞다.**
  *  · `field/unit-select`는 component_set이지만 이 자리 인스턴스에 variant 축이 노출되지
- *    않는다 → **Figma에 disabled 상태 스타일이 여전히 없다.** 그래서 `disabled:` 변형을
- *    만들지 않고 둔다(시안에 없는 색을 발명하지 않는다). 지금은 `disabled` 속성이
- *    탭 순서·스크린리더에만 반영되고 시각적 표시는 없다 — 시트가 생기면 함께 정리한다.
+ *    않는다. 선택 상태는 스크린샷의 연한 배경 강조로 표현한다.
  */
-export function FieldUnitSelect({ unit, className, type = "button", ...rest }: FieldUnitSelectProps) {
+export function FieldUnitSelect({
+  unit,
+  onUnitChange,
+  className,
+  type = "button",
+  disabled = false,
+  ...rest
+}: FieldUnitSelectProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const selectedUnit = normalizeReportUnit(unit);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const selectUnit = (nextUnit: ReportUnit) => {
+    onUnitChange?.(nextUnit);
+    setOpen(false);
+  };
+
   return (
-    <button
-      type={type}
-      className={cn(FIELD_BOX, "w-31 shrink-0 justify-between", className)}
-      {...rest}
-    >
-      <span className="whitespace-nowrap text-body-16-medium text-content-primary">{unit}</span>
-      <FigmaIcon name="chevron-down" width={16} />
-    </button>
+    <div ref={rootRef} className="relative w-31 shrink-0">
+      <button
+        type={type}
+        className={cn(FIELD_BOX, "w-full justify-between", className)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen((current) => !current)}
+        {...rest}
+      >
+        <span className="whitespace-nowrap text-body-16-medium text-content-primary">
+          {selectedUnit}
+        </span>
+        <FigmaIcon name="chevron-down" width={16} />
+      </button>
+
+      {open && !disabled ? (
+        <div
+          role="listbox"
+          aria-label="단위 선택"
+          className="absolute right-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-1 shadow-floating"
+        >
+          {REPORT_UNITS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="option"
+              aria-selected={selectedUnit === option}
+              className={cn(
+                "flex h-12 w-full items-center rounded-lg px-4 text-left text-body-16-medium text-content-primary",
+                selectedUnit === option ? "bg-surface-secondary" : "hover:bg-surface-secondary",
+              )}
+              onClick={() => selectUnit(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

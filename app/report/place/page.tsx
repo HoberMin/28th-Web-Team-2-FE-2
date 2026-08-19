@@ -10,12 +10,14 @@ import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "../_components/report-header";
 import { RowStoreOption } from "../_components/row-store-option";
 import { encodeCarriedStore } from "../_data";
+import { ReportPlaceMap } from "./_report-place-map";
 
 // 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
 
 // F04-3 판매 장소 선택 — Figma 화면GUI(원본) 364:8293.
 //
-// **Server Component다.** 지도 placeholder·마커·행이 전부 정적이라 클라이언트 지시어가 없다.
+// **Server Component다.** 장소 검색·행·라우팅은 서버에 두고, 지도 SDK 초기화만
+// `place/_report-place-map.tsx` 클라이언트 leaf에서 맡긴다.
 //
 // get_design_context + get_screenshot 실측:
 //   header       `header/vegetable-detail` 364:8294 — **icon/close 24 + 제목 없음**
@@ -40,16 +42,8 @@ import { encodeCarriedStore } from "../_data";
 //    (conventions #3), 마커는 type이 바뀌면 폭이 48→108→128로 변해서 중심을 보존해야 안 튄다
 //    (GUI피드백 "F03 마커 중심 앵커 고정"과 같은 처리).
 //
-// ⚠️ 지도는 실제 지도 SDK가 아니라 회색 placeholder다 — `shared/pages.md` F07과 같은 방침
-//    (카카오 SDK 없이 상대 좌표 핀). Figma도 `map-placeholder` 이미지다.
-//
-// 2026-08-19 확인: "지도가 안 보인다" 신고 조사 결과, Figma엔 실제 `map-placeholder`
-// 이미지 노드가 있는데(429:18009, `map-sheet` 안) 지금 이 화면은 그 이미지를 한 번도
-// 받아온 적 없이 `bg-surface-secondary` 단색만 그리고 있었다. `download_assets`로 URL
-// 발급까지는 됐지만 실제 저장은 MCP가 발급한 단기 figma.com 에셋 URL을 페치해야 해서
-// `figma-bridge` §0-0 Figma REST 접근 금지 규칙에 걸려 사용자 확인 없이 진행하지 않았다
-// (2026-08-19, 생략하기로 확인 — 다음에 다시 필요해지면 `download_assets`를 재호출해야
-// 한다, URL이 ~7일 후 만료됨). 받아오면 이 밴드 배경에 `FigmaImage`로 object-cover 채우면 된다.
+// 지도는 카카오 Maps JS SDK를 실제로 초기화한다. 공개 앱 키가 없거나 도메인 제한으로
+// SDK가 실패하면 동일한 영역에 안내 문구를 보여주고, 목록 선택은 계속 가능하게 둔다.
 //
 // Figma 개발 주석:
 //   시트(364:8298) — "해당 시트는 현재 높이가 최대. 리스트가 길어질 시 리스트 영역 안에서 스크롤 되게."
@@ -131,6 +125,8 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
 
         {/* 지도 밴드 — Figma map-sheet(y195~844). 내용을 클립하고 시트를 바닥에 붙인다. */}
         <div className="relative mt-4.25 min-h-0 flex-1 overflow-hidden bg-surface-secondary">
+          <ReportPlaceMap center={MAP_CENTER} />
+
           {places.map((place, index) => {
             const position = MARKER_POSITIONS[index % MARKER_POSITIONS.length];
             return (

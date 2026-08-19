@@ -26,7 +26,7 @@ export interface SubmitReportInput {
   store: StoreRequest;
   price: number;
   amount: number;
-  /** 선택된 품목의 defaultUnit. null이면 빈 문자열로 보낸다(값을 발명하지 않는다 — 스펙상 unit은 minLength 0). */
+  /** 폼에서 선택한 판매 단위(`kg`·`g`·`개`·`포기`). */
   unit: string;
 }
 
@@ -62,8 +62,9 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
     unit: input.unit,
     amount: input.amount,
     store: input.store,
-    // photoUrl 생략 — 파일 업로드 API가 스펙에 없다(`/v3/api-docs`에 엔드포인트 자체가 없음).
-    // 지금 사진 미리보기는 로컬 blob URL이라 서버가 못 읽는다. 업로드 기능은 범위 밖.
+    // photoUrl 생략 — 현재 스펙에는 바이너리를 받을 업로드 엔드포인트가 없다.
+    // 사진 File은 클라이언트 IndexedDB에 보관 중이며, multipart 계약이 나오면 이 단일
+    // 제출 어댑터에서 FormData로 함께 전송한다. 로컬 blob URL을 서버에 넘기지는 않는다.
   });
   if (!body.success) {
     return { status: "invalid", message: "입력값을 확인해 주세요." };

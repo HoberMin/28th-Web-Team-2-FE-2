@@ -1,25 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 
-// 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
-
-// Figma `scan-modal` — 화면GUI(원본) 364:8228 (F04-1_야채 제보 364:8201의 overlay), sync 2026-08-13.
+// Figma `scan-modal` — Design Library 1082:10730 (F04-1_야채 제보의 overlay), sync 2026-08-19.
 //
 // get_design_context 실측:
 //   루트      bg surface/primary · radius/**3xl**(24) · overflow-clip · **262×302**
-//   body      absolute 가운데 · top-[62px] · flex flex-col gap-[12px] items-center
-//     아이콘  **120×120 · bg #e2e2e2** ← Figma에서도 회색 사각형 **placeholder**다(그림 없음)
+//   body      absolute 가운데 · top-[48px] · flex flex-col items-center
+//     아이콘  **132×132** 안에 실제 야채 일러스트가 노출된다
 //     문구    body/16-semibold · **text-black** (content/primary가 아니라 raw black)
 //   progress  absolute 가운데 · top-[246px] · 230×6 · bg surface/secondary · radius/full
 //     bar     left-0 right-[147px] → **83/230 = 36% 고정** · bg content/brand/light
 //   close     absolute left-[206px] top-[8px] · 48×48 슬롯 안 32×32 원형 버튼(8,8)
-//
-// ⚠️ Figma에서도 아이콘이 placeholder(#e2e2e2 사각형)라 **그 회색 사각형을 그대로 옮겼다** —
-//    이건 "에셋 누락"이 아니라 시안의 현재 상태다. 그림이 확정되면 `icon` 슬롯에 넣는다.
-//    `#e2e2e2`는 팔레트에 없는 raw hex다(gray/200 #e5e8ef과 가깝지만 다름) → placeholder라
-//    토큰을 억지로 물리지 않고 `surface/secondary`로 뒀다. 어차피 대체될 자리다.
 //
 // ⚠️ **진행률이 36%로 고정돼 있고 완료·실패 상태가 Figma에 없다.** 스캔이 끝나면 어디로 가는지,
 //    실패하면 무엇을 보여주는지 정의가 없다(GUI피드백.md에 기록).
@@ -42,6 +36,19 @@ import { FigmaIcon } from "@/app/_lib/figma-asset";
 //      Radix `Dialog`로 감싸면 트랩·Escape·`aria-hidden`이 공짜지만, 그건 이 화면 로컬
 //      컴포넌트에 새 의존성을 들이는 결정이라 컴포넌트 세션으로 넘긴다. 지금은 손으로 막았다.
 
+const SCAN_VEGETABLE_IMAGES = [
+  "/veg/potato.svg",
+  "/veg/sweet-potato.svg",
+  "/veg/garlic.svg",
+  "/veg/onion.svg",
+  "/veg/carrot.svg",
+  "/veg/tomato.svg",
+  "/veg/bell-pepper.svg",
+  "/veg/cucumber.svg",
+  "/veg/red-pepper.svg",
+  "/veg/broccoli.svg",
+] as const;
+
 export interface ScanModalProps {
   /** 진행률 0~100. Figma 시안은 36% 고정. */
   progress?: number;
@@ -53,6 +60,22 @@ export interface ScanModalProps {
 
 export function ScanModal({ progress = 36, label = "야채 인식 중..", onClose }: ScanModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [vegetableIndex, setVegetableIndex] = useState(0);
+
+  // 인식 대기 중에는 Figma에 준비된 10종 일러스트를 0.5초마다 무작위로 교체한다.
+  // 모달이 닫히면 컴포넌트가 언마운트되어 타이머도 함께 정리된다.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setVegetableIndex((current) => {
+        let next = current;
+        while (next === current) {
+          next = Math.floor(Math.random() * SCAN_VEGETABLE_IMAGES.length);
+        }
+        return next;
+      });
+    }, 500);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -78,19 +101,24 @@ export function ScanModal({ progress = 36, label = "야채 인식 중..", onClos
   const clamped = Math.min(100, Math.max(0, progress));
 
   return (
-    // 스크림: Figma의 overlay 프레임(364:8227)은 채움이 없어 뒤 화면이 그대로 보인다.
-    // 다만 모달이 뜬 동안 뒤를 누르지 못해야 하므로 투명 레이어로 덮는다(색은 넣지 않았다 —
-    // 시안에 없는 dim을 발명하면 정합이 깨진다).
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay-dim">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={label}
         className="relative h-75.5 w-65.5 overflow-hidden rounded-3xl bg-surface-primary"
       >
-        <div className="absolute left-1/2 top-15.5 flex -translate-x-1/2 flex-col items-center gap-3">
-          {/* Figma에서도 placeholder(120×120 회색 사각형)다 — 그림이 오면 이 자리를 바꾼다. */}
-          <div className="size-30 bg-surface-secondary" aria-hidden="true" />
+        <div className="absolute left-1/2 top-12 flex -translate-x-1/2 flex-col items-center">
+          <div className="flex size-[132px] items-center justify-center" aria-hidden="true">
+            <Image
+              src={SCAN_VEGETABLE_IMAGES[vegetableIndex]}
+              alt=""
+              width={88}
+              height={88}
+              unoptimized
+              className="size-[88px] object-contain"
+            />
+          </div>
           <p className="whitespace-nowrap text-body-16-semibold text-content-primary">{label}</p>
         </div>
 

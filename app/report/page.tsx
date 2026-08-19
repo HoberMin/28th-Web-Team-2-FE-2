@@ -76,6 +76,9 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
         />
 
         <ReportForm
+          // 품목을 바꾸면 기본 단위도 새 품목 기준으로 초기화한다. 같은 품목으로
+          // 품목·장소 화면을 다녀올 때는 폼 상태(선택 단위 포함)를 유지한다.
+          key={itemId ?? "empty-item"}
           // vegetable 조회가 실패하면(품목이 없어졌거나 regionId 없음) itemId도 함께 비워
           // "선택해 주세요" 상태로 일관되게 남긴다 — 이름만 있고 id가 없는 상태를 만들지 않는다.
           itemId={vegetable ? itemId : undefined}
