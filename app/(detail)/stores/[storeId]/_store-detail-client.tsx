@@ -266,8 +266,9 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
       */}
       <section className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-body-16-bold text-content-primary">가게에 제보된 야채</h2>
-          <p className="text-caption-12-regular text-content-secondary">최근 30일간 · 최신 순</p>
+          {/* 제목 body/16-**semibold**(429:17659) · 우측 caption/12-**medium** w-[112px](429:17660) */}
+          <h2 className="text-body-16-semibold text-content-primary">가게에 제보된 야채</h2>
+          <p className="w-28 text-right text-caption-12-medium text-content-secondary">최근 30일간 · 최신 순</p>
         </div>
         <div className="mt-5 grid h-10 grid-cols-2 rounded-md bg-surface-secondary p-1">
           {(["cheap", "expensive"] as const).map((value) => (
