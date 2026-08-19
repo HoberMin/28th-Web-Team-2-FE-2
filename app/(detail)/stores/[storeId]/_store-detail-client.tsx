@@ -72,6 +72,8 @@ function StoreDataSourceNotice({ dataSource }: { dataSource: StoreDetailClientPr
 
 function StoreInformation({ store, detail }: StoreDetailClientProps) {
   const [hoursOpen, setHoursOpen] = useState(true);
+  // Figma `store-profile-hours-detail`(429:17649)는 2열이다 — 요일 라벨 + 시간 줄 묶음.
+  const [dayLabel, ...timeLines] = detail.hours;
 
   return (
     // 화면GUI(원본) 364:7882 `store-profile-info` 실측(2026-08-13). 사진 bottom 220 → info y240 = pt-20.
