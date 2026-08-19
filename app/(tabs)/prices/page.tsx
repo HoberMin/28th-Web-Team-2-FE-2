@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getItems } from "@/app/_lib/api/server/items";
+import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { ROUTES } from "@/app/_lib/routes";
 import { PricesGroupChips } from "./_group-chips";
@@ -66,6 +66,7 @@ export default async function PricesPage({
 }) {
   const params = await searchParams;
   const query = (first(params.q) ?? "").trim();
+  const focusSearch = first(params.focus) === "search";
   const group = normalizeGroup(first(params.group));
   const sort = normalizeSort(first(params.sort));
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
@@ -81,7 +82,7 @@ export default async function PricesPage({
 
   const apiSort = mapSortToApi(sort);
   const category = mapGroupToApi(group);
-  const itemPage = await getItems({
+  const { page: itemPage, isTemporary } = await getItemsWithTemporaryFallback({
     regionId,
     page: 0,
     size: ITEMS_PAGE_SIZE,
@@ -98,11 +99,21 @@ export default async function PricesPage({
   const sortParam = sort === DEFAULT_PRICES_SORT ? undefined : sort;
 
   return (
-    <div className="pt-6 pb-20">
+    <div className="relative pt-6 pb-20">
       <h1 className="sr-only">야채 시세</h1>
 
+      {isTemporary ? (
+        <p
+          role="status"
+          data-data-source="temporary"
+          className="absolute left-4 top-1 z-10 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
+        >
+          예시 데이터 · API 연결 시 자동 전환
+        </p>
+      ) : null}
+
       <div className="px-4">
-        <PricesSearchField query={query} group={group} sort={sortParam} />
+        <PricesSearchField query={query} group={group} sort={sortParam} autoFocus={focusSearch} />
       </div>
 
       <div className="mt-4">

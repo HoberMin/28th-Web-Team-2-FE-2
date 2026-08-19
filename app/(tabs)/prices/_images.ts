@@ -50,7 +50,7 @@ const PRICE_VEGETABLE_IMAGES = [
 export const FALLBACK_PRICE_VEGETABLE_IMAGE =
   "/figma/design-library/images/vegetable-grid.png";
 
-// 시세 탭은 백엔드 itemImageUrl 대신 프런트에 모아 둔 46종 사진을 사용한다.
+// 시세 탭은 백엔드 itemImageUrl 대신 프런트에 모아 둔 46종 실물 사진을 사용한다.
 // id 맵은 기존 더미 목록이, 이름 맵은 Spring 품목 목록이 공유한다.
 export const PRICE_VEGETABLE_IMAGE_BY_ID: Readonly<Record<string, string>> = Object.freeze(
   Object.fromEntries(

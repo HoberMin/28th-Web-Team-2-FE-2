@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { getPriceVegetableImage, getVegetableIdByName } from "@/app/(tabs)/prices/_images";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getItemDetail } from "@/app/_lib/api/server/items";
+import { getItemDetailWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
@@ -62,7 +62,11 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
   if (!regionId) return <MissingRegion />;
 
-  const detail = await getItemDetail({ itemId, regionId, token }).catch((error: unknown) => {
+  const { detail, isTemporary } = await getItemDetailWithTemporaryFallback({
+    itemId,
+    regionId,
+    token,
+  }).catch((error: unknown) => {
     if (error instanceof ApiError && error.kind === "notFound") notFound();
     throw error;
   });
@@ -112,9 +116,20 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
       <div className="flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
         <header className="flex h-12.25 shrink-0 items-center justify-between border-b border-border-secondary px-1">
           <PriceDetailBackButton />
-          <p className="text-body-16-semibold text-content-primary">
-            {detail.itemName} {unit}
-          </p>
+          <div className="flex min-w-0 items-center gap-1">
+            <p className="truncate text-body-16-semibold text-content-primary">
+              {detail.itemName} {unit}
+            </p>
+            {isTemporary ? (
+              <span
+                role="status"
+                data-data-source="temporary"
+                className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
+              >
+                예시 데이터
+              </span>
+            ) : null}
+          </div>
           <span aria-hidden="true" className="size-12 shrink-0" />
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">

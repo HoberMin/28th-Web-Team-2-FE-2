@@ -1,7 +1,7 @@
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { itemPageRequestSchema } from "@/app/_lib/api/schemas/items";
-import { getItems } from "@/app/_lib/api/server/items";
+import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 
 export const dynamic = "force-dynamic";
@@ -58,14 +58,13 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    return privateJson(
-      await getItems({
-        ...parsed.data,
-        regionId,
-        favoriteOnly: false,
-        token,
-      }),
-    );
+    const { page } = await getItemsWithTemporaryFallback({
+      ...parsed.data,
+      regionId,
+      favoriteOnly: false,
+      token,
+    });
+    return privateJson(page);
   } catch (error) {
     return itemsApiErrorResponse(error);
   }

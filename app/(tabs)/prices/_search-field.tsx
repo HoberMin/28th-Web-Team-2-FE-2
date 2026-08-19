@@ -32,15 +32,25 @@ export interface PricesSearchFieldProps {
   query: string;
   group?: string;
   sort?: string;
+  /** 홈 검색 아이콘에서 진입했을 때 키보드 입력을 바로 받을지 여부. */
+  autoFocus?: boolean;
 }
 
-export function PricesSearchField({ query, group, sort }: PricesSearchFieldProps) {
+export function PricesSearchField({ query, group, sort, autoFocus = false }: PricesSearchFieldProps) {
   // URL 검색어가 바뀌면 key가 바뀌어 draft도 새 값으로 초기화된다.
   // effect 안의 동기 setState 없이 뒤로가기·칩 선택을 입력창에 반영한다.
-  return <PricesSearchFieldDraft key={query} query={query} group={group} sort={sort} />;
+  return (
+    <PricesSearchFieldDraft
+      key={`${query}:${autoFocus}`}
+      query={query}
+      group={group}
+      sort={sort}
+      autoFocus={autoFocus}
+    />
+  );
 }
 
-function PricesSearchFieldDraft({ query, group, sort }: PricesSearchFieldProps) {
+function PricesSearchFieldDraft({ query, group, sort, autoFocus = false }: PricesSearchFieldProps) {
   const router = useRouter();
   const [value, setValue] = useState(query);
 
@@ -59,6 +69,7 @@ function PricesSearchFieldDraft({ query, group, sort }: PricesSearchFieldProps) 
         // type="search"를 쓰면 웹킷이 자체 지우기 버튼을 하나 더 그려 Figma의 close 아이콘과 겹친다.
         type="text"
         enterKeyHint="search"
+        autoFocus={autoFocus}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder="찾는 야채 있으신가요?"
