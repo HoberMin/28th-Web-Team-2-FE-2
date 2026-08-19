@@ -16,8 +16,11 @@ export function userRegionsApiErrorResponse(error: unknown, badRequestMessage: s
     endpoint: error.endpoint,
   });
 
-  if (error.kind === "unauthorized" || error.kind === "forbidden") {
+  if (error.kind === "unauthorized") {
     return Response.json({ message: "로그인이 필요해요." }, { status: 401 });
+  }
+  if (error.kind === "forbidden") {
+    return Response.json({ message: "권한이 없어요." }, { status: 403 });
   }
   if (error.kind === "badRequest") {
     return Response.json({ message: badRequestMessage }, { status: 400 });
