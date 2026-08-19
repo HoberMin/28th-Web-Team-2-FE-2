@@ -112,7 +112,10 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
         onSubmit={handleSubmit}
         onPointerDown={handleBackgroundPointerDown}
       >
-        <div className="shrink-0 px-4 pt-21">
+        {/* iOS 상태바가 viewport 위쪽 44px을 차지하므로, Figma의 region-body top 84px에
+            맞추려면 콘텐츠 여백은 40px이어야 한다. 기존 pt-21은 상태바와 중복되어
+            제목이 아래로 밀렸다. */}
+        <div className="shrink-0 px-4 pt-10">
           <h1 className="text-title-24-semibold text-content-primary">
             평소 어디에서
             <br />
@@ -143,7 +146,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
                     setSelected(null);
                   }}
                 >
-                  <FigmaIcon name="close-fill" width={20} currentColor />
+                  <FigmaIcon name="close-fill" width={24} currentColor />
                 </button>
               ) : (
                 <span className="text-content-secondary">
@@ -180,7 +183,9 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
                   current={!isSearching && index === 0}
                   selected={region.regionId === selected?.regionId}
                   onSelect={(next) => {
-                    setSelected(next);
+                    setSelected((current) =>
+                      current?.regionId === next.regionId ? null : next,
+                    );
                     setSaveError("");
                   }}
                 />
@@ -202,7 +207,6 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
             className="h-12.25 w-full"
             disabled={!selected || isSaving}
             aria-busy={isSaving}
-            style={selected ? { color: "var(--color-content-primary)" } : undefined}
             leading={false}
             trailing={false}
           >

@@ -17,6 +17,7 @@ import { SectionEmpty } from "./section-empty";
 //     제목     title/18-bold · content/primary · w-[160px]
 //     보조문구 caption/12-medium · content/secondary · text-right · w-[112px]
 //   본문       list/lowest-vegetable × 5(홈) 또는 10(더보기) + button/base
+//   행의 판매 장소 표시는 `icon/map-pin-fill` 16px을 사용한다(가게 카드의 store-fill과 구분).
 //
 // Figma와 다르게 구현한 것:
 //   · 제목 `w-[160px]`·보조문구 `w-[112px]` 고정 폭을 **버렸다.** 한국어 텍스트에 고정 폭을 주면
@@ -92,7 +93,7 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
       visual={<HomeVegetableImage name={item.name} size={40} />}
-      storeIcon={<FigmaIcon name="store-fill" width={16} currentColor />}
+      storeIcon={<FigmaIcon name="map-pin-fill" width={16} currentColor />}
       trendIcon={<TrendIcon direction={item.trend} />}
     />
   ));
