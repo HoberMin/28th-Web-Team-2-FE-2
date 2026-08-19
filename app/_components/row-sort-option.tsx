@@ -62,6 +62,11 @@ export function RowSortOption({
       // @theme 선언 순서에 결과가 의존한다 → 아래 분기는 전부 상호배타로 둔다.
       className={cn(
         "flex w-full items-center gap-1 bg-surface-primary text-left text-content-primary",
+        // UI QA 2026-08-20 #23 "sheet/sort이 켜졌을 때 파란 스트로크가 뜸".
+        // focus 스타일이 없어 브라우저 기본 파란 링이 그대로 나왔다. 텍스트필드(#45)와 같은
+        // 원칙으로 기본 링을 끄고 디자인 토큰(border/tertiary)으로 대체한다 —
+        // 포커스 표시 자체를 없애면 WCAG 2.4.7 위반이라 키보드로 시트를 못 쓴다.
+        "outline-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-tertiary",
         current ? "py-3" : "border-b border-border-secondary py-4",
         current && selected && "justify-between",
         selected ? "text-body-16-bold" : "text-body-16-medium",
