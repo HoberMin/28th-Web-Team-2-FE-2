@@ -41,9 +41,10 @@ export default async function HomePage() {
   const newsItems = await loadHomeNewsItems(getNews);
 
   return (
-    // pb-20: 스크롤 끝 여백. (tabs) 레이아웃의 GNB는 본문 위를 덮지 않고 옆에 붙지만,
+    // pb-10: 스크롤 끝 여백. (tabs) 레이아웃의 GNB는 본문 위를 덮지 않고 옆에 붙지만,
     // 마지막 카드가 GNB 경계선에 딱 붙어 끝나지 않도록 확보한다.
-    <div className="flex flex-col pb-20">
+    // UI QA 2026-08-20 #4 "하단 여백 반 정도 줄여주세요" → pb-20(80px)에서 절반으로.
+    <div className="flex flex-col pb-10">
       <HomeHeader region={HOME_REGION} />
 
       <div className="flex flex-col gap-11 px-4 pt-5">
