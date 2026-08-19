@@ -12,10 +12,8 @@ import { cn } from "../_lib/cn";
 //   활성     = content/primary + body/14-semibold
 //   비활성   = content/secondary + body/14-medium
 //
-// ⚠️ 아이콘은 컴포넌트가 아니라 슬롯이다. Figma의 현재 인스턴스는 홈만 실제 아이콘이고
-//    나머지 4개(시세·가게·찜·내 정보)는 `mage:heart-fill` 플레이스홀더가 꽂혀 있다.
-//    즉 아이콘 세트는 아직 확정 전 — 레이아웃·타이포·색만 확정된 상태라 슬롯으로 받는다.
-//    현재 Figma 아이콘 원본은 `public/figma/design-library/icons/`에 export했다.
+// 아이콘은 호출부에서 Figma 원본 에셋을 주입한다. 활성/비활성 색상은 이 컴포넌트의
+// currentColor를 통해 아이콘 슬롯까지 함께 전달된다.
 //
 // 대비: 비활성 라벨 content/secondary(gray-600)는 흰 배경에서 4.79:1로 AA(4.5:1)를 넘는다.
 // 터치 영역: 항목 하나가 약 78×78px로 44×44 최소 기준을 넘는다.

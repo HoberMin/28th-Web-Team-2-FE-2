@@ -1201,5 +1201,99 @@
         ]
       }
     }
+  },
+  "icons": {
+    "source": {
+      "fileKey": "WfW1Nkx1oiOWBHNwrw48IL",
+      "nodeId": "436:28200",
+      "url": "https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=436-28200"
+    },
+    "count": 10,
+    "items": {
+      "garlic": {
+        "name": "마늘",
+        "nodeId": "1099:13090",
+        "path": "/veg/garlic.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export",
+        "sourceUrls": [
+          "https://www.figma.com/api/mcp/asset/d32ca0a9-2a84-4814-9b35-8c8ed64d1cce.svg",
+          "https://www.figma.com/api/mcp/asset/1725c672-b326-40f6-864f-4d1b919b76c9.svg",
+          "https://www.figma.com/api/mcp/asset/8e1e04e0-6a30-498e-87bd-7c9bcc2e6c76.svg"
+        ]
+      },
+      "onion": {
+        "name": "양파",
+        "nodeId": "1099:13104",
+        "path": "/veg/onion.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/ee4d2807-699a-4549-819a-2f6ddaa5ccf3.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "tomato": {
+        "name": "토마토",
+        "nodeId": "1099:13117",
+        "path": "/veg/tomato.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/e542a26f-1105-4e48-ae49-595a6916ece4.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "potato": {
+        "name": "감자",
+        "nodeId": "1099:13134",
+        "path": "/veg/potato.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/73e182ec-8c4c-41b9-ab66-b03964a03325.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "broccoli": {
+        "name": "브로콜리",
+        "nodeId": "1099:13157",
+        "path": "/veg/broccoli.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/558ef01d-ca9b-4497-9d45-b02e8ea8e284.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "sweet-potato": {
+        "name": "고구마",
+        "nodeId": "1099:14246",
+        "path": "/veg/sweet-potato.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/d38d07a2-a97c-49ef-9e78-e42c7106a1ca.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "cucumber": {
+        "name": "오이",
+        "nodeId": "1099:14275",
+        "path": "/veg/cucumber.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/f400bacf-4487-407e-81a9-c37fe9339688.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "bell-pepper": {
+        "name": "피망",
+        "nodeId": "1099:14287",
+        "path": "/veg/bell-pepper.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/03456110-cb33-4f2f-bc81-36428fafba54.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "carrot": {
+        "name": "당근",
+        "nodeId": "1099:14305",
+        "path": "/veg/carrot.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/88499ca1-7f3c-4fea-85bb-4b7587b991d0.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      },
+      "red-pepper": {
+        "name": "붉은고추",
+        "nodeId": "1099:14314",
+        "path": "/veg/red-pepper.svg",
+        "sourceUrl": "https://www.figma.com/api/mcp/asset/6c8a9ad3-6d7d-4857-ae71-8454410dc4ef.svg",
+        "contentType": "image/svg+xml",
+        "kind": "figma-export"
+      }
+    }
   }
 }

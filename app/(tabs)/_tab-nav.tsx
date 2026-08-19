@@ -16,24 +16,16 @@ import { ROUTES } from "../_lib/routes";
 //    같아서 차이가 없다. 활성/비활성 전환이 필요한 자리라 `currentColor`가 맞지만,
 //    nav/gnb의 가게 아이콘이 원래 초록인지는 **디자이너 확인 대기**다.
 //
-// ⚠️ **시세·내 정보 탭 글리프가 아직 없다.** 2026-08-08 에셋 전달분(28종)에 홈·가게·찜만
-//    들어왔다. Figma 원본의 nav/gnb도 이 두 자리가 `icon/home` 플레이스홀더 상태다.
-//    임의 아이콘을 그리지 않고 점선 자리표시로 둔다 — 전달되면 이 두 줄만 바뀐다.
-//    (GUI피드백 29·30번: 나머지 2종 + 미선택용 stroke 버전 요청)
-function IconSlot() {
-  return <span className="block size-6 rounded-sm border border-border-primary border-dashed" />;
-}
-
 const ITEMS: NavGnbItem[] = [
   { href: ROUTES.home, label: "홈", icon: <FigmaIcon name="home" width={24} currentColor /> },
-  { href: ROUTES.prices, label: "시세", icon: <IconSlot /> },
+  { href: ROUTES.prices, label: "시세", icon: <FigmaIcon name="chart-up" width={24} currentColor /> },
   {
     href: ROUTES.stores,
     label: "가게",
     icon: <FigmaIcon name="store-fill" width={24} currentColor />,
   },
   { href: ROUTES.saved, label: "찜", icon: <FigmaIcon name="heart-fill" width={24} currentColor /> },
-  { href: ROUTES.mypage, label: "내 정보", icon: <IconSlot /> },
+  { href: ROUTES.mypage, label: "내 정보", icon: <FigmaIcon name="person-fill" width={24} currentColor /> },
 ];
 
 export function TabNav() {

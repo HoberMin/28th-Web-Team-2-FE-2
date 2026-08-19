@@ -3,7 +3,7 @@
 // 카탈로그는 `shared/kamis-vegetable-data-spec.md` v3 규격과 1:1 스냅샷이다. 규격이 진실 소스.
 //   단위 정책: kg·g → KAMIS `p_convert_kg_yn=Y` / 개·포기 → `N`(소비자가 그 단위로 사는 품목만)
 //   부류코드: 규격상 100(식량작물) 또는 200(채소류) 둘 중 하나로 고정
-//   일러스트(SVG)는 Figma에서 받은 8종만 있고 나머지는 이모지 폴백(image 미지정)
+//   일러스트(SVG)는 Figma에서 받은 10종만 있고 나머지는 이모지 폴백(image 미지정)
 // 시세는 실 API 연결 전까지 화면을 채우는 저충실도 더미다.
 
 import type {
@@ -68,7 +68,7 @@ export const VEGETABLES: Vegetable[] = [
   { id: "kkwari-pepper", name: "꽈리고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "02" },
   { id: "cheongyang-pepper", name: "청양고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "03" },
   { id: "mild-pepper", name: "오이맛고추", emoji: "🌶️", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "242", kindCode: "04" },
-  { id: "red-pepper", name: "붉은고추", emoji: "🌶️", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "243", kindCode: "00" },
+  { id: "red-pepper", name: "붉은고추", image: "/veg/red-pepper.svg", emoji: "🌶️", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "243", kindCode: "00" },
   { id: "dried-pepper", name: "건고추", emoji: "🌶️", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "241", kindCode: "00", kindLabel: "화건" },
   { id: "pepper-powder-kr", name: "고춧가루(국산)", emoji: "🫙", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "248", kindCode: "00" },
   { id: "pepper-powder-cn", name: "고춧가루(중국산)", emoji: "🫙", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "248", kindCode: "01" },
@@ -89,7 +89,7 @@ export const VEGETABLES: Vegetable[] = [
   { id: "water-parsley", name: "미나리", emoji: "🌿", category: "채소류", unit: "100g", unitType: "g", itemCategoryCode: "200", itemCode: "252", kindCode: "00" },
   { id: "welsh-onion", name: "대파", emoji: "🌱", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "246", kindCode: "00" },
   { id: "chive", name: "쪽파", emoji: "🌱", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "246", kindCode: "02" },
-  { id: "broccoli", name: "브로콜리", emoji: "🥦", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "280", kindCode: "00" },
+  { id: "broccoli", name: "브로콜리", image: "/veg/broccoli.svg", emoji: "🥦", category: "채소류", unit: "1개", unitType: "개", itemCategoryCode: "200", itemCode: "280", kindCode: "00" },
   { id: "mustard-green", name: "갓", emoji: "🥬", category: "채소류", unit: "1kg", unitType: "kg", itemCategoryCode: "200", itemCode: "216", kindCode: "00", season: { months: [11, 12], label: "가을~겨울 한정" } },
 
   // ── 버섯 ──────────────────────────────────────────────────────
