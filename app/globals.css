@@ -22,9 +22,10 @@
 @theme static {
   /*
    * 컬러 — Figma Design Library (fileKey WfW1Nkx1oiOWBHNwrw48IL) node 126-1092
-   *   Raw Color 59 + Semantic Color 41. **재sync 2026-08-13 v03**
-   *   (디자인_docs/variables/variables_2026-08-13-v03.json, 사용자가 직접 전달한 원본 — MCP 없이 파일 전달).
-   *   v03은 **값 변경 0 · 구조(이름) 변경만**이다. Raw Color·Radius·타이포는 v02와 완전히 동일.
+   *   Raw Color 59 + Semantic Color 42. **재sync 2026-08-19 (JDS_v2)**
+   *   (디자인_docs/variables/JDS_v2_2026-08-19_v01.json, 사용자가 직접 전달한 원본 — MCP 없이 파일 전달).
+   *   v04(JDS_v2)는 Raw Color·Radius 값 전부 v03과 동일, **content/selected(gray/800) 신설 1건**뿐이다.
+   *   ── v03 이력: **값 변경 0 · 구조(이름) 변경만**이다. Raw Color·Radius·타이포는 v02와 완전히 동일.
    *     리네임 3: surface/accent→surface/accent/orange · surface/accent-subtle→surface/accent/orange-subtle ·
    *               content/accent→content/accent/badge (셋 다 값 동일)
    *     신설 6: content/accent/favorite(red/500) · content/error(red/500) ·
@@ -128,6 +129,8 @@
   --color-content-primary: var(--color-gray-900);
   --color-content-secondary: var(--color-gray-600);
   --color-content-disabled: var(--color-gray-400);
+  /* JDS_v2(2026-08-19) 신설 — 선택된 상태의 텍스트/아이콘. 대비 10.33:1(흰 배경), AA 여유 있음. */
+  --color-content-selected: var(--color-gray-800);
   --color-content-inverse: var(--color-gray-50);
   /* Figma가 content/brand를 단일값에서 light/medium/dark 3단계로 확장 — 2026-08-05 sync */
   --color-content-brand-light: var(--color-green-600);
