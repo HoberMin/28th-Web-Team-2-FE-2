@@ -260,7 +260,11 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
 
   return (
     <>
-      <section className="px-4 pt-5 pb-4">
+      {/*
+        `reported-vegetable-section`(429:17655) 실측 — 섹션·head 모두 flex-col gap-[24px].
+        spacer(8) → 24 → 제목행(h25) → 24 → 정렬 토글 → 24 → 목록 → 4 → 더보기
+      */}
+      <section className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <h2 className="text-body-16-bold text-content-primary">가게에 제보된 야채</h2>
           <p className="text-caption-12-regular text-content-secondary">최근 30일간 · 최신 순</p>
