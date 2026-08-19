@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/_components/button";
+import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
+import { submitReportAction } from "./_actions";
 import { FieldInput, FieldSelect, FieldUnitSelect } from "./_components/field-price";
 import { PhotoDropzone } from "./_components/photo-dropzone";
 import { PhotoPreview } from "./_components/photo-preview";
@@ -41,14 +43,31 @@ import { ScanModal } from "./_components/scan-modal";
 //  · 단위 선택 시트·목록이 없다 → `FieldUnitSelect`는 자리만 두고 동작을 붙이지 않았다.
 //  · CTA "확인"의 이동 대상이 명시돼 있지 않다 → F04-4 제보 완료로 보냈다(플로우상 유일한 전진 경로).
 //
-// 상태 3종: 이 화면은 입력 폼이라 로딩·에러·빈 상태가 성립하지 않는다(제출 API가 붙으면 그때).
+// ── 2026-08-19: 실 Spring 연동으로 코드가 새로 내린 판단 ────────────────────────
+//  · **reportType을 "PURCHASE"로 고정한다.** Figma 어디에도 "구매/목격"을 고르는 토글이 없다.
+//    유일하게 UI가 있는 흐름(사진 찍어 가격 입력)이 "실제로 산 가격 확인"에 가깝다고 보고
+//    골랐다 — 토글이 생기면 `_actions.ts`의 `FIXED_REPORT_TYPE` 하나만 바꾸면 된다.
+//  · **photoUrl 없이 제출한다.** 파일 업로드 API가 스펙(`/v3/api-docs`)에 아예 없다 —
+//    지금 사진 미리보기는 로컬 blob URL이라 서버가 못 읽는다. 업로드 기능은 범위 밖이라
+//    새로 만들지 않았다(스펙에 없는 걸 지어내지 않는다).
+//  · **F04-2 카테고리 매핑**(한글 7종 ↔ Spring `ItemCategory`)은 `_data.ts`가 `(tabs)/prices`의
+//    기존 `PRICE_GROUPS` 매핑을 재사용한다 — 판단 근거는 그 파일 머리말 참고.
+//
+// 상태 3종(2026-08-19 갱신): 이제 성립한다 — 제출 API가 붙었다.
+//   로딩 = 제출 버튼 `state="loading"` (아래 handleSubmit)
+//   에러 = 401(로그인 필요)·409(중복 제보)·400(입력값)·기타를 구분해 CTA 위에 안내(아래 submitError)
+//   빈  = 이 화면 자체엔 없음(F04-2·F04-3 목록 화면의 몫)
 
 export interface ReportFormProps {
+  /** F04-2에서 고른 품목 itemId. vegetableName과 항상 짝을 맞춰 넘긴다(둘 다 있거나 둘 다 없거나). */
+  itemId?: number;
   /** F04-2에서 고른 품목. 없으면 고르라고 안내한다. */
   vegetableName?: string;
-  /** 품목의 단위 종류. 예: "kg" */
+  /** 선택된 품목의 defaultUnit — 표시와 제출에 함께 쓴다. */
   unitType?: string;
-  /** F04-3에서 고른 판매 장소. */
+  /** F04-3에서 고른 판매 장소 — 제출 시 그대로 실어 보낸다. */
+  store?: StoreRequest;
+  /** 화면에 보여줄 장소 이름. */
   placeName?: string;
   /** 선택값을 물고 다니기 위한 현재 쿼리스트링(품목·장소 화면으로 넘길 때 붙인다). */
   carryQuery: string;
@@ -60,8 +79,10 @@ type PhotoState = { url: string; scanning: boolean } | null;
 const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
 
 export function ReportForm({
+  itemId,
   vegetableName,
   unitType,
+  store,
   placeName,
   carryQuery,
 }: ReportFormProps) {
@@ -71,6 +92,8 @@ export function ReportForm({
   const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // 객체 URL은 컴포넌트가 사라질 때 반드시 해제한다 — 안 하면 탭을 떠날 때마다 누적된다.
   useEffect(() => {
@@ -85,7 +108,9 @@ export function ReportForm({
   // 장소 없는 제보는 시세 비교에 쓸 수 없다. 규칙을 발명하면서 일부만 발명하는 게 더 위험하다.
   // (pages.md의 "필수 3종"이 정본이면 이 줄에서 placeName만 빼면 된다)
   const canSubmit =
+    Boolean(itemId) &&
     Boolean(vegetableName) &&
+    Boolean(store) &&
     Boolean(placeName) &&
     price.trim() !== "" &&
     amount.trim() !== "";
@@ -97,6 +122,34 @@ export function ReportForm({
     if (!file) return;
     setPhotoError("");
     setPhoto({ url: URL.createObjectURL(file), scanning: true });
+  }
+
+  async function handleSubmit() {
+    // canSubmit이 이미 itemId·store 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
+    if (!canSubmit || isSubmitting || !itemId || !store) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+    try {
+      const result = await submitReportAction({
+        itemId,
+        store,
+        price: Number(price),
+        amount: Number(amount),
+        // defaultUnit이 null인 품목은 빈 문자열로 보낸다 — "kg" 같은 값을 지어내 서버에
+        // 실제로 저장시키지 않는다(위 FieldUnitSelect의 "kg" 폴백은 화면 표시 전용이다).
+        unit: unitType ?? "",
+      });
+      if (result.status === "success") {
+        router.push(ROUTES.reportDone);
+        return;
+      }
+      setSubmitError(result.message);
+    } catch {
+      setSubmitError("제보를 등록하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleCancelScan() {
@@ -232,14 +285,25 @@ export function ReportForm({
         </div>
       </div>
 
-      <ReportCtaFooter>
+      <ReportCtaFooter
+        // Figma에 제출 실패 상태가 없다 — 기존 `above` 슬롯(원래 F04-4 보조 링크용)을
+        // 에러 안내에 재사용한다. above 유무로 상단 패딩이 12→8로 바뀌는 건 의도된 동작이다.
+        above={
+          submitError ? (
+            <p role="alert" className="text-caption-12-medium text-content-error">
+              {submitError}
+            </p>
+          ) : null
+        }
+      >
         <Button
           variant="secondary"
           leading={false}
           trailing={false}
           className="w-full"
-          disabled={!canSubmit}
-          onClick={() => router.push(ROUTES.reportDone)}
+          disabled={!canSubmit || isSubmitting}
+          state={isSubmitting ? "loading" : "normal"}
+          onClick={handleSubmit}
         >
           확인
         </Button>
