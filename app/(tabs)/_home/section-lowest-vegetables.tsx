@@ -92,7 +92,7 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
       visual={<HomeVegetableImage name={item.name} size={40} />}
-      storeIcon={<FigmaIcon name="store-stroke-lowest-16" width={16} />}
+      storeIcon={<FigmaIcon name="store-fill" width={16} currentColor />}
       trendIcon={<TrendIcon direction={item.trend} />}
     />
   ));

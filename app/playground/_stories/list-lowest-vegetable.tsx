@@ -13,7 +13,7 @@ function VegetableImage() {
 }
 
 function StoreIcon() {
-  return <FigmaIcon name="store-stroke-lowest-16" width={16} />;
+  return <FigmaIcon name="store-fill" width={16} currentColor />;
 }
 
 const TREND_ICON = {

@@ -9,8 +9,8 @@ import { cn } from "../_lib/cn";
 //   컨테이너 = surface/primary 배경 + border/primary 상단 1px, px 20 / pt 12 / pb 20,
 //              항목은 flex-1로 균등 분배 (Figma 폭 390은 모바일 뷰포트라 코드에선 w-full)
 //   항목     = 24×24 아이콘 + 라벨 세로 배치
-//   활성     = content/primary + body/14-semibold
-//   비활성   = content/secondary + body/14-medium
+//   활성     = 아이콘·라벨 content/primary + body/14-semibold
+//   비활성   = 아이콘 content/disabled, 라벨 content/secondary + body/14-medium
 //
 // 아이콘은 호출부에서 Figma 원본 에셋을 주입한다. 활성/비활성 색상은 이 컴포넌트의
 // currentColor를 통해 아이콘 슬롯까지 함께 전달된다.
@@ -58,7 +58,13 @@ export function NavGnb({ items, activeHref, ariaLabel = "주요 메뉴", classNa
                 : "text-body-14-medium text-content-secondary",
             )}
           >
-            <span aria-hidden="true" className="flex size-6 items-center justify-center">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "flex size-6 items-center justify-center",
+                active ? "text-content-primary" : "text-content-disabled",
+              )}
+            >
               {icon}
             </span>
             <span className="text-center whitespace-nowrap">{label}</span>

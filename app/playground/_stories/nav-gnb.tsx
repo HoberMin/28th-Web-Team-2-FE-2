@@ -14,7 +14,7 @@ const ITEMS = [
   },
   {
     href: "#gnb-price",
-    label: "시세",
+    label: "야채 시세",
     icon: <FigmaIcon name="chart-up" width={24} currentColor />,
   },
   {

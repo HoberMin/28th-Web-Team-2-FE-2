@@ -19,14 +19,14 @@ import { cn } from "../_lib/cn";
 //   야채 그림   40×40 → size-10 슬롯
 //   info        flex-col gap-[2px] w-[140px] → gap-0.5 w-35
 //     이름      body/16-semibold · content/primary · 한 줄 말줄임
-//     가게 줄   flex gap-[4px] items-start → gap-1 / 아이콘 16×16 슬롯
+//     가게 줄   flex gap-[4px] items-start → gap-1 / 가게 아이콘 16×16 슬롯
 //               가게 이름 caption/12-regular · content/secondary · 한 줄 말줄임
 //   price-block flex-col gap-[2px] items-start w-[112px] → gap-0.5 w-28
 //     가격      text/vegetable-price size=16(body/16-bold) lines=1, **오른쪽 정렬**(justify-end)
 //     등락      text/vegetable-trend lines=1
 //   → 가격·등락은 이미 구현된 VegetablePrice·VegetableTrend를 그대로 재사용한다.
 //
-// 샘플 양파와 16px icon/store-stroke 원본은 public에 export했다. 데이터 교체를 위해 슬롯은 유지한다.
+// 샘플 양파와 16px 가게 아이콘 원본은 public에 export했다. 데이터 교체를 위해 슬롯은 유지한다.
 //
 // ⚠️ 대비 (기존에 이미 기록된 미달이 그대로 따라온다 — Figma 원본 유지):
 //      단위 표기 content/disabled(#b4bbcb) on 흰 배경 = 1.92:1 (기준 4.5:1) → 미달
@@ -40,7 +40,7 @@ export interface ListLowestVegetableProps {
   visual: ReactNode;
   /** 야채 이름. */
   name: string;
-  /** Figma의 icon/store-stroke 슬롯(16×16). */
+  /** 가게 아이콘 슬롯(16×16). */
   storeIcon?: ReactNode;
   /** 파는 가게 이름. */
   storeName: string;
