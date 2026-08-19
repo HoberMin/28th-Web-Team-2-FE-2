@@ -32,14 +32,14 @@ describe("loadInitialNearbyStores", () => {
     });
 
     await expect(loadInitialNearbyStores()).resolves.toMatchObject({
-      key: "37.5384|127.0822|2000||false",
+      key: "37.5384|127.0822|500||false",
       status: "success",
       stores: [{ id: "101", name: "장보고 마트", isLiked: true }],
     });
     expect(getNearbyStoresMock).toHaveBeenCalledWith({
       latitude: 37.5384,
       longitude: 127.0822,
-      radius: 2000,
+      radius: 500,
       onlyLiked: false,
       token: "access-token",
     });

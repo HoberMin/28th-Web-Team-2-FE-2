@@ -19,6 +19,7 @@ import type { StoreDetailData, StoreDetailPrice } from "./_data";
 interface StoreDetailClientProps {
   store: PrototypeMapStore;
   detail: StoreDetailData;
+  dataSource?: "backend-summary" | "temporary";
 }
 
 interface FigmaComment {
@@ -47,6 +48,25 @@ function StoreHero({ imageName, storeName }: { imageName?: string; storeName: st
 
   return (
     <ImageStorePlaceholder />
+  );
+}
+
+function StoreDataSourceNotice({ dataSource }: { dataSource: StoreDetailClientProps["dataSource"] }) {
+  const hasBackendSummary = dataSource === "backend-summary";
+
+  return (
+    <div
+      role="status"
+      data-data-source={dataSource ?? "temporary"}
+      className="border-b border-border-secondary bg-surface-accent-orange-subtle px-4 py-2"
+    >
+      <p className="text-caption-12-semibold text-content-accent-badge">
+        {hasBackendSummary ? "기본 가게 정보: 백엔드 연결" : "예시 데이터"}
+      </p>
+      <p className="text-caption-12-regular text-content-accent-badge">
+        상세 콘텐츠: 임시 데이터 · 상세 API 연결 전
+      </p>
+    </div>
   );
 }
 
@@ -317,7 +337,7 @@ function StoreComments({ storeName }: { storeName: string }) {
   );
 }
 
-export function StoreDetailClient({ store, detail }: StoreDetailClientProps) {
+export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClientProps) {
   const [favorite, setFavorite] = useState(false);
 
   return (
@@ -327,6 +347,7 @@ export function StoreDetailClient({ store, detail }: StoreDetailClientProps) {
           <StoreDetailBackButton />
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-21">
+          <StoreDataSourceNotice dataSource={dataSource} />
           <StoreHero imageName={detail.imageName} storeName={store.name} />
           <StoreInformation store={store} detail={detail} />
           <div className="h-2 bg-border-secondary" />

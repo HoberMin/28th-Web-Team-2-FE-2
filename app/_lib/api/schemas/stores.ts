@@ -2,7 +2,9 @@
 
 import { z } from "zod";
 
-export const DEFAULT_NEARBY_STORE_RADIUS = 2000;
+/** 지도에서 조회할 수 있는 최대 반경. 축소해도 다른 동네가 섞이지 않도록 500m로 고정한다. */
+export const MAX_NEARBY_STORE_RADIUS = 500;
+export const DEFAULT_NEARBY_STORE_RADIUS = MAX_NEARBY_STORE_RADIUS;
 
 const optionalKeywordSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -31,6 +33,7 @@ export const nearbyStoresRequestSchema = z.object({
     .number()
     .int()
     .min(0)
+    // API 계약의 상한은 유지하되, 실제 지도 화면은 MAX_NEARBY_STORE_RADIUS만 사용한다.
     .max(5000)
     .default(DEFAULT_NEARBY_STORE_RADIUS),
   onlyLiked: booleanQuerySchema.default(false),

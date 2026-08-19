@@ -11,6 +11,9 @@ import { MAP_CENTER, type MapCenter } from "./_data";
 import type { MapScreenPoint } from "./_cluster";
 
 const INITIAL_MAP_LEVEL = 4;
+// Kakao level은 숫자가 클수록 축소다. Figma의 축소 상태(level 5)를 최대로 허용해
+// 화면에서 500m 반경을 벗어난 동네가 섞이지 않도록 한다.
+const MAX_MAP_LEVEL = 5;
 
 export interface MapCanvasStorePosition {
   id: string;
@@ -123,6 +126,10 @@ export function MapCanvas({
 
         updateViewport = () => {
           if (!map || !kakaoMaps) return;
+          if (map.getLevel() > MAX_MAP_LEVEL) {
+            map.setLevel(MAX_MAP_LEVEL);
+            return;
+          }
           const projection = map.getProjection();
           const points: Record<string, MapScreenPoint> = {};
           for (const store of storesRef.current) {

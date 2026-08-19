@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import Link from "next/link";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
+import { ButtonCircle } from "../../_components/button-circle";
+import { ROUTES } from "@/app/_lib/routes";
 import { formatStoreDistance, type MapStore } from "./_data";
 
 export interface StoreSheetProps {
@@ -13,7 +16,15 @@ export interface StoreSheetProps {
 export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  const [isFavorite, setIsFavorite] = useState(store.isLiked);
   const distance = formatStoreDistance(store.distanceMeters);
+  const detailQuery = new URLSearchParams({
+    backendStoreId: store.id,
+    name: store.name,
+  });
+  if (store.address) detailQuery.set("address", store.address);
+  if (store.phone) detailQuery.set("phone", store.phone);
+  const detailHref = `${ROUTES.storeDetail("temporary")}?${detailQuery.toString()}`;
 
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -47,16 +58,33 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
       onKeyDown={handleKeyDown}
       className="flex w-full flex-col gap-5 rounded-t-3xl bg-surface-primary px-4 pt-7 pb-5 shadow-sheet"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="truncate text-title-20-bold text-content-primary">{store.name}</h2>
-            {store.isLiked ? (
-              <span className="rounded-md bg-surface-brand px-2 py-1 text-caption-12-semibold text-content-brand-dark">
-                찜한 가게
-              </span>
-            ) : null}
+      <div className="flex w-full flex-col gap-2">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="max-w-57 truncate text-title-20-bold text-content-primary">{store.name}</h2>
           </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <ButtonCircle
+              variant="fill"
+              state={isFavorite ? "pressed" : "normal"}
+              size={36}
+              className="bg-surface-secondary shadow-none"
+              aria-label={isFavorite ? "찜한 가게 해제" : "가게 찜하기"}
+              aria-pressed={isFavorite}
+              icon={<FigmaIcon name="heart-fill" width={20} currentColor />}
+              onClick={() => setIsFavorite((current) => !current)}
+            />
+            <ButtonCircle
+              variant="fill"
+              size={36}
+              className="bg-surface-secondary shadow-none"
+              aria-label="가게 정보 닫기"
+              icon={<FigmaIcon name="close-header-20" width={20} />}
+              onClick={onClose}
+            />
+          </div>
+        </div>
+        <div className="min-w-0">
           <dl className="mt-3 flex flex-col gap-2 text-body-14-regular">
             <div>
               <dt className="sr-only">주소</dt>
@@ -74,17 +102,14 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
             </div>
           </dl>
         </div>
-        <button
-          type="button"
-          aria-label="가게 정보 닫기"
-          onClick={onClose}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-content-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-        >
-          <span className="flex size-9 items-center justify-center rounded-full bg-surface-secondary p-2">
-            <FigmaIcon name="close-header-20" width={20} currentColor />
-          </span>
-        </button>
       </div>
+      <Link
+        href={detailHref}
+        className="relative inline-flex w-full items-center justify-center rounded-lg bg-action-secondary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-content-secondary"
+        aria-label="가게 상세 보기"
+      >
+        가게 상세 보기
+      </Link>
     </div>
   );
 }
