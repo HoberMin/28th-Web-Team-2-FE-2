@@ -1,5 +1,6 @@
 import "server-only";
 
+import { userMeResponseSchema, type UserMeResponse } from "../schemas/users";
 import { springFetch } from "../spring";
 
 /**
@@ -20,7 +21,16 @@ export async function updateNickname(params: { nickname: string; token: string }
   });
 }
 
-// TODO(✍️): getMe() — 현재 사용자 조회. **엔드포인트가 아직 없다.**
-// 스펙에 PATCH만 있고 GET이 없어서, 닉네임 표시·온보딩 완료 여부 판단·세션 유효성 확인을
-// 전부 못 하는 상태다. BE 요청 1번(`농산물-문서/be-요청사항.md`)의 답이 오면 여기 추가한다.
-// 추측으로 미리 만들지 않는다 — 틀린 모양이 굳으면 화면까지 따라 틀어진다.
+/**
+ * 현재 사용자 조회 — 닉네임·현재 관심 지역·온보딩 진행 단계.
+ *
+ * 응답에 개인화 필드가 섞여 있어 `no-store`다(`auth-session` §5).
+ */
+export function getMe(token: string): Promise<UserMeResponse> {
+  return springFetch({
+    path: "/api/v1/users/me",
+    token,
+    schema: userMeResponseSchema,
+    cache: "no-store",
+  });
+}
