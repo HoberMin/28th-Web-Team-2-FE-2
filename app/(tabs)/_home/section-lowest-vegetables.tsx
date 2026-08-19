@@ -22,8 +22,8 @@ import { SectionEmpty } from "./section-empty";
 // Figma와 다르게 구현한 것:
 //   · 제목 `w-[160px]`·보조문구 `w-[112px]` 고정 폭을 **버렸다.** 한국어 텍스트에 고정 폭을 주면
 //     실데이터에서 반드시 깨진다. hug + justify-between으로 두고 제목만 말줄임한다.
-//   · 섹션 제목↔본문 gap을 12 → **16(gap-4)로 통일**했다(세 섹션이 16/12/24로 갈려 있었다 —
-//     section-recommended-store.tsx 주석 참고).
+//   · 섹션 제목↔본문 gap은 **Figma 원본 12(gap-3)** 다. 한때 세 섹션을 16으로 통일했었는데
+//     2026-08-20 "Figma 원본 그대로" 지시로 되돌렸다(실측 429:16746 = flex-col gap-[12px]).
 //
 // 섹션 헤더(제목 + 우측 보조문구) 패턴은 화면 안에서 3번 반복되지만 **공통 컴포넌트로 묶지 않았다** —
 // 세 곳의 타이포·정렬·존재 여부가 전부 달라서 지금 공통화하면 어느 값이 정본인지를 임의로 정하게 된다.
@@ -99,7 +99,7 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
   ));
 
   return (
-    <section className="flex w-full flex-col items-start gap-4">
+    <section className="flex w-full flex-col items-start gap-3">
       <div className="flex w-full items-center justify-between gap-2">
         <h2 className="min-w-0 truncate text-title-18-bold text-content-primary">
           우리 동네 최저가 야채

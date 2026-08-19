@@ -13,7 +13,8 @@ import { SectionEmpty } from "./section-empty";
 //   · 제목 색을 raw `gray/1000` 대신 **`content/primary`** 로 구현했다. 다른 두 섹션 제목은
 //     시맨틱(content/primary)에 바인딩돼 있는데 이 제목만 시맨틱을 건너뛰었다 —
 //     같은 위계의 제목이 서로 다른 통로를 타면 시맨틱 레이어가 깨진다. → 디자이너 확인 필요.
-//   · 섹션 gap 24 → **16(gap-4)로 통일**(section-recommended-store.tsx 주석 참고).
+//   · 섹션 gap은 **Figma 원본 24(gap-6)** 다(실측 429:16758 = flex-col gap-[24px]).
+//     한때 16으로 통일했었는데 2026-08-20 "Figma 원본 그대로" 지시로 되돌렸다.
 //   · 컨테이너 `w-[632px]` 고정을 버리고 **가로 스크롤 캐러셀**로 만들었다. 632px는 카드 3장이
 //     한 줄에 다 들어가는 캔버스 폭일 뿐이고, 실제 화면(390px)에서는 잘린다. Figma가 카드를 옆으로
 //     늘어놓은 의도를 살려 `-mx-4 px-4 overflow-x-auto snap-x`로 화면 밖까지 흐르게 하고,
@@ -60,7 +61,7 @@ function NewsThumbnail({ src }: { src: string }) {
 
 export function SectionNews({ items }: SectionNewsProps) {
   return (
-    <section aria-labelledby="home-news-title" className="flex w-full flex-col items-start gap-4">
+    <section aria-labelledby="home-news-title" className="flex w-full flex-col items-start gap-6">
       <h2 id="home-news-title" className="w-full text-title-18-bold text-content-primary">
         최근 시세 뉴스
       </h2>

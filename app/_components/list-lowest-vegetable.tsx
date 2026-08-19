@@ -19,7 +19,8 @@ import { cn } from "../_lib/cn";
 //   야채 그림   40×40 → size-10 슬롯
 //   info        flex-col gap-[2px] w-[140px] → gap-0.5 w-35
 //     이름      body/16-semibold · content/primary · 한 줄 말줄임
-//     가게 줄   flex gap-[4px] items-start → gap-1 / 가게 아이콘 16×16 슬롯
+//     가게 줄   flex gap-[2px] items-start → gap-0.5 / 가게 아이콘 16×16 슬롯
+//               (2026-08-20 재실측 429:16752 — 이전 값 4px에서 2px로 바뀌었다)
 //               가게 이름 caption/12-regular · content/secondary · 한 줄 말줄임
 //   price-block flex-col gap-[2px] w-[112px] → gap-0.5 w-28
 //               **items-end**(우측 정렬) — UI QA 2026-08-20 #6 "제보된 야채 가격과 공공시세 비교가
@@ -95,7 +96,7 @@ export function ListLowestVegetable({
           </span>
           <div className="flex w-35 min-w-0 flex-col items-start gap-0.5">
             <p className="w-full truncate text-body-16-semibold text-content-primary">{name}</p>
-            <div className="flex w-full items-start gap-1">
+            <div className="flex w-full items-start gap-0.5">
               <span
                 aria-hidden="true"
                 className="flex size-4 shrink-0 items-center justify-center text-content-secondary"
