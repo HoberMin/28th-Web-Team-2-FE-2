@@ -221,7 +221,10 @@ export function ReportForm({
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-4 pt-7">
+      {/* pb-10: UI QA 2026-08-20 #38 "스크롤 하단의 영역이 부족함". 스크롤 영역에 하단
+          여백이 없어서 마지막 필드(판매 장소)가 CTA 바에 딱 붙어 끝났고, 단위 드롭다운을
+          열면 그 아래로 나갈 자리도 없었다(#36과 같은 뿌리). */}
+      <div className="flex-1 overflow-y-auto px-4 pt-7 pb-10">
         <div className="flex flex-col gap-10">
           <h1 className="text-title-24-semibold text-content-primary">
             야채의 실제 가격을
