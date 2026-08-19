@@ -2,7 +2,7 @@ import "server-only";
 
 import { revalidateTag } from "next/cache";
 import {
-  createReportResponseSchema,
+  createReportEnvelopeSchema,
   type CreateReportRequest,
   type CreateReportResponse,
 } from "../schemas/reports";
@@ -19,18 +19,18 @@ export async function createReport(params: {
   body: CreateReportRequest;
   token: string;
 }): Promise<CreateReportResponse> {
-  const created = await springFetch({
+  const envelope = await springFetch({
     path: `/api/v1/items/${params.itemId}/reports`,
     method: "POST",
     body: params.body,
     token: params.token,
-    schema: createReportResponseSchema,
+    schema: createReportEnvelopeSchema,
     cache: "no-store",
   });
 
-  // 제보가 반영되면 품목 시세와 가게 정보가 같이 바뀐다.
+  // 제보가 반영되면 품목의 latestLocalReportPrice(최근 동네 제보가)와 가게 정보가 같이 바뀐다.
   revalidateTag(CACHE_TAGS.items, REVALIDATE_IMMEDIATELY);
   revalidateTag(CACHE_TAGS.stores, REVALIDATE_IMMEDIATELY);
 
-  return created;
+  return envelope.data;
 }
