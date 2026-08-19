@@ -64,14 +64,30 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
             <h2 className="max-w-57 truncate text-title-20-bold text-content-primary">{store.name}</h2>
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            {/*
+              UI QA 2026-08-20 #18·#19 — 찜 상태에 따라 **글리프와 색이 둘 다** 바뀐다.
+                미찜: icon/heart-stroke-regular (라인) · content/primary
+                찜함: icon/heart-fill (채움) · content/**secondary**(회색)
+              그전에는 두 상태 모두 heart-fill이라 "안 눌러도 채워져 있고"(#18),
+              눌렀을 때는 ButtonCircle의 `state="pressed"`가 content/brand/light를 입혀
+              "초록으로 채워졌다"(#19). state를 normal로 고정하고 색을 직접 정한다.
+              Figma `header/store-detail`(392:12144) 실측도 미찜을 heart-stroke-regular로 둔다.
+            */}
             <ButtonCircle
-              variant="fill"
-              state={isFavorite ? "pressed" : "normal"}
+              variant={isFavorite ? "fill" : "stroke"}
               size={36}
-              className="bg-surface-secondary shadow-none"
+              className={`bg-surface-secondary shadow-none ${
+                isFavorite ? "text-content-secondary" : "text-content-primary"
+              }`}
               aria-label={isFavorite ? "찜한 가게 해제" : "가게 찜하기"}
               aria-pressed={isFavorite}
-              icon={<FigmaIcon name="heart-fill" width={20} currentColor />}
+              icon={
+                <FigmaIcon
+                  name={isFavorite ? "heart-fill" : "heart-stroke-regular"}
+                  width={20}
+                  currentColor
+                />
+              }
               onClick={() => setIsFavorite((current) => !current)}
             />
             <ButtonCircle
