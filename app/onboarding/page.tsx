@@ -9,7 +9,12 @@ export const metadata: Metadata = {
 };
 
 interface OnboardingPageProps {
-  searchParams: Promise<{ freshLogin?: string; loginError?: string; loginDebug?: string }>;
+  searchParams: Promise<{
+    freshLogin?: string;
+    loginError?: string;
+    loginDebug?: string;
+    onboardingStep?: string;
+  }>;
 }
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
@@ -18,6 +23,11 @@ const LOGIN_ERROR_MESSAGES: Record<string, string> = {
   expired: "로그인 요청이 만료됐어요. 다시 시도해 주세요.",
   unavailable: "로그인하지 못했어요. 잠시 후 다시 시도해 주세요.",
 };
+
+/** `app/api/auth/kakao/callback`이 실어 보내는 힌트만 인정한다 — `COMPLETED`는 콜백이 홈으로 보내 여기 오지 않는다. */
+function parseOnboardingStepHint(value?: string): "NICKNAME" | "REGION" | undefined {
+  return value === "NICKNAME" || value === "REGION" ? value : undefined;
+}
 
 export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
   const [params, accessToken, cookieStore] = await Promise.all([
@@ -33,6 +43,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
       initialLoginError={params.loginError ? LOGIN_ERROR_MESSAGES[params.loginError] ?? "" : ""}
       initialLoginDebug={params.loginDebug ?? ""}
       isAuthenticated={Boolean(accessToken)}
+      onboardingStepHint={parseOnboardingStepHint(params.onboardingStep)}
     />
   );
 }
