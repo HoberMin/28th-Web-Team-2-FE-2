@@ -19,22 +19,40 @@ import {
   KAKAO_OAUTH_STATE_COOKIE,
 } from "@/app/_lib/api/auth/kakao-oauth-cookies";
 import { login } from "@/app/_lib/api/server/auth";
+import { getMe } from "@/app/_lib/api/server/users";
+import { ROUTES } from "@/app/_lib/routes";
 
 export const dynamic = "force-dynamic";
 
 type LoginErrorCode = "cancelled" | "configuration" | "expired" | "unavailable";
 
+/** `getMe` 응답의 `onboardingStep` 중 온보딩 화면이 이어서 진행할 단계만 — `COMPLETED`는 홈으로 보내 여기 오지 않는다. */
+type OnboardingStepHint = "NICKNAME" | "REGION";
+
+function baseRedirect(location: string): NextResponse {
+  const response = new NextResponse(null, { status: 303, headers: { Location: location } });
+  clearKakaoOAuthCookies(response);
+  response.headers.set("Cache-Control", "no-store");
+  response.headers.set("Referrer-Policy", "no-referrer");
+  return response;
+}
+
 function onboardingRedirect(
-  params: { error?: LoginErrorCode; freshLogin?: string; debug?: string } = {},
+  params: {
+    error?: LoginErrorCode;
+    freshLogin?: string;
+    debug?: string;
+    onboardingStep?: OnboardingStepHint;
+  } = {},
 ) {
   const searchParams = new URLSearchParams();
   if (params.error) searchParams.set("loginError", params.error);
   if (params.debug) searchParams.set("loginDebug", params.debug);
   if (params.freshLogin) searchParams.set("freshLogin", params.freshLogin);
+  if (params.onboardingStep) searchParams.set("onboardingStep", params.onboardingStep);
   const query = searchParams.toString();
   const location = query ? `/onboarding?${query}` : "/onboarding";
-  const response = new NextResponse(null, { status: 303, headers: { Location: location } });
-  clearKakaoOAuthCookies(response);
+  const response = baseRedirect(location);
   if (params.freshLogin) {
     response.cookies.set(
       KAKAO_LOGIN_TRANSITION_COOKIE,
@@ -42,9 +60,12 @@ function onboardingRedirect(
       KAKAO_LOGIN_TRANSITION_COOKIE_OPTIONS,
     );
   }
-  response.headers.set("Cache-Control", "no-store");
-  response.headers.set("Referrer-Policy", "no-referrer");
   return response;
+}
+
+/** 온보딩을 이미 마친 사용자(`onboardingStep === "COMPLETED"`) 전용 — 그대로 홈으로 보낸다. */
+function homeRedirect(): NextResponse {
+  return baseRedirect(ROUTES.home);
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -84,7 +105,25 @@ export async function GET(request: NextRequest): Promise<Response> {
     await verifyKakaoIdToken({ config, idToken, nonce: storedNonce });
     const tokens = await login({ provider: "kakao", idToken });
     await saveLoginTokens(tokens);
-    return onboardingRedirect({ freshLogin: createOAuthRandomValue() });
+
+    // 재방문자가 매번 닉네임부터 다시 시작하지 않도록 온보딩 진행 단계를 서버에 확인한다.
+    // 이 조회가 실패해도(네트워크 오류 등) 로그인 자체는 이미 성공했으니 핵심 흐름을 막지
+    // 않는다 — 기존 동작(그냥 /onboarding)으로 폴백한다.
+    try {
+      const me = await getMe(tokens.accessToken);
+      if (me.onboardingStep === "COMPLETED") {
+        return homeRedirect();
+      }
+      return onboardingRedirect({
+        freshLogin: createOAuthRandomValue(),
+        onboardingStep: me.onboardingStep,
+      });
+    } catch (meError) {
+      console.error("[auth] 온보딩 진행 단계 조회 실패 — /onboarding으로 폴백", {
+        kind: meError instanceof ApiError ? meError.kind : "unknown",
+      });
+      return onboardingRedirect({ freshLogin: createOAuthRandomValue() });
+    }
   } catch (error) {
     if (error instanceof KakaoOAuthError) {
       console.error("[auth] 카카오 OAuth 처리 실패", { kind: error.kind });
