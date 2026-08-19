@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import type { PrototypeMapStore } from "@/app/(tabs)/stores/_data";
-import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
-import { ItemComment } from "@/app/_components/item-comment";
 import { SheetHandle } from "@/app/_components/sheet-handle";
-import type { ReporterTone } from "@/app/_components/image-profile-reporter";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
-import { addComment, useComments, type Comment } from "@/app/_lib/comments-store";
 import { ROUTES } from "@/app/_lib/routes";
 import { StoreDetailBackButton } from "./_back-button";
 import type { StoreDetailData, StoreDetailPrice } from "./_data";
@@ -21,17 +17,6 @@ interface StoreDetailClientProps {
   detail: StoreDetailData;
   dataSource?: "backend-summary" | "temporary";
 }
-
-interface FigmaComment {
-  id: string;
-  nickname: string;
-  rank: ReporterRank;
-  age: string;
-  body: string;
-  tone: ReporterTone;
-}
-
-const COMMENTS_PAGE_SIZE = 5;
 
 function StoreHero({ imageName, storeName }: { imageName?: string; storeName: string }) {
   if (imageName) {
@@ -315,64 +300,6 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
   );
 }
 
-function toFigmaComment(comment: Comment, index: number): FigmaComment {
-  return {
-    id: comment.id,
-    nickname: comment.nickname,
-    rank: "sprout",
-    age: "방금 전",
-    body: comment.body,
-    tone: (["green", "orange", "blue", "gray"] as const)[index % 4],
-  };
-}
-
-function StoreComments({ storeName }: { storeName: string }) {
-  const localComments = useComments(storeName);
-  const [value, setValue] = useState("");
-  const [visibleCount, setVisibleCount] = useState(COMMENTS_PAGE_SIZE);
-  const comments = localComments.map(toFigmaComment);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const body = value.trim();
-    if (!body) return;
-    addComment({ storeName, nickname: "황유나", body });
-    setValue("");
-  };
-
-  return (
-    <section className="px-4 pt-5 pb-6">
-      <h2 className="text-body-16-bold text-content-primary">댓글 {comments.length}</h2>
-      <form onSubmit={handleSubmit} className="mt-4 flex h-10 items-center rounded-md bg-surface-secondary px-3">
-        <label htmlFor="store-comment" className="sr-only">댓글 입력</label>
-        <input id="store-comment" value={value} onChange={(event) => setValue(event.target.value)} placeholder="댓글을 입력하세요" className="min-w-0 flex-1 bg-transparent text-caption-12-medium text-content-primary outline-none placeholder:text-content-disabled" />
-        <button type="submit" disabled={!value.trim()} className="rounded-sm bg-action-primary-default px-2 py-1 text-caption-12-semibold text-content-inverse disabled:bg-action-primary-disabled">등록</button>
-      </form>
-      <div className="mt-1">
-        {comments.slice(0, visibleCount).map((comment) => (
-          <ItemComment
-            key={comment.id}
-            nickname={comment.nickname}
-            rank={comment.rank}
-            age={comment.age}
-            body={comment.body}
-            profileColor={comment.tone}
-          />
-        ))}
-      </div>
-      {visibleCount < comments.length && (
-        <button
-          type="button"
-          onClick={() => setVisibleCount((count) => count + COMMENTS_PAGE_SIZE)}
-          className="mt-2 h-9.5 w-full rounded-md bg-surface-secondary text-caption-12-semibold text-content-secondary"
-        >
-          댓글 더보기
-        </button>
-      )}
-    </section>
-  );
-}
-
 export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClientProps) {
   const [favorite, setFavorite] = useState(false);
 
@@ -389,7 +316,6 @@ export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClie
           <div className="h-2 bg-border-secondary" />
           <StorePrices prices={detail.prices} />
           <div className="h-2 bg-border-secondary" />
-          <StoreComments storeName={store.name} />
         </main>
         {/*
           `section/cta`(429:17672) — h73(py-[12px]) · border-t **border/primary** · 하트 w52 + CTA w300.
