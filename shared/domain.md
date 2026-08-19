@@ -15,7 +15,14 @@
 ## 2. 핵심 구조
 - **인증·식별 (2026-08-18 확정)**: 카카오 OIDC `idToken` → 우리 BFF(`app/api/auth/kakao`) → 외부 Spring이 서비스 JWT 발급. **토큰은 우리 도메인 httpOnly 쿠키에 보관**하고 서버가 `Authorization` 헤더로 붙인다(브라우저 메모리 보관 안 함 — RSC가 못 읽는다). 갱신은 루트 `proxy.ts`가 렌더 전에 선제 수행. 규격은 `auth-session` 스킬
   - `TODO(✍️):` 회원/비회원 경계 — 비회원이 어디까지 쓰는지 미정이라 보호 라우트 접근 제어를 아직 안 걸었다 (`농산물-문서/be-요청사항.md` 3번)
-  - `TODO(✍️):` 신규/기존 회원 구분 — 로그인 응답에 단서가 없어 온보딩 재진입 분기가 미구현
+  - **신규/기존 회원 구분 (2026-08-19 해소)**: BE가 `GET /api/v1/users/me`를 신설해
+    `onboardingStep`("NICKNAME"|"REGION"|"COMPLETED")을 내려준다. 로그인 콜백
+    (`app/api/auth/kakao/callback/route.ts`)이 로그인 직후 이 값을 조회해 `COMPLETED`면
+    바로 홈으로, 아니면 `onboardingStep`을 쿼리로 실어 `/onboarding`으로 보내 이미 끝난
+    단계(닉네임 등)를 건너뛴다. `TODO(✍️):` 새 기기로 처음 접속한 완료 유저는 로컬
+    `onboarding-store`(브라우저 저장소)가 비어 있어 `(tabs)/_onboarding-gate.tsx`가 여전히
+    `/onboarding`으로 되돌려보낸다 — 그 게이트가 로컬 상태만 보고 서버 진행 단계를 조회하지
+    않기 때문이다(이번 작업 범위 밖, 별도 확인 필요).
 - `TODO(✍️):` 유저 플로우
 - `TODO(✍️):` 핵심 엔티티·상태머신
   - **품목 식별자 계약 (2026-08-18 해소)**: `GET /api/v1/items/{itemId}` 상세 조회가 라이브에
