@@ -18,6 +18,12 @@ interface OnboardingFlowProps {
   /** 로그인 설정 실패 사유(키 이름만, 값 없음) — 서버 로그 접근 없이 브라우저 콘솔로 확인하기 위함. */
   initialLoginDebug: string;
   isAuthenticated: boolean;
+  /**
+   * `getMe`의 `onboardingStep`을 로그인 콜백이 그대로 실어 보낸 것. `REGION`이면 닉네임은
+   * 서버에 이미 저장돼 있으니 닉네임 단계를 건너뛰고 지역 선택부터 시작한다.
+   * (닉네임 텍스트 자체는 URL에 실어 보내지 않는다 — 로컬 저장값은 비워 둔 채 단계만 스킵한다.)
+   */
+  onboardingStepHint?: "NICKNAME" | "REGION";
 }
 
 export function OnboardingFlow({
@@ -25,6 +31,7 @@ export function OnboardingFlow({
   initialLoginError,
   initialLoginDebug,
   isAuthenticated,
+  onboardingStepHint,
 }: OnboardingFlowProps) {
   const router = useRouter();
   const onboarding = useHydratedOnboarding();
@@ -32,6 +39,9 @@ export function OnboardingFlow({
   const [loginError, setLoginError] = useState(initialLoginError);
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [nicknameError, setNicknameError] = useState("");
+  // 최초 렌더의 힌트만 쓴다 — 세션 동기화 effect가 로컬 nickname을 비우더라도 이 스킵 여부는
+  // 그대로 유지돼야 REGION 힌트로 들어온 사용자가 다시 닉네임 화면을 보지 않는다.
+  const [skipNicknameStep] = useState(onboardingStepHint === "REGION");
   const needsSessionSync =
     onboarding !== null &&
     isAuthenticated &&
@@ -135,7 +145,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (!onboarding.nickname) {
+  if (!onboarding.nickname && !skipNicknameStep) {
     return (
       <NicknameStep
         defaultValue={onboarding.nickname}
