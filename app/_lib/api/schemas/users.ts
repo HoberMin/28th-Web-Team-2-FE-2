@@ -15,7 +15,25 @@ export const nicknameSchema = z
 export const updateNicknameRequestSchema = z.object({ nickname: nicknameSchema });
 export type UpdateNicknameRequest = z.infer<typeof updateNicknameRequestSchema>;
 
-// TODO(✍️): 현재 사용자를 **조회하는** API가 없다(PATCH만 있다). 그래서
-// 마이페이지에 내 닉네임을 띄울 수 없고, 재방문자가 온보딩을 마쳤는지도 알 수 없다.
-// BE에 `GET /api/v1/users/me` 신설을 요청해 뒀다 (`농산물-문서/be-요청사항.md` 1번).
-// 응답 스키마는 답이 온 뒤에 만든다 — 지금 추측해서 만들면 틀린 모양이 굳는다.
+// GET /api/v1/users/me — 현재 사용자 조회 (2026-08-19 BE 신설, 농산물-문서/be-요청사항.md 1번 해소).
+//
+// envelope 없이 DTO 그대로 온다. required 필드가 스펙에 명시돼 있지 않아 아주 초기 유저는
+// nickname·currentRegion이 비어 있을 수 있다 — 방어적으로 optional/nullable로 파싱한다.
+// 401/403/404도 같은 스키마 형태로 선언돼 있지만 body를 신뢰하지 않고 status로 분기한다
+// (`backend-api-reference` §2).
+
+export const onboardingStepSchema = z.enum(["NICKNAME", "REGION", "COMPLETED"]);
+export type OnboardingStep = z.infer<typeof onboardingStepSchema>;
+
+export const userMeResponseSchema = z.object({
+  nickname: z.string().optional().nullable(),
+  currentRegion: z
+    .object({
+      regionId: z.string(),
+      regionName: z.string(),
+    })
+    .optional()
+    .nullable(),
+  onboardingStep: onboardingStepSchema,
+});
+export type UserMeResponse = z.infer<typeof userMeResponseSchema>;
