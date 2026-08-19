@@ -44,7 +44,10 @@ export function NicknameStep({
         onSubmit={handleSubmit}
         onPointerDown={handleBackgroundPointerDown}
       >
-        <div className="flex-1 px-4 pt-21">
+        {/* pt-10: UI QA 2026-08-20 #3 "상단 여백이 큼 → 현재에서 반 이상 줄이면 좋겠다".
+            Figma 좌표(pt-21 = 84px)는 Status Bar 목업 44px을 포함한 값이라 실제 브라우저에서는
+            그만큼 더 내려가 보였다. 40px로 낮춘다. */}
+        <div className="flex-1 px-4 pt-10">
           <h1 className="flex flex-col gap-0.5 text-title-24-semibold text-content-primary">
             <span className="flex items-center gap-1">
               반가워요!
