@@ -52,17 +52,37 @@ Figma 값을 가져오는 경로는 **MCP 도구 하나뿐이다.** 다음은 �
 
 `get_libraries` → `search_design_system` 조합은 "이 규격이 라이브러리에 실제로 있나"를 확인하는 가장 싼 방법이다 — **"Figma에 있는 규격만 만든다"** 규칙(design-guide §1-1)을 검증할 때 쓴다.
 
-## 0. 진실 소스 (2026-08-05)
+## 0. 진실 소스 (2026-08-19 실측 갱신)
 
 | 대상 | Figma | 코드 |
 |---|---|---|
-| 컬러 | node `126-1092` — Raw Color 58 · Semantic Color 24 | `app/globals.css` `@theme static` |
+| 컬러 | node `126-1092` — Raw Color 59 · Semantic Color 41 | `app/globals.css` `@theme static` |
 | 타이포 | node `171-3737` — title·body·caption 21종 | 같음 |
-| 레디어스 | node `126-1092` — Radius 5 | 같음 |
-| 컴포넌트 | **없음** (Design Library에 컴포넌트 규격 미존재) | `app/_components/` — 아직 만들 게 없어 디렉토리 없음 (§8) |
+| 레디어스 | node `126-1092` — Radius 7 | 같음 |
+| 컴포넌트 | 섹션 `component` node **`1157-21016`** — `0 Asset` / `1 Icon` / `2 Action` / `3 Content` 4단 | `app/_components/` + `/playground` 스토리 |
+| 화면 | 섹션 `화면GUI(원본)` node **`429-16677`** (fileKey `d5j7K9BNpSXxVUu3fmZfY4`) — 45프레임 | `app/` 라우트 |
 
-fileKey: `WfW1Nkx1oiOWBHNwrw48IL` (Design Library). 페이지는 `(공유) 스타일가이드` 하나뿐이다.
+fileKey: `WfW1Nkx1oiOWBHNwrw48IL` (Design Library) · `d5j7K9BNpSXxVUu3fmZfY4` (장보고 Design).
+컬러·타이포·레디어스는 `(공유) Color, Radius, Text` 페이지(`124:464`)에 있다.
 **전신 프로젝트 파일 `TRXXVUvIwh8vh7FbBusXCO`(Looky-Design)는 진실 소스가 아니다** — 이 fileKey를 가리키는 규격을 새로 등록하지 말고, 발견하면 flag한다.
+
+## 0-2. 노드 id는 휘발성이다 — 출처는 **이름**으로 적는다 (2026-08-19 신설)
+
+2026-08-19에 실제로 겪은 일이다. 장보고 Design의 화면 섹션이 통째로 다시 만들어져
+**`364:*` 노드 id 전부가 "node not found"가 됐다.** 코드 주석·피드백 문서 수백 곳이 그 id를 인용하고 있었다.
+
+- **표기 규칙**: 출처는 `프레임명`(또는 `카테고리/컴포넌트명`)을 먼저 쓰고 node id는 괄호 보조로 붙인다.
+  이름은 파일을 다시 만들어도 남고, id는 안 남는다. 예: `` `F03_야채시세 상세`(429:17113) ``
+- **id만 적힌 옛 주석을 만나면** `shared/pages.md` §구 id → 신 id 매핑 표로 변환한다. 표에 없는
+  내부 레이어는 신 프레임을 열어 **이름으로 다시 찾는다.** 옛 id에 신 번호를 추측으로 끼워 넣지 않는다.
+- **일괄 치환 금지**: 최상위 프레임은 대응이 확정되지만 내부 레이어는 그렇지 않다. sed로 밀면
+  틀린 id가 "확인된 실측"처럼 남는다. 실제로 그래서 2026-08-19에는 프레임 단위만 옮겼다.
+- **라이브러리 쪽은 상황이 다르다**: 같은 날 구 노드(`185:*` · `436:*` 등)가 아직 살아 있는 것을
+  확인했고, 디자이너가 정본으로 준 `1157:*` 섹션이 **또 한 벌로 존재**한다. 그래서 스토리의
+  `figma:` id는 지금도 열린다. 어느 쪽을 남길지는 디자이너 확인 대기(`pages.md` v3 절).
+- **화면 파일에서 프레임을 못 찾으면** 그것이 곧 "파일이 다시 만들어졌다"는 신호다.
+  우회하지 말고 `get_metadata`(nodeId 생략 → 페이지 목록)부터 다시 타서 현재 섹션 id를 확인하고,
+  `pages.md`를 갱신한 뒤 작업을 잇는다.
 
 ## 1. 링크만 받았을 때 — 무엇인지 먼저 분류한다 (되묻지 않는다)
 
