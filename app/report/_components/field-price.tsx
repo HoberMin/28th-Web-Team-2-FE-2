@@ -48,7 +48,8 @@ function FieldAction({ label }: { label: string }) {
   return (
     <span className="flex shrink-0 items-center gap-1">
       <span className="whitespace-nowrap text-body-14-medium text-content-secondary">{label}</span>
-      <FigmaIcon name="chevron-right" width={16} />
+      {/* UI QA 2026-08-20 #34: chevron 색이 디자인과 달랐다 → 라벨과 같은 content/secondary. */}
+      <FigmaIcon name="chevron-right" width={16} currentColor className="text-content-secondary" />
     </span>
   );
 }
@@ -67,9 +68,14 @@ export interface FieldInputProps extends ComponentPropsWithoutRef<"input"> {
  */
 export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
   return (
-    <div className={cn(FIELD_BOX, "w-full", className)}>
+    // 입력중(focus) 상태의 테두리는 Figma `field/price` "상태: 입력중"(F04-1 444:24594)이
+    // border/tertiary로 잡아 둔 값이다 — UI QA 2026-08-20 #35("상태가 디자인과 다름").
+    // 동시에 #45("모든 텍스트필드 선택 시 파란 스트로크")도 여기서 해소된다: 브라우저 기본
+    // 파란 링(outline)을 끄고 디자인 토큰 테두리로 대체한다. border 폭은 그대로 1px이라
+    // 색만 바뀌고 레이아웃은 흔들리지 않는다.
+    <div className={cn(FIELD_BOX, "w-full focus-within:border-border-tertiary", className)}>
       <input
-        className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary placeholder:font-medium placeholder:text-content-disabled"
+        className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
         {...rest}
       />
       {suffix ? (
@@ -161,8 +167,18 @@ export function FieldUnitSelect({
   ...rest
 }: FieldUnitSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const selectedUnit = normalizeReportUnit(unit);
+
+  // UI QA 2026-08-20 #36 "list/unit-option이 열리면 스크롤 안된 상태에서 잘림 →
+  // 열리면 스크롤되어 이 영역이 모두 보이게". 목록은 `absolute`라 폼 흐름에 자리를 만들지
+  // 않으므로, 필드가 화면 아래쪽에 있으면 목록이 접힌 화면 밖으로 나간다.
+  // `block: "nearest"`라 이미 다 보이는 경우에는 아무것도 움직이지 않는다.
+  useEffect(() => {
+    if (!open) return;
+    listRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -204,9 +220,13 @@ export function FieldUnitSelect({
 
       {open && !disabled ? (
         <div
+          ref={listRef}
           role="listbox"
           aria-label="단위 선택"
-          className="absolute right-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-1 shadow-floating"
+          // Figma `list/unit-option`(785:29926) 실측 2026-08-20: p-[2px] · radius/lg ·
+          // border border/primary · shadow는 전용 2겹 값(shadow-dropdown).
+          // UI QA #37로 shadow-floating(button/circle용)에서 교체했다.
+          className="absolute right-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-0.5 shadow-dropdown"
         >
           {REPORT_UNITS.map((option) => (
             <button
