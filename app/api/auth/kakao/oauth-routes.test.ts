@@ -176,6 +176,41 @@ describe("Kakao OAuth routes", () => {
     expect(responseText).not.toContain(tokens.refreshToken);
   });
 
+  it("온보딩을 이미 마친 재방문자는 온보딩이 아니라 홈으로 보낸다", async () => {
+    const tokens = { accessToken: "service-access", refreshToken: "service-refresh" };
+    mocks.exchangeKakaoCode.mockResolvedValueOnce("header.payload.signature");
+    mocks.login.mockResolvedValueOnce(tokens);
+    mocks.getMe.mockResolvedValueOnce({ onboardingStep: "COMPLETED" });
+
+    const response = await callback(
+      callbackRequest("code=authorization-code&state=stored-state", {
+        [KAKAO_OAUTH_STATE_COOKIE]: "stored-state",
+        [KAKAO_OAUTH_NONCE_COOKIE]: "stored-nonce",
+      }),
+    );
+
+    expect(response.headers.get("Location")).toBe("/");
+  });
+
+  it("온보딩 단계 조회(getMe) 실패는 로그인 자체를 막지 않고 기존 온보딩 이동으로 폴백한다", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const tokens = { accessToken: "service-access", refreshToken: "service-refresh" };
+    mocks.exchangeKakaoCode.mockResolvedValueOnce("header.payload.signature");
+    mocks.createOAuthRandomValue.mockReturnValueOnce("login-transition");
+    mocks.login.mockResolvedValueOnce(tokens);
+    mocks.getMe.mockRejectedValueOnce(new Error("network down"));
+
+    const response = await callback(
+      callbackRequest("code=authorization-code&state=stored-state", {
+        [KAKAO_OAUTH_STATE_COOKIE]: "stored-state",
+        [KAKAO_OAUTH_NONCE_COOKIE]: "stored-nonce",
+      }),
+    );
+
+    expect(mocks.saveLoginTokens).toHaveBeenCalledWith(tokens);
+    expect(response.headers.get("Location")).toBe("/onboarding?freshLogin=login-transition");
+  });
+
   it("카카오 취소는 code 교환 없이 안전한 오류 코드로 복귀한다", async () => {
     const response = await callback(
       callbackRequest("error=access_denied&error_description=private-detail&state=stored-state", {
