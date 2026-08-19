@@ -7,7 +7,9 @@ import "server-only";
 import {
   nearbyRegionsSchema,
   regionSearchEnvelopeSchema,
+  userRegionsResponseSchema,
   type Region,
+  type UserRegion,
 } from "../schemas/regions";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
@@ -48,5 +50,44 @@ export function getNearbyRegions(params: {
     schema: nearbyRegionsSchema,
     // 좌표별로 결과가 갈리지만 사용자와 무관하고 잘 안 바뀐다.
     cache: { revalidate: 3_600, tags: [CACHE_TAGS.regions] },
+  });
+}
+
+/**
+ * 로그인 사용자의 관심 지역 목록 (현재 선택 여부 포함).
+ *
+ * 사용자별 응답이라 `no-store`다(`auth-session` §5) — 공유 캐시에 넣으면 남의 관심 지역이 보인다.
+ */
+export async function getUserRegions(token: string): Promise<UserRegion[]> {
+  const { regions } = await springFetch({
+    path: "/api/v1/users/me/regions",
+    token,
+    schema: userRegionsResponseSchema,
+    cache: "no-store",
+  });
+  return regions;
+}
+
+/** 관심 지역 추가. 204라 본문이 없다. 실패(`ApiError.kind`): `conflict`(409, 중복·최대 개수 초과)·`badRequest`(400). */
+export async function addUserRegion(params: { regionId: string; token: string }): Promise<void> {
+  await springFetch({
+    path: "/api/v1/users/me/regions",
+    method: "POST",
+    body: { regionId: params.regionId },
+    token: params.token,
+    cache: "no-store",
+  });
+}
+
+/** 현재 관심 지역 전환. 204라 본문이 없다. */
+export async function setCurrentUserRegion(params: {
+  regionId: string;
+  token: string;
+}): Promise<void> {
+  await springFetch({
+    path: `/api/v1/users/me/regions/${params.regionId}/current`,
+    method: "PUT",
+    token: params.token,
+    cache: "no-store",
   });
 }
