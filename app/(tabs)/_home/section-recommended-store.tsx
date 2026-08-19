@@ -18,9 +18,9 @@ import { SectionEmpty } from "./section-empty";
 // 같은 위계의 제목이 화면 안에서 세 가지 리듬을 갖는다. 가장 앞 섹션이 쓰는 16을 골랐고,
 // 세 값(12·16·24)의 가운데이기도 하다. → 디자이너 확인 필요.
 //
-// 섹션 제목 타이포도 통일했다: Figma는 이 섹션만 title/20-bold이고 나머지 둘은 title/18-bold다.
-// 다수(2/3)를 따라 **title/18-bold로 통일**했다. 첫 섹션을 크게 두려는 의도였다면 되돌려야 한다
-// → 디자이너 확인 필요.
+// 섹션 제목 타이포는 **Figma 원본대로 title/20-bold**다(나머지 두 섹션은 title/18-bold).
+// 한때 다수를 따라 18로 통일했었는데, UI QA(2026-08-20 #8 "글씨 크기 20으로 조정")에서
+// 디자이너가 첫 섹션을 크게 두려는 의도였음을 확인해 원본으로 되돌렸다.
 //
 // ✅ 카드 배경(그라데이션)은 이제 연결돼 있다. Figma 원본 `#f7fff3 → #e8fbd5 → #dbfbb9`는 여전히
 //    어느 Variable에도 바인딩돼 있지 않지만, 색을 추측해 토큰에 끼워 넣는 대신 **원본 fill을 그대로
@@ -53,7 +53,7 @@ export interface SectionRecommendedStoreProps {
 export function SectionRecommendedStore({ store }: SectionRecommendedStoreProps) {
   return (
     <section className="flex w-full flex-col items-start gap-4">
-      <h2 className="w-full text-title-18-bold text-content-primary">오늘은 이 가게가 저렴해요</h2>
+      <h2 className="w-full text-title-20-bold text-content-primary">오늘은 이 가게가 저렴해요</h2>
 
       {store ? (
         <Link
