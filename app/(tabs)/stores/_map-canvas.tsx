@@ -188,7 +188,11 @@ export function MapCanvas({
       <div
         aria-hidden="true"
         onClick={status === "ready" ? undefined : onMapClick}
-        className="absolute inset-0 bg-surface-secondary"
+        // overflow-hidden: UI QA 2026-08-20 #16 "가게 원형 아이콘이 지도 영역 밖으로 튀어나옴".
+        // 마커는 Kakao SDK가 CustomOverlay로 그리는데, 지도 가장자리에 걸친 마커는 컨테이너
+        // 경계를 넘어 그려진다(오버레이는 지도 div 기준 절대 위치라 clip되지 않는다).
+        // 래퍼에서 잘라 지도 영역 밖으로 새지 않게 한다.
+        className="absolute inset-0 overflow-hidden bg-surface-secondary"
       >
         <div ref={containerRef} className="absolute inset-0" />
 
