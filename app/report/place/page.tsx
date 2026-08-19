@@ -43,6 +43,14 @@ import { encodeCarriedStore } from "../_data";
 // ⚠️ 지도는 실제 지도 SDK가 아니라 회색 placeholder다 — `shared/pages.md` F07과 같은 방침
 //    (카카오 SDK 없이 상대 좌표 핀). Figma도 `map-placeholder` 이미지다.
 //
+// 2026-08-19 확인: "지도가 안 보인다" 신고 조사 결과, Figma엔 실제 `map-placeholder`
+// 이미지 노드가 있는데(429:18009, `map-sheet` 안) 지금 이 화면은 그 이미지를 한 번도
+// 받아온 적 없이 `bg-surface-secondary` 단색만 그리고 있었다. `download_assets`로 URL
+// 발급까지는 됐지만 실제 저장은 MCP가 발급한 단기 figma.com 에셋 URL을 페치해야 해서
+// `figma-bridge` §0-0 Figma REST 접근 금지 규칙에 걸려 사용자 확인 없이 진행하지 않았다
+// (2026-08-19, 생략하기로 확인 — 다음에 다시 필요해지면 `download_assets`를 재호출해야
+// 한다, URL이 ~7일 후 만료됨). 받아오면 이 밴드 배경에 `FigmaImage`로 object-cover 채우면 된다.
+//
 // Figma 개발 주석:
 //   시트(364:8298) — "해당 시트는 현재 높이가 최대. 리스트가 길어질 시 리스트 영역 안에서 스크롤 되게."
 //                    → 시트 높이를 고정하고 목록만 스크롤시킨다.
