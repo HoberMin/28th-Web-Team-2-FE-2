@@ -391,7 +391,13 @@ export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClie
           <div className="h-2 bg-border-secondary" />
           <StoreComments storeName={store.name} />
         </main>
-        <footer className="absolute right-0 bottom-0 left-0 z-20 flex h-18.25 items-center gap-4 border-t border-border-secondary bg-surface-primary px-4 pb-[env(safe-area-inset-bottom)]">
+        {/*
+          `section/cta`(429:17672) — h73(py-[12px]) · border-t **border/primary** · 하트 w52 + CTA w300.
+          안쪽 폭이 358이라 둘 사이 간격은 6px다(v2 구현은 gap-4=16px였다).
+          ⚠️ Figma가 이 프레임에 px-[20px]를 선언해 두었는데 안쪽 폭 358은 px-16이라야 나온다
+             (390-32=358 ≠ 390-40=350) — 원본 자체가 어긋나 있어 px-4를 유지했다.
+        */}
+        <footer className="absolute right-0 bottom-0 left-0 z-20 flex h-18.25 items-center gap-1.5 border-t border-border-primary bg-surface-primary px-4 pb-[env(safe-area-inset-bottom)]">
           <button type="button" aria-label={favorite ? "가게 찜 해제" : "가게 찜하기"} aria-pressed={favorite} onClick={() => setFavorite((current) => !current)} className="flex w-13 shrink-0 flex-col items-center justify-center text-content-primary">
             <FigmaIcon
               name={favorite ? "heart-fill" : "heart-stroke-bold"}
