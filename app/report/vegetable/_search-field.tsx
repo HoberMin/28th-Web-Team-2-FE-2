@@ -52,6 +52,8 @@ export function VegetableSearchField({ carryQuery }: VegetableSearchFieldProps) 
         inputMode="search"
         value={query}
         placeholder="제보할 야채를 검색해 보세요"
+        // UI QA 2026-08-20 #41: 이 화면의 안내문구는 content/disabled가 아니라 content/primary다.
+        inputClassName="placeholder:text-content-primary"
         trailing={
           query ? (
             <button
@@ -60,10 +62,10 @@ export function VegetableSearchField({ carryQuery }: VegetableSearchFieldProps) 
               className="flex size-6 items-center justify-center text-content-secondary"
               onClick={() => setQuery("")}
             >
-              <FigmaIcon name="close-fill" width={20} currentColor />
+              <FigmaIcon name="close-fill" width={24} />
             </button>
           ) : (
-            <span className="text-content-secondary">
+            <span className="flex size-6 items-center justify-center text-content-secondary">
               <FigmaIcon name="search" width={24} currentColor />
             </span>
           )
