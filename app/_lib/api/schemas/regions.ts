@@ -23,7 +23,7 @@ export const REGION_SEARCH_MAX_LENGTH = 20;
  * TODO(✍️): 10자리 고정이 맞는지 BE 확인 대기(`농산물-문서/be-요청사항.md` C표).
  * 서버가 문자열로 통일해주면 이 복원 자체가 필요 없어진다.
  */
-const regionIdSchema = z
+export const regionIdSchema = z
   .union([z.string(), z.number()])
   .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0"))
   // 보정만 하고 검증을 안 하면 padStart가 **그럴듯하게 생긴 틀린 코드**를 만든다.
@@ -64,3 +64,29 @@ export const regionSearchEnvelopeSchema = z.object({
 
 /** `/regions/nearby`는 최상위 배열을 그대로 준다. */
 export const nearbyRegionsSchema = z.array(regionSchema);
+
+// GET/POST /api/v1/users/me/regions·PUT .../current — 로그인 사용자의 "관심 지역" 계열.
+//
+// ⚠️ 위 `regionSchema`(regionId/regionName만)를 재사용하지 않는다 — `/regions/search`·
+// `/regions/nearby`가 이미 그 스키마를 쓰고 있어서, 여기서 필드를 더하면 그쪽 계약까지
+// 흔들린다(`api-patterns` "공통 unwrap 유틸을 만들지 않는다"와 같은 이유: 모양이 다르면
+// 스키마도 따로 둔다).
+
+/** 관심 지역 하나 — 목록 조회에서 현재 선택 여부(`isCurrent`)까지 함께 온다. */
+export const userRegionSchema = z.object({
+  regionId: regionIdSchema,
+  regionName: z.string(),
+  isCurrent: z.boolean(),
+});
+export type UserRegion = z.infer<typeof userRegionSchema>;
+
+/** GET /api/v1/users/me/regions 응답. */
+export const userRegionsResponseSchema = z.object({
+  regions: z.array(userRegionSchema),
+});
+
+/** POST /api/v1/users/me/regions 요청 바디. */
+export const addUserRegionRequestSchema = z.object({
+  regionId: regionIdSchema,
+});
+export type AddUserRegionRequest = z.infer<typeof addUserRegionRequestSchema>;
