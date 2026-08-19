@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { CardRecommendedStore } from "../../_components/card-recommended-store";
 import { ImageGrass } from "../../_components/image-grass";
-import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
+import { ROUTES } from "@/app/_lib/routes";
 import type { HomeRecommendedStore } from "./_data";
+import { HomeVegetableImage } from "./home-vegetable-image";
 import { SectionEmpty } from "./section-empty";
 
 // F01 홈 1번 섹션 「오늘은 이 가게가 저렴해요」 — Figma 298:3485 / 298:3512.
@@ -30,8 +33,8 @@ import { SectionEmpty } from "./section-empty";
 //       적혀 있다 — 거리 4.23:1 · 요약 강조 2.95:1 · 야채 이름 4.23:1로 4.5:1 미달).
 //       Figma 원본 그라데이션이라 여기서 색을 바꾸지 않고 사실만 기록한다(figma-bridge §4).
 //
-// ⚠️ 카드 자체에 이동 정의가 없다 — row/recommended-store의 chevron이 이동을 암시하지만 Figma에
-//    링크·버튼 정의가 없어 <a>/<button>으로 감싸지 않았다(임의 상호작용 추가 금지).
+// 카드 전체를 가게 상세 링크로 감싼다 — Figma 개발 주석의 "해당 카드 클릭시 F03_가게상세
+// 페이지로 이동"을 반영한 동작이다.
 
 /**
  * 카드에 늘어놓는 야채 최대 개수. Figma 개발 주석(298:3515 안 row/store-vegetables):
@@ -40,14 +43,9 @@ import { SectionEmpty } from "./section-empty";
 const MAX_VEGETABLES = 5;
 
 /**
- * 야채 그림(48×48). Figma 샘플 에셋이 양파 하나뿐이라 모든 항목이 같은 그림을 쓴다 —
- * 품목별 그림이 올라오면 여기서 이름 → 파일 매핑만 갈아 끼우면 된다.
- * `/playground` card-recommended-store 스토리와 같은 크기·같은 처리다.
+ * 야채 그림(48×48). 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
+ * 해당 품목의 로컬 이미지로 표시한다.
  */
-function VegetableImage() {
-  return <FigmaImage name="onion.png" width={48} height={48} className="size-12 object-contain" />;
-}
-
 export interface SectionRecommendedStoreProps {
   store: HomeRecommendedStore | null;
 }
@@ -58,23 +56,29 @@ export function SectionRecommendedStore({ store }: SectionRecommendedStoreProps)
       <h2 className="w-full text-title-18-bold text-content-primary">오늘은 이 가게가 저렴해요</h2>
 
       {store ? (
-        <CardRecommendedStore
-          storeIcon={<FigmaIcon name="store-fill-recommended-20" width={20} />}
-          name={store.name}
-          distance={store.distance}
-          summaryLabel={store.summaryLabel}
-          summaryValue={store.summaryValue}
-          trailingIcon={<FigmaIcon name="chevron-right-recommended-20" width={20} />}
-          vegetables={store.vegetables.slice(0, MAX_VEGETABLES).map((name) => ({
-            name,
-            visual: <VegetableImage />,
-          }))}
-          moreCount={store.moreCount}
-          // 화면GUI(원본) 364:6810 재실측(2026-08-13): 카드 안 `image/grass`는 **h-30**이고
-          // grass-left 81×30 · grass-right 80×30 · gap 192 — 즉 `ImageGrass`의 기본값(Figma 원본)
-          // 그대로다. 이전 `height={48}`(1.6배 확대)은 Figma에 근거가 없는 코드 판단이었다.
-          grass={<ImageGrass />}
-        />
+        <Link
+          href={ROUTES.storeDetail(store.storeId)}
+          aria-label={`${store.name} 가게 상세 보기`}
+          className="block w-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+        >
+          <CardRecommendedStore
+            storeIcon={<FigmaIcon name="store-fill-recommended-20" width={20} />}
+            name={store.name}
+            distance={store.distance}
+            summaryLabel={store.summaryLabel}
+            summaryValue={store.summaryValue}
+            trailingIcon={<FigmaIcon name="chevron-right-recommended-20" width={20} />}
+            vegetables={store.vegetables.slice(0, MAX_VEGETABLES).map((name) => ({
+              name,
+              visual: <HomeVegetableImage name={name} size={48} />,
+            }))}
+            moreCount={store.moreCount}
+            // 화면GUI(원본) 364:6810 재실측(2026-08-13): 카드 안 `image/grass`는 **h-30**이고
+            // grass-left 81×30 · grass-right 80×30 · gap 192 — 즉 `ImageGrass`의 기본값(Figma 원본)
+            // 그대로다. 이전 `height={48}`(1.6배 확대)은 Figma에 근거가 없는 코드 판단이었다.
+            grass={<ImageGrass />}
+          />
+        </Link>
       ) : (
         <SectionEmpty
           title="아직 추천할 가게가 없어요"

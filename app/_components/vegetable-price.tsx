@@ -19,8 +19,8 @@ const VALUE_SIZE: Record<VegetablePriceSize, string> = {
 export interface VegetablePriceProps {
   /** 표시할 가격 문자열 (포맷팅은 호출자 책임). 예: "24,900원" */
   value: string;
-  /** 단위. 예: "/100kg" */
-  unit: string;
+  /** 단위. 예: "/100kg". 환산 가격처럼 숨겨야 할 때는 생략한다. */
+  unit?: string;
   size?: VegetablePriceSize;
   lines?: VegetablePriceLines;
   className?: string;
@@ -52,14 +52,16 @@ export function VegetablePrice({
       >
         {value}
       </p>
-      <p
-        className={cn(
-          "max-w-9 text-caption-12-regular text-content-disabled",
-          oneLine ? null : "whitespace-nowrap",
-        )}
-      >
-        {unit}
-      </p>
+      {unit ? (
+        <p
+          className={cn(
+            "max-w-9 text-caption-12-regular text-content-disabled",
+            oneLine ? null : "whitespace-nowrap",
+          )}
+        >
+          {unit}
+        </p>
+      ) : null}
     </div>
   );
 }

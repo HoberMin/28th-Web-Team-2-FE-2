@@ -24,6 +24,19 @@ export interface ItemVegetableProps {
   className?: string;
 }
 
+function VegetableName({ name }: { name: string }) {
+  const characters = Array.from(name);
+  if (characters.length !== 5) return <>{name}</>;
+
+  return (
+    <>
+      {characters.slice(0, 3).join("")}
+      <br />
+      {characters.slice(3).join("")}
+    </>
+  );
+}
+
 export function ItemVegetable({ visual, name, className }: ItemVegetableProps) {
   return (
     <div className={cn("flex w-12 shrink-0 flex-col items-start gap-1", className)}>
@@ -31,7 +44,7 @@ export function ItemVegetable({ visual, name, className }: ItemVegetableProps) {
         {visual}
       </span>
       <p className="max-h-9 min-w-full overflow-hidden text-center text-caption-12-medium text-content-secondary">
-        {name}
+        <VegetableName name={name} />
       </p>
     </div>
   );

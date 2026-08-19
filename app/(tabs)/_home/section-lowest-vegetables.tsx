@@ -1,11 +1,12 @@
 import { ListLowestVegetable } from "../../_components/list-lowest-vegetable";
-import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import {
   formatTrendAmount,
   formatTrendPercent,
   type HomeLowestVegetable,
   type HomeTrendDirection,
 } from "./_data";
+import { HomeVegetableImage } from "./home-vegetable-image";
 import { LowestVegetableList } from "./lowest-vegetable-list";
 import { SectionEmpty } from "./section-empty";
 
@@ -64,14 +65,9 @@ function TrendIcon({ direction }: { direction: HomeTrendDirection }) {
 }
 
 /**
- * 야채 그림(40×40). Figma 샘플 에셋이 양파 하나뿐이라 모든 행이 같은 그림을 쓴다 —
- * 품목별 그림이 올라오면 여기서 이름 → 파일 매핑만 갈아 끼우면 된다.
- * `/playground` list-lowest-vegetable 스토리와 같은 크기·같은 처리다.
+ * 야채 그림(40×40). 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
+ * 해당 품목의 로컬 이미지로 표시한다.
  */
-function VegetableImage() {
-  return <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />;
-}
-
 export interface SectionLowestVegetablesProps {
   items: HomeLowestVegetable[];
   collapsedCount: number;
@@ -79,13 +75,6 @@ export interface SectionLowestVegetablesProps {
 
 export function SectionLowestVegetables({ items, collapsedCount }: SectionLowestVegetablesProps) {
   // 행은 서버에서 만들어 클라이언트 leaf에 넘긴다 — 목록 컴포넌트를 클라 번들에 넣지 않기 위함.
-  //
-  // 야채 그림: Figma는 이 자리에 image/vegetable-onion(40px)을 꽂아 두지만 그 래퍼를 쓰지 않았다.
-  // (a) ListLowestVegetable이 이미 size-10 + overflow-hidden 슬롯으로 감싸고 있어 래퍼가 할 일이 없고,
-  // (b) ImageVegetableOnion 기본값이 48px이라 40px로 줄이려면 className으로 size를 덮어야 하는데
-  //     app/_lib/cn.ts는 tailwind-merge가 없어서(그 파일 주석 참고) size-12와 size-10이 둘 다 남고
-  //     결과가 CSS 선언 순서에 의존하게 된다. 그 경로를 피했다.
-  //     → `/playground` list-lowest-vegetable 스토리도 같은 이유로 FigmaImage를 직접 넘긴다.
   //
   // 등락 색은 `trendState`로 방향을 따라간다. `ListLowestVegetable`에 `trendState`가 뚫려 있어
   // `VegetableTrend`의 `state` 축까지 그대로 통과한다(`GridVegetableItem`과 같은 처리).
@@ -97,12 +86,12 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       rank={index + 1}
       name={item.name}
       storeName={item.storeName}
-      price={item.price}
-      unit={item.unit}
+      price={item.isApproximate ? `약 ${item.price}` : item.price}
+      unit={item.isApproximate ? undefined : item.unit}
       trendState={item.trend}
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
-      visual={<VegetableImage />}
+      visual={<HomeVegetableImage name={item.name} size={40} />}
       storeIcon={<FigmaIcon name="store-stroke-lowest-16" width={16} />}
       trendIcon={<TrendIcon direction={item.trend} />}
     />

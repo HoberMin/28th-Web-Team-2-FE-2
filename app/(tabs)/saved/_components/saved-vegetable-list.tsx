@@ -1,4 +1,5 @@
 import type { PriceItemView } from "../../prices/_item-view";
+import { getVegetableVectorImage } from "../../../_lib/vegetable-images";
 import { ROUTES } from "../../../_lib/routes";
 import { PriceVegetableCard } from "../../prices/_price-vegetable-card";
 import { SavedEmpty } from "./saved-empty";
@@ -27,7 +28,7 @@ export function SavedVegetableList({ vegetables }: SavedVegetableListProps) {
           <PriceVegetableCard
             itemId={vegetable.itemId}
             name={vegetable.name}
-            image={vegetable.image}
+            image={getVegetableVectorImage(vegetable.name)}
             price={vegetable.price}
             unit={vegetable.unit}
             trendState={vegetable.trendState}
@@ -35,6 +36,7 @@ export function SavedVegetableList({ vegetables }: SavedVegetableListProps) {
             trendPercent={vegetable.trendPercent}
             initialFavorite={vegetable.isLiked}
             canFavorite
+            detailHref={ROUTES.priceDetail(String(vegetable.itemId))}
           />
         </li>
       ))}

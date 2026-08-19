@@ -46,8 +46,8 @@ export interface ListLowestVegetableProps {
   storeName: string;
   /** 가격 문자열. 예: "24,900원" */
   price: string;
-  /** 단위 문자열. 예: "/100kg" */
-  unit: string;
+  /** 단위 문자열. 예: "/100kg". 환산 가격이면 생략한다. */
+  unit?: string;
   /** 등락 금액. 예: "100,000원" */
   trendAmount: string;
   /** 등락률. 예: "(-7.4%)" */

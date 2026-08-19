@@ -49,12 +49,11 @@ export function HomeHeader({ region }: HomeHeaderProps) {
       {/*
         검색. Figma 개발 주석(298:3544): "검색 아이콘 클릭시 F02_야채시세 화면의
         검색 텍스트필드가 활성화된 상태(키보드) 화면으로 이동".
-        ⚠️ "검색 활성 상태"를 F02에 어떻게 전달할지(쿼리 파라미터 등)는 Figma·스펙 모두 미정이라
-           지금은 F02 진입까지만 연결한다. 규약이 정해지면 여기만 바꾸면 된다.
+        `focus=search` 쿼리로 F02가 검색 필드에 자동 포커스를 주고 키보드 입력을 받는다.
         터치 타겟 48×48로 44px 최소 기준을 넘는다(accessibility 스킬).
       */}
       <Link
-        href={ROUTES.prices}
+        href={`${ROUTES.prices}?focus=search`}
         aria-label="야채 검색"
         className="flex size-12 items-center justify-center py-2"
       >
