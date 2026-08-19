@@ -2,6 +2,7 @@
 
 import { type FormEvent, type PointerEvent, useState } from "react";
 import { Button } from "@/app/_components/button";
+import { RowSortOption } from "@/app/_components/row-sort-option";
 import { TextField } from "@/app/_components/text-field";
 import type { Region } from "@/app/_lib/api/schemas/regions";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
@@ -17,50 +18,45 @@ interface RegionStepProps {
 }
 
 interface RegionRowProps {
-  current: boolean;
+  currentLocation: boolean;
   region: Region;
   selected: boolean;
   onSelect: (region: Region) => void;
 }
 
-// Figma는 이 행을 `row/sort-option` 인스턴스로 꽂아 두었지만(364:8023~8027) **라이브러리
-// 마스터와 규격이 다르다** — 마스터(318-14915, 레포 `app/_components/row-sort-option.tsx`)는
-// `py-[16px]` + `border-b border/secondary`라 높이 57인데, 온보딩 인스턴스는 `py-[12px]` +
-// **테두리 없음**이라 높이 **49**다. 그래서 공통 컴포넌트를 재사용하지 않고 로컬로 둔다 —
-// 재사용하면 px가 8 틀어진다. (GUI피드백.md에 기록: 같은 컴포넌트 이름이 49/57/58 세 규격을 덮는다)
-function RegionRow({ current, region, selected, onSelect }: RegionRowProps) {
+// Figma는 이 행을 `row/sort-option` 인스턴스로 꽂아 둔다(429:17770~17774, 358×49).
+//
+// 2026-08-19 재확인 — **디자이너가 축을 늘려서 해결했다.** 마스터(318-14915)의 state 축이
+// normal·selected(높이 58) 2개에서 **current(831-35690)·current-selected(836-12227) 2개가
+// 추가된 4개**로 늘었고, 그 두 변형이 정확히 이 화면의 py-12 · 테두리 없음 · 높이 49다.
+// 화면 인스턴스도 실제로 이 두 변형에 물려 있다(`I429:17770;836:12228` 등).
+// 그래서 "규격이 8px 어긋나서 로컬로 둔다"는 근거가 사라졌고 공통 컴포넌트로 되돌린다.
+//
+// ⚠️ `current`는 "현재 위치"가 아니라 **높이 49 축**이다(마스터 머리말 참고). 그래서 이 화면은
+//    5행 전부 `current`를 켜고, 사용자의 현재 위치 행만 `badge`를 추가로 넘긴다.
+function RegionRow({ currentLocation, region, selected, onSelect }: RegionRowProps) {
   return (
     <li>
-      <button
-        type="button"
-        className="flex h-12.25 w-full items-center justify-between text-left"
-        aria-pressed={selected}
+      <RowSortOption
+        current
+        label={region.regionName}
+        selected={selected}
         onClick={() => onSelect(region)}
-      >
-        <span className="flex min-w-0 items-center gap-1">
-          <span
-            className={`truncate ${
-              selected ? "text-body-16-bold" : "text-body-16-medium"
-            } text-content-primary`}
-          >
-            {region.regionName}
-          </span>
-          {current ? (
-            // Figma `badge/current-location` 364:6171 실측: surface/brand · radius/sm 4 ·
-            // px-8 py-2 · **caption/12-semibold** · content/brand/medium.
-            // (기존 `text-body-12-semibold`는 @theme에 없는 토큰이라 무효 클래스였다)
-            <span className="rounded-sm bg-surface-brand px-2 py-0.5 text-caption-12-semibold text-content-brand-medium">
-              현재 위치
-            </span>
-          ) : null}
-        </span>
-        {selected ? (
-          <span className="shrink-0 text-content-brand-light">
-            <FigmaIcon name="check" width={20} currentColor />
-          </span>
-        ) : null}
-      </button>
+        badge={currentLocation ? <CurrentLocationBadge /> : undefined}
+        checkIcon={<FigmaIcon name="check" width={20} currentColor />}
+      />
     </li>
+  );
+}
+
+// Figma `badge/current-location`(마스터 836:11892) 실측: surface/brand · radius/sm 4 ·
+// px-8 py-2 · **caption/12-semibold** · content/brand/medium.
+// 라이브러리 컴포넌트지만 아직 쓰는 곳이 이 화면 하나뿐이라 `app/_components/`로 올리지 않았다.
+function CurrentLocationBadge() {
+  return (
+    <span className="shrink-0 rounded-sm bg-surface-brand px-2 py-0.5 text-caption-12-semibold text-content-brand-medium">
+      현재 위치
+    </span>
   );
 }
 
@@ -180,7 +176,7 @@ export function RegionStep({ defaultValue, onComplete }: RegionStepProps) {
                 <RegionRow
                   key={region.regionId}
                   region={region}
-                  current={!isSearching && index === 0}
+                  currentLocation={!isSearching && index === 0}
                   selected={region.regionId === selected?.regionId}
                   onSelect={(next) => {
                     setSelected((current) =>
