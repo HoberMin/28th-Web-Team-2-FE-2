@@ -129,11 +129,20 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
                   />
                 </div>
                 {hoursOpen && (
-                  // 펼침 상세(364:7585) — summary bottom → gap 6 · body/14 · 3줄 h66
-                  <div className="mt-1.5 text-body-14-regular text-content-secondary">
-                    {detail.hours.map((line) => (
-                      <p key={line}>{line}</p>
-                    ))}
+                  /*
+                    펼침 상세 `store-profile-hours-detail`(429:17649) 실측 —
+                      summary bottom → gap-[6px] · **body/14-medium** · **content/primary**
+                      `flex gap-[6px] items-start` 2열: 요일 라벨(w24) + 시간 3줄(w157, h66)
+                    개발 주석(429:17550): "상세정보는 텍스트스타일-미듐(조금 굵은 글씨)"
+                    (v2 구현은 regular + content/secondary + 4줄 세로 나열이라 셋 다 어긋나 있었다)
+                  */
+                  <div className="mt-1.5 flex items-start gap-1.5 text-body-14-medium text-content-primary">
+                    <p className="shrink-0">{dayLabel}</p>
+                    <div className="min-w-0">
+                      {timeLines.map((line) => (
+                        <p key={line}>{line}</p>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
