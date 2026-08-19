@@ -209,6 +209,17 @@
    * 이것도 Variables 컬렉션이 아니라 노드에 직접 걸린 Effect 값이다(shadow-floating과 같은 출처 유형).
    */
   --shadow-sheet: 0px -4px 6px color-mix(in srgb, var(--color-gray-700) 20%, transparent);
+  /*
+   * `list/unit-option`(Design Library node 785-29926, 실측 2026-08-20)의 드롭다운 그림자.
+   * Figma 원본 `0px 2px 4px -2px rgba(23,23,23,0.06), 0px 4px 6px -1px rgba(23,23,23,0.06)` —
+   * 2겹이고 **위 세 토큰과 계열이 완전히 다르다**(gray/700 22%가 아니라 #171717 6%, 오프셋 있음).
+   * #171717은 우리 raw 팔레트에 없는 색이라(gray/900은 #262f3c) color-mix로 참조하지 못하고
+   * 원본 값을 그대로 둔다 — figma-bridge §3의 "매핑 안 되면 추측 금지" 그대로다.
+   * UI QA 2026-08-20 #37 "list/unit-option의 드랍섀도우가 디자인과 다름(다소 진함)" —
+   * 그 전까지 `shadow-floating`(button/circle용)을 빌려 쓰고 있어서 실제로 더 진했다.
+   */
+  --shadow-dropdown:
+    0px 2px 4px -2px rgba(23, 23, 23, 0.06), 0px 4px 6px -1px rgba(23, 23, 23, 0.06);
 
   /*
    * 타이포그래피 — Figma Variables (node 171-3737) sync 2026-08-05 · **최종본**
