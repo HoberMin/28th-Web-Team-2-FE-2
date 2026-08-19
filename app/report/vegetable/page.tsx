@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getAccessToken } from "@/app/_lib/api/auth/session";
+import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "../_components/report-header";
 import { RowPickerOption } from "../_components/row-picker-option";
-import { REPORT_CATEGORIES, getReportVegetablesByGroup, searchReportVegetables } from "../_data";
+import { REPORT_CATEGORIES, getReportVegetables, normalizeReportGroup } from "../_data";
 import { VegetableSearchField } from "./_search-field";
 import { VegetablePicker } from "./_vegetable-picker";
 
@@ -34,22 +36,44 @@ import { VegetablePicker } from "./_vegetable-picker";
 //    검색(364:8018)은 `content/disabled`다. 안내문구를 본문색으로 그리면 **값이 입력된 것처럼**
 //    보이므로 여기서는 `content/disabled`(= 실제 placeholder)를 따랐다.
 //    (GUI피드백.md에 기록 — Figma 바인딩 정리 필요)
+//
+// 상태 3종(2026-08-19 갱신 — 더미에서 실 Spring 연동으로 바뀌며 로딩·에러가 실제로 발생한다):
+//   로딩 = `loading.tsx` (Server Component 렌더 전 fetch를 Next가 자동으로 그 자리로 대체)
+//   에러 = `error.tsx` (getItems 실패를 그대로 던지고 경계에서 잡는다 — `(tabs)/prices`와 같은 패턴)
+//   빈  = 아래 8121 구현(검색 결과 없음)
 
 export const metadata: Metadata = {
   title: "야채 카테고리 | 장보고",
 };
 
+function MissingRegion() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+      <p className="text-title-18-bold text-content-primary">동네 정보가 필요해요</p>
+      <p className="text-body-14-regular text-content-secondary">
+        온보딩에서 동네를 선택하면 그 동네 품목으로 제보할 수 있어요.
+      </p>
+      <Link
+        href={ROUTES.home}
+        className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg bg-action-tertiary-default px-4 py-2 text-body-14-medium text-content-primary"
+      >
+        홈으로
+      </Link>
+    </div>
+  );
+}
+
 interface ReportVegetablePageProps {
-  searchParams: Promise<{ item?: string; place?: string; group?: string; q?: string }>;
+  searchParams: Promise<{ item?: string; store?: string; group?: string; q?: string }>;
 }
 
 export default async function ReportVegetablePage({ searchParams }: ReportVegetablePageProps) {
-  const { item, place, group, q } = await searchParams;
+  const { item, store, group, q } = await searchParams;
 
   // 폼으로 돌아갈 때 유지할 선택값.
   const carry = new URLSearchParams();
   if (item) carry.set("item", item);
-  if (place) carry.set("place", place);
+  if (store) carry.set("store", store);
   const carryQuery = carry.size > 0 ? `?${carry.toString()}` : "";
 
   const isSecondStep = Boolean(group) || Boolean(q?.trim());
@@ -74,15 +98,7 @@ export default async function ReportVegetablePage({ searchParams }: ReportVegeta
         />
 
         {isSecondStep ? (
-          // 2단 — 야채 목록/검색 결과. 행은 **선택**이고 확정은 하단 CTA가 한다.
-          <VegetablePicker
-            carryQuery={carryQuery}
-            initialQuery={q ?? ""}
-            selectedId={item}
-            vegetables={
-              q?.trim() ? searchReportVegetables(q) : getReportVegetablesByGroup(group ?? "")
-            }
-          />
+          <SecondStep carryQuery={carryQuery} group={group} q={q ?? ""} selectedId={item} />
         ) : (
           // 1단 — 카테고리. 행마다 chevron이 있어 이동이고, 하단 CTA가 없다.
           // 검색 필드만 클라이언트 leaf이고 목록은 서버에서 그린다.
@@ -96,7 +112,7 @@ export default async function ReportVegetablePage({ searchParams }: ReportVegeta
                     label={category}
                     href={`${ROUTES.reportVegetable}?${new URLSearchParams({
                       ...(item ? { item } : {}),
-                      ...(place ? { place } : {}),
+                      ...(store ? { store } : {}),
                       group: category,
                     }).toString()}`}
                   />
@@ -107,5 +123,41 @@ export default async function ReportVegetablePage({ searchParams }: ReportVegeta
         )}
       </div>
     </main>
+  );
+}
+
+// 2단(야채 목록/검색 결과)만 regionId·토큰이 필요해 별도 async 컴포넌트로 분리했다 —
+// 1단(카테고리)은 지역이 없어도 보여줄 수 있는 정적 목록이라 이 검사를 거치지 않는다.
+async function SecondStep({
+  carryQuery,
+  group,
+  q,
+  selectedId,
+}: {
+  carryQuery: string;
+  group: string | undefined;
+  q: string;
+  selectedId: string | undefined;
+}) {
+  const regionId = await getSelectedRegionId();
+  if (!regionId) {
+    return <MissingRegion />;
+  }
+
+  const token = await getAccessToken();
+  const vegetables = await getReportVegetables({
+    regionId,
+    token,
+    category: normalizeReportGroup(group),
+    keyword: q.trim() || undefined,
+  });
+
+  return (
+    <VegetablePicker
+      carryQuery={carryQuery}
+      initialQuery={q}
+      selectedId={selectedId}
+      vegetables={vegetables}
+    />
   );
 }
