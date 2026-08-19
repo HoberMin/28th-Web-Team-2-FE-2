@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveSelectedRegionAPI } from "@/app/_lib/api/client/regions";
+import { registerCurrentRegionAPI, saveSelectedRegionAPI } from "@/app/_lib/api/client/regions";
 import type { Region } from "@/app/_lib/api/schemas/regions";
 import { startKakaoLogin } from "@/app/_lib/kakao-auth";
 import { setOnboarding, useHydratedOnboarding } from "@/app/_lib/onboarding-store";
@@ -19,11 +19,12 @@ interface OnboardingFlowProps {
   initialLoginDebug: string;
   isAuthenticated: boolean;
   /**
-   * `getMe`의 `onboardingStep`을 로그인 콜백이 그대로 실어 보낸 것. `REGION`이면 닉네임은
+   * `page.tsx`가 서버에서 직접 `getMe`를 불러 확인한 값(위조 불가) — `REGION`이면 닉네임은
    * 서버에 이미 저장돼 있으니 닉네임 단계를 건너뛰고 지역 선택부터 시작한다.
-   * (닉네임 텍스트 자체는 URL에 실어 보내지 않는다 — 로컬 저장값은 비워 둔 채 단계만 스킵한다.)
    */
   onboardingStepHint?: "NICKNAME" | "REGION";
+  /** 같은 `getMe` 조회로 같이 받은 닉네임. 세션 동기화 시 로컬 스토어를 채우는 데 쓴다. */
+  serverNickname?: string;
 }
 
 export function OnboardingFlow({
@@ -32,6 +33,7 @@ export function OnboardingFlow({
   initialLoginDebug,
   isAuthenticated,
   onboardingStepHint,
+  serverNickname,
 }: OnboardingFlowProps) {
   const router = useRouter();
   const onboarding = useHydratedOnboarding();
@@ -58,10 +60,12 @@ export function OnboardingFlow({
     if (needsSessionSync) {
       // 목업 시절 localStorage를 신규 서비스 계정의 정본으로 쓰지 않는다.
       // 로그인 API에는 isNew가 없으므로 실제 세션이 처음 확인되면 닉네임 API 저장부터 다시 시작한다.
-      setOnboarding({ authProvider: "kakao", completed: false, nickname: "" });
+      // 서버가 이미 닉네임을 갖고 있으면(재방문자) 같이 채운다 — 안 그러면 닉네임 단계를
+      // 건너뛴 사용자의 로컬 닉네임이 빈 채로 남아 "이웃"처럼 표시된다(`_lib/reports-store.ts`).
+      setOnboarding({ authProvider: "kakao", completed: false, nickname: serverNickname ?? "" });
       if (freshLogin) router.replace(ROUTES.onboarding);
     }
-  }, [freshLogin, needsSessionSync, router]);
+  }, [freshLogin, needsSessionSync, router, serverNickname]);
 
   useEffect(() => {
     if (isAuthenticated && onboardingCompleted && !needsSessionSync) {
@@ -107,6 +111,17 @@ export function OnboardingFlow({
 
   async function handleRegionComplete(region: Region) {
     await saveSelectedRegionAPI(region);
+
+    // Spring에도 등록한다 — 이게 없으면 `onboardingStep`이 계정 쪽에서 영영 REGION에 머물러
+    // 재방문자 홈 리다이렉트(로그인 콜백)가 도달 못 하는 코드가 된다. 온보딩 화면은
+    // 이 지점에 도달했다는 것 자체가 로그인 확정 상태라 401 걱정은 없다.
+    // 실패해도 화면 진행은 막지 않는다 — 쿠키(위 saveSelectedRegionAPI)만으로 앱은 이미
+    // 정상 동작하고, 여기서 막으면 부가 동기화 실패가 온보딩 완료 자체를 가로막게 된다.
+    try {
+      await registerCurrentRegionAPI(region);
+    } catch (error) {
+      console.error("[onboarding] 관심 지역을 Spring에 등록하지 못했어요", error);
+    }
 
     // 기존 prototype 소비자는 짧은 동 이름을 키로 사용한다. Spring의 전체 이름도 별도로 보존한다.
     const district = region.regionName.split(" ").at(-1) ?? region.regionName;
