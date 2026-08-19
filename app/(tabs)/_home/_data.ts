@@ -47,8 +47,6 @@ export interface HomeLowestVegetable {
   trendAmount: string;
   /** 등락률의 **크기**(부호 없음, 퍼센트 수치). 예: 7.4 */
   trendRate: number;
-  /** 사용자가 기준 단위와 다른 단위로 제보해 환산된 가격이면 `약`으로 표시한다. */
-  isApproximate?: boolean;
 }
 
 /** 방향별 표시 부호. flat은 붙일 부호가 없다. */
@@ -136,7 +134,6 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "자양동 새벽채소",
     price: "2,450원",
     unit: "/1단",
-    isApproximate: true,
     trend: "flat",
     trendAmount: "0원",
     trendRate: 0,
@@ -157,7 +154,6 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "중곡제일시장 버섯나라",
     price: "2,980원",
     unit: "/1팩",
-    isApproximate: true,
     trend: "up",
     trendAmount: "220원",
     trendRate: 6.9,
@@ -178,7 +174,6 @@ export const HOME_LOWEST_VEGETABLES: HomeLowestVegetable[] = [
     storeName: "화양동 채소마당",
     price: "3,600원",
     unit: "/1단",
-    isApproximate: true,
     trend: "flat",
     trendAmount: "0원",
     trendRate: 0,

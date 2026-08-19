@@ -86,8 +86,8 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       rank={index + 1}
       name={item.name}
       storeName={item.storeName}
-      price={item.isApproximate ? `약 ${item.price}` : item.price}
-      unit={item.isApproximate ? undefined : item.unit}
+      price={item.price}
+      unit={item.unit}
       trendState={item.trend}
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
