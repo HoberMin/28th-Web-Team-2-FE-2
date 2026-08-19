@@ -70,7 +70,8 @@ describe("formatItemBaseDateLabel", () => {
     expect(formatItemBaseDateLabel("2026-08-16")).toBe("8월 16일 기준");
   });
 
-  it("가격 기준일이 없으면 정직한 대체 문구를 표시한다", () => {
-    expect(formatItemBaseDateLabel(null)).toBe("기준일 정보 없음");
+  // UI QA 2026-08-20 #25: "기준일 정보 없음" 대신 현재 일자를 보여준다.
+  it("가격 기준일이 없으면 오늘 날짜로 표기한다", () => {
+    expect(formatItemBaseDateLabel(null, new Date(2026, 7, 20))).toBe("8월 20일 기준");
   });
 });
