@@ -18,9 +18,10 @@ import { Button } from "../../_components/button";
 //    px-28 py-12 (= medium) 인데 **radius는 radius/md 8px (= small)** 이고, 게다가 h-[44px] 고정과
 //    py-12는 서로 모순이다(12+24.8+12 = 48.8px). 마스터도 코드가 참조하는 `button/cta_md`(160-2855)가
 //    아니라 별개 컴포넌트(173:3173 계열)다.
-//    → `button.tsx`를 고치지 않고 **가장 가까운 기존 variant**(tertiary · medium)로 렌더한다.
-//      차이: radius 12px(rounded-lg) vs Figma 8px, 높이 48.8px vs Figma 44px 고정.
-//      임의로 h-11이나 rounded-md를 덧씌우면 컴포넌트 규격을 화면에서 갈라놓는 셈이라 하지 않았다.
+//    → `button.tsx`를 고치지 않고 **가장 가까운 기존 variant**(tertiary · medium)로 렌더하되,
+//      **높이만 `h-11`(44px)로 고정**했다 — UI QA 2026-08-20 #7 "더보기/닫기 버튼 높이 44인데
+//      높아보입니당. 확인부탁 → 높이 줄여주세요". Figma 원본이 h-[44px] 고정인데 medium의
+//      py-3이 48.8px을 만들고 있었다. radius는 지적 대상이 아니라 그대로 뒀다(12px vs Figma 8px).
 //    ⚠️ 라벨 대비: content/secondary(#697383) on action-tertiary/default(#f2f3f8) = 4.26:1 →
 //       16px 기준 4.5:1 미달. Figma 원본 유지 + 사실만 기록한다(figma-bridge §4).
 
@@ -52,7 +53,7 @@ export function LowestVegetableList({ rows, collapsedCount, listId }: LowestVege
           size="medium"
           leading={false}
           trailing={false}
-          className="w-full"
+          className="h-11 w-full"
           aria-expanded={expanded}
           aria-controls={listId}
           onClick={() => setExpanded((prev) => !prev)}
