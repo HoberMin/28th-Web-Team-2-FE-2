@@ -66,10 +66,12 @@ export function TabBar({ items, activeHref, ariaLabel, className }: TabBarProps)
             href={href}
             aria-current={selected ? "page" : undefined}
             className={cn(
-              "flex flex-1 items-center justify-center border-b-2 border-solid p-2 text-center text-body-16-semibold whitespace-nowrap",
+              // UI QA 2026-08-20 #29: selected 라벨이 디자인보다 얇았다 → body/16-**bold**.
+              // default는 그대로 body/16-semibold다.
+              "flex flex-1 items-center justify-center border-b-2 border-solid p-2 text-center whitespace-nowrap",
               selected
-                ? "border-border-tertiary text-content-primary"
-                : "border-border-primary text-content-disabled",
+                ? "border-border-tertiary text-body-16-bold text-content-primary"
+                : "border-border-primary text-body-16-semibold text-content-disabled",
             )}
           >
             {label}
