@@ -12,7 +12,7 @@ export type VegetableUnit = "kg" | "g" | "개" | "포기";
  * 화면에서 46종을 찾기 쉽게 묶는 단위 — KAMIS 부류코드(100/200)는 2개뿐이라 필터로 쓸 수 없다.
  * "장 볼 때 머릿속에서 묶는 방식"에 맞춘 분류다(식물학 분류가 아니다).
  */
-export type VegetableGroup = "감자·뿌리" | "잎채소" | "열매채소" | "고추" | "양념" | "버섯" | "과채";
+export type VegetableGroup = "뿌리채소" | "잎채소" | "열매채소" | "고추류" | "마늘·파·생강" | "버섯류" | "과일류";
 
 /** 비수기에 KAMIS 데이터가 아예 없는 계절 품목(수박·참외·딸기·갓) 표기. */
 export interface SeasonWindow {

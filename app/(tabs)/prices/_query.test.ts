@@ -22,8 +22,8 @@ describe("시세 URL 쿼리 API 매핑", () => {
   });
 
   it("한글 그룹을 Swagger 카테고리 enum으로 명시적으로 바꾼다", () => {
-    expect(mapGroupToApi(normalizeGroup("감자·뿌리"))).toBe("ROOT_VEGETABLES");
-    expect(mapGroupToApi(normalizeGroup("과채"))).toBe("FRUITS");
+    expect(mapGroupToApi(normalizeGroup("뿌리채소"))).toBe("ROOT_VEGETABLES");
+    expect(mapGroupToApi(normalizeGroup("과일류"))).toBe("FRUITS");
     expect(mapGroupToApi(normalizeGroup("없는 그룹"))).toBeUndefined();
   });
 
@@ -35,10 +35,10 @@ describe("시세 URL 쿼리 API 매핑", () => {
         FRUITS: 4,
       }),
     ).toMatchObject({
-      "감자·뿌리": 5,
+      뿌리채소: 5,
       잎채소: 12,
-      과채: 4,
-      버섯: 0,
+      과일류: 4,
+      버섯류: 0,
     });
   });
 });

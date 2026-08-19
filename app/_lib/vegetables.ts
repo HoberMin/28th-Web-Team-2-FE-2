@@ -114,27 +114,27 @@ export const VEGETABLES: Vegetable[] = [
  * id → 그룹 맵으로 둬서 카탈로그 46줄을 건드리지 않는다.
  */
 const GROUP_BY_ID: Record<string, VegetableGroup> = {
-  potato: "감자·뿌리",
-  "sweet-potato": "감자·뿌리",
-  carrot: "감자·뿌리",
-  radish: "감자·뿌리",
-  ginger: "감자·뿌리",
+  potato: "뿌리채소",
+  "sweet-potato": "뿌리채소",
+  carrot: "뿌리채소",
+  radish: "뿌리채소",
+  ginger: "뿌리채소",
 
-  garlic: "양념",
-  onion: "양념",
-  "welsh-onion": "양념",
-  chive: "양념",
-  "pepper-powder-kr": "양념",
-  "pepper-powder-cn": "양념",
-  "dried-pepper": "양념",
-  "red-pepper": "양념",
-  sesame: "양념",
-  peanut: "양념",
+  garlic: "마늘·파·생강",
+  onion: "마늘·파·생강",
+  "welsh-onion": "마늘·파·생강",
+  chive: "마늘·파·생강",
+  "pepper-powder-kr": "마늘·파·생강",
+  "pepper-powder-cn": "마늘·파·생강",
+  "dried-pepper": "마늘·파·생강",
+  "red-pepper": "마늘·파·생강",
+  sesame: "마늘·파·생강",
+  peanut: "마늘·파·생강",
 
-  "green-pepper": "고추",
-  "kkwari-pepper": "고추",
-  "cheongyang-pepper": "고추",
-  "mild-pepper": "고추",
+  "green-pepper": "고추류",
+  "kkwari-pepper": "고추류",
+  "cheongyang-pepper": "고추류",
+  "mild-pepper": "고추류",
 
   "napa-cabbage": "잎채소",
   "baby-napa-cabbage": "잎채소",
@@ -158,25 +158,25 @@ const GROUP_BY_ID: Record<string, VegetableGroup> = {
   "zucchini-korean": "열매채소",
   zucchini: "열매채소",
 
-  "oyster-mushroom": "버섯",
-  "enoki-mushroom": "버섯",
-  "king-oyster-mushroom": "버섯",
+  "oyster-mushroom": "버섯류",
+  "enoki-mushroom": "버섯류",
+  "king-oyster-mushroom": "버섯류",
 
-  watermelon: "과채",
-  "korean-melon": "과채",
-  melon: "과채",
-  strawberry: "과채",
+  watermelon: "과일류",
+  "korean-melon": "과일류",
+  melon: "과일류",
+  strawberry: "과일류",
 };
 
 /** 필터 칩 노출 순서 — 자주 사는 것부터. */
 export const VEGETABLE_GROUPS: VegetableGroup[] = [
-  "감자·뿌리",
+  "뿌리채소",
   "잎채소",
   "열매채소",
-  "고추",
-  "양념",
-  "버섯",
-  "과채",
+  "고추류",
+  "마늘·파·생강",
+  "버섯류",
+  "과일류",
 ];
 
 export function getVegetableGroup(id: string): VegetableGroup {

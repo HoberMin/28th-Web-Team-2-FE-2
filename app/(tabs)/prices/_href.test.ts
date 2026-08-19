@@ -6,11 +6,11 @@ describe("buildPricesHref", () => {
     expect(
       buildPricesHref({
         q: "감자",
-        group: "감자·뿌리",
+        group: "뿌리채소",
         sort: "price-asc",
       }),
     ).toBe(
-      "/prices?q=%EA%B0%90%EC%9E%90&group=%EA%B0%90%EC%9E%90%C2%B7%EB%BF%8C%EB%A6%AC&sort=price-asc",
+      "/prices?q=%EA%B0%90%EC%9E%90&group=%EB%BF%8C%EB%A6%AC%EC%B1%84%EC%86%8C&sort=price-asc",
     );
   });
 

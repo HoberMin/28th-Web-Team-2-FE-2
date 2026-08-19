@@ -5,13 +5,13 @@ import {
 import type { VegetableGroup } from "@/app/_lib/types";
 
 export const PRICE_GROUPS = [
-  { label: "감자·뿌리", category: "ROOT_VEGETABLES" },
+  { label: "뿌리채소", category: "ROOT_VEGETABLES" },
   { label: "잎채소", category: "LEAFY_GREENS" },
   { label: "열매채소", category: "FRUITING_VEGETABLES" },
-  { label: "고추", category: "PEPPERS" },
-  { label: "양념", category: "SEASONINGS" },
-  { label: "버섯", category: "MUSHROOMS" },
-  { label: "과채", category: "FRUITS" },
+  { label: "고추류", category: "PEPPERS" },
+  { label: "마늘·파·생강", category: "SEASONINGS" },
+  { label: "버섯류", category: "MUSHROOMS" },
+  { label: "과일류", category: "FRUITS" },
 ] as const satisfies readonly { label: VegetableGroup; category: ItemCategory }[];
 
 export const PRICES_SORT_OPTIONS = [
@@ -45,13 +45,13 @@ export function mapCategoryCounts(
   counts: Record<string, number> | undefined,
 ): Record<VegetableGroup, number> {
   return {
-    "감자·뿌리": counts?.ROOT_VEGETABLES ?? 0,
+    뿌리채소: counts?.ROOT_VEGETABLES ?? 0,
     잎채소: counts?.LEAFY_GREENS ?? 0,
     열매채소: counts?.FRUITING_VEGETABLES ?? 0,
-    고추: counts?.PEPPERS ?? 0,
-    양념: counts?.SEASONINGS ?? 0,
-    버섯: counts?.MUSHROOMS ?? 0,
-    과채: counts?.FRUITS ?? 0,
+    고추류: counts?.PEPPERS ?? 0,
+    "마늘·파·생강": counts?.SEASONINGS ?? 0,
+    버섯류: counts?.MUSHROOMS ?? 0,
+    과일류: counts?.FRUITS ?? 0,
   };
 }
 

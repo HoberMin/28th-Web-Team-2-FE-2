@@ -35,13 +35,13 @@ import type { VegetableGroup } from "../../types";
  */
 
 const GROUP_TO_CATEGORY: Record<VegetableGroup, ItemCategory> = {
-  "감자·뿌리": "ROOT_VEGETABLES",
+  뿌리채소: "ROOT_VEGETABLES",
   잎채소: "LEAFY_GREENS",
   열매채소: "FRUITING_VEGETABLES",
-  고추: "PEPPERS",
-  양념: "SEASONINGS",
-  버섯: "MUSHROOMS",
-  과채: "FRUITS",
+  고추류: "PEPPERS",
+  "마늘·파·생강": "SEASONINGS",
+  버섯류: "MUSHROOMS",
+  과일류: "FRUITS",
 };
 
 const CATEGORY_TO_GROUP = Object.fromEntries(
