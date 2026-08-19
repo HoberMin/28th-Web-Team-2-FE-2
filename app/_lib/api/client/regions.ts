@@ -102,3 +102,31 @@ export async function saveSelectedRegionAPI(region: Region): Promise<void> {
   });
   if (!response.ok) throw await responseError(response);
 }
+
+/**
+ * 로그인 사용자의 관심 지역으로 Spring에 등록 + 현재 지역으로 지정한다.
+ *
+ * `saveSelectedRegionAPI`(쿠키 저장)와는 별개다 — 그쪽은 비회원도 쓰는 "지금 보는 지역"
+ * 로컬 저장소이고, 이건 계정에 귀속되는 서버 상태다. 온보딩 지역 단계처럼 **로그인이 확정된
+ * 화면에서만** 부른다(비로그인 상태로 부르면 BFF가 401을 던진다).
+ *
+ * 이미 등록된 지역(409)은 실패로 취급하지 않는다 — 재방문자가 같은 동네를 다시 고르는 경우라
+ * "현재 지역 지정"만 마저 하면 된다.
+ */
+export async function registerCurrentRegionAPI(region: Region): Promise<void> {
+  const addResponse = await fetch("/api/regions/me", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ regionId: region.regionId }),
+    cache: "no-store",
+  });
+  if (!addResponse.ok && addResponse.status !== 409) {
+    throw await responseError(addResponse);
+  }
+
+  const currentResponse = await fetch(`/api/regions/me/${region.regionId}/current`, {
+    method: "PUT",
+    cache: "no-store",
+  });
+  if (!currentResponse.ok) throw await responseError(currentResponse);
+}
