@@ -26,9 +26,19 @@ import { FigmaIcon } from "@/app/_lib/figma-asset";
 // ⚠️ Figma에 focus·error·disabled 상태가 없다. 브라우저 기본 포커스 링을 지우지 않고 그대로 둔다
 //    (지우면 WCAG 2.4.7 위반). 임의로 error 스타일을 만들지 않았다.
 
-/** 세 state가 공유하는 박스. 높이는 내용이 결정한다(Figma도 hug). */
+/**
+ * 세 state가 공유하는 박스. 높이는 내용이 결정한다(Figma도 hug).
+ *
+ * ⚠️ **폭은 여기에 넣지 않는다.** 예전엔 `w-full`이 이 상수에 있었는데,
+ *    `FieldUnitSelect`가 그 위에 `w-31`을 얹으면서 한 요소에 `w-full`과 `w-31`이
+ *    동시에 붙었다. `cn`은 tailwind-merge가 아니라 단순 join이라(`app/_lib/cn.ts`)
+ *    충돌이 해소되지 않고, 승자는 클래스 나열 순서가 아니라 **생성된 CSS 순서**가 정한다
+ *    — 즉 Tailwind 내부 순서에 따라 단위 박스가 124px가 될 수도, 358px가 될 수도 있었다.
+ *    (2026-08-19 "양 입력칸과 단위칸 너비가 이상하다" 신고의 원인)
+ *    폭은 각 컴포넌트가 자기 것만 선언한다.
+ */
 const FIELD_BOX =
-  "flex w-full items-center rounded-lg border border-border-primary bg-surface-primary px-4 py-3";
+  "flex items-center rounded-lg border border-border-primary bg-surface-primary px-4 py-3";
 
 /** Figma `vegetable-selected`의 우측 액션 그룹 — 라벨 + chevron. */
 function FieldAction({ label }: { label: string }) {
@@ -53,7 +63,7 @@ export interface FieldInputProps extends ComponentPropsWithoutRef<"input"> {
  */
 export function FieldInput({ className, ...rest }: FieldInputProps) {
   return (
-    <div className={cn(FIELD_BOX, className)}>
+    <div className={cn(FIELD_BOX, "w-full", className)}>
       <input
         className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary placeholder:font-medium placeholder:text-content-disabled"
         {...rest}
@@ -95,7 +105,7 @@ export function FieldSelect({
       aria-label={ariaLabel}
       className={cn(
         FIELD_BOX,
-        "gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary",
+        "w-full gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary",
         className,
       )}
     >
@@ -121,6 +131,14 @@ export interface FieldUnitSelectProps extends ComponentPropsWithoutRef<"button">
  * ⚠️ 단위 선택 시트·목록이 Figma에 없다 — 누를 대상이 정의되지 않았다.
  *    지금은 버튼만 두고 동작을 붙이지 않았다(GUI피드백.md에 기록).
  *    124px는 고정 폭이 규격이라 그대로 옮겼다 — 양 입력이 flex-1로 남은 폭을 먹는다.
+ *
+ * ── 2026-08-19 재실측 (node 429:18069 · 구 364:8167은 파일 재생성으로 소멸) ──────
+ *  · 폭 124 · gap 4 · px-16 py-12 · radius/lg · 라벨 body/16-medium content/primary ·
+ *    icon/chevron-down 16 — **위 실측값이 지금도 전부 맞다.**
+ *  · `field/unit-select`는 component_set이지만 이 자리 인스턴스에 variant 축이 노출되지
+ *    않는다 → **Figma에 disabled 상태 스타일이 여전히 없다.** 그래서 `disabled:` 변형을
+ *    만들지 않고 둔다(시안에 없는 색을 발명하지 않는다). 지금은 `disabled` 속성이
+ *    탭 순서·스크린리더에만 반영되고 시각적 표시는 없다 — 시트가 생기면 함께 정리한다.
  */
 export function FieldUnitSelect({ unit, className, type = "button", ...rest }: FieldUnitSelectProps) {
   return (
