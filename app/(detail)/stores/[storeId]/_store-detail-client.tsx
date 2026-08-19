@@ -299,7 +299,13 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
           {filtered.length === 0 && <p className="py-12 text-center text-body-14-medium text-content-secondary">아직 제보가 없어요</p>}
         </div>
         {filtered.length > 4 && (
-          <button type="button" onClick={() => setSheetOpen(true)} className="mt-2 h-9.5 w-full rounded-md border border-border-primary text-caption-12-semibold text-content-secondary">
+          // `button/base`(429:17669) — bg surface/primary · border border/primary · px-[20px]
+          // py-[8px] · radius/md · **body/14-medium** · content/secondary (h38)
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="mt-1 flex w-full items-center justify-center rounded-md border border-border-primary bg-surface-primary px-5 py-2 text-body-14-medium text-content-secondary"
+          >
             더보기
           </button>
         )}
