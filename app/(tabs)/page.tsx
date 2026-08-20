@@ -1,15 +1,16 @@
-import {
-  HOME_LOWEST_COLLAPSED_COUNT,
-  HOME_LOWEST_VEGETABLES,
-  HOME_RECOMMENDED_STORE,
-  HOME_REGION,
-} from "./_home/_data";
+import { HOME_LOWEST_COLLAPSED_COUNT } from "./_home/_data";
+import { mapRecommendedStoreToView, mapRegionLowestPriceToView } from "./_home/home-view";
 import { HomeHeader } from "./_home/home-header";
 import { loadHomeNewsItems } from "./_home/news";
 import { SectionLowestVegetables } from "./_home/section-lowest-vegetables";
 import { SectionNews } from "./_home/section-news";
 import { SectionRecommendedStore } from "./_home/section-recommended-store";
+import { ApiError } from "@/app/_lib/api/api-error";
+import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getNews } from "@/app/_lib/api/server/news";
+import { getRegionLowestPrices } from "@/app/_lib/api/server/reports";
+import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
+import { getRecommendedStores } from "@/app/_lib/api/server/stores";
 
 // F01 홈 — Figma `화면GUI` 298:3477(F01_홈) · 298:3509(F01_홈_더보기).
 //
@@ -35,22 +36,56 @@ import { getNews } from "@/app/_lib/api/server/news";
 // ── 상태 3종 ──────────────────────────────────────────────────────────────────
 //  · 빈 상태: 구현했다(각 섹션이 처리 — `_home/section-empty.tsx`). **Figma 시안 없는 임시 구현이다.**
 //    뉴스 API가 빈 배열을 주거나 ApiError가 나도 뉴스 섹션만 빈 상태를 보여 준다.
-//  · 추천 가게·최저가 야채는 아직 모듈 상수(더미)다. 이번 연동은 뉴스만 교체한다.
+//  · 세 섹션 모두 실 API다(더미 상수는 2026-08-20에 제거했다):
+//      추천 가게 `GET /stores/recommendation` · 최저가 `GET /regions/{regionId}/reports/lowest-prices`
+//      · 뉴스 `GET /news`. 셋 다 실패하면 그 섹션만 빈 상태로 떨어진다 — 하나가 죽어도 홈은 뜬다.
+//  · 위치 칩의 동네 이름도 상수가 아니라 선택 지역 쿠키에서 온다. 동네를 아직 안 골랐으면
+//    최저가·추천 가게는 조회 자체가 불가능하므로(둘 다 regionId 필수) 빈 상태를 보여 준다.
+
+/** 섹션 하나의 실패가 홈 전체를 세우지 않게 한다. 실패하면 그 섹션만 빈 상태로 떨어진다. */
+async function sectionData<T>(label: string, load: () => Promise<T>): Promise<T | null> {
+  try {
+    return await load();
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    console.error(`홈 ${label} 조회 실패`, { kind: error.kind, status: error.status });
+    return null;
+  }
+}
 
 export default async function HomePage() {
-  const newsItems = await loadHomeNewsItems(getNews);
+  const [region, token] = await Promise.all([getSelectedRegion(), getAccessToken()]);
+
+  const [newsItems, recommendation, lowestPrices] = await Promise.all([
+    loadHomeNewsItems(getNews),
+    region
+      ? sectionData("추천 가게", () =>
+          getRecommendedStores({ regionId: region.regionId, token }),
+        )
+      : Promise.resolve(null),
+    region
+      ? sectionData("동네 최저가", () =>
+          getRegionLowestPrices({ regionId: region.regionId, limit: 10 }),
+        )
+      : Promise.resolve(null),
+  ]);
+
+  const recommendedStore = recommendation?.stores[0]
+    ? mapRecommendedStoreToView(recommendation.stores[0])
+    : null;
+  const lowestVegetables = (lowestPrices?.items ?? []).map(mapRegionLowestPriceToView);
 
   return (
     // pb-10: 스크롤 끝 여백. (tabs) 레이아웃의 GNB는 본문 위를 덮지 않고 옆에 붙지만,
     // 마지막 카드가 GNB 경계선에 딱 붙어 끝나지 않도록 확보한다.
     // UI QA 2026-08-20 #4 "하단 여백 반 정도 줄여주세요" → pb-20(80px)에서 절반으로.
     <div className="flex flex-col pb-10">
-      <HomeHeader region={HOME_REGION} />
+      <HomeHeader region={region?.regionName ?? "동네 선택"} />
 
       <div className="flex flex-col gap-11 px-4 pt-5">
-        <SectionRecommendedStore store={HOME_RECOMMENDED_STORE} />
+        <SectionRecommendedStore store={recommendedStore} />
         <SectionLowestVegetables
-          items={HOME_LOWEST_VEGETABLES}
+          items={lowestVegetables}
           collapsedCount={HOME_LOWEST_COLLAPSED_COUNT}
         />
         <SectionNews items={newsItems} />

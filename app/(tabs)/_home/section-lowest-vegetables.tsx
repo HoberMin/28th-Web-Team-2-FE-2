@@ -43,11 +43,15 @@ const TREND_ICON: Record<HomeTrendDirection, string> = {
 /**
  * 방향 → 화면에 안 보이는 대체 텍스트. 삼각형 모양과 색만으로 오름/내림을 알리면
  * WCAG 1.4.1(색 단독 의존)에 걸리고, 스크린리더에서는 방향 자체가 사라진다.
+ *
+ * ⚠️ 문구가 2026-08-20에 바뀌었다. 더미 시절엔 "지난주 대비"로 읽었는데, 실제 API
+ * (`GET /regions/{regionId}/reports/lowest-prices`)가 주는 `priceDiffRate`는
+ * **공공 시세 대비**다. 화살표의 의미가 다르므로 대체 텍스트도 그에 맞췄다.
  */
 const TREND_LABEL: Record<HomeTrendDirection, string> = {
-  down: "지난주보다 내림",
-  up: "지난주보다 오름",
-  flat: "지난주와 같음",
+  down: "공공 시세보다 저렴",
+  up: "공공 시세보다 비쌈",
+  flat: "공공 시세와 같음",
 };
 
 /**
