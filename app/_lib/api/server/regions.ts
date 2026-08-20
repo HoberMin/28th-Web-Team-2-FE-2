@@ -91,3 +91,24 @@ export async function setCurrentUserRegion(params: {
     cache: "no-store",
   });
 }
+
+/**
+ * 프론트 선택 지역(쿠키)과 Spring 계정의 현재 관심 지역을 맞춘다.
+ *
+ * 제보처럼 regionId가 계정 데이터에도 반영되어야 하는 쓰기 흐름 직전에서 쓴다.
+ * 이미 현재 지역이면 GET 한 번으로 끝나고, 등록되지 않은 지역만 추가한다.
+ */
+export async function ensureCurrentUserRegion(params: {
+  regionId: string;
+  token: string;
+}): Promise<void> {
+  const regions = await getUserRegions(params.token);
+  const selected = regions.find((region) => region.regionId === params.regionId);
+
+  if (!selected) {
+    await addUserRegion(params);
+  }
+  if (!selected?.isCurrent) {
+    await setCurrentUserRegion(params);
+  }
+}
