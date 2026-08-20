@@ -3,6 +3,7 @@ import {
   nearbyRegionRequestSchema,
   regionSchema,
   regionSearchRequestSchema,
+  resolveRegionSelection,
 } from "./regions";
 
 describe("regionSchema", () => {
@@ -11,10 +12,32 @@ describe("regionSchema", () => {
       .toEqual({ regionId: "0111010100", regionName: "서울특별시 종로구 청운동" });
   });
 
-  it("보정 후에도 10자리가 아닌 법정동 코드는 거부한다", () => {
+  it.each([12_345_678_901, 12_345_678, "11440102"])(
+    "10자리로 복원할 수 없는 regionId를 거부한다: %s",
+    (regionId) => {
+      expect(regionSchema.safeParse({ regionId, regionName: "잘못된 동네" }).success).toBe(false);
+    },
+  );
+
+  it("동명은 공덕동인데 id가 다른 기존 쿠키를 검색 결과로 복구한다", () => {
     expect(
-      regionSchema.safeParse({ regionId: 12_345_678_901, regionName: "잘못된 동네" }).success,
-    ).toBe(false);
+      resolveRegionSelection(
+        { regionId: "1156011000", regionName: "서울 마포구 공덕동" },
+        [{ regionId: "1144010200", regionName: "서울 마포구 공덕동" }],
+      ),
+    ).toEqual({ regionId: "1144010200", regionName: "서울 마포구 공덕동" });
+  });
+
+  it("같은 동명 후보가 여러 개면 id를 추측하지 않는다", () => {
+    expect(
+      resolveRegionSelection(
+        { regionId: "1156011000", regionName: "공덕동" },
+        [
+          { regionId: "1144010200", regionName: "서울 마포구 공덕동" },
+          { regionId: "9999999999", regionName: "다른 지역 공덕동" },
+        ],
+      ),
+    ).toBeNull();
   });
 });
 

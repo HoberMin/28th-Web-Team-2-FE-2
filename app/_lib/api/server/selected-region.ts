@@ -1,7 +1,8 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { regionSchema, type Region } from "../schemas/regions";
+import { regionSchema, resolveRegionSelection, type Region } from "../schemas/regions";
+import { searchRegions } from "./regions";
 
 const REGION_ID_COOKIE = "mg_region_id";
 const REGION_NAME_COOKIE = "mg_region_name";
@@ -37,4 +38,23 @@ export async function getSelectedRegion(): Promise<Region | null> {
 
 export async function getSelectedRegionId(): Promise<string | null> {
   return (await getSelectedRegion())?.regionId ?? null;
+}
+
+/**
+ * 선택 지역의 이름과 id 쌍을 Spring 법정동 검색으로 검증한다.
+ * 기존 쿠키가 불일치하면 이름으로 후보를 하나로 확정할 수 있을 때만 자동 복구한다.
+ */
+export async function getVerifiedSelectedRegion(): Promise<Region | null> {
+  const selected = await getSelectedRegion();
+  if (!selected) return null;
+
+  const keyword = selected.regionName.trim().split(/\s+/).at(-1);
+  if (!keyword) return null;
+
+  const resolved = resolveRegionSelection(selected, await searchRegions(keyword));
+  if (!resolved) return null;
+  if (resolved.regionId !== selected.regionId || resolved.regionName !== selected.regionName) {
+    await saveSelectedRegion(resolved);
+  }
+  return resolved;
 }

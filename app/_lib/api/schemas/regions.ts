@@ -20,24 +20,58 @@ export const REGION_SEARCH_MAX_LENGTH = 20;
  * 앞자리 0이 잘려 9자리로 온다. 자릿수가 10으로 고정이라 `padStart`로 복원한다 —
  * 안 하면 `/items?regionId=`에 9자리를 넘겨 **조용히 빈 목록**이 된다.
  *
- * TODO(✍️): 10자리 고정이 맞는지 BE 확인 대기(`농산물-문서/be-요청사항.md` C표).
- * 서버가 문자열로 통일해주면 이 복원 자체가 필요 없어진다.
+ * 라이브 OpenAPI의 문자열 regionId는 `\d{10}`으로 확정되어 있다.
+ * `/regions/nearby`가 문자열로 통일되면 이 복원 자체가 필요 없어진다.
  */
-export const regionIdSchema = z
-  .union([z.string(), z.number()])
-  .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0"))
-  // 보정만 하고 검증을 안 하면 padStart가 **그럴듯하게 생긴 틀린 코드**를 만든다.
-  // 예: 8자리 시군구 코드가 오면 "00"+8자리가 되어 `/items?regionId=`에서 조용히 빈 목록이 된다.
-  // 여기서 터뜨리면 최소한 원인이 드러난다.
-  .refine((value) => /^\d{10}$/.test(value), {
+export const regionIdSchema = z.union([
+  // 문자열로 주는 엔드포인트는 OpenAPI대로 정확히 10자리만 받는다.
+  z.string().regex(/^\d{10}$/, {
     message: `법정동 코드는 숫자 ${REGION_ID_LENGTH}자리여야 합니다.`,
-  });
+  }),
+  // `/regions/nearby`만 int64라 서울 코드의 맨 앞 0이 사라진 9자리 숫자가 올 수 있다.
+  z
+    .number()
+    .int()
+    .safe()
+    .refine((value) => /^\d{9,10}$/.test(String(value)), {
+      message: `법정동 코드는 숫자 ${REGION_ID_LENGTH}자리여야 합니다.`,
+    })
+    .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0")),
+]);
 
 export const regionSchema = z.object({
   regionId: regionIdSchema,
   regionName: z.string(),
 });
 export type Region = z.infer<typeof regionSchema>;
+
+function districtName(regionName: string): string {
+  const parts = regionName.trim().split(/\s+/);
+  return parts.at(-1) ?? regionName;
+}
+
+/**
+ * 쿠키를 id/name 두 개로 보존하던 기존 버전에서 남은 불일치를 Spring 검색 결과로 복구한다.
+ * id와 동명이 모두 맞는 결과를 우선하고, 이름만 맞는 경우는 후보가 하나일 때만 id를 복구한다.
+ */
+export function resolveRegionSelection(selected: Region, candidates: Region[]): Region | null {
+  const selectedDistrict = districtName(selected.regionName);
+  const matchingPair = candidates.find(
+    (candidate) =>
+      candidate.regionId === selected.regionId && districtName(candidate.regionName) === selectedDistrict,
+  );
+  if (matchingPair) return matchingPair;
+
+  const exactNameMatches = candidates.filter(
+    (candidate) => candidate.regionName.trim() === selected.regionName.trim(),
+  );
+  if (exactNameMatches.length === 1) return exactNameMatches[0] ?? null;
+
+  const districtMatches = candidates.filter(
+    (candidate) => districtName(candidate.regionName) === selectedDistrict,
+  );
+  return districtMatches.length === 1 ? (districtMatches[0] ?? null) : null;
+}
 
 /** `RegionSearchRequest` — 실제 쿼리 키는 springdoc 표기의 `request`가 아니라 `keyword`다. */
 export const regionSearchRequestSchema = z.object({
