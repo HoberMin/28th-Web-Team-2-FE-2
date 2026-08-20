@@ -62,6 +62,48 @@ function itemIdForIndex(index: number): number {
   return index + 1;
 }
 
+/**
+ * 실제 Spring 응답의 itemName으로 46종 더미 카탈로그 항목을 찾는다(itemId 순번이 아니라
+ * 이름으로 맞춘다 — 실제 itemId가 더미 카탈로그의 1~46 순번과 정렬된다는 보장이 없다).
+ */
+function findDummyVegetableByName(itemName: string) {
+  return VEGETABLES.find((vegetable) => vegetable.name === itemName);
+}
+
+function temporaryPriceFields(vegetableId: string) {
+  const baseline = getBaselineDummy(vegetableId);
+  const trend = getDailyTrend(baseline.series.week);
+  const priceGap = trend
+    ? trend.direction === "up"
+      ? trend.diff
+      : trend.direction === "down"
+        ? -trend.diff
+        : 0
+    : null;
+  const priceDiffRate = trend
+    ? trend.direction === "up"
+      ? trend.pct
+      : trend.direction === "down"
+        ? -trend.pct
+        : 0
+    : null;
+  return { price: baseline.current, priceGap, priceDiffRate, baseDate: baseline.asOf };
+}
+
+/**
+ * 품목 자체(이름·이미지·itemId·찜 여부)는 실 응답 그대로 두고, **가격만 null인 경우에**
+ * 이름이 일치하는 더미로 채운다. DB에 품목 마스터는 있는데 시세 적재가 아직 안 된 상태
+ * (가격만 전부 null)를 겨냥한 것이다 — 계절 품목이라 정말로 가격이 없는 경우와는 구분할
+ * 수 없지만, 지금은 화면 구조를 보여주는 게 우선이라 이름이 맞으면 채운다.
+ */
+function withTemporaryPriceIfMissing(item: ItemPage["items"][number]): ItemPage["items"][number] {
+  if (item.price !== null) return item;
+  const vegetable = findDummyVegetableByName(item.itemName);
+  if (!vegetable) return item;
+  const { price, priceGap, priceDiffRate } = temporaryPriceFields(vegetable.id);
+  return { ...item, price, priceGap, priceDiffRate };
+}
+
 function buildTemporaryItem(index: number) {
   const vegetable = VEGETABLES[index];
   const baseline = getBaselineDummy(vegetable.id);
@@ -209,11 +251,24 @@ export async function getItemsWithTemporaryFallback(
 ): Promise<{ page: ItemPage; isTemporary: boolean }> {
   try {
     const page = await getItems(params);
-    if (page.items.length > 0) return { page, isTemporary: false };
-    console.warn("[items] temporary data fallback (empty upstream result)", {
+    if (page.items.length === 0) {
+      console.warn("[items] temporary data fallback (empty upstream result)", {
+        regionId: params.regionId,
+      });
+      return { page: buildTemporaryItemPage(params), isTemporary: true };
+    }
+
+    // 목록은 실데이터인데 가격 필드만 비어 있는 경우(품목 마스터는 있고 시세 적재가 안 됨) —
+    // 실 itemId·이름·이미지는 그대로 두고 가격만 이름 매칭 더미로 채운다.
+    const hasMissingPrice = page.items.some((item) => item.price === null);
+    if (!hasMissingPrice) return { page, isTemporary: false };
+    console.warn("[items] temporary price fallback (upstream price fields empty)", {
       regionId: params.regionId,
     });
-    return { page: buildTemporaryItemPage(params), isTemporary: true };
+    return {
+      page: { ...page, items: page.items.map(withTemporaryPriceIfMissing) },
+      isTemporary: true,
+    };
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
     console.warn("[items] temporary data fallback", {
@@ -240,19 +295,42 @@ function isEmptyItemDetail(detail: ItemDetail): boolean {
   );
 }
 
+/**
+ * 실 상세(itemId·itemName·itemImageUrl·isLiked)는 그대로 두고, 수치 필드만 이름이 일치하는
+ * 더미로 채운다 — `itemId`가 46종 순번과 정렬된다는 보장이 없어 이름으로 찾는다.
+ */
+function withTemporaryPriceFields(detail: ItemDetail): ItemDetail | null {
+  const vegetable = findDummyVegetableByName(detail.itemName);
+  if (!vegetable) return null;
+  const reports = getNeighborhoodSeedReports(DEFAULT_DISTRICT)
+    .filter((report) => report.vegetableId === vegetable.id)
+    .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
+  const online = getOnlinePrices(vegetable.id);
+  const { price, priceGap, priceDiffRate, baseDate } = temporaryPriceFields(vegetable.id);
+  return {
+    ...detail,
+    latestLocalReportPrice: reports[0]?.pricePerKg ?? null,
+    todayPublicPrice: price,
+    onlineLowestPrice: online?.cheapest.price ?? null,
+    baseDate,
+    priceGap,
+    priceDiffRate,
+  };
+}
+
 export async function getItemDetailWithTemporaryFallback(
   params: GetItemDetailParams,
 ): Promise<{ detail: ItemDetail; isTemporary: boolean }> {
   try {
     const detail = await getItemDetail(params);
     if (!isEmptyItemDetail(detail)) return { detail, isTemporary: false };
-    const fallback = buildTemporaryItemDetail(params.itemId);
-    // 실제 itemId가 46종 임시 카탈로그 순번을 벗어나면 채울 더미가 없다 — 빈 실응답을 그대로 둔다.
-    if (!fallback) return { detail, isTemporary: false };
+    const patched = withTemporaryPriceFields(detail);
+    // 이름이 46종 임시 카탈로그에 없으면 채울 더미가 없다 — 빈 실응답을 그대로 둔다.
+    if (!patched) return { detail, isTemporary: false };
     console.warn("[item-detail] temporary data fallback (empty upstream result)", {
       itemId: params.itemId,
     });
-    return { detail: fallback, isTemporary: true };
+    return { detail: patched, isTemporary: true };
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
     const detail = buildTemporaryItemDetail(params.itemId);

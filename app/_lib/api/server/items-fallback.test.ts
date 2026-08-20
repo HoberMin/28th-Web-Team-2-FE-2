@@ -62,6 +62,41 @@ describe("getItemsWithTemporaryFallback", () => {
     expect(result.page.items.length).toBeGreaterThan(0);
   });
 
+  it("목록은 실데이터인데 가격만 null이면 이름이 맞는 더미로 가격만 채운다", async () => {
+    const realItem = {
+      itemId: 777,
+      itemName: "감자",
+      itemImageUrl: "https://example.com/potato.png",
+      defaultUnit: "1kg",
+      price: null,
+      priceGap: null,
+      priceDiffRate: null,
+      isLiked: true,
+    };
+    getItemsMock.mockResolvedValue({
+      baseDate: null,
+      totalCount: 1,
+      categoryCounts: {},
+      items: [realItem],
+      page: 0,
+      size: 18,
+      hasNext: false,
+    });
+
+    const result = await getItemsWithTemporaryFallback({ regionId: "1121510100", token: undefined });
+
+    expect(result.isTemporary).toBe(true);
+    expect(result.page.items).toHaveLength(1);
+    const patched = result.page.items[0];
+    // 실 데이터(itemId·itemName·itemImageUrl·isLiked)는 그대로 유지된다.
+    expect(patched.itemId).toBe(777);
+    expect(patched.itemName).toBe("감자");
+    expect(patched.itemImageUrl).toBe("https://example.com/potato.png");
+    expect(patched.isLiked).toBe(true);
+    // 가격만 채워진다.
+    expect(patched.price).not.toBeNull();
+  });
+
   it("일시적 업스트림 에러도 더미로 폴백한다", async () => {
     getItemsMock.mockRejectedValue(ApiError.fromStatus(502, "GET /api/v1/items"));
 
@@ -133,6 +168,35 @@ describe("getItemDetailWithTemporaryFallback", () => {
     });
 
     expect(result.isTemporary).toBe(true);
+    expect(result.detail.todayPublicPrice).not.toBeNull();
+  });
+
+  it("가격만 비어도 실 itemId·itemName·이미지는 그대로 유지한다", async () => {
+    getItemDetailMock.mockResolvedValue({
+      itemId: 777,
+      itemName: "감자",
+      itemImageUrl: "https://example.com/potato.png",
+      defaultUnit: "1kg",
+      isLiked: true,
+      latestLocalReportPrice: null,
+      todayPublicPrice: null,
+      onlineLowestPrice: null,
+      baseDate: null,
+      priceGap: null,
+      priceDiffRate: null,
+    });
+
+    const result = await getItemDetailWithTemporaryFallback({
+      itemId: 777,
+      regionId: "1121510100",
+      token: undefined,
+    });
+
+    expect(result.isTemporary).toBe(true);
+    expect(result.detail.itemId).toBe(777);
+    expect(result.detail.itemName).toBe("감자");
+    expect(result.detail.itemImageUrl).toBe("https://example.com/potato.png");
+    expect(result.detail.isLiked).toBe(true);
     expect(result.detail.todayPublicPrice).not.toBeNull();
   });
 
