@@ -1,9 +1,9 @@
 import { TabBar } from "../../_components/tab-bar";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getItems } from "@/app/_lib/api/server/items";
+import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { getFavoriteStores } from "@/app/_lib/api/server/stores";
+import { getFavoriteStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
 import { ROUTES } from "../../_lib/routes";
 import { mapItemToPriceView } from "../prices/_item-view";
 import { SavedEmpty } from "./_components/saved-empty";
@@ -104,7 +104,7 @@ async function VegetableTab() {
     );
   }
 
-  const itemPage = await getItems({
+  const { page: itemPage } = await getItemsWithTemporaryFallback({
     regionId,
     page: 0,
     size: 100,
@@ -132,7 +132,7 @@ async function StoreTab() {
   // 그래서 `distanceMeters`가 비고, 행의 거리 자리도 비운다(`mapFavoriteStoreToView`).
   let stores;
   try {
-    const page = await getFavoriteStores({ token, page: 0, size: 50 });
+    const { stores: page } = await getFavoriteStoresWithTemporaryFallback({ token, page: 0, size: 50 });
     stores = page.stores.map(mapFavoriteStoreToView);
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
