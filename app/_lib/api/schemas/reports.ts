@@ -6,8 +6,8 @@
 //
 // ⚠️ 400/401/404/409는 스펙상 성공 스키마(`CreateUserReportResponse`)를 그대로 재사용하고
 // 있어 에러 body 형식을 신뢰할 수 없다(`backend-api-reference` §2). 분기는 HTTP status로만
-// 한다 — `server/reports.ts`는 body를 파싱하지 않고, 실패 시 `springFetch`가 던지는
-// `ApiError`(status 기반)를 그대로 쓴다.
+// 한다 — `server/reports.ts`는 body를 제어 흐름에 쓰지 않고, 실패 시 `springFetch`가 던지는
+// `ApiError`(status 기반)를 그대로 쓴다. 로컬 진단용 code/message 로그만 별도다.
 
 import { z } from "zod";
 import { regionIdSchema } from "./regions";

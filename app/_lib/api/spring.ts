@@ -115,6 +115,18 @@ function payloadShape(value: unknown, depth = 0): PayloadShape {
   return { kind };
 }
 
+/**
+ * OpenAPI가 오류 body에도 성공 DTO를 재사용해 형태를 신뢰할 수 없다.
+ * 그래도 로컬 재현을 위해 개발 로그에는 자주 쓰이는 code/message 문자열만
+ * 길이를 제한해 남긴다. 분기는 여전히 HTTP status만 쓴다.
+ */
+function errorField(payload: unknown, key: "code" | "message"): string | undefined {
+  if (typeof payload !== "object" || payload === null) return undefined;
+  const value = Reflect.get(payload, key);
+  if (typeof value !== "string") return undefined;
+  return value.slice(0, 300);
+}
+
 function cacheDescription(cache: CachePolicy): string {
   if (cache === "no-store") return cache;
   const tags = cache.tags?.length ? ` tags=${cache.tags.join(",")}` : "";
@@ -205,8 +217,9 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
 /**
  * Spring 호출 + 경계 검증. 실패는 전부 `ApiError`로 통일한다.
  *
- * 에러 본문은 파싱하지 않는다 — 스펙이 4xx/5xx에 성공 스키마를 재사용해
- * 형태를 알 수 없기 때문이다(`backend-api-reference` §2).
+ * 에러 분기는 HTTP status만 신뢰한다. 스펙이 4xx/5xx에 성공 스키마를
+ * 재사용해 body 형태를 알 수 없기 때문이다(`backend-api-reference` §2).
+ * 단, 로컬 진단을 위해 개발 환경에서만 code/message를 제한된 길이로 로그한다.
  */
 export async function springFetch<TSchema extends z.ZodType | undefined = undefined>(
   request: SpringRequest<TSchema>,
@@ -216,7 +229,26 @@ export async function springFetch<TSchema extends z.ZodType | undefined = undefi
 
   const response = await springRaw(request);
 
-  if (!response.ok) throw ApiError.fromStatus(response.status, endpoint);
+  if (!response.ok) {
+    if (isSpringDebugEnabled()) {
+      let payload: unknown;
+      try {
+        payload = await response.clone().json();
+      } catch {
+        payload = undefined;
+      }
+      springDebug(() => ({
+        event: "error",
+        traceId: responseTraceIds.get(response),
+        endpoint,
+        status: response.status,
+        code: errorField(payload, "code"),
+        message: errorField(payload, "message"),
+        payload: payloadShape(payload),
+      }));
+    }
+    throw ApiError.fromStatus(response.status, endpoint);
+  }
 
   if (!schema) return undefined as Parsed<TSchema>;
 

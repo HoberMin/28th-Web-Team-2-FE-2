@@ -389,7 +389,7 @@ describe("Spring API client", () => {
     });
   });
 
-  it("실패 응답 본문을 파싱하지 않고 HTTP status로만 분기한다", async () => {
+  it("실패 응답의 제어 흐름은 HTTP status로만 분기한다", async () => {
     const response = Response.json({ message: "내부 오류 상세" }, { status: 401 });
     const jsonSpy = vi.spyOn(response, "json");
     const fetchMock = vi.fn<typeof fetch>();
@@ -408,6 +408,32 @@ describe("Spring API client", () => {
       endpoint: "GET /api/v1/items",
     });
     expect(jsonSpy).not.toHaveBeenCalled();
+  });
+
+  it("개발 환경에서 실패 code/message만 제한해 로그한다", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        {
+          code: "INVALID_REPORT",
+          message: "선택한 동네와 가게를 확인해 주세요.",
+          details: "do-not-log-this-detail",
+        },
+        { status: 400 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      springFetch({ path: "/api/v1/items/46/reports", method: "POST", cache: "no-store" }),
+    ).rejects.toMatchObject({ kind: "badRequest", status: 400 });
+
+    const serializedLogs = JSON.stringify(infoSpy.mock.calls);
+    expect(serializedLogs).toContain("INVALID_REPORT");
+    expect(serializedLogs).toContain("선택한 동네와 가게를 확인해 주세요.");
+    expect(serializedLogs).not.toContain("do-not-log-this-detail");
   });
 
   it("성공 응답을 Zod 스키마로 검증해 반환한다", async () => {
