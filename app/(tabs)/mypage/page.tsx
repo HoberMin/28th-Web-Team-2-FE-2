@@ -109,6 +109,11 @@ export default async function MyPage() {
 
       <nav aria-label="내 정보 메뉴" className="flex flex-col pt-2">
         <MyPageMenuRow
+          href={ROUTES.mypageRegions}
+          label="내 동네 관리"
+          value={me?.currentRegion?.regionName ?? "-"}
+        />
+        <MyPageMenuRow
           href={`${ROUTES.saved}?tab=store`}
           label="단골 가게"
           value={countLabel(storeCount, "곳", "없음")}
