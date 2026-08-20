@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   hasRegionCoordinates,
+  nearbyRegionsEnvelopeSchema,
   nearbyRegionRequestSchema,
   regionSchema,
   regionSearchEnvelopeSchema,
@@ -110,5 +111,23 @@ describe("nearbyRegionRequestSchema", () => {
       .toBe(false);
     expect(nearbyRegionRequestSchema.safeParse({ latitude: 37, longitude: 181 }).success)
       .toBe(false);
+  });
+});
+
+describe("nearbyRegionsEnvelopeSchema", () => {
+  const region = { regionId: 1156011600, regionName: "영등포구 당산동6가" };
+
+  it("Spring envelope의 data를 지역 배열로 검증한다", () => {
+    expect(
+      nearbyRegionsEnvelopeSchema.parse({
+        code: "SUCCESS",
+        message: "요청이 성공적으로 처리되었습니다.",
+        data: [region],
+      }).data,
+    ).toEqual([{ regionId: "1156011600", regionName: "영등포구 당산동6가" }]);
+  });
+
+  it("Spring envelope가 아닌 최상위 배열은 거부한다", () => {
+    expect(nearbyRegionsEnvelopeSchema.safeParse([region]).success).toBe(false);
   });
 });

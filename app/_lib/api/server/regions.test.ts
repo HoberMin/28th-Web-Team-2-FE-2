@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { springFetchMock } = vi.hoisted(() => ({ springFetchMock: vi.fn() }));
 vi.mock("../spring", () => ({ springFetch: springFetchMock }));
 
-import { ensureCurrentUserRegion } from "./regions";
+import { ensureCurrentUserRegion, getNearbyRegions } from "./regions";
 
 describe("ensureCurrentUserRegion", () => {
   beforeEach(() => {
@@ -63,6 +63,30 @@ describe("ensureCurrentUserRegion", () => {
       method: "PUT",
       token: "access-token",
       cache: "no-store",
+    });
+  });
+});
+
+describe("getNearbyRegions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("Spring envelope의 data만 BFF 지역 배열로 반환한다", async () => {
+    springFetchMock.mockResolvedValue({
+      code: "SUCCESS",
+      message: "요청이 성공적으로 처리되었습니다.",
+      data: [{ regionId: "1156011600", regionName: "영등포구 당산동6가" }],
+    });
+
+    await expect(getNearbyRegions({ latitude: 37.535, longitude: 126.9 })).resolves.toEqual([
+      { regionId: "1156011600", regionName: "영등포구 당산동6가" },
+    ]);
+    expect(springFetchMock).toHaveBeenCalledWith({
+      path: "/api/v1/regions/nearby",
+      query: { latitude: 37.535, longitude: 126.9 },
+      schema: expect.anything(),
+      cache: { revalidate: 3_600, tags: ["regions"] },
     });
   });
 });

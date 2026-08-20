@@ -1,7 +1,8 @@
 // 법정동 검색·조회
 //
 // ⚠️ 함정 둘 (`backend-api-reference` §2):
-//  1. `/regions/search`만 `{code, message, data}` envelope를 쓴다. 다른 엔드포인트는 안 쓴다.
+//  1. `/regions/search` and `/regions/nearby` use `{code, message, data}` envelopes.
+//     The BFF unwraps `data` before returning the existing array contract to the client.
 //  2. `regionId`가 여기서는 string("0111010100"), `/regions/nearby`에서는 int64로 갈린다.
 //     숫자로 다루면 앞자리 0이 사라지므로 **프론트는 string으로 통일**한다.
 
@@ -115,7 +116,14 @@ export const regionSearchEnvelopeSchema = z.object({
 
 export const locatedRegionsSchema = z.array(locatedRegionSchema);
 
-/** `/regions/nearby`는 최상위 배열을 그대로 준다. */
+/** `/regions/nearby` Spring 원격 응답. 서버 계층에서 `data`를 벗겨서 반환한다. */
+export const nearbyRegionsEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: z.array(regionSchema),
+});
+
+/** `/regions/nearby` BFF가 프런트에 반환하는 최상위 배열. */
 export const nearbyRegionsSchema = z.array(regionSchema);
 
 // GET/POST /api/v1/users/me/regions·PUT .../current — 로그인 사용자의 "관심 지역" 계열.

@@ -5,7 +5,7 @@ import "server-only";
 // import 경로를 눈으로 확인할 것. 더미를 걷어내는 시점에 이 주석도 지운다.
 
 import {
-  nearbyRegionsSchema,
+  nearbyRegionsEnvelopeSchema,
   regionSearchEnvelopeSchema,
   userRegionsResponseSchema,
   type LocatedRegion,
@@ -36,22 +36,23 @@ export async function searchRegions(keyword: string): Promise<LocatedRegion[]> {
 }
 
 /**
- * 좌표로 법정동 조회. 최상위 배열을 그대로 준다(envelope 없음).
+ * 좌표로 법정동 조회. Spring envelope의 `data`를 벗겨 기존 BFF 계약인 최상위 배열로 반환한다.
  *
  * ⚠️ 여기 `regionId`는 스펙상 int64라 앞자리 0이 이미 사라진 채 온다.
  * 스키마가 10자리로 `padStart`해 복원한다(자릿수 고정 가정 — BE 확인 대기).
  */
-export function getNearbyRegions(params: {
+export async function getNearbyRegions(params: {
   latitude: number;
   longitude: number;
 }): Promise<Region[]> {
-  return springFetch({
+  const envelope = await springFetch({
     path: "/api/v1/regions/nearby",
     query: { ...params },
-    schema: nearbyRegionsSchema,
+    schema: nearbyRegionsEnvelopeSchema,
     // 좌표별로 결과가 갈리지만 사용자와 무관하고 잘 안 바뀐다.
     cache: { revalidate: 3_600, tags: [CACHE_TAGS.regions] },
   });
+  return envelope.data;
 }
 
 /**
