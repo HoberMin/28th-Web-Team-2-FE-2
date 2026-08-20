@@ -1,15 +1,16 @@
-import Link from "next/link";
 import { TabBar } from "../../_components/tab-bar";
+import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { getFavoriteStores } from "@/app/_lib/api/server/stores";
 import { ROUTES } from "../../_lib/routes";
 import { mapItemToPriceView } from "../prices/_item-view";
-import { RowSavedStore } from "./_components/row-saved-store";
 import { SavedEmpty } from "./_components/saved-empty";
+import { SavedStoreList } from "./_components/saved-store-list";
 import { SavedVegetableList } from "./_components/saved-vegetable-list";
-import { SAVED_STORES, type SavedStore, parseSavedTab } from "./_data";
+import { parseSavedTab } from "./_data";
+import { mapFavoriteStoreToView } from "./_saved-store-view";
 
 // F04 찜 — Figma `화면GUI` 298-3576(찜_야채) · 298-3594(찜_가게), sync 2026-08-08.
 //
@@ -18,8 +19,10 @@ import { SAVED_STORES, type SavedStore, parseSavedTab } from "./_data";
 //
 // GNB는 이 화면이 그리지 않는다 — `app/(tabs)/layout.tsx`가 단독으로 렌더하고 본문만 스크롤한다.
 //
-// 야채 탭은 `GET /api/v1/items?favoriteOnly=true`를 RSC에서 조회한다. 로그인 사용자 응답은
-// `isLiked`가 개인화되므로 no-store다. 가게 탭은 API 계약이 없어 기존 prototype 더미를 유지한다.
+// 두 탭 모두 RSC에서 조회한다 — 야채는 `GET /api/v1/items?favoriteOnly=true`, 가게는
+// `GET /api/v1/users/me/favorite-stores`. 응답이 전부 개인화라 no-store다.
+//
+// 가게 탭의 하트는 **단골 해제 버튼**이라 목록만 클라이언트 컴포넌트다(`_components/saved-store-list`).
 //
 // ── Figma와 의도적으로 다르게 구현한 것 ──────────────────────────────────────
 //
@@ -38,24 +41,12 @@ import { SAVED_STORES, type SavedStore, parseSavedTab } from "./_data";
 // ⑤ 하트 상태: Figma 가게 탭은 6행 중 5행이 빈 하트인데 찜 목록이므로 시안 실수로 보고
 //    **전부 채워진 하트**로 구현했다.
 //
-// 에셋: 야채 사진·가게 사진·하트·등락 아이콘은 Figma MCP로 export한
-// `public/figma/design-library/` 원본을 그대로 쓴다.
+// 에셋: 야채 사진·하트·등락 아이콘은 Figma MCP로 export한 `public/figma/design-library/`
+// 원본을 그대로 쓴다. **가게 사진만 예외로 API의 `storeImageUrl`**이고, 없으면 회색 자리를 둔다.
 //
 // ⚠️ 남은 폭 이슈(보고 대상): 공통 컴포넌트 `GridVegetableItem`은 내부 사진·정보 폭이 110px로
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
 //    3열 칸이 넓어져도 카드가 110px에 머무르고 칸 오른쪽에 여백이 남는다. 390 기준으로는 정확하다.
-
-/** F04 가게 행 인스턴스(298-3598)의 image fill을 72×72로 MCP export한 원본. */
-function StorePhoto() {
-  return (
-    <FigmaImage
-      name="store-thumbnail.png"
-      width={72}
-      height={72}
-      className="size-full object-cover"
-    />
-  );
-}
 
 interface SavedPageProps {
   searchParams: Promise<{ tab?: string }>;
@@ -86,7 +77,7 @@ export default async function SavedPage({ searchParams }: SavedPageProps) {
       {activeTab === "vegetable" ? (
         <VegetableTab />
       ) : (
-        <StoreTab stores={SAVED_STORES} />
+        <StoreTab />
       )}
     </div>
   );
@@ -125,11 +116,41 @@ async function VegetableTab() {
   return <SavedVegetableList vegetables={itemPage.items.map(mapItemToPriceView)} />;
 }
 
-function StoreTab({ stores }: { stores: SavedStore[] }) {
+async function StoreTab() {
+  const token = await getAccessToken();
+
+  if (!token) {
+    return (
+      <SavedEmpty
+        title="로그인이 필요해요"
+        description="카카오 로그인 후 단골 가게를 모아볼 수 있어요."
+      />
+    );
+  }
+
+  // 좌표를 넘기지 않는다 — 사용자 위치는 브라우저에만 있고, 서버에서 지어낼 값이 아니다.
+  // 그래서 `distanceMeters`가 비고, 행의 거리 자리도 비운다(`mapFavoriteStoreToView`).
+  let stores;
+  try {
+    const page = await getFavoriteStores({ token, page: 0, size: 50 });
+    stores = page.stores.map(mapFavoriteStoreToView);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    console.error("단골 가게 조회 실패", { kind: error.kind, status: error.status });
+    return (
+      <SavedEmpty
+        title="단골 가게를 불러오지 못했어요"
+        description="잠시 후 다시 시도해 주세요."
+        actionHref={`${ROUTES.saved}?tab=store`}
+        actionLabel="다시 불러오기"
+      />
+    );
+  }
+
   if (stores.length === 0) {
     return (
       <SavedEmpty
-        title="찜한 가게가 없어요"
+        title="단골 가게가 없어요"
         description="가게 화면에서 하트를 누르면 여기에 모여요."
         actionHref={ROUTES.stores}
         actionLabel="동네 가게 보러 가기"
@@ -137,26 +158,5 @@ function StoreTab({ stores }: { stores: SavedStore[] }) {
     );
   }
 
-  return (
-    <ul className="flex flex-col">
-      {stores.map((store) => (
-        <li key={store.id}>
-          <Link
-            href={ROUTES.storeDetail(store.id)}
-            className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
-          >
-            <RowSavedStore
-              thumbnail={<StorePhoto />}
-              name={store.name}
-              distance={store.distance}
-              openState={store.openState}
-              openLabel={store.openLabel}
-              hours={store.hours}
-              favoriteIcon={<FigmaIcon name="heart-fill" width={23} />}
-            />
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  return <SavedStoreList stores={stores} />;
 }
