@@ -1,17 +1,18 @@
 import "server-only";
 
-import { newsListSchema, type NewsArticle } from "../schemas/news";
+import { newsEnvelopeSchema, type NewsArticle } from "../schemas/news";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
 
 /**
- * 농산물 뉴스 목록. 최상위 배열을 그대로 반환한다(envelope 없음).
+ * 농산물 뉴스 목록. 이 엔드포인트의 `{ code, message, data }` envelope만 여기서 벗긴다.
  * 로그인과 무관한 공개 데이터라 공유 캐시에 넣는다.
  */
-export function getNews(): Promise<NewsArticle[]> {
-  return springFetch({
+export async function getNews(): Promise<NewsArticle[]> {
+  const envelope = await springFetch({
     path: "/api/v1/news",
-    schema: newsListSchema,
+    schema: newsEnvelopeSchema,
     cache: { revalidate: 1_800, tags: [CACHE_TAGS.news] },
   });
+  return envelope.data;
 }

@@ -1,4 +1,4 @@
-// GET /api/v1/news — 농산물 뉴스. 최상위 배열을 그대로 반환한다.
+// GET /api/v1/news — 농산물 뉴스. `{ code, message, data }` envelope를 반환한다.
 
 import { z } from "zod";
 
@@ -41,3 +41,9 @@ export const newsListSchema = z
       return parsed.success ? [parsed.data] : [];
     }),
   );
+
+export const newsEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: newsListSchema,
+});
