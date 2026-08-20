@@ -23,6 +23,22 @@
     `onboarding-store`(브라우저 저장소)가 비어 있어 `(tabs)/_onboarding-gate.tsx`가 여전히
     `/onboarding`으로 되돌려보낸다 — 그 게이트가 로컬 상태만 보고 서버 진행 단계를 조회하지
     않기 때문이다(이번 작업 범위 밖, 별도 확인 필요).
+- **BE 계약 커버리지 (2026-08-20 전수 대조)**: Swagger 27개 중 프로덕트 엔드포인트는 전부
+  프론트에 붙었다(샘플 `/api/samples` 제외). 이날 새로 연결한 것 — 가게 단골 토글
+  (`PUT|DELETE /stores/{id}/favorite`) · 단골 목록(`/users/me/favorite-stores`) · 가게 제보
+  목록(`/stores/{id}/reports`) · 추천 가게(`/stores/recommendation`) · 동네 최저가
+  (`/regions/{id}/reports/lowest-prices`) · 이미지 업로드(`POST /images`).
+  같이 걷어낸 더미 — `SAVED_STORES` · `HOME_RECOMMENDED_STORE` · `HOME_LOWEST_VEGETABLES` ·
+  `HOME_REGION` · `MAP_STORES`/`PrototypeMapStore` · 가게 상세의 `FIGMA_ONION_PRICES`와
+  `/stores/temporary` 경로.
+- **아직 BE에 없어서 화면이 비거나 더미인 것** (`농산물-문서/be-요청사항.md` 대상):
+  - **품목별 동네 제보 목록** — `POST /items/{id}/reports`만 있고 조회가 없다. F03-1의
+    「동네 제보가」 + 더보기 시트가 통째로 더미다
+  - **주간 가격 추이 그래프**·**온라인 쇼핑몰 가격 비교** (F03-1 나머지 두 섹션)
+  - **내 제보 목록·수정·삭제** (F05-3) · **주간 제보 캘린더** (F05) — 마이페이지에서 뺀 이유
+  - **가게 상세 조회** — 이름·주소·영업시간을 주는 엔드포인트가 없어 직전 화면이 쿼리로
+    실어 나른다. 상세 URL을 직접 열면 프로필 줄이 빈다
+  - 가게 단골 **수**(하트 옆 숫자) · 「오늘 제보된 품목」 수 — summary에 없어 화면에서 뺐다
 - `TODO(✍️):` 유저 플로우
 - `TODO(✍️):` 핵심 엔티티·상태머신
   - **품목 식별자 계약 (2026-08-18 해소)**: `GET /api/v1/items/{itemId}` 상세 조회가 라이브에
