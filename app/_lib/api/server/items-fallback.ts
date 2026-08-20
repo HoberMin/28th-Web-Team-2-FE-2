@@ -226,11 +226,33 @@ export async function getItemsWithTemporaryFallback(
   }
 }
 
+/**
+ * DB에 이 품목의 시세·제보가 하나도 없으면 Spring은 200과 함께 수치 필드를 전부 `null`로
+ * 준다(품목 자체는 카탈로그에 있으니 `itemId`/`itemName`은 채워진다). 그 상태를 "비어 있다"로
+ * 본다 — 목록의 "success인데 빈 배열" 판정과 같은 결의 문제다.
+ */
+function isEmptyItemDetail(detail: ItemDetail): boolean {
+  return (
+    detail.todayPublicPrice == null &&
+    detail.latestLocalReportPrice == null &&
+    detail.onlineLowestPrice == null &&
+    detail.baseDate == null
+  );
+}
+
 export async function getItemDetailWithTemporaryFallback(
   params: GetItemDetailParams,
 ): Promise<{ detail: ItemDetail; isTemporary: boolean }> {
   try {
-    return { detail: await getItemDetail(params), isTemporary: false };
+    const detail = await getItemDetail(params);
+    if (!isEmptyItemDetail(detail)) return { detail, isTemporary: false };
+    const fallback = buildTemporaryItemDetail(params.itemId);
+    // 실제 itemId가 46종 임시 카탈로그 순번을 벗어나면 채울 더미가 없다 — 빈 실응답을 그대로 둔다.
+    if (!fallback) return { detail, isTemporary: false };
+    console.warn("[item-detail] temporary data fallback (empty upstream result)", {
+      itemId: params.itemId,
+    });
+    return { detail: fallback, isTemporary: true };
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
     const detail = buildTemporaryItemDetail(params.itemId);
