@@ -6,7 +6,7 @@ vi.mock("./regions", () => ({ searchRegions: searchRegionsMock }));
 import { resolveSelectedRegionCoordinates } from "./selected-region";
 
 describe("resolveSelectedRegionCoordinates", () => {
-  it("숫자가 포함된 법정동명은 순수 동이름으로 검색해 동일 regionId를 확인한다", async () => {
+  it("좌표 없는 선택 지역은 저장된 전체 regionName으로 검색해 동일 regionId를 확인한다", async () => {
     searchRegionsMock.mockResolvedValue([
       {
         regionId: "1156011600",
@@ -26,10 +26,10 @@ describe("resolveSelectedRegionCoordinates", () => {
       latitude: 37.535,
       longitude: 126.9,
     });
-    expect(searchRegionsMock).toHaveBeenCalledWith("당산동");
+    expect(searchRegionsMock).toHaveBeenCalledWith("영등포구 당산동6가");
   });
 
-  it("숫자 없는 동이름은 마지막 토큰을 그대로 검색한다", async () => {
+  it("숫자 없는 동이름도 전체 regionName을 검색한다", async () => {
     searchRegionsMock.mockResolvedValue([]);
 
     await expect(

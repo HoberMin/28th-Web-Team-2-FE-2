@@ -69,8 +69,7 @@ export async function resolveSelectedRegionCoordinates(
 ): Promise<LocatedRegion | null> {
   if (hasRegionCoordinates(selected)) return selected;
 
-  const district = selected.regionName.trim().split(/\s+/).at(-1);
-  const keyword = district?.replace(/\d+\uac00$/, "");
+  const keyword = selected.regionName.trim();
   if (!keyword) return null;
 
   return resolveRegionSelection(selected, await searchRegions(keyword));
