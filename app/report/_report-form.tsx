@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/_components/button";
+import {
+  uploadImageValidationMessage,
+  validateUploadImage,
+} from "@/app/_lib/api/schemas/images";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
@@ -58,7 +62,8 @@ import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo
 //  · **사진 업로드가 붙었다**(2026-08-20, `POST /api/v1/images`). 제출은 2단계다 —
 //    사진을 먼저 올려 `imageUrl`을 받고, 그 URL을 제보 생성의 `photoUrl`로 넘긴다.
 //    사진 원본은 품목·장소 화면을 다녀와도 잃지 않도록 `_lib/photo-draft.ts`의 IndexedDB에
-//    계속 임시 보관한다. 업로드 실패는 제보를 막지 않는다(사진은 선택 입력이다).
+//    계속 임시 보관한다. 업로드가 실패하면 원본을 유지해 재시도하고,
+//    사용자가 사진을 지웠을 때만 사진 없는 제보를 보낸다.
 //  · **F04-2 카테고리 매핑**(한글 7종 ↔ Spring `ItemCategory`)은 `_data.ts`가 `(tabs)/prices`의
 //    기존 `PRICE_GROUPS` 매핑을 재사용한다 — 판단 근거는 그 파일 머리말 참고.
 //
@@ -163,6 +168,11 @@ export function ReportForm({
     event.target.value = "";
     if (!file) return;
     setPhotoError("");
+    const validationError = validateUploadImage(file);
+    if (validationError) {
+      setPhotoError(uploadImageValidationMessage(validationError));
+      return;
+    }
     if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
     scanStartedAtRef.current = performance.now();
     setPhoto({ file, url: URL.createObjectURL(file), scanning: true });
@@ -192,10 +202,12 @@ export function ReportForm({
 
     setIsSubmitting(true);
     setSubmitError("");
+    setPhotoError("");
     try {
       // 사진이 있으면 먼저 올려 URL을 받는다(`POST /api/v1/images` → 그 다음 제보 생성).
-      // **업로드 실패로 제보 자체를 막지 않는다** — 사진은 선택 입력이라, 실패하면 안내만 남기고
-      // 사진 없이 제보를 이어 간다. 유일한 예외가 로그인 만료로, 그건 제보도 어차피 못 한다.
+      // 선택한 사진이 있는데 업로드가 실패하면 사진을 모르게 빼지 않는다.
+      // 사진을 유지한 채 확인을 다시 누르면 재시도하고, 사용자가 사진을 삭제했을 때만
+      // 사진 없는 제보를 보낸다.
       let photoUrl: string | undefined;
       if (photo?.file) {
         const form = new FormData();
@@ -208,6 +220,7 @@ export function ReportForm({
           return;
         } else {
           setPhotoError(uploaded.message);
+          return;
         }
       }
 
@@ -235,6 +248,7 @@ export function ReportForm({
   function handleCancelScan() {
     cancelScanTimer();
     setPhoto(null);
+    setPhotoError("");
     void clearReportPhoto();
   }
 
@@ -263,6 +277,7 @@ export function ReportForm({
                       onClick={() => {
                         cancelScanTimer();
                         setPhoto(null);
+                        setPhotoError("");
                         void clearReportPhoto();
                       }}
                     >
@@ -315,7 +330,7 @@ export function ReportForm({
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png"
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
@@ -398,7 +413,7 @@ export function ReportForm({
           state={isSubmitting ? "loading" : "normal"}
           onClick={handleSubmit}
         >
-          확인
+          {photo && photoError ? "사진 다시 올리기" : "확인"}
         </Button>
       </ReportCtaFooter>
 

@@ -2,14 +2,16 @@
 
 import { ApiError } from "@/app/_lib/api/api-error";
 import { clearTokens, getAccessToken } from "@/app/_lib/api/auth/session";
-import { createReportRequestSchema, type StoreRequest } from "@/app/_lib/api/schemas/reports";
 import {
-  ALLOWED_UPLOAD_IMAGE_TYPES,
-  MAX_UPLOAD_IMAGE_BYTES,
-  uploadImage,
-} from "@/app/_lib/api/server/images";
+  uploadImageValidationMessage,
+  validateUploadImage,
+} from "@/app/_lib/api/schemas/images";
+import type { Region } from "@/app/_lib/api/schemas/regions";
+import { createReportRequestSchema, type StoreRequest } from "@/app/_lib/api/schemas/reports";
+import { uploadImage } from "@/app/_lib/api/server/images";
+import { ensureCurrentUserRegion } from "@/app/_lib/api/server/regions";
 import { createReport } from "@/app/_lib/api/server/reports";
-import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
+import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region";
 
 /**
  * Figma에 "구매/목격" 토글이 없다(제보 폼 어디에도 이 값을 고르는 UI가 없음). 유일하게 UI가
@@ -41,28 +43,27 @@ export type UploadPhotoResult =
   | { status: "success"; imageUrl: string }
   | { status: "unauthorized"; message: string }
   | { status: "invalid"; message: string }
+  | { status: "unavailable"; message: string }
   | { status: "error"; message: string };
 
 /**
  * 제보 사진 업로드 — `POST /api/v1/images`.
  *
  * 제보 생성과 **분리된 두 단계**다(스펙이 그렇게 나뉘어 있다): 여기서 받은 `imageUrl`을
- * `submitReportAction`의 `photoUrl`로 넘긴다. 업로드가 실패해도 제보 자체는 보낼 수 있게
- * 호출부가 사진 없이 계속 진행할지 정한다.
+ * `submitReportAction`의 `photoUrl`로 넘긴다. 업로드가 실패하면 원본 파일을
+ * 유지한 채 재시도하고, 사용자가 사진을 지웠을 때만 사진 없는 제보를 보낸다.
  *
  * 형식·용량은 Spring이 400을 주기 전에 여기서 먼저 거른다 — 왕복 한 번을 아끼고, 사용자가
  * 받는 문구가 "잘못된 요청"이 아니라 무엇이 문제인지가 된다.
  */
 export async function uploadReportPhotoAction(formData: FormData): Promise<UploadPhotoResult> {
   const file = formData.get("image");
-  if (!(file instanceof File) || file.size === 0) {
+  if (!(file instanceof File)) {
     return { status: "invalid", message: "사진 파일을 찾지 못했어요. 다시 선택해 주세요." };
   }
-  if (file.size > MAX_UPLOAD_IMAGE_BYTES) {
-    return { status: "invalid", message: "사진 용량이 너무 커요. 10MB 이하로 올려 주세요." };
-  }
-  if (!ALLOWED_UPLOAD_IMAGE_TYPES.includes(file.type as (typeof ALLOWED_UPLOAD_IMAGE_TYPES)[number])) {
-    return { status: "invalid", message: "JPG·PNG·WEBP 사진만 올릴 수 있어요." };
+  const validationError = validateUploadImage(file);
+  if (validationError) {
+    return { status: "invalid", message: uploadImageValidationMessage(validationError) };
   }
 
   const token = await getAccessToken();
@@ -89,8 +90,16 @@ export async function uploadReportPhotoAction(formData: FormData): Promise<Uploa
     if (error.kind === "badRequest") {
       return { status: "invalid", message: "사진 형식을 확인해 주세요." };
     }
-    // 503(스토리지 장애)도 여기로 온다 — 사진 없이 제보를 계속할 수 있게 안내한다.
-    return { status: "error", message: "사진을 올리지 못했어요. 사진 없이 제보할 수 있어요." };
+    if (error.status === 503) {
+      return {
+        status: "unavailable",
+        message: "이미지 저장소가 점검 중이에요. 다시 시도하거나 사진을 삭제한 뒤 제보해 주세요.",
+      };
+    }
+    return {
+      status: "error",
+      message: "사진을 올리지 못했어요. 다시 시도하거나 사진을 삭제해 주세요.",
+    };
   }
 }
 
@@ -114,13 +123,23 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
     return { status: "unauthorized", message: "제보하려면 카카오 로그인이 필요해요." };
   }
 
-  const regionId = await getSelectedRegionId();
-  if (!regionId) {
-    return { status: "error", message: "동네 정보가 필요해요. 동네를 다시 선택해 주세요." };
+  let selectedRegion: Region | null;
+  try {
+    selectedRegion = await getVerifiedSelectedRegion();
+  } catch (error) {
+    console.error("제보 동네 검증 실패", {
+      kind: error instanceof ApiError ? error.kind : "unknown",
+      status: error instanceof ApiError ? error.status : 0,
+      endpoint: error instanceof ApiError ? error.endpoint : undefined,
+    });
+    return { status: "error", message: "동네 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요." };
+  }
+  if (!selectedRegion) {
+    return { status: "error", message: "동네 정보가 일치하지 않아요. 동네를 다시 선택해 주세요." };
   }
 
   const body = createReportRequestSchema.safeParse({
-    regionId,
+    regionId: selectedRegion.regionId,
     reportType: FIXED_REPORT_TYPE,
     price: input.price,
     unit: input.unit,
@@ -138,6 +157,23 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
   // 쓸 수 없다는 폼의 판단(`_report-form.tsx` canSubmit)을 서버에서도 같게 유지한다.
   if (!body.data.store) {
     return { status: "invalid", message: "판매 장소를 선택해 주세요." };
+  }
+
+  // 쿠키의 프론트 선택 지역과 Spring 계정의 현재 관심 지역을 제보 직전에 맞춘다.
+  // 인증이 만료된 경우만 즉시 막고, 관심 지역 추가 상한등 부가 동기화 실패는
+  // 제보 API가 regionId를 직접 받는 현재 계약을 신뢰해 요청을 계속한다.
+  try {
+    await ensureCurrentUserRegion({ regionId: body.data.regionId, token });
+  } catch (error) {
+    if (error instanceof ApiError && (error.isAuthExpired || error.kind === "forbidden")) {
+      await clearTokens();
+      return { status: "unauthorized", message: "로그인이 만료됐어요. 다시 로그인해 주세요." };
+    }
+    console.error("제보 지역 동기화 실패", {
+      kind: error instanceof ApiError ? error.kind : "unknown",
+      status: error instanceof ApiError ? error.status : 0,
+      endpoint: error instanceof ApiError ? error.endpoint : undefined,
+    });
   }
 
   try {
