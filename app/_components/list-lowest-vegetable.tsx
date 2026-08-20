@@ -118,6 +118,7 @@ export function ListLowestVegetable({
           lines={1}
           state={trendState}
           icon={trendIcon}
+          className="justify-end"
         />
       </div>
     </div>

@@ -16,6 +16,10 @@ import { cn } from "../_lib/cn";
 //   flat    → **아이콘만.** Figma의 flat 심볼에는 금액·증감률 텍스트 노드가 아예 없다.
 //             변동 없음을 가로 막대 하나로만 표현한다.
 //
+// 값 span은 flex-grow를 주지 않는다 — 주면 짧은 값(퍼센트만 있는 경우 등)도 항상 부모 폭까지
+// 늘어나 버려서, 우측 정렬 호출부(`ListLowestVegetable`)가 `justify-end`를 줘도 아이콘+텍스트
+// 묶음이 왼쪽에 붙은 채로 보인다.
+//
 // 색 (get_variable_defs로 확인 — 세 값 모두 이 노드에 바인딩돼 있다):
 //   down → trend/down  #217cf9 (blue-600)
 //   up   → trend/up    #ed2c42 (red-600)
@@ -81,7 +85,7 @@ export function VegetableTrend({
       {isFlat ? null : (
         <span
           className={cn(
-            "flex min-w-0 flex-1 whitespace-nowrap text-caption-12-medium",
+            "flex min-w-0 whitespace-nowrap text-caption-12-medium",
             oneLine ? "items-center" : "flex-col items-start",
           )}
         >
