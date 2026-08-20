@@ -5,14 +5,20 @@
 // 위치 기반 개인화 조회라 항상 최신 좌표로 조회한다 — 라우트 전체를 동적으로 선언(no-store).
 export const dynamic = "force-dynamic";
 
-import { searchNearbyStorePlaces } from "@/app/_lib/kakao-places";
+import { KakaoPlacesError, searchNearbyStorePlaces } from "@/app/_lib/kakao-places";
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
-  const lat = Number(searchParams.get("lat"));
-  const lng = Number(searchParams.get("lng"));
-  const district = searchParams.get("district") ?? "";
-
-  const stores = await searchNearbyStorePlaces({ lat, lng, district });
-  return Response.json(stores);
+  const latParam = searchParams.get("lat");
+  const lngParam = searchParams.get("lng");
+  const lat = latParam === null ? Number.NaN : Number(latParam);
+  const lng = lngParam === null ? Number.NaN : Number(lngParam);
+  try {
+    const stores = await searchNearbyStorePlaces({ lat, lng });
+    return Response.json(stores);
+  } catch (error) {
+    if (!(error instanceof KakaoPlacesError)) throw error;
+    const status = Number.isFinite(lat) && Number.isFinite(lng) ? 502 : 400;
+    return Response.json({ message: "가게 검색을 불러오지 못했어요." }, { status });
+  }
 }

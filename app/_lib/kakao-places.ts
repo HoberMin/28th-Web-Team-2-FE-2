@@ -5,14 +5,14 @@
 // Route Handler를 HTTP로 되부르지 않고 서버 함수를 직접 호출한다(`api-patterns` 3층 규칙).
 //
 // KAKAO_REST_KEY는 여기(서버)까지만 — 클라이언트 번들에 절대 노출하지 않는다.
-// 키 미설정·업스트림 실패·응답 파싱 실패는 전부 결정적 더미로 폴백한다(`_lib/nearby-stores.ts`).
+// 키 미설정·업스트림 실패에서 가짜 가게를 만들면 제보 API에 존재하지 않는
+// 장소가 전달된다. 따라서 실패는 명시적으로 던져 화면이 선택·제출을 막게 한다.
 //
 // 반환 모양은 `StoreRequest`다 — 제보 제출(`POST .../reports`)에 그대로 실을 수 있게
 // 카카오 문서를 여기서 한 번만 매핑한다.
 
 import "server-only";
 
-import { getFallbackNearbyStores, type NearbyStore } from "./nearby-stores";
 import { storeRequestSchema, type StoreRequest } from "./api/schemas/reports";
 
 const KEYWORDS = ["청과", "채소가게", "과일가게", "마트"];
@@ -40,6 +40,16 @@ interface KakaoKeywordResponse {
   documents?: KakaoKeywordDoc[];
 }
 
+export class KakaoPlacesError extends Error {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "KakaoPlacesError";
+    this.status = status;
+  }
+}
+
 async function searchKeyword(
   keyword: string,
   lat: number,
@@ -57,7 +67,9 @@ async function searchKeyword(
     // 위치 기반 개인화 조회 — 캐시하지 않는다.
     cache: "no-store",
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    throw new KakaoPlacesError("카카오 가게 검색이 실패했어요.", res.status);
+  }
   const data = (await res.json()) as KakaoKeywordResponse;
   return Array.isArray(data.documents) ? data.documents : [];
 }
@@ -86,36 +98,21 @@ function toStoreRequest(doc: KakaoKeywordDoc): StoreRequest | null {
 }
 
 /**
- * 폴백 더미(id·name·category·distanceM)를 StoreRequest로 맞춘다.
- *
- * 실주소를 모르므로 동 이름만으로 합성한다. 예전 `report/_data.ts`의 더미는
- * "서울 강남구 ${district}"처럼 지역과 무관하게 "강남구"를 박아 놓고 있었다 — 그 버그를
- * 반복하지 않도록 지역명만 쓴다.
- */
-function toFallbackStore(store: NearbyStore, district: string): StoreRequest {
-  return {
-    id: store.id,
-    placeName: store.name,
-    addressName: district ? `서울 ${district} 인근` : "주소 정보 없음",
-    categoryName: store.category,
-    distance: store.distanceM,
-  };
-}
-
-/**
- * 청과·채소가게·과일가게·마트 카카오 키워드 검색. 실패·키 미설정·좌표 없음은 전부
- * 결정적 더미로 폴백한다 — 이 함수는 던지지 않는다(호출부가 에러 상태를 따로 만들 필요 없음).
+ * 청과·채소가게·과일가게·마트 카카오 키워드 검색.
+ * 정상적인 빈 결과는 []로, 설정·통신·파싱 실패는 KakaoPlacesError로 구분한다.
  */
 export async function searchNearbyStorePlaces(params: {
   lat: number;
   lng: number;
-  district: string;
 }): Promise<StoreRequest[]> {
-  const { lat, lng, district } = params;
+  const { lat, lng } = params;
   const key = process.env.KAKAO_REST_KEY;
 
-  if (!key || !Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return getFallbackNearbyStores(district).map((store) => toFallbackStore(store, district));
+  if (!key) {
+    throw new KakaoPlacesError("카카오 가게 검색 키가 설정되지 않았어요.");
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new KakaoPlacesError("가게 검색 좌표가 올바르지 않아요.");
   }
 
   try {
@@ -130,13 +127,10 @@ export async function searchNearbyStorePlaces(params: {
       stores.push(store);
     }
 
-    if (stores.length === 0) {
-      return getFallbackNearbyStores(district).map((store) => toFallbackStore(store, district));
-    }
-
     stores.sort((a, b) => (a.distance ?? RADIUS_M) - (b.distance ?? RADIUS_M));
     return stores.slice(0, RESULT_LIMIT);
-  } catch {
-    return getFallbackNearbyStores(district).map((store) => toFallbackStore(store, district));
+  } catch (error) {
+    if (error instanceof KakaoPlacesError) throw error;
+    throw new KakaoPlacesError("카카오 가게 검색 응답을 읽지 못했어요.");
   }
 }
