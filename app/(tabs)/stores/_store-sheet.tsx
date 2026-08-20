@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type RefObject } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ButtonCircle } from "../../_components/button-circle";
 import { ROUTES } from "@/app/_lib/routes";
@@ -14,17 +16,21 @@ export interface StoreSheetProps {
 }
 
 export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps) {
+  const router = useRouter();
   const sheetRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const [isFavorite, setIsFavorite] = useState(store.isLiked);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [, startFavoriteTransition] = useTransition();
   const distance = formatStoreDistance(store.distanceMeters);
-  const detailQuery = new URLSearchParams({
-    backendStoreId: store.id,
-    name: store.name,
-  });
+  // 가게 상세 엔드포인트가 없어서 프로필(이름·주소·전화)을 쿼리로 실어 보낸다.
+  // 경로는 **Spring의 숫자 storeId**다 — 예전의 `/stores/temporary?backendStoreId=…`는
+  // 제보 목록 API가 붙으면서 없어졌다(2026-08-20).
+  const detailQuery = new URLSearchParams({ name: store.name });
   if (store.address) detailQuery.set("address", store.address);
   if (store.phone) detailQuery.set("phone", store.phone);
-  const detailHref = `${ROUTES.storeDetail("temporary")}?${detailQuery.toString()}`;
+  if (isFavorite) detailQuery.set("liked", "1");
+  const detailHref = `${ROUTES.storeDetail(store.id)}?${detailQuery.toString()}`;
 
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -42,6 +48,24 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
     };
   }, [fallbackFocusRef]);
 
+  // 단골 등록/해제는 `PUT|DELETE /api/v1/stores/{storeId}/favorite`. 낙관적으로 먼저
+  // 뒤집고 실패하면 되돌린다. 성공 뒤 refresh로 지도 마커의 찜 상태까지 다시 받는다.
+  const handleToggleFavorite = () => {
+    const next = !isFavorite;
+    setIsFavorite(next);
+    setFavoriteError(null);
+
+    startFavoriteTransition(async () => {
+      const result = await updateStoreFavorite(Number(store.id), next);
+      if (result.status === "success") {
+        router.refresh();
+        return;
+      }
+      setIsFavorite(!next);
+      setFavoriteError(result.message);
+    });
+  };
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape") return;
     event.stopPropagation();
@@ -58,6 +82,11 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
       onKeyDown={handleKeyDown}
       className="flex w-full flex-col gap-5 rounded-t-3xl bg-surface-primary px-4 pt-7 pb-5 shadow-sheet"
     >
+      {favoriteError ? (
+        <p role="alert" className="text-body-14-medium text-red-500">
+          {favoriteError}
+        </p>
+      ) : null}
       <div className="flex w-full flex-col gap-2">
         <div className="flex w-full items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-2">
@@ -88,7 +117,7 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
                   currentColor
                 />
               }
-              onClick={() => setIsFavorite((current) => !current)}
+              onClick={handleToggleFavorite}
             />
             <ButtonCircle
               variant="fill"

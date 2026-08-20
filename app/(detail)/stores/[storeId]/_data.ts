@@ -1,113 +1,156 @@
-import { MAP_STORES, type PrototypeMapStore } from "@/app/(tabs)/stores/_data";
+// F03-3 가게 상세의 입력 정리.
+//
+// ⚠️ **가게 상세 엔드포인트는 아직 없다.** Swagger에 있는 건 제보 목록
+// (`GET /api/v1/stores/{storeId}/reports`)뿐이라, 가게 이름·주소·영업시간 같은 프로필 값은
+// 여기서 지어내지 않고 **직전 화면이 쿼리로 실어 보낸 값**을 쓴다(지도 시트 · 찜 「가게」 탭).
+// 값이 없으면 그 줄을 비운다 — 예시 데이터로 채우지 않는다.
+//
+// 쿼리는 URL에서 오므로 사용자가 조작할 수 있다. 길이·형식을 zod로 거르고, 화면은 문자열만
+// 그린다(주소·전화번호를 링크로 만들지 않는다).
+
 import { z } from "zod";
+import type { StoreReport } from "@/app/_lib/api/schemas/stores";
 
 export interface StoreDetailPrice {
   id: string;
   name: string;
+  /** 예: "오늘" · "3일 전" */
   age: string;
+  /** 예: "24,900원" */
   price: string;
+  /** 예: "/1kg" */
   unit: string;
+  /** 예: "▼ 1,000원(-7.4%)". 공공 시세 대비 차이가 없으면 빈 문자열. */
   trend: string;
   kind: "cheap" | "expensive";
+  /** 응답의 `itemImageUrl`. 없으면 화면이 품목명으로 Figma 벡터를 찾는다. */
+  imageUrl?: string;
 }
 
-export interface StoreDetailData {
-  address: string;
-  imageName?: string;
-  hours: string[];
-  prices: StoreDetailPrice[];
+/** 직전 화면이 실어 보낸 가게 프로필. 전부 optional이다 — 없으면 화면이 그 줄을 뺀다. */
+export interface StoreDetailProfile {
+  name?: string;
+  address?: string;
+  phone?: string;
+  /** 오늘 영업시간 문구. `favorite-stores`의 `todayBusinessHours`가 그대로 들어온다. */
+  hours?: string;
+  /** 영업 상태 문구. 예: "영업중" */
+  openLabel?: string;
+  imageUrl?: string;
+  liked: boolean;
 }
-
-const FIGMA_ONION_PRICES: StoreDetailPrice[] = Array.from({ length: 9 }, (_, index) => ({
-  id: `nh-detail-${index + 1}`,
-  name: "양파",
-  age: index < 2 ? "3일 전" : `${index + 2}일 전`,
-  price: "24,900원",
-  unit: "/100kg",
-  trend: "▼ 1,000원(-7.4%)",
-  kind: index === 7 ? "expensive" : "cheap",
-}));
-
-const DEFAULT_ADDRESS = "서울 광진구 능동로 120";
 
 type StoreDetailSearchParams = Record<string, string | string[] | undefined>;
 
-const temporaryStoreQuerySchema = z.object({
-  backendStoreId: z.string().trim().min(1).max(100).optional(),
+const profileQuerySchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   address: z.string().trim().min(1).max(255).optional(),
   phone: z.string().trim().min(1).max(30).optional(),
+  hours: z.string().trim().min(1).max(255).optional(),
+  openLabel: z.string().trim().min(1).max(30).optional(),
+  /** http(s) 절대 URL만 받는다 — `javascript:` 같은 스킴이 <img src>로 들어가지 않게. */
+  imageUrl: z.url().max(500).startsWith("http").optional(),
+  liked: z.literal(["1", "0"]).optional(),
 });
-
-export interface TemporaryStoreDetailContext {
-  store: PrototypeMapStore;
-  /** 지도에서 백엔드 가게를 선택해 들어온 경우에만 true다. */
-  hasBackendSummary: boolean;
-}
 
 function firstQueryValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-/**
- * 상세 API가 생기기 전 지도에서 전달받은 가게 요약 정보로 임시 상세 모델을 만든다.
- * 쿼리는 URL에서 오므로 길이·공백을 검증하고, 누락되면 기존 prototype 값을 사용한다.
- */
-export function getTemporaryStoreDetailContext(
-  params: StoreDetailSearchParams,
-): TemporaryStoreDetailContext {
-  const parsed = temporaryStoreQuerySchema.safeParse({
-    backendStoreId: firstQueryValue(params.backendStoreId),
+export function parseStoreDetailProfile(params: StoreDetailSearchParams): StoreDetailProfile {
+  const parsed = profileQuerySchema.safeParse({
     name: firstQueryValue(params.name),
     address: firstQueryValue(params.address),
     phone: firstQueryValue(params.phone),
+    hours: firstQueryValue(params.hours),
+    openLabel: firstQueryValue(params.openLabel),
+    imageUrl: firstQueryValue(params.imageUrl),
+    liked: firstQueryValue(params.liked),
   });
+  // safeParse가 실패하면 조작된 쿼리다 — 통째로 버리고 빈 프로필로 그린다.
   const query = parsed.success ? parsed.data : {};
-  const baseStore = MAP_STORES[0];
 
   return {
-    store: {
-      ...baseStore,
-      id: "temporary",
-      name: query.name ?? baseStore.name,
-      address: query.address ?? baseStore.address,
-      phone: query.phone ?? baseStore.phone,
-      isLiked: false,
-    },
-    hasBackendSummary: Boolean(query.backendStoreId),
+    name: query.name,
+    address: query.address,
+    phone: query.phone,
+    hours: query.hours,
+    openLabel: query.openLabel,
+    imageUrl: query.imageUrl,
+    liked: query.liked === "1",
   };
 }
 
-export function getStoreDetailData(store: PrototypeMapStore): StoreDetailData {
-  if (store.id === "nh-haniro" || store.id === "temporary") {
-    return {
-      address:
-        store.id === "temporary"
-          ? store.address ?? DEFAULT_ADDRESS
-          : "강원도 속초시 대포항희망길 83 대포항수산시장 D동 7호",
-      imageName: "store-detail-hero.png",
-      hours: [
-        "매일",
-        "10:30 - 21:00",
-        "16:00 - 17:00 브레이크타임",
-        "15:00, 20:00 라스트오더",
-      ],
-      prices: FIGMA_ONION_PRICES,
-    };
-  }
+/** 라우트 파라미터는 Spring의 숫자 storeId다. 아니면 404. */
+export function parseStoreId(value: string): number | null {
+  if (!/^\d+$/.test(value)) return null;
+  const storeId = Number(value);
+  return Number.isSafeInteger(storeId) && storeId > 0 ? storeId : null;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * "오늘"의 기준 시각. **RSC 본문에서 `Date.now()`를 직접 부르지 않는다** —
+ * react-hooks/purity 린트가 컴포넌트 안의 불순 호출을 막고, 실제로도 라우트가 캐시되면
+ * "오늘"이 굳는다. 이 라우트는 개인화 여부와 무관하게 요청마다 새로 계산돼야 한다.
+ */
+export function reportAgeBaseline(): number {
+  return Date.now();
+}
+
+/**
+ * `reportedDate`("2026-08-18")를 "오늘"·"3일 전"으로 바꾼다.
+ *
+ * 기준 시각을 **인자로 받는다** — RSC에서 `Date.now()`를 직접 부르면 그 라우트가 캐시되는
+ * 동안 "오늘"이 굳는다. 호출부가 렌더 시점 값을 넘겨 의도를 드러내게 한다.
+ */
+export function formatReportAge(reportedDate: string | null | undefined, now: number): string {
+  if (!reportedDate) return "";
+  const parsedDate = Date.parse(`${reportedDate}T00:00:00+09:00`);
+  if (Number.isNaN(parsedDate)) return "";
+
+  const todayStart = Date.parse(
+    `${new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)}T00:00:00+09:00`,
+  );
+  const days = Math.round((todayStart - parsedDate) / DAY_MS);
+
+  if (days <= 0) return "오늘";
+  if (days === 1) return "어제";
+  return `${days}일 전`;
+}
+
+/** 공공 시세 대비 차이 문구. 차액·비율 중 있는 것만 조합한다. */
+function formatTrend(report: StoreReport): string {
+  const diff = report.publicPriceDiff;
+  const rate = report.priceDiffRate;
+  if (typeof diff !== "number" || diff === 0) return "";
+
+  const arrow = diff < 0 ? "▼" : "▲";
+  const amount = `${Math.abs(diff).toLocaleString("ko-KR")}원`;
+  if (typeof rate !== "number" || !Number.isFinite(rate)) return `${arrow} ${amount}`;
+
+  const sign = rate < 0 ? "-" : "+";
+  return `${arrow} ${amount}(${sign}${Math.abs(rate).toFixed(1)}%)`;
+}
+
+/**
+ * 제보 DTO → 화면 행.
+ *
+ * `priceClassification`이 EQUAL인 제보는 저렴/비쌈 어느 쪽도 아니라 `null`로 걸러낸다 —
+ * 화면 토글이 두 값뿐이라 EQUAL을 억지로 한쪽에 넣으면 숫자가 틀어진다.
+ */
+export function mapStoreReportToPrice(report: StoreReport, now: number): StoreDetailPrice | null {
+  if (report.priceClassification === "EQUAL") return null;
 
   return {
-    address: DEFAULT_ADDRESS,
-    imageName: undefined,
-    hours: ["매일", store.openHours.replace(/^수\s*/, "")],
-    prices: store.reports.map((report, index) => ({
-      id: `${report.id}-detail`,
-      name: report.name,
-      age: index === 0 ? "오늘" : "어제",
-      price: report.price,
-      unit: report.unit,
-      trend: "▼ 1,000원(-7.4%)",
-      kind: "cheap",
-    })),
+    id: String(report.reportId),
+    name: report.itemName,
+    age: formatReportAge(report.reportedDate, now),
+    price: `${report.price.toLocaleString("ko-KR")}원`,
+    unit: report.unit ? `/${report.unit}` : "",
+    trend: formatTrend(report),
+    kind: report.priceClassification === "CHEAP" ? "cheap" : "expensive",
+    imageUrl: report.itemImageUrl?.trim() || undefined,
   };
 }

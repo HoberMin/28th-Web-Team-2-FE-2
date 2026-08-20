@@ -1,64 +1,52 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
-import type { PrototypeMapStore } from "@/app/(tabs)/stores/_data";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
-import { ImageVegetableOnion } from "@/app/_components/image-vegetable-onion";
+import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
 import { SheetHandle } from "@/app/_components/sheet-handle";
-import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
+import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { StoreDetailBackButton } from "./_back-button";
-import type { StoreDetailData, StoreDetailPrice } from "./_data";
+import type { StoreDetailPrice, StoreDetailProfile } from "./_data";
 
 interface StoreDetailClientProps {
-  store: PrototypeMapStore;
-  detail: StoreDetailData;
-  dataSource?: "backend-summary" | "temporary";
+  storeId: number;
+  profile: StoreDetailProfile;
+  prices: StoreDetailPrice[];
+  /** `GET /stores/{id}/reports`의 summary. 배지 숫자가 이 값이다. */
+  cheapCount: number;
+  expensiveCount: number;
 }
 
-function StoreHero({ imageName, storeName }: { imageName?: string; storeName: string }) {
-  if (imageName) {
-    return (
-      <FigmaImage
-        name={imageName}
-        alt={`${storeName} 가게 전경`}
-        width={390}
-        height={220}
-        className="h-55 w-full object-cover"
-      />
-    );
-  }
+function StoreHero({ imageUrl, storeName }: { imageUrl?: string; storeName: string }) {
+  // 가게 사진은 API가 주는 URL뿐이다 — 없으면 Figma placeholder를 그린다.
+  // (예전엔 `store-detail-hero.png`라는 Figma 시안 에셋을 특정 가게에 박아 두었다.)
+  if (!imageUrl) return <ImageStorePlaceholder />;
 
   return (
-    <ImageStorePlaceholder />
+    <Image
+      src={imageUrl}
+      alt={`${storeName} 가게 전경`}
+      width={390}
+      height={220}
+      unoptimized
+      className="h-55 w-full object-cover"
+    />
   );
 }
 
-function StoreDataSourceNotice({ dataSource }: { dataSource: StoreDetailClientProps["dataSource"] }) {
-  const hasBackendSummary = dataSource === "backend-summary";
-
-  return (
-    <div
-      role="status"
-      data-data-source={dataSource ?? "temporary"}
-      className="border-b border-border-secondary bg-surface-accent-orange-subtle px-4 py-2"
-    >
-      <p className="text-caption-12-semibold text-content-accent-badge">
-        {hasBackendSummary ? "기본 가게 정보: 백엔드 연결" : "예시 데이터"}
-      </p>
-      <p className="text-caption-12-regular text-content-accent-badge">
-        상세 콘텐츠: 임시 데이터 · 상세 API 연결 전
-      </p>
-    </div>
-  );
-}
-
-function StoreInformation({ store, detail }: StoreDetailClientProps) {
+function StoreInformation({
+  profile,
+  cheapCount,
+  expensiveCount,
+}: Pick<StoreDetailClientProps, "profile" | "cheapCount" | "expensiveCount">) {
   const [hoursOpen, setHoursOpen] = useState(true);
-  // Figma `store-profile-hours-detail`(429:17649)는 2열이다 — 요일 라벨 + 시간 줄 묶음.
-  const [dayLabel, ...timeLines] = detail.hours;
+  const hasHours = Boolean(profile.hours);
 
   return (
     // 화면GUI(원본) `F03_가게상세` 429:17633 `store-profile-info` 실측(2026-08-19 v3).
@@ -66,19 +54,28 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
     <section className="px-4 pt-5 pb-7">
       {/* store-profile-info — flex-col gap-[12px] */}
       <div className="flex flex-col gap-3">
-        <h1 className="w-full truncate text-title-20-bold text-content-primary">{store.name}</h1>
+        <h1 className="w-full truncate text-title-20-bold text-content-primary">
+          {profile.name ?? "가게"}
+        </h1>
 
         {/* store-profile-detail(429:17635) — flex-col gap-[12px] */}
         <div className="flex flex-col gap-3">
           {/* store-profile-meta(429:17636) — flex-col gap-[8px] */}
           <div className="flex flex-col gap-2">
-            {/* store-profile-address(429:17637) — gap-[4px] items-start · 아이콘 22 · body/14-regular · content/primary */}
-            <div className="flex w-full items-start gap-1">
-              <FigmaIcon name="map-pin-fill" width={22} className="shrink-0" />
-              <p className="min-w-0 flex-1 text-body-14-regular text-content-primary">
-                {detail.address}
-              </p>
-            </div>
+            {/*
+              store-profile-address(429:17637) — gap-[4px] items-start · 아이콘 22 ·
+              body/14-regular · content/primary.
+              ⚠️ 주소 API가 없다 — 직전 화면이 안 넘겼으면 **줄 자체를 그리지 않는다**
+                 (예시 주소로 채우지 않는다).
+            */}
+            {profile.address ? (
+              <div className="flex w-full items-start gap-1">
+                <FigmaIcon name="map-pin-fill" width={22} className="shrink-0" />
+                <p className="min-w-0 flex-1 text-body-14-regular text-content-primary">
+                  {profile.address}
+                </p>
+              </div>
+            ) : null}
 
             {/*
               store-profile-hours(429:17640) — gap-[4px] items-start · `icon/clock-filled` **22**
@@ -86,53 +83,60 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
               → 접힘/펼침이 상태축이고, chevron 방향이 그걸 나른다.
               ⚠️ v3 프레임 3개는 **전부 펼친 상태(icon/chevron-up 429:17648)**라 접힘 시안이 없다 —
                  chevron-down은 v2 시안(구 364:7897) 근거로 유지한다.
+              ⚠️ 요일별 영업시간 API가 없다. `favorite-stores`가 주는 건 **오늘 영업시간 한 줄**
+                 (`todayBusinessHours`)뿐이라 펼침 상세도 그 한 줄이다. 시안의 3줄(브레이크타임·
+                 라스트오더)은 계약이 생기면 채운다.
             */}
-            <button
-              type="button"
-              aria-expanded={hoursOpen}
-              onClick={() => setHoursOpen((current) => !current)}
-              className="flex w-full items-start gap-1 text-left"
-            >
-              <IconClockFill aria-hidden="true" className="size-5.5 shrink-0 text-content-disabled" />
-              <div className="min-w-0 flex-1">
-                {/* store-profile-hours-summary(429:17643) — gap-[4px] items-center */}
-                <div className="flex items-center gap-1">
-                  {/* summary-text(429:17644) — gap-[6px] items-center */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-body-14-semibold text-content-primary">영업종료</span>
-                    <span
-                      aria-hidden="true"
-                      className="size-0.5 shrink-0 rounded-full bg-current text-content-primary"
-                    />
-                    <span className="whitespace-nowrap text-body-14-regular text-content-primary">
-                      10:30에 영업시작
-                    </span>
-                  </div>
-                  <FigmaIcon
-                    name={hoursOpen ? "chevron-up" : "chevron-down"}
-                    width={12}
-                    className="shrink-0"
-                  />
-                </div>
-                {hoursOpen && (
-                  /*
-                    펼침 상세 `store-profile-hours-detail`(429:17649) 실측 —
-                      summary bottom → gap-[6px] · **body/14-medium** · **content/primary**
-                      `flex gap-[6px] items-start` 2열: 요일 라벨(w24) + 시간 3줄(w157, h66)
-                    개발 주석(429:17550): "상세정보는 텍스트스타일-미듐(조금 굵은 글씨)"
-                    (v2 구현은 regular + content/secondary + 4줄 세로 나열이라 셋 다 어긋나 있었다)
-                  */
-                  <div className="mt-1.5 flex items-start gap-1.5 text-body-14-medium text-content-primary">
-                    <p className="shrink-0">{dayLabel}</p>
-                    <div className="min-w-0">
-                      {timeLines.map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
+            {hasHours ? (
+              <button
+                type="button"
+                aria-expanded={hoursOpen}
+                onClick={() => setHoursOpen((current) => !current)}
+                className="flex w-full items-start gap-1 text-left"
+              >
+                <IconClockFill
+                  aria-hidden="true"
+                  className="size-5.5 shrink-0 text-content-disabled"
+                />
+                <div className="min-w-0 flex-1">
+                  {/* store-profile-hours-summary(429:17643) — gap-[4px] items-center */}
+                  <div className="flex items-center gap-1">
+                    {/* summary-text(429:17644) — gap-[6px] items-center */}
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      {profile.openLabel ? (
+                        <>
+                          <span className="shrink-0 text-body-14-semibold text-content-primary">
+                            {profile.openLabel}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className="size-0.5 shrink-0 rounded-full bg-current text-content-primary"
+                          />
+                        </>
+                      ) : null}
+                      <span className="min-w-0 truncate text-body-14-regular text-content-primary">
+                        {profile.hours}
+                      </span>
                     </div>
+                    <FigmaIcon
+                      name={hoursOpen ? "chevron-up" : "chevron-down"}
+                      width={12}
+                      className="shrink-0"
+                    />
                   </div>
-                )}
-              </div>
-            </button>
+                  {hoursOpen && (
+                    /*
+                      펼침 상세 `store-profile-hours-detail`(429:17649) 실측 —
+                        gap-[6px] · **body/14-medium** · **content/primary**
+                      개발 주석(429:17550): "상세정보는 텍스트스타일-미듐(조금 굵은 글씨)"
+                    */
+                    <p className="mt-1.5 text-body-14-medium text-content-primary">
+                      오늘 {profile.hours}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ) : null}
           </div>
 
           {/*
@@ -147,19 +151,20 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
                실제로 한 번 재사용했다가 배지 글자가 12→14px로 커지는 회귀를 냈다(리뷰에서 잡힘).
                검산: 인스턴스 높이 25 = caption/12(12×1.45=17.4) + py-4×2 = 25.4 ✅
                                   body/14(14×1.55=21.7) + 8 = 29.7 ✗
-               `BadgeStoreStat`에 size 축을 뚫는 건 컴포넌트 규격 변경이라 별도 세션이다.
-               그때 이 블록을 `<BadgeStoreStat size="small">`로 되돌린다.
-               (인라인 배지의 원래 문제였던 2번 배지 색 `content/brand/light` →
-                `content/brand/dark`와 라벨/숫자 굵기 분리는 아래에 반영돼 있다)
+
+            ⚠️ **2번 배지의 라벨이 바뀌었다** (2026-08-20). 시안은 "오늘 제보된 품목"인데
+               `GET /stores/{id}/reports`의 summary가 주는 건 `cheapCount`/`expensiveCount`
+               두 개뿐이라 "오늘"을 셀 수 없다. 없는 값을 더미로 채우는 대신 **응답에 실제로
+               있는 값**(비싼 야채 수)으로 바꿨다. 계약이 생기면 시안 문구로 되돌린다.
           */}
           <div className="flex items-center gap-2">
             <span className="flex shrink-0 items-center gap-1 rounded-sm bg-surface-accent-orange-subtle px-2 py-1 text-content-accent-badge">
               <span className="text-caption-12-medium">저렴한 야채</span>
-              <span className="text-caption-12-bold">{store.affordableCount}</span>
+              <span className="text-caption-12-bold">{cheapCount}</span>
             </span>
             <span className="flex shrink-0 items-center gap-1 rounded-sm bg-surface-brand px-2 py-1 text-content-brand-dark">
-              <span className="text-caption-12-medium">오늘 제보된 품목</span>
-              <span className="text-caption-12-bold">{store.todayReportCount}</span>
+              <span className="text-caption-12-medium">비싼 야채</span>
+              <span className="text-caption-12-bold">{expensiveCount}</span>
             </span>
           </div>
         </div>
@@ -168,10 +173,33 @@ function StoreInformation({ store, detail }: StoreDetailClientProps) {
   );
 }
 
+/**
+ * 품목 그림. API가 `itemImageUrl`을 주면 그걸 쓰고, 없으면 품목명으로 Figma 벡터를 찾는다
+ * (`HomeVegetableImage`가 이름→벡터 매핑을 이미 들고 있다 — 46종 중 매칭 실패는 양파로 떨어진다).
+ * 예전에는 모든 행이 `onion.png` 하나였다.
+ */
+function PriceItemImage({ item, size }: { item: StoreDetailPrice; size: 24 | 40 }) {
+  if (item.imageUrl) {
+    return (
+      <Image
+        src={item.imageUrl}
+        alt={`${item.name} 이미지`}
+        width={size}
+        height={size}
+        unoptimized
+        className="size-full object-contain"
+      />
+    );
+  }
+  return <HomeVegetableImage name={item.name} size={40} />;
+}
+
 function PriceRow({ item }: { item: StoreDetailPrice }) {
   return (
     <div className="flex min-h-19.25 w-full items-center gap-3">
-      <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
+      <span className="size-10 shrink-0">
+        <PriceItemImage item={item} size={40} />
+      </span>
       <div className="min-w-0 flex-1">
         <p className="text-body-16-semibold text-content-primary">{item.name}</p>
         <p className="text-caption-12-regular text-content-secondary">{item.age}</p>
@@ -180,7 +208,17 @@ function PriceRow({ item }: { item: StoreDetailPrice }) {
         <p className="text-body-16-semibold text-content-primary">
           {item.price}<span className="ml-1 text-caption-12-regular text-content-disabled">{item.unit}</span>
         </p>
-        <p className="text-caption-12-medium text-trend-down">{item.trend}</p>
+        {item.trend ? (
+          <p
+            className={
+              item.kind === "cheap"
+                ? "text-caption-12-medium text-trend-down"
+                : "text-caption-12-medium text-trend-up"
+            }
+          >
+            {item.trend}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -190,7 +228,9 @@ function SheetPriceRow({ item }: { item: StoreDetailPrice }) {
   return (
     <div className="flex h-14.5 w-full items-center justify-between border-b border-border-secondary px-2 last:border-b-0">
       <div className="flex w-42 items-center gap-1">
-        <ImageVegetableOnion className="size-6" />
+        <span className="size-6 shrink-0">
+          <PriceItemImage item={item} size={24} />
+        </span>
         <div className="flex min-w-0 items-center gap-1">
           <p className="truncate text-body-14-medium text-content-primary">{item.name}</p>
           <span aria-hidden="true" className="size-0.5 shrink-0 rounded-full bg-content-disabled" />
@@ -205,7 +245,15 @@ function SheetPriceRow({ item }: { item: StoreDetailPrice }) {
   );
 }
 
-function PriceSheet({ prices, onClose }: { prices: StoreDetailPrice[]; onClose: () => void }) {
+function PriceSheet({
+  prices,
+  kind,
+  onClose,
+}: {
+  prices: StoreDetailPrice[];
+  kind: StoreDetailPrice["kind"];
+  onClose: () => void;
+}) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -219,18 +267,27 @@ function PriceSheet({ prices, onClose }: { prices: StoreDetailPrice[]; onClose: 
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="제보된 저렴한 야채 목록"
+        aria-label={kind === "cheap" ? "제보된 저렴한 야채 목록" : "제보된 비싼 야채 목록"}
         onClick={(event) => event.stopPropagation()}
-        className="flex w-full flex-col items-center gap-4 rounded-t-3xl bg-surface-primary px-4 pt-2 pb-8"
+        className="flex max-h-[80%] w-full flex-col items-center gap-4 rounded-t-3xl bg-surface-primary px-4 pt-2 pb-8"
       >
         <SheetHandle />
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex min-h-0 w-full flex-col gap-4">
           <div className="flex h-7 items-center justify-between">
-            <h2 className="text-title-18-semibold text-content-primary">제보된 저렴한 야채</h2>
+            <h2 className="text-title-18-semibold text-content-primary">
+              {kind === "cheap" ? "제보된 저렴한 야채" : "제보된 비싼 야채"}
+            </h2>
             <p className="w-28 text-right text-caption-12-medium text-content-secondary">최근 30일간 · 최신 순</p>
           </div>
-          <div className="w-full">
-            {prices.slice(0, 5).map((item) => <SheetPriceRow key={item.id} item={item} />)}
+          <div className="w-full min-h-0 overflow-y-auto overscroll-contain">
+            {/*
+              Figma는 시트 최대 높이를 정의하고 "초과하면 리스트 영역만 스크롤"이라고 적어 두었다
+              (`동네제보가 더보기_바텀시트 최대높이`). 더미 시절엔 5개로 잘랐는데, 실데이터에서
+              자르면 「더보기」를 눌러도 안 보이는 제보가 생긴다 — 전부 그리고 넘치면 스크롤한다.
+            */}
+            {prices.map((item) => (
+              <SheetPriceRow key={item.id} item={item} />
+            ))}
           </div>
         </div>
       </section>
@@ -295,13 +352,41 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
           </button>
         )}
       </section>
-      {sheetOpen && <PriceSheet prices={filtered} onClose={() => setSheetOpen(false)} />}
+      {sheetOpen && (
+        <PriceSheet prices={filtered} kind={kind} onClose={() => setSheetOpen(false)} />
+      )}
     </>
   );
 }
 
-export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClientProps) {
-  const [favorite, setFavorite] = useState(false);
+export function StoreDetailClient({
+  storeId,
+  profile,
+  prices,
+  cheapCount,
+  expensiveCount,
+}: StoreDetailClientProps) {
+  const router = useRouter();
+  const [favorite, setFavorite] = useState(profile.liked);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  // 단골 토글은 낙관적으로 먼저 뒤집고 실패하면 되돌린다.
+  function handleToggleFavorite() {
+    const next = !favorite;
+    setFavorite(next);
+    setFavoriteError(null);
+
+    startTransition(async () => {
+      const result = await updateStoreFavorite(storeId, next);
+      if (result.status === "success") {
+        router.refresh();
+        return;
+      }
+      setFavorite(!next);
+      setFavoriteError(result.message);
+    });
+  }
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -310,11 +395,14 @@ export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClie
           <StoreDetailBackButton />
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-21">
-          <StoreDataSourceNotice dataSource={dataSource} />
-          <StoreHero imageName={detail.imageName} storeName={store.name} />
-          <StoreInformation store={store} detail={detail} />
+          <StoreHero imageUrl={profile.imageUrl} storeName={profile.name ?? "가게"} />
+          <StoreInformation
+            profile={profile}
+            cheapCount={cheapCount}
+            expensiveCount={expensiveCount}
+          />
           <div className="h-2 bg-border-secondary" />
-          <StorePrices prices={detail.prices} />
+          <StorePrices prices={prices} />
           <div className="h-2 bg-border-secondary" />
         </main>
         {/*
@@ -322,19 +410,31 @@ export function StoreDetailClient({ store, detail, dataSource }: StoreDetailClie
           안쪽 폭이 358이라 둘 사이 간격은 6px다(v2 구현은 gap-4=16px였다).
           ⚠️ Figma가 이 프레임에 px-[20px]를 선언해 두었는데 안쪽 폭 358은 px-16이라야 나온다
              (390-32=358 ≠ 390-40=350) — 원본 자체가 어긋나 있어 px-4를 유지했다.
+          ⚠️ 하트 아래 숫자("999+")는 **지웠다** — 단골 수를 주는 필드가 응답에 없다.
         */}
         <footer className="absolute right-0 bottom-0 left-0 z-20 flex h-18.25 items-center gap-1.5 border-t border-border-primary bg-surface-primary px-4 pb-[env(safe-area-inset-bottom)]">
-          <button type="button" aria-label={favorite ? "가게 찜 해제" : "가게 찜하기"} aria-pressed={favorite} onClick={() => setFavorite((current) => !current)} className="flex w-13 shrink-0 flex-col items-center justify-center text-content-primary">
+          {favoriteError ? (
+            <p role="alert" className="sr-only">
+              {favoriteError}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            aria-label={favorite ? "단골 해제" : "단골로 등록"}
+            aria-pressed={favorite}
+            onClick={handleToggleFavorite}
+            className="flex w-13 shrink-0 flex-col items-center justify-center text-content-primary"
+          >
             <FigmaIcon
               name={favorite ? "heart-fill" : "heart-stroke-bold"}
               width={24}
               currentColor
               className={favorite ? "text-content-accent-favorite" : undefined}
             />
-            <span className="text-body-14-medium">999+</span>
+            <span className="text-body-14-medium">{favorite ? "단골" : "단골 등록"}</span>
           </button>
           <Link
-            href={`${ROUTES.report}?store=${encodeURIComponent(store.id)}`}
+            href={`${ROUTES.report}?store=${storeId}`}
             className="flex flex-1 items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
           >
             가게에 제보하기
