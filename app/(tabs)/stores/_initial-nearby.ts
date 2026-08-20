@@ -2,13 +2,13 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { DEFAULT_NEARBY_STORE_RADIUS } from "@/app/_lib/api/schemas/stores";
 import { getNearbyStores } from "@/app/_lib/api/server/stores";
-import { MAP_CENTER, mapNearbyStoreToMapStore } from "./_data";
+import { mapNearbyStoreToMapStore, type MapCenter } from "./_data";
 import { createNearbyStoresRequestKey, type NearbyStoresState } from "./_nearby-state";
 
-export async function loadInitialNearbyStores(): Promise<NearbyStoresState> {
+export async function loadInitialNearbyStores(center: MapCenter): Promise<NearbyStoresState> {
   const token = await getAccessToken();
   const request = {
-    center: MAP_CENTER,
+    center,
     radius: DEFAULT_NEARBY_STORE_RADIUS,
     keyword: "",
     onlyLiked: false,

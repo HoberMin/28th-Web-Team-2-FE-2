@@ -19,12 +19,6 @@ export interface MapStore {
   isLiked: boolean;
 }
 
-/** 지역 선택 서버 경계가 합쳐지기 전까지 유지하는 표시용 기본값. */
-export const MAP_REGION = "광진구";
-
-/** F03 카카오맵의 최초 중심. */
-export const MAP_CENTER: MapCenter = { lat: 37.5384, lng: 127.0822 };
-
 function clampPercentage(value: number): number {
   return Math.min(100, Math.max(0, value));
 }

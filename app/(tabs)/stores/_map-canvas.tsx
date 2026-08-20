@@ -7,7 +7,7 @@ import {
   type KakaoMapsApi,
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
-import { MAP_CENTER, type MapCenter } from "./_data";
+import type { MapCenter } from "./_data";
 import type { MapScreenPoint } from "./_cluster";
 
 const INITIAL_MAP_LEVEL = 4;
@@ -43,6 +43,7 @@ export interface MapFocusRequest {
  * JavaScript 키가 없거나 SDK 로드가 실패해도 컨트롤 영역은 유지하고 실패 안내만 표시한다.
  */
 export interface MapCanvasProps {
+  initialCenter: MapCenter;
   stores: readonly MapCanvasStorePosition[];
   onMapClick?: () => void;
   onViewportChange?: (viewport: MapViewport) => void;
@@ -50,11 +51,13 @@ export interface MapCanvasProps {
 }
 
 export function MapCanvas({
+  initialCenter,
   stores,
   onMapClick,
   onViewportChange,
   focusRequest,
 }: MapCanvasProps) {
+  const { lat: initialLat, lng: initialLng } = initialCenter;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const kakaoMapsRef = useRef<KakaoMapsApi | null>(null);
@@ -84,8 +87,12 @@ export function MapCanvas({
         y: (container.clientHeight * store.y) / 100,
       };
     }
-    onViewportChangeRef.current?.({ level: INITIAL_MAP_LEVEL, center: MAP_CENTER, points });
-  }, [stores]);
+    onViewportChangeRef.current?.({
+      level: INITIAL_MAP_LEVEL,
+      center: { lat: initialLat, lng: initialLng },
+      points,
+    });
+  }, [initialLat, initialLng, stores]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -106,7 +113,7 @@ export function MapCanvas({
     }
     onViewportChangeRef.current?.({
       level: INITIAL_MAP_LEVEL,
-      center: MAP_CENTER,
+      center: { lat: initialLat, lng: initialLng },
       points: fallbackPoints,
     });
 
@@ -118,7 +125,7 @@ export function MapCanvas({
           return;
         }
 
-        const center = new kakao.maps.LatLng(MAP_CENTER.lat, MAP_CENTER.lng);
+        const center = new kakao.maps.LatLng(initialLat, initialLng);
         kakaoMaps = kakao.maps;
         map = new kakao.maps.Map(container, { center, level: INITIAL_MAP_LEVEL });
         mapRef.current = map;
@@ -168,7 +175,7 @@ export function MapCanvas({
       refreshViewportRef.current = null;
       container.replaceChildren();
     };
-  }, [onMapClick]);
+  }, [initialLat, initialLng, onMapClick]);
 
   useEffect(() => {
     const map = mapRef.current;

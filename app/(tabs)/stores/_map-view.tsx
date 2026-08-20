@@ -9,7 +9,7 @@ import { LoadingCircular } from "../../_components/loading-circular";
 import { MarkerStoreMap, type MarkerStoreMapType } from "../../_components/marker-store-map";
 import { TextField } from "../../_components/text-field";
 import { clusterStoreMarkers, type MapScreenPoint } from "./_cluster";
-import { MAP_CENTER, type MapStore } from "./_data";
+import type { MapCenter, MapStore } from "./_data";
 import {
   MapCanvas,
   type MapFocusRequest,
@@ -62,7 +62,7 @@ import { useNearbyStores } from "./_use-nearby-stores";
 const COMPACT_MARKER_LEVEL = 5;
 const FALLBACK_MAP_SIZE = { width: 390, height: 721 } as const;
 
-function createFallbackViewport(stores: readonly MapStore[]): MapViewport {
+function createFallbackViewport(center: MapCenter, stores: readonly MapStore[]): MapViewport {
   const points: Record<string, MapScreenPoint> = {};
   for (const store of stores) {
     points[store.id] = {
@@ -70,7 +70,7 @@ function createFallbackViewport(stores: readonly MapStore[]): MapViewport {
       y: (FALLBACK_MAP_SIZE.height * store.y) / 100,
     };
   }
-  return { level: 4, center: MAP_CENTER, points };
+  return { level: 4, center, points };
 }
 
 // ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────
@@ -135,10 +135,11 @@ function StatusOverlay({
 
 export interface StoresMapViewProps {
   region: string;
+  initialCenter: MapCenter;
   initialNearbyState: NearbyStoresState;
 }
 
-export function StoresMapView({ region, initialNearbyState }: StoresMapViewProps) {
+export function StoresMapView({ region, initialCenter, initialNearbyState }: StoresMapViewProps) {
   // 시트가 닫힐 때 돌아갈 자리가 사라져 있으면(마커가 걸러져 사라진 경우) 포커스가 body로
   // 떨어진다. 그때 착지할 곳으로 이 지도 영역을 넘긴다 — 이름표가 붙어 있어 보조기기가
   // "동네 가게 지도"를 읽어 준다.
@@ -146,7 +147,9 @@ export function StoresMapView({ region, initialNearbyState }: StoresMapViewProps
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [query, setQuery] = useState("");
-  const [viewport, setViewport] = useState<MapViewport>(() => createFallbackViewport([]));
+  const [viewport, setViewport] = useState<MapViewport>(() =>
+    createFallbackViewport(initialCenter, []),
+  );
   const [focusRequest, setFocusRequest] = useState<MapFocusRequest | null>(null);
   const { stores, status, error } = useNearbyStores({
     center: viewport.center,
@@ -202,6 +205,7 @@ export function StoresMapView({ region, initialNearbyState }: StoresMapViewProps
           containing block을 써야 Kakao containerPoint 좌표가 그대로 맞는다. */}
       <div className="absolute inset-x-0 top-22 bottom-0">
         <MapCanvas
+          initialCenter={initialCenter}
           stores={stores}
           onMapClick={closeSelectedStore}
           onViewportChange={handleViewportChange}
