@@ -1,8 +1,23 @@
 import "server-only";
 
-import { nearbyStoresSchema, type NearbyStores } from "../schemas/stores";
-import { getNearbyStores, type GetNearbyStoresParams } from "./stores";
-import { DEFAULT_DISTRICT } from "../../vegetables";
+import {
+  favoriteStoresSchema,
+  nearbyStoresSchema,
+  storeReportsSchema,
+  storeRecommendationSchema,
+  type FavoriteStores,
+  type NearbyStores,
+  type StoreReports,
+  type StoreRecommendation,
+} from "../schemas/stores";
+import {
+  getFavoriteStores,
+  getNearbyStores,
+  getRecommendedStores,
+  getStoreReports,
+  type GetNearbyStoresParams,
+} from "./stores";
+import { DEFAULT_DISTRICT, VEGETABLES, getBaselineDummy } from "../../vegetables";
 import { getFallbackNearbyStores, type NearbyStore as DummyNearbyStore } from "../../nearby-stores";
 
 /**
@@ -109,5 +124,147 @@ export async function getNearbyStoresWithTemporaryFallback(
       endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
     });
     return { stores: buildTemporaryNearbyStores(params), isTemporary: true };
+  }
+}
+
+// ── 단골 가게 목록 (F04 찜 「가게」 탭 · 마이페이지) ─────────────────────────────────
+
+function buildTemporaryFavoriteStores(): FavoriteStores {
+  const dummies = getFallbackNearbyStores(DEFAULT_DISTRICT);
+  const stores = dummies.map((dummy, index) => ({
+    storeId: storeIdForIndex(index),
+    storeName: dummy.name,
+    storeImageUrl: null,
+    distanceMeters: dummy.distanceM,
+    openStatus: "영업중",
+    todayBusinessHours: "09:00 - 22:00",
+    isLiked: true,
+  }));
+
+  return favoriteStoresSchema.parse({
+    stores,
+    page: 0,
+    size: stores.length,
+    totalElements: stores.length,
+    totalPages: 1,
+    hasNext: false,
+  });
+}
+
+export async function getFavoriteStoresWithTemporaryFallback(
+  params: Parameters<typeof getFavoriteStores>[0],
+): Promise<{ stores: FavoriteStores; isTemporary: boolean }> {
+  try {
+    const stores = await getFavoriteStores(params);
+    if (stores.stores.length > 0) return { stores, isTemporary: false };
+    console.warn("[stores] favorite-stores temporary data fallback (empty upstream result)");
+    return { stores: buildTemporaryFavoriteStores(), isTemporary: true };
+  } catch (error) {
+    if (!isTemporaryStoresDataError(error)) throw error;
+    console.warn("[stores] favorite-stores temporary data fallback", {
+      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
+    });
+    return { stores: buildTemporaryFavoriteStores(), isTemporary: true };
+  }
+}
+
+// ── 가게별 가격 제보 (F03-3 가게 상세 「저렴해요」·「비싸요」) ───────────────────────
+
+function buildTemporaryStoreReports(storeId: number): StoreReports {
+  const sample = VEGETABLES.slice(0, 8);
+  const reports = sample.map((vegetable, index) => {
+    const baseline = getBaselineDummy(vegetable.id);
+    const cheap = index % 2 === 0;
+    const diff = cheap ? -Math.round(baseline.current * 0.1) : Math.round(baseline.current * 0.1);
+    return {
+      reportId: index + 1,
+      itemId: index + 1,
+      itemName: vegetable.name,
+      itemImageUrl: null,
+      price: baseline.current + diff,
+      unit: vegetable.unit,
+      reportedDate: baseline.asOf,
+      publicPriceDiff: diff,
+      priceDiffRate: baseline.current === 0 ? 0 : diff / baseline.current,
+      priceClassification: cheap ? ("CHEAP" as const) : ("EXPENSIVE" as const),
+    };
+  });
+
+  return storeReportsSchema.parse({
+    storeId,
+    summary: {
+      cheapCount: reports.filter((report) => report.priceClassification === "CHEAP").length,
+      expensiveCount: reports.filter((report) => report.priceClassification === "EXPENSIVE").length,
+    },
+    reports,
+    page: 0,
+    size: reports.length,
+    hasNext: false,
+  });
+}
+
+export async function getStoreReportsWithTemporaryFallback(
+  params: Parameters<typeof getStoreReports>[0],
+): Promise<{ reports: StoreReports; isTemporary: boolean }> {
+  try {
+    const reports = await getStoreReports(params);
+    if (reports.reports.length > 0) return { reports, isTemporary: false };
+    console.warn("[stores] store-reports temporary data fallback (empty upstream result)", {
+      storeId: params.storeId,
+    });
+    return { reports: buildTemporaryStoreReports(params.storeId), isTemporary: true };
+  } catch (error) {
+    if (!isTemporaryStoresDataError(error)) throw error;
+    console.warn("[stores] store-reports temporary data fallback", {
+      storeId: params.storeId,
+      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
+    });
+    return { reports: buildTemporaryStoreReports(params.storeId), isTemporary: true };
+  }
+}
+
+// ── 제보 가격이 저렴한 주변 가게 (F01 홈 추천 카드) ──────────────────────────────────
+
+function buildTemporaryRecommendedStores(): StoreRecommendation {
+  const dummies = getFallbackNearbyStores(DEFAULT_DISTRICT);
+  const cheapNames = VEGETABLES.slice(0, 5).map((vegetable) => vegetable.name);
+  const stores = dummies.map((dummy, index) => ({
+    storeId: storeIdForIndex(index),
+    storeName: dummy.name,
+    latitude: null,
+    longitude: null,
+    addressName: null,
+    roadAddressName: null,
+    phone: null,
+    placeUrl: null,
+    distanceMeters: dummy.distanceM,
+    cheapItemCount: cheapNames.length,
+    cheapItems: cheapNames,
+    remainingItemCount: 0,
+  }));
+
+  return storeRecommendationSchema.parse({
+    totalCount: stores.length,
+    stores,
+  });
+}
+
+export async function getRecommendedStoresWithTemporaryFallback(
+  params: Parameters<typeof getRecommendedStores>[0],
+): Promise<{ stores: StoreRecommendation; isTemporary: boolean }> {
+  try {
+    const stores = await getRecommendedStores(params);
+    if (stores.stores.length > 0) return { stores, isTemporary: false };
+    console.warn("[stores] recommended-stores temporary data fallback (empty upstream result)", {
+      regionId: params.regionId,
+    });
+    return { stores: buildTemporaryRecommendedStores(), isTemporary: true };
+  } catch (error) {
+    if (!isTemporaryStoresDataError(error)) throw error;
+    console.warn("[stores] recommended-stores temporary data fallback", {
+      regionId: params.regionId,
+      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
+    });
+    return { stores: buildTemporaryRecommendedStores(), isTemporary: true };
   }
 }
