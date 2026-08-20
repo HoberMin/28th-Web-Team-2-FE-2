@@ -22,7 +22,18 @@ const ITEM_PAGE = {
   baseDate: "2026-08-16",
   totalCount: 46,
   categoryCounts: { ROOT_VEGETABLES: 5 },
-  items: [],
+  items: [
+    {
+      itemId: 1,
+      itemName: "감자",
+      itemImageUrl: null,
+      defaultUnit: "1kg",
+      price: 3500,
+      priceGap: null,
+      priceDiffRate: null,
+      isLiked: false,
+    },
+  ],
   page: 1,
   size: 18,
   hasNext: true,
@@ -79,5 +90,26 @@ describe("GET /api/items", () => {
 
     expect(response.status).toBe(400);
     expect(apiMocks.getItems).not.toHaveBeenCalled();
+  });
+
+  it("DB가 비어 upstream이 200과 빈 목록을 주면 더미 카탈로그로 채운다", async () => {
+    apiMocks.getAccessToken.mockResolvedValue(undefined);
+    apiMocks.getSelectedRegionId.mockResolvedValue("1121510100");
+    apiMocks.getItems.mockResolvedValue({
+      baseDate: null,
+      totalCount: 0,
+      categoryCounts: {},
+      items: [],
+      page: 0,
+      size: 18,
+      hasNext: false,
+    });
+
+    const response = await GET(new Request("http://localhost/api/items?page=0"));
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { items: unknown[]; totalCount: number };
+    expect(body.items.length).toBeGreaterThan(0);
+    expect(body.totalCount).toBeGreaterThan(0);
   });
 });
