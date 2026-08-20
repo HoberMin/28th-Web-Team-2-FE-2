@@ -15,15 +15,14 @@ import { submitReportAction, uploadReportPhotoAction } from "./_actions";
 import {
   FieldInput,
   FieldSelect,
-  FieldUnitSelect,
-  normalizeReportUnit,
-  type ReportUnit,
+  FieldUnitDisplay,
 } from "./_components/field-price";
 import { PhotoDropzone } from "./_components/photo-dropzone";
 import { PhotoPreview } from "./_components/photo-preview";
 import { ReportCtaFooter } from "./_components/report-cta-footer";
 import { ScanModal } from "./_components/scan-modal";
 import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo-draft";
+import { getExactReportUnit } from "./_lib/report-unit";
 
 // 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
 
@@ -51,8 +50,8 @@ import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo
 //  · **인식 성공 시 품목·가격을 자동 입력한다는 안내문구가 dropzone에 있지만 그 동작 정의가 없다.**
 //    자동 입력은 하지 않는다(값을 발명하지 않는다).
 //  · 인식 **실패** 상태가 없다. 파일 로드가 실패하면 모달을 닫고 사진을 버린다.
-//  · 단위 선택은 `kg`·`g`·`개`·`포기` 네 가지를 제공한다. 현재 선택값은 제출 payload에도
-//    그대로 실어, 품목의 기본 단위와 사용자가 실제로 입력한 단위를 구분한다.
+//  · 단위는 품목 API의 `defaultUnit`을 그대로 표시·제출한다. Spring이 이 문자열과 정확히
+//    일치하는 값만 저장하므로 `1kg`을 `kg`으로 줄이거나 임의 단위로 바꾸지 않는다.
 //  · CTA "확인"의 이동 대상이 명시돼 있지 않다 → F04-4 제보 완료로 보냈다(플로우상 유일한 전진 경로).
 //
 // ── 2026-08-19: 실 Spring 연동으로 코드가 새로 내린 판단 ────────────────────────
@@ -77,7 +76,7 @@ export interface ReportFormProps {
   itemId?: number;
   /** F04-2에서 고른 품목. 없으면 고르라고 안내한다. */
   vegetableName?: string;
-  /** 선택된 품목의 defaultUnit — 단위 선택의 초기값으로만 사용한다. */
+  /** 선택된 품목의 defaultUnit — 화면과 제보 payload 모두 이 원문을 사용한다. */
   unitType?: string;
   /** F04-3에서 고른 판매 장소 — 제출 시 그대로 실어 보낸다. */
   store?: StoreRequest;
@@ -119,9 +118,9 @@ export function ReportForm({
   const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState("");
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState<ReportUnit>(() => normalizeReportUnit(unitType));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const reportUnit = getExactReportUnit(unitType);
 
   // 품목·장소 선택은 별도 라우트로 이동하므로 컴포넌트가 다시 마운트된다. 사진 원본은
   // IndexedDB에 잠시 보관해 돌아왔을 때 미리보기와 제출용 File을 함께 복원한다.
@@ -159,6 +158,7 @@ export function ReportForm({
     Boolean(vegetableName) &&
     Boolean(store) &&
     Boolean(placeName) &&
+    Boolean(reportUnit) &&
     price.trim() !== "" &&
     amount.trim() !== "";
 
@@ -198,7 +198,7 @@ export function ReportForm({
 
   async function handleSubmit() {
     // canSubmit이 이미 itemId·store 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
-    if (!canSubmit || isSubmitting || !itemId || !store) return;
+    if (!canSubmit || isSubmitting || !itemId || !store || !reportUnit) return;
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -229,7 +229,7 @@ export function ReportForm({
         store,
         price: Number(digitsOnly(price)),
         amount: Number(amount),
-        unit,
+        unit: reportUnit,
         photoUrl,
       });
       if (result.status === "success") {
@@ -373,10 +373,9 @@ export function ReportForm({
                   className="min-w-0 flex-1"
                   onChange={(event) => setAmount(digitsOnly(event.target.value))}
                 />
-                <FieldUnitSelect
-                  unit={unit}
-                  onUnitChange={setUnit}
-                  aria-label="단위 선택"
+                <FieldUnitDisplay
+                  unit={reportUnit ?? "단위 없음"}
+                  aria-label={reportUnit ? `제보 단위 ${reportUnit}` : "제보 단위 없음"}
                 />
               </div>
             </FieldBlock>

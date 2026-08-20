@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
@@ -33,7 +32,7 @@ import { FigmaIcon } from "@/app/_lib/figma-asset";
  * 세 state가 공유하는 박스. 높이는 내용이 결정한다(Figma도 hug).
  *
  * ⚠️ **폭은 여기에 넣지 않는다.** 예전엔 `w-full`이 이 상수에 있었는데,
- *    `FieldUnitSelect`가 그 위에 `w-31`을 얹으면서 한 요소에 `w-full`과 `w-31`이
+ *    `FieldUnitDisplay`가 그 위에 `w-31`을 얹으면서 한 요소에 `w-full`과 `w-31`이
  *    동시에 붙었다. `cn`은 tailwind-merge가 아니라 단순 join이라(`app/_lib/cn.ts`)
  *    충돌이 해소되지 않고, 승자는 클래스 나열 순서가 아니라 **생성된 CSS 순서**가 정한다
  *    — 즉 Tailwind 내부 순서에 따라 단위 박스가 124px가 될 수도, 358px가 될 수도 있었다.
@@ -130,121 +129,33 @@ export function FieldSelect({
   );
 }
 
-export const REPORT_UNITS = ["kg", "g", "개", "포기"] as const;
-export type ReportUnit = (typeof REPORT_UNITS)[number];
-
-export function normalizeReportUnit(value: string | undefined): ReportUnit {
-  return REPORT_UNITS.find((unit) => value === unit || value?.endsWith(unit)) ?? "kg";
-}
-
-export interface FieldUnitSelectProps extends ComponentPropsWithoutRef<"button"> {
-  /** 현재 단위. 예: "kg" */
+export interface FieldUnitDisplayProps extends ComponentPropsWithoutRef<"div"> {
+  /** 품목 API의 defaultUnit 원문. 예: "1kg", "100g", "1개", "1포기". */
   unit: string;
-  onUnitChange?: (unit: ReportUnit) => void;
 }
 
 /**
- * Figma `field/unit-select` — 364:8167. 양 입력 오른쪽에 붙는 단위 선택.
+ * Figma `field/unit-select` — 364:8167. 양 입력 오른쪽의 단위 표시.
  *
  * 실측: 같은 박스 + justify-between · **w-[124px] 고정** ·
- *       라벨 body/16-**medium** content/primary(입력값과 굵기가 다르다) · icon/chevron-down 16
+ *       라벨 body/16-**medium** content/primary(입력값과 굵기가 다르다)
  *
- * 단위 목록은 kg·g·개·포기 4가지다. 선택 목록은 필드 바로 아래에 겹쳐 열어
- * 양 입력과 판매 장소의 세로 정렬을 밀지 않는다.
+ * Spring 제보 저장은 `unit`이 품목의 `defaultUnit`과 문자열까지 같아야 한다. 따라서
+ * `1kg`을 `kg`으로 줄이거나 다른 단위로 바꾸지 않고 API 원문을 그대로 표시한다.
  *
  * ── 2026-08-19 재실측 (node 429:18069 · 구 364:8167은 파일 재생성으로 소멸) ──────
  *  · 폭 124 · gap 4 · px-16 py-12 · radius/lg · 라벨 body/16-medium content/primary ·
  *    icon/chevron-down 16 — **위 실측값이 지금도 전부 맞다.**
- *  · `field/unit-select`는 component_set이지만 이 자리 인스턴스에 variant 축이 노출되지
- *    않는다. 선택 상태는 스크린샷의 연한 배경 강조로 표현한다.
+ *  · API 계약상 단위를 선택할 수 없어 chevron은 렌더하지 않는다.
  */
-export function FieldUnitSelect({
+export function FieldUnitDisplay({
   unit,
-  onUnitChange,
   className,
-  type = "button",
-  disabled = false,
   ...rest
-}: FieldUnitSelectProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const selectedUnit = normalizeReportUnit(unit);
-
-  // UI QA 2026-08-20 #36 "list/unit-option이 열리면 스크롤 안된 상태에서 잘림 →
-  // 열리면 스크롤되어 이 영역이 모두 보이게". 목록은 `absolute`라 폼 흐름에 자리를 만들지
-  // 않으므로, 필드가 화면 아래쪽에 있으면 목록이 접힌 화면 밖으로 나간다.
-  // `block: "nearest"`라 이미 다 보이는 경우에는 아무것도 움직이지 않는다.
-  useEffect(() => {
-    if (!open) return;
-    listRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
-
-  const selectUnit = (nextUnit: ReportUnit) => {
-    onUnitChange?.(nextUnit);
-    setOpen(false);
-  };
-
+}: FieldUnitDisplayProps) {
   return (
-    <div ref={rootRef} className="relative w-31 shrink-0">
-      <button
-        type={type}
-        className={cn(FIELD_BOX, "w-full justify-between", className)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        disabled={disabled}
-        onClick={() => setOpen((current) => !current)}
-        {...rest}
-      >
-        <span className="whitespace-nowrap text-body-16-medium text-content-primary">
-          {selectedUnit}
-        </span>
-        <FigmaIcon name="chevron-down" width={16} />
-      </button>
-
-      {open && !disabled ? (
-        <div
-          ref={listRef}
-          role="listbox"
-          aria-label="단위 선택"
-          // Figma `list/unit-option`(785:29926) 실측 2026-08-20: p-[2px] · radius/lg ·
-          // border border/primary · shadow는 전용 2겹 값(shadow-dropdown).
-          // UI QA #37로 shadow-floating(button/circle용)에서 교체했다.
-          className="absolute right-0 top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-border-primary bg-surface-primary p-0.5 shadow-dropdown"
-        >
-          {REPORT_UNITS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="option"
-              aria-selected={selectedUnit === option}
-              className={cn(
-                "flex h-12 w-full items-center rounded-lg px-4 text-left text-body-16-medium text-content-primary",
-                selectedUnit === option ? "bg-surface-secondary" : "hover:bg-surface-secondary",
-              )}
-              onClick={() => selectUnit(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      ) : null}
+    <div className={cn(FIELD_BOX, "w-31 shrink-0", className)} {...rest}>
+      <span className="whitespace-nowrap text-body-16-medium text-content-primary">{unit}</span>
     </div>
   );
 }
