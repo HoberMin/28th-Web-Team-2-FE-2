@@ -1,6 +1,7 @@
 import "server-only";
 
 import { nearbyStoresSchema, type NearbyStores } from "../schemas/stores";
+import { getNearbyStores, type GetNearbyStoresParams } from "./stores";
 import { DEFAULT_DISTRICT } from "../../vegetables";
 import { getFallbackNearbyStores, type NearbyStore as DummyNearbyStore } from "../../nearby-stores";
 
@@ -78,4 +79,35 @@ export function buildTemporaryNearbyStores(params: TemporaryNearbyStoresParams):
     totalCount: stores.length,
     stores,
   });
+}
+
+export function isTemporaryStoresDataError(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("kind" in error)) return false;
+  const kind = Reflect.get(error, "kind");
+  return kind === "network" || kind === "upstream" || kind === "server" || kind === "parse" || kind === "notFound";
+}
+
+/**
+ * DB에 아직 가게 row가 없으면 Spring이 정상 200으로 **빈 목록**을 준다 — 에러가 아니라서
+ * `isTemporaryStoresDataError`로는 못 잡는다. 그래서 성공 응답이라도 `stores`가 비어 있으면
+ * 같은 더미로 폴백한다.
+ */
+export async function getNearbyStoresWithTemporaryFallback(
+  params: GetNearbyStoresParams,
+): Promise<{ stores: NearbyStores; isTemporary: boolean }> {
+  try {
+    const stores = await getNearbyStores(params);
+    if (stores.stores.length > 0) return { stores, isTemporary: false };
+    console.warn("[stores] temporary data fallback (empty upstream result)", {
+      latitude: params.latitude,
+      longitude: params.longitude,
+    });
+    return { stores: buildTemporaryNearbyStores(params), isTemporary: true };
+  } catch (error) {
+    if (!isTemporaryStoresDataError(error)) throw error;
+    console.warn("[stores] temporary data fallback", {
+      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
+    });
+    return { stores: buildTemporaryNearbyStores(params), isTemporary: true };
+  }
 }
