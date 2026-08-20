@@ -143,11 +143,15 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
   const { path, method = "GET", query, body, token, cookie, cache } = request;
   const url = springUrl(path, query);
 
+  // FormData는 boundary가 붙은 `multipart/form-data`를 fetch가 직접 만들어야 한다 —
+  // 우리가 Content-Type을 적으면 boundary가 빠져 서버가 파싱하지 못한다.
+  const isMultipart = body instanceof FormData;
+
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (body !== undefined && !isMultipart) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
   if (cookie) headers.Cookie = cookie;
-  const serializedBody = body === undefined ? undefined : JSON.stringify(body);
+  const serializedBody = body === undefined ? undefined : isMultipart ? body : JSON.stringify(body);
   const debugContext = isSpringDebugEnabled()
     ? {
         startedAt: performance.now(),
@@ -171,7 +175,7 @@ export async function springRaw(request: Omit<SpringRequest<undefined>, "schema"
     const response = await fetch(url, {
       method,
       headers,
-      body: serializedBody,
+      body: serializedBody as BodyInit | undefined,
       signal: AbortSignal.timeout(SPRING_REQUEST_TIMEOUT_MS),
       ...cacheInit(cache),
     });
