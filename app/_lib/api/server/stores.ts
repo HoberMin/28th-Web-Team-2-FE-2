@@ -5,7 +5,17 @@ import "server-only";
 // 더미를 집어오면 **조용히 가짜 데이터가 화면에 뜬다.** import 경로를 눈으로 확인할 것.
 // 더미를 걷어내는 시점에 이 주석도 지운다.
 
-import { nearbyStoresEnvelopeSchema, type NearbyStores } from "../schemas/stores";
+import {
+  favoriteStoresEnvelopeSchema,
+  nearbyStoresEnvelopeSchema,
+  storeRecommendationEnvelopeSchema,
+  storeReportsEnvelopeSchema,
+  type FavoriteStores,
+  type NearbyStores,
+  type StoreRecommendation,
+  type StoreReportFilter,
+  type StoreReports,
+} from "../schemas/stores";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
 
@@ -38,6 +48,98 @@ export async function getNearbyStores({
     query: { ...query },
     token,
     schema: nearbyStoresEnvelopeSchema,
+    cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
+  });
+  return envelope.data;
+}
+
+/**
+ * 가게 단골 등록/해제. 204라 본문이 없다.
+ *
+ * `setItemFavorite`과 같은 이유로 **`revalidateTag`를 부르지 않는다** — 단골 여부가 담긴
+ * 응답(`token` 있음)은 애초에 `no-store`고, 태그가 붙은 공유 캐시에는 개인화 정보가 없다.
+ * 하트를 누를 때마다 전 게스트 캐시를 날리면 `revalidate: 300`이 무력해진다.
+ * 화면 갱신은 호출한 Server Action이 `revalidatePath`로 처리한다.
+ */
+export async function setStoreFavorite(params: {
+  storeId: number;
+  liked: boolean;
+  token: string;
+}): Promise<void> {
+  await springFetch({
+    path: `/api/v1/stores/${params.storeId}/favorite`,
+    method: params.liked ? "PUT" : "DELETE",
+    token: params.token,
+    cache: "no-store",
+  });
+}
+
+/**
+ * 내 단골 가게 목록 (F04 찜 「가게」 탭 · F05 마이페이지).
+ *
+ * 로그인 전용이라 토큰이 필수고, 응답 전체가 개인화라 `no-store`다.
+ * 좌표를 넘기면 `distanceMeters`가 채워진다 — 없으면 거리 자리를 비워 그린다.
+ */
+export async function getFavoriteStores(params: {
+  token: string;
+  latitude?: number;
+  longitude?: number;
+  page?: number;
+  size?: number;
+}): Promise<FavoriteStores> {
+  const { token, ...query } = params;
+  const envelope = await springFetch({
+    path: "/api/v1/users/me/favorite-stores",
+    query: { ...query },
+    token,
+    schema: favoriteStoresEnvelopeSchema,
+    cache: "no-store",
+  });
+  return envelope.data;
+}
+
+/**
+ * 가게별 가격 제보 (F03-3 가게 상세의 「저렴해요」·「비싸요」).
+ *
+ * 응답에 개인화 필드가 없어 비로그인도 같은 값을 받는다 — 토큰이 없을 때만 공유 캐시를 쓴다.
+ * 제보가 새로 들어오면 `createReport`가 `stores` 태그를 즉시 무효화한다.
+ */
+export async function getStoreReports(params: {
+  storeId: number;
+  filter?: StoreReportFilter;
+  page?: number;
+  size?: number;
+  token: string | undefined;
+}): Promise<StoreReports> {
+  const { storeId, token, ...query } = params;
+  const envelope = await springFetch({
+    path: `/api/v1/stores/${storeId}/reports`,
+    query: { ...query },
+    token,
+    schema: storeReportsEnvelopeSchema,
+    cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
+  });
+  return envelope.data;
+}
+
+/**
+ * 제보 가격이 저렴한 주변 가게 (F01 홈 추천 카드).
+ *
+ * `regionId`는 법정동 코드라 **앞자리 0이 유실되면 안 된다** — 끝까지 문자열로 다룬다.
+ */
+export async function getRecommendedStores(params: {
+  regionId: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  token: string | undefined;
+}): Promise<StoreRecommendation> {
+  const { token, ...query } = params;
+  const envelope = await springFetch({
+    path: "/api/v1/stores/recommendation",
+    query: { ...query },
+    token,
+    schema: storeRecommendationEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
   });
   return envelope.data;
