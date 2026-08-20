@@ -46,7 +46,18 @@ describe("GET /api/stores/nearby", () => {
 
   it("httpOnly 세션 토큰과 검증된 조건을 서버 API에 전달한다", async () => {
     apiMocks.getAccessToken.mockResolvedValue("access-token");
-    apiMocks.getNearbyStores.mockResolvedValue({ totalCount: 0, stores: [] });
+    apiMocks.getNearbyStores.mockResolvedValue({
+      totalCount: 1,
+      stores: [
+        {
+          storeId: 101,
+          storeName: "장보고 마트",
+          latitude: 37.5088,
+          longitude: 127.0632,
+          isLiked: false,
+        },
+      ],
+    });
 
     const response = await GET(
       new Request(
@@ -64,12 +75,25 @@ describe("GET /api/stores/nearby", () => {
     });
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
-    await expect(response.json()).resolves.toEqual({ totalCount: 0, stores: [] });
+    const body = (await response.json()) as { totalCount: number; stores: unknown[] };
+    expect(body.totalCount).toBe(1);
+    expect(body.stores).toHaveLength(1);
   });
 
   it("로그아웃 상태도 token을 명시해 서버 API를 호출한다", async () => {
     apiMocks.getAccessToken.mockResolvedValue(undefined);
-    apiMocks.getNearbyStores.mockResolvedValue({ totalCount: 0, stores: [] });
+    apiMocks.getNearbyStores.mockResolvedValue({
+      totalCount: 1,
+      stores: [
+        {
+          storeId: 101,
+          storeName: "장보고 마트",
+          latitude: 37.5088,
+          longitude: 127.0632,
+          isLiked: false,
+        },
+      ],
+    });
 
     await GET(
       new Request("http://localhost/api/stores/nearby?latitude=37.5088&longitude=127.0632"),
@@ -83,5 +107,19 @@ describe("GET /api/stores/nearby", () => {
       keyword: undefined,
       token: undefined,
     });
+  });
+
+  it("DB가 비어 upstream이 200과 빈 목록을 주면 더미 가게로 채운다", async () => {
+    apiMocks.getAccessToken.mockResolvedValue(undefined);
+    apiMocks.getNearbyStores.mockResolvedValue({ totalCount: 0, stores: [] });
+
+    const response = await GET(
+      new Request("http://localhost/api/stores/nearby?latitude=37.5088&longitude=127.0632"),
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { totalCount: number; stores: unknown[] };
+    expect(body.totalCount).toBeGreaterThan(0);
+    expect(body.stores.length).toBeGreaterThan(0);
   });
 });
