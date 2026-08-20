@@ -1,46 +1,90 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { MarkerStoreMap } from "@/app/_components/marker-store-map";
+import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
+import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import {
   loadKakaoSdk,
   type KakaoMap,
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
+import {
+  KakaoPlacesClientError,
+  searchNearbyStorePlacesWithSdk,
+} from "@/app/_lib/kakao-places-client";
+import { ROUTES } from "@/app/_lib/routes";
+import { formatDistance } from "@/app/_lib/store-locations";
+import { RowStoreOption } from "../_components/row-store-option";
+
+const MARKER_POSITIONS = [
+  { left: "26.54%", top: "42.55%" },
+  { left: "79.36%", top: "30.83%" },
+  { left: "14.49%", top: "12.34%" },
+] as const;
+
+type PlacesStatus = "idle" | "loading" | "success" | "failed";
 
 interface ReportPlaceMapProps {
-  center: { lat: number; lng: number };
+  center: { lat: number; lng: number } | null;
+  item?: string;
+  unavailableMessage?: string;
   level?: number;
 }
 
-/** F04-3 지도 밴드 — 판매 장소 목록 시트 뒤에서 카카오 지도를 렌더링한다. */
-export function ReportPlaceMap({ center, level = 5 }: ReportPlaceMapProps) {
+/**
+ * F04-3 지도와 장소 목록.
+ * 지도 타일과 장소 검색 모두 테스트 앱의 JavaScript 키로 로드한 Maps SDK를 사용한다.
+ */
+export function ReportPlaceMap({
+  center,
+  item,
+  unavailableMessage,
+  level = 5,
+}: ReportPlaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
-  const [status, setStatus] = useState<MapLoadStatus>("idle");
+  const [mapStatus, setMapStatus] = useState<MapLoadStatus>("idle");
+  const [placesStatus, setPlacesStatus] = useState<PlacesStatus>("idle");
+  const [places, setPlaces] = useState<StoreRequest[]>([]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !center) return;
 
     let cancelled = false;
-    let map: KakaoMap | null = null;
-    setStatus("loading");
+    setMapStatus("loading");
+    setPlacesStatus("loading");
+    setPlaces([]);
 
     void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
-      .then((kakao) => {
+      .then(async (kakao) => {
         if (cancelled) return;
         if (!kakao) {
-          setStatus("failed");
+          setMapStatus("failed");
+          setPlacesStatus("failed");
           return;
         }
 
         const mapCenter = new kakao.maps.LatLng(center.lat, center.lng);
-        map = new kakao.maps.Map(container, { center: mapCenter, level });
-        mapRef.current = map;
-        setStatus("ready");
+        mapRef.current = new kakao.maps.Map(container, { center: mapCenter, level });
+        setMapStatus("ready");
+
+        try {
+          const nextPlaces = await searchNearbyStorePlacesWithSdk({ kakao, center });
+          if (cancelled) return;
+          setPlaces(nextPlaces);
+          setPlacesStatus("success");
+        } catch (error) {
+          if (!(error instanceof KakaoPlacesClientError)) throw error;
+          if (!cancelled) setPlacesStatus("failed");
+        }
       })
       .catch(() => {
-        if (!cancelled) setStatus("failed");
+        if (cancelled) return;
+        setMapStatus("failed");
+        setPlacesStatus("failed");
       });
 
     return () => {
@@ -48,32 +92,92 @@ export function ReportPlaceMap({ center, level = 5 }: ReportPlaceMapProps) {
       mapRef.current = null;
       container.replaceChildren();
     };
-  }, [center.lat, center.lng, level]);
+  }, [center, level]);
+
+  function hrefFor(store: StoreRequest): string {
+    const params = new URLSearchParams();
+    if (item) params.set("item", item);
+    params.set("store", JSON.stringify(store));
+    return `${ROUTES.report}?${params.toString()}`;
+  }
+
+  const placesMessage = unavailableMessage
+    ? unavailableMessage
+    : placesStatus === "loading" || placesStatus === "idle"
+      ? "주변 가게를 찾고 있어요."
+      : placesStatus === "failed"
+        ? "가게 검색을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
+        : places.length === 0
+          ? "선택한 동네 주변에 제보 가능한 가게가 없어요."
+          : null;
 
   return (
-    // z-0으로 별도 stacking context를 만든다 — 카카오 SDK가 내부 DOM(타일·컨트롤)에
-    // 자체 z-index를 붙이는데, 이 래퍼가 명시적 z-index로 새 stacking context를 열지
-    // 않으면 그 값들이 형제 엘리먼트(마커·시트, z-index 미지정)와 같은 층에서 비교돼
-    // 지도가 위로 튀어나올 수 있다(실제로 이 증상이 신고됐다).
-    <div className="absolute inset-0 z-0 bg-surface-secondary">
-      <div ref={containerRef} className="absolute inset-0" />
-      {status !== "ready" ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
-          <p className="text-body-14-regular text-content-disabled">
-            {status === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
-          </p>
+    <div className="relative mt-4.25 min-h-0 flex-1 overflow-hidden bg-surface-secondary">
+      <div className="absolute inset-0 z-0 bg-surface-secondary">
+        <div ref={containerRef} className="absolute inset-0" />
+        {!center || mapStatus !== "ready" ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-secondary">
+            <p className="text-body-14-regular text-content-disabled">
+              {!center || mapStatus === "failed" ? "지도를 불러오지 못했어요" : "지도 준비 중"}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      {places.map((place, index) => {
+        const position = MARKER_POSITIONS[index % MARKER_POSITIONS.length];
+        return (
+          <Link
+            key={place.id}
+            href={hrefFor(place)}
+            aria-label={`${place.placeName} 선택`}
+            className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
+            style={{ left: position.left, top: position.top }}
+          >
+            <MarkerStoreMap
+              label={place.placeName}
+              icon={<FigmaIcon name="store-fill-marker-24" width={24} />}
+            />
+          </Link>
+        );
+      })}
+
+      <div
+        className="absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col rounded-t-3xl bg-surface-primary px-4 pb-5 pt-7"
+        style={{ boxShadow: "0px -4px 6px 0px rgba(74, 86, 103, 0.2)" }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          {placesMessage ? (
+            <p
+              className="px-4 py-8 text-center text-body-14-regular text-content-secondary"
+              role="status"
+            >
+              {placesMessage}
+            </p>
+          ) : (
+            <ul className="flex w-full flex-col items-start">
+              {places.map((place) => (
+                <li key={place.id} className="w-full">
+                  <RowStoreOption
+                    name={place.placeName}
+                    distance={formatDistance(place.distance ?? 0)}
+                    address={place.roadAddressName || place.addressName}
+                    href={hrefFor(place)}
+                    thumbnail={
+                      <FigmaImage
+                        name="store-thumbnail.png"
+                        width={56}
+                        height={56}
+                        className="size-full object-cover"
+                      />
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      ) : null}
-      {status === "loading" ? (
-        <p role="status" aria-atomic="true" className="sr-only">
-          지도 준비 중
-        </p>
-      ) : null}
-      {status === "failed" ? (
-        <p role="alert" aria-atomic="true" className="sr-only">
-          지도를 불러오지 못했어요
-        </p>
-      ) : null}
+      </div>
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import { LoadingCircular } from "@/app/_components/loading-circular";
 
-// F04-3 판매 장소 선택 — 카카오 검색 fetch가 걸리는 동안의 로딩. 실패는 화면이 깨지지 않게
-// `searchNearbyStorePlaces` 내부에서 더미로 폴백하도록 설계돼 있어 별도 error.tsx가 없다
-// (`app/report/place/page.tsx` 머리말 참고).
+// F04-3 판매 장소 선택 — 선택 지역 해석과 카카오 검색이 걸리는 동안의 로딩.
+// 검색 실패는 page.tsx에서 가짜 가게 대신 목록 상태 문구로 전환한다.
 export default function ReportPlaceLoading() {
   return (
     <main className="min-h-dvh bg-surface-secondary">
