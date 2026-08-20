@@ -55,16 +55,18 @@ describe("loadInitialNearbyStores", () => {
     });
   });
 
-  it("live backend 502를 초기 오류 상태로 격리한다", async () => {
+  it("live backend 502는 화면 유지용 임시 더미 가게로 폴백한다", async () => {
+    // DB에 실데이터가 없는 동안 화면 구조를 테스트할 수 있도록 `getNearbyStoresWithTemporaryFallback`이
+    // 업스트림 에러를 삼키고 더미로 채운다(`stores-fallback.ts`) — 더 이상 에러 상태로 격리하지 않는다.
     getNearbyStoresMock.mockRejectedValue(
       ApiError.fromStatus(502, "GET /api/v1/stores/nearby"),
     );
 
-    await expect(loadInitialNearbyStores(seongseongCenter)).resolves.toMatchObject({
-      status: "error",
-      stores: [],
-      error: "주변 가게를 불러오지 못했어요.",
-    });
+    const result = await loadInitialNearbyStores(seongseongCenter);
+
+    expect(result.status).toBe("success");
+    expect(result.error).toBeNull();
+    expect(result.stores.length).toBeGreaterThan(0);
   });
 
   it("예상하지 못한 오류는 route error boundary로 다시 던진다", async () => {
