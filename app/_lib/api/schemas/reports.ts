@@ -65,3 +65,34 @@ export const createReportEnvelopeSchema = z.object({
   message: z.string().optional(),
   data: createReportResponseSchema,
 });
+
+// ── GET /api/v1/regions/{regionId}/reports/lowest-prices — 동네 최근 7일 최저가 ───────
+//
+// F01 홈의 「우리 동네 최저가」 목록이 쓴다. 등락(`priceDiffRate`)은 **공공 시세 대비**라
+// 부호가 음수면 공공가보다 싸다는 뜻이다 — 시간에 따른 등락이 아니다.
+
+export const regionLowestPriceItemSchema = z.object({
+  rank: z.number().int().nullish(),
+  reportId: z.number().int().safe(),
+  itemId: z.number().int().safe(),
+  itemName: z.string(),
+  itemImageUrl: z.string().nullish(),
+  storeId: z.number().int().safe().nullish(),
+  storeName: z.string().nullish(),
+  price: z.number().int(),
+  unit: z.string().nullish(),
+  priceDiffRate: z.number().nullish(),
+});
+export type RegionLowestPriceItem = z.infer<typeof regionLowestPriceItemSchema>;
+
+export const regionLowestPricesSchema = z.object({
+  regionName: z.string().nullish(),
+  items: z.array(regionLowestPriceItemSchema),
+});
+export type RegionLowestPrices = z.infer<typeof regionLowestPricesSchema>;
+
+export const regionLowestPricesEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: regionLowestPricesSchema,
+});
