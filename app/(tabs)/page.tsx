@@ -8,9 +8,9 @@ import { SectionRecommendedStore } from "./_home/section-recommended-store";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getNews } from "@/app/_lib/api/server/news";
-import { getRegionLowestPrices } from "@/app/_lib/api/server/reports";
+import { getRegionLowestPricesWithTemporaryFallback } from "@/app/_lib/api/server/reports-fallback";
 import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
-import { getRecommendedStores } from "@/app/_lib/api/server/stores";
+import { getRecommendedStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
 
 // F01 홈 — Figma `화면GUI` 298:3477(F01_홈) · 298:3509(F01_홈_더보기).
 //
@@ -59,14 +59,22 @@ export default async function HomePage() {
   const [newsItems, recommendation, lowestPrices] = await Promise.all([
     loadHomeNewsItems(getNews),
     region
-      ? sectionData("추천 가게", () =>
-          getRecommendedStores({ regionId: region.regionId, token }),
-        )
+      ? sectionData("추천 가게", async () => {
+          const { stores } = await getRecommendedStoresWithTemporaryFallback({
+            regionId: region.regionId,
+            token,
+          });
+          return stores;
+        })
       : Promise.resolve(null),
     region
-      ? sectionData("동네 최저가", () =>
-          getRegionLowestPrices({ regionId: region.regionId, limit: 10 }),
-        )
+      ? sectionData("동네 최저가", async () => {
+          const { prices } = await getRegionLowestPricesWithTemporaryFallback({
+            regionId: region.regionId,
+            limit: 10,
+          });
+          return prices;
+        })
       : Promise.resolve(null),
   ]);
 
