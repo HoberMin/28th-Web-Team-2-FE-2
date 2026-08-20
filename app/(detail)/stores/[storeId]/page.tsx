@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getStoreReports } from "@/app/_lib/api/server/stores";
+import { getStoreReportsWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
 import {
   mapStoreReportToPrice,
   parseStoreDetailProfile,
@@ -47,7 +47,13 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
   let expensiveCount = 0;
   let prices: ReturnType<typeof mapStoreReportToPrice>[] = [];
   try {
-    const reports = await getStoreReports({ storeId, filter: "ALL", page: 0, size: 50, token });
+    const { reports } = await getStoreReportsWithTemporaryFallback({
+      storeId,
+      filter: "ALL",
+      page: 0,
+      size: 50,
+      token,
+    });
     cheapCount = reports.summary.cheapCount;
     expensiveCount = reports.summary.expensiveCount;
     // 기준 시각을 한 번 고정해 넘긴다 — 행마다 다른 "오늘"이 나오지 않도록.
