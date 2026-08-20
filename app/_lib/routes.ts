@@ -19,6 +19,8 @@ export const ROUTES = {
   saved: "/saved",
   /** F05 마이페이지 — Figma 미확정 */
   mypage: "/mypage",
+  /** F05 마이페이지 하위 — 내 동네 관리. Figma 시안 없음(기존 컴포넌트 재사용, GNB 없는 풀스크린). */
+  mypageRegions: "/mypage/regions",
 
   /** F03 시세 상세 — GNB 없는 풀스크린 */
   priceDetail: (itemId: string) => `/prices/${itemId}`,
