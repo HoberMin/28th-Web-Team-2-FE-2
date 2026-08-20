@@ -72,3 +72,128 @@ export const nearbyStoresEnvelopeSchema = z.object({
   message: z.string().optional(),
   data: nearbyStoresSchema,
 });
+
+// ── GET /api/v1/users/me/favorite-stores — 단골 가게 (스펙 태그: My Page) ────────────
+//
+// nearby와 필드가 겹치지 않는다. 좌표 대신 거리·영업 상태·오늘 영업시간을 주고, 대신
+// 위경도가 없어 지도에 찍을 수 없다. 공통 타입으로 합치지 않는 이유다.
+
+export const favoriteStoreSchema = z.object({
+  storeId: z.number().int().safe(),
+  storeName: z.string(),
+  storeImageUrl: z.string().nullish(),
+  distanceMeters: z.number().nullish(),
+  /**
+   * 스펙이 `type: string`으로만 선언하고 enum이 없다 — 실제로 어떤 값이 오는지 확인되지 않아
+   * 문자열 그대로 받는다. 화면은 `_saved-store-view.ts`에서 "영업중" 여부만 판정한다.
+   */
+  openStatus: z.string().nullish(),
+  todayBusinessHours: z.string().nullish(),
+  /** 단골 목록이므로 항상 true여야 하지만, 스펙에 있는 필드라 그대로 받는다. */
+  isLiked: z.boolean().nullish().transform((value) => value ?? true),
+});
+export type FavoriteStore = z.infer<typeof favoriteStoreSchema>;
+
+export const favoriteStoresSchema = z.object({
+  stores: z.array(favoriteStoreSchema),
+  page: z.number().int().nullish(),
+  size: z.number().int().nullish(),
+  totalElements: z.number().int().nullish(),
+  totalPages: z.number().int().nullish(),
+  hasNext: z.boolean().nullish().transform((value) => value ?? false),
+});
+export type FavoriteStores = z.infer<typeof favoriteStoresSchema>;
+
+export const favoriteStoresEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: favoriteStoresSchema,
+});
+
+// ── GET /api/v1/stores/{storeId}/reports — 가게별 가격 제보 ──────────────────────────
+
+export const STORE_REPORT_FILTERS = ["ALL", "CHEAP", "EXPENSIVE"] as const;
+export type StoreReportFilter = (typeof STORE_REPORT_FILTERS)[number];
+
+export const PRICE_CLASSIFICATIONS = ["CHEAP", "EXPENSIVE", "EQUAL"] as const;
+export type PriceClassification = (typeof PRICE_CLASSIFICATIONS)[number];
+
+export const storeReportSchema = z.object({
+  reportId: z.number().int().safe(),
+  itemId: z.number().int().safe(),
+  itemName: z.string(),
+  itemImageUrl: z.string().nullish(),
+  price: z.number().int(),
+  unit: z.string().nullish(),
+  /** `format: date` — "2026-08-20" 모양. 표시용 상대 날짜는 화면에서 계산한다. */
+  reportedDate: z.string().nullish(),
+  /** 공공 시세와의 차액. 음수면 더 싸다. */
+  publicPriceDiff: z.number().nullish(),
+  priceDiffRate: z.number().nullish(),
+  /**
+   * 스펙 enum이지만 값이 늘어날 때 화면이 통째로 죽지 않도록 fallback을 둔다 —
+   * 모르는 값은 EQUAL로 본다(저렴/비쌈 어느 목록에도 넣지 않는다).
+   */
+  priceClassification: z
+    .string()
+    .nullish()
+    .transform((value): PriceClassification =>
+      value === "CHEAP" || value === "EXPENSIVE" ? value : "EQUAL",
+    ),
+});
+export type StoreReport = z.infer<typeof storeReportSchema>;
+
+export const storeReportsSchema = z.object({
+  storeId: z.number().int().safe(),
+  summary: z
+    .object({
+      cheapCount: z.number().int().nullish().transform((value) => value ?? 0),
+      expensiveCount: z.number().int().nullish().transform((value) => value ?? 0),
+    })
+    .nullish()
+    .transform((value) => value ?? { cheapCount: 0, expensiveCount: 0 }),
+  reports: z.array(storeReportSchema),
+  page: z.number().int().nullish(),
+  size: z.number().int().nullish(),
+  hasNext: z.boolean().nullish().transform((value) => value ?? false),
+});
+export type StoreReports = z.infer<typeof storeReportsSchema>;
+
+export const storeReportsEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: storeReportsSchema,
+});
+
+// ── GET /api/v1/stores/recommendation — 제보가 저렴한 주변 가게 (홈 추천 카드) ────────
+
+export const recommendedStoreSchema = z.object({
+  storeId: z.number().int().safe(),
+  storeName: z.string(),
+  latitude: z.number().nullish(),
+  longitude: z.number().nullish(),
+  addressName: z.string().nullish(),
+  roadAddressName: z.string().nullish(),
+  phone: z.string().nullish(),
+  placeUrl: z.string().nullish(),
+  distanceMeters: z.number().nullish(),
+  /** 공공 시세보다 저렴한 상품 수. 카드의 "12가지" 자리. */
+  cheapItemCount: z.number().int().nullish().transform((value) => value ?? 0),
+  /** 대표 저렴 상품명. Figma 개발 주석상 카드는 최대 5개까지만 그린다. */
+  cheapItems: z.array(z.string()).nullish().transform((value) => value ?? []),
+  /** 대표 상품명에 못 담은 나머지 개수 — more 뱃지 값. */
+  remainingItemCount: z.number().int().nullish().transform((value) => value ?? 0),
+});
+export type RecommendedStore = z.infer<typeof recommendedStoreSchema>;
+
+export const storeRecommendationSchema = z.object({
+  totalCount: z.number().nullish().transform((value) => value ?? 0),
+  stores: z.array(recommendedStoreSchema),
+});
+export type StoreRecommendation = z.infer<typeof storeRecommendationSchema>;
+
+export const storeRecommendationEnvelopeSchema = z.object({
+  code: z.string().optional(),
+  message: z.string().optional(),
+  data: storeRecommendationSchema,
+});
