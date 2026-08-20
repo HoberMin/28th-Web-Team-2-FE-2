@@ -54,6 +54,7 @@ describe("loadKakaoSdk", () => {
     const { loadKakaoSdk } = await import("./kakao-map");
 
     const first = loadKakaoSdk("app-key");
+    expect(dom.created[0]?.src).toContain("libraries=services");
     dom.created[0].dispatchEvent(new Event("load"));
     await expect(first).resolves.toBeNull();
     expect(dom.current()).toBeNull();

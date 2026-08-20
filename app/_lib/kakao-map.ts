@@ -37,6 +37,42 @@ export interface KakaoCustomOverlay {
   setMap(map: KakaoMap | null): void;
 }
 
+export interface KakaoPlaceSearchResult {
+  id?: string;
+  place_name?: string;
+  address_name?: string;
+  road_address_name?: string;
+  category_name?: string;
+  category_group_code?: string;
+  category_group_name?: string;
+  phone?: string;
+  place_url?: string;
+  distance?: string;
+  x?: string;
+  y?: string;
+}
+
+export interface KakaoKeywordSearchOptions {
+  location: KakaoLatLng;
+  radius: number;
+  size: number;
+  sort: string;
+}
+
+export interface KakaoPlacesService {
+  keywordSearch(
+    keyword: string,
+    callback: (results: KakaoPlaceSearchResult[], status: string) => void,
+    options: KakaoKeywordSearchOptions,
+  ): void;
+}
+
+export interface KakaoServicesApi {
+  Places: new () => KakaoPlacesService;
+  SortBy: { DISTANCE: string };
+  Status: { OK: string; ZERO_RESULT: string; ERROR: string };
+}
+
 export interface KakaoMapsApi {
   LatLng: new (lat: number, lng: number) => KakaoLatLng;
   Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
@@ -52,6 +88,7 @@ export interface KakaoMapsApi {
     addListener(target: KakaoMap, type: "click" | "idle", handler: () => void): void;
     removeListener(target: KakaoMap, type: "click" | "idle", handler: () => void): void;
   };
+  services?: KakaoServicesApi;
   load(callback: () => void): void;
 }
 
@@ -107,7 +144,7 @@ export function loadKakaoSdk(appKey: string | undefined): Promise<KakaoGlobal | 
     script.addEventListener("error", onError, { once: true });
     script.id = SDK_ID;
     script.async = true;
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
     document.head.appendChild(script);
   });
   return pendingSdkLoad;
