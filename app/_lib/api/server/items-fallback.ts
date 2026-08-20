@@ -197,11 +197,23 @@ export function isTemporaryDataError(error: unknown): boolean {
   return kind === "network" || kind === "upstream" || kind === "server" || kind === "parse" || kind === "notFound";
 }
 
+/**
+ * DB에 아직 실데이터가 없으면 Spring이 정상 200으로 **빈 목록**을 준다 — `isTemporaryDataError`는
+ * 이 케이스를 못 잡는다(에러가 아니라서). 그래서 성공 응답이라도 `items`가 비어 있으면 같은
+ * 더미로 폴백한다. `keyword`/`category` 필터 때문에 정당하게 0건인 경우와는 구분하지 않는다 —
+ * `buildTemporaryItemPage`가 같은 필터를 46종 카탈로그에도 적용하므로, 진짜로 일치하는 야채가
+ * 없는 검색어는 더미 쪽에서도 그대로 0건이 나온다.
+ */
 export async function getItemsWithTemporaryFallback(
   params: GetItemsParams,
 ): Promise<{ page: ItemPage; isTemporary: boolean }> {
   try {
-    return { page: await getItems(params), isTemporary: false };
+    const page = await getItems(params);
+    if (page.items.length > 0) return { page, isTemporary: false };
+    console.warn("[items] temporary data fallback (empty upstream result)", {
+      regionId: params.regionId,
+    });
+    return { page: buildTemporaryItemPage(params), isTemporary: true };
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
     console.warn("[items] temporary data fallback", {
