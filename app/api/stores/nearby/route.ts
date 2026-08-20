@@ -1,6 +1,6 @@
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { nearbyStoresRequestSchema } from "@/app/_lib/api/schemas/stores";
-import { getNearbyStores } from "@/app/_lib/api/server/stores";
+import { getNearbyStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
 import { privateJson, storesApiErrorResponse } from "../_api-error";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(request: Request): Promise<Response> {
   const token = await getAccessToken();
 
   try {
-    const stores = await getNearbyStores({ ...parsed.data, token });
+    const { stores } = await getNearbyStoresWithTemporaryFallback({ ...parsed.data, token });
     return privateJson(stores);
   } catch (error) {
     return storesApiErrorResponse(error);
