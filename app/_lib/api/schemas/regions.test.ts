@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  hasRegionCoordinates,
   nearbyRegionRequestSchema,
   regionSchema,
+  regionSearchEnvelopeSchema,
   regionSearchRequestSchema,
   resolveRegionSelection,
 } from "./regions";
@@ -19,25 +21,73 @@ describe("regionSchema", () => {
     },
   );
 
-  it("동명은 공덕동인데 id가 다른 기존 쿠키를 검색 결과로 복구한다", () => {
-    expect(
-      resolveRegionSelection(
-        { regionId: "1156011000", regionName: "서울 마포구 공덕동" },
-        [{ regionId: "1144010200", regionName: "서울 마포구 공덕동" }],
-      ),
-    ).toEqual({ regionId: "1144010200", regionName: "서울 마포구 공덕동" });
+  it("검색 결과의 위도와 경도를 숫자로 보존한다", () => {
+    const region = regionSchema.parse({
+      regionId: "4413310500",
+      regionName: "충청남도 천안시 서북구 성성동",
+      latitude: 36.8358,
+      longitude: 127.1324,
+    });
+
+    expect(hasRegionCoordinates(region)).toBe(true);
+    expect(region).toMatchObject({ latitude: 36.8358, longitude: 127.1324 });
   });
 
-  it("같은 동명 후보가 여러 개면 id를 추측하지 않는다", () => {
+  it("좌표가 없는 기존 선택 지역은 같은 regionId 검색 결과로 복구한다", () => {
+    expect(
+      resolveRegionSelection(
+        { regionId: "1144010200", regionName: "공덕동" },
+        [
+          {
+            regionId: "1144010200",
+            regionName: "서울특별시 마포구 공덕동",
+            latitude: 37.549119,
+            longitude: 126.957786,
+          },
+        ],
+      ),
+    ).toEqual({
+      regionId: "1144010200",
+      regionName: "서울특별시 마포구 공덕동",
+      latitude: 37.549119,
+      longitude: 126.957786,
+    });
+  });
+
+  it("동명이 같아도 regionId가 다르면 좌표를 사용하지 않는다", () => {
     expect(
       resolveRegionSelection(
         { regionId: "1156011000", regionName: "공덕동" },
         [
-          { regionId: "1144010200", regionName: "서울 마포구 공덕동" },
-          { regionId: "9999999999", regionName: "다른 지역 공덕동" },
+          {
+            regionId: "1144010200",
+            regionName: "서울 마포구 공덕동",
+            latitude: 37.549119,
+            longitude: 126.957786,
+          },
         ],
       ),
     ).toBeNull();
+  });
+
+  it.each([
+    {},
+    { latitude: null, longitude: 127.1324 },
+    { latitude: 36.8358, longitude: null },
+  ])("지역 검색 결과의 좌표가 없거나 null이면 거부한다", (coordinates) => {
+    expect(
+      regionSearchEnvelopeSchema.safeParse({
+        data: {
+          searchResults: [
+            {
+              regionId: "4413310500",
+              regionName: "충청남도 천안시 서북구 성성동",
+              ...coordinates,
+            },
+          ],
+        },
+      }).success,
+    ).toBe(false);
   });
 });
 

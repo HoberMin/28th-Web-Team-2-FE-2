@@ -4,6 +4,7 @@
 // 실서비스 전환 시 이 파일만 Spring BFF 호출로 교체하면 화면은 그대로 동작.
 
 import { useSyncExternalStore } from "react";
+import { regionCoordinatesSchema } from "./api/schemas/regions";
 import { setDistrict } from "./location";
 import { ROUTES } from "./routes";
 
@@ -30,6 +31,9 @@ export interface OnboardingState {
   regionId: string;
   /** Spring이 내려준 전체 법정동 이름. `district`는 기존 프로토타입 소비자용 짧은 이름이다. */
   regionName: string;
+  /** 선택 법정동의 좌표. 기존 저장값은 없을 수 있어 null을 유지한다. */
+  latitude: number | null;
+  longitude: number | null;
   /** 등록된 동네 목록(최대 3개). 활성은 항상 `district` 하나. */
   districts: string[];
   completed: boolean;
@@ -46,6 +50,8 @@ const DEFAULT_STATE: OnboardingState = {
   district: "",
   regionId: "",
   regionName: "",
+  latitude: null,
+  longitude: null,
   districts: [],
   completed: false,
   avatar: "",
@@ -60,12 +66,18 @@ let cache: OnboardingState | null = null;
  * - v2(`authProvider` 없음): 이미 온보딩을 마친 사람은 `kakao`로 본다. 안 그러면 F00-0 신설로
  *   기존 사용자가 전부 소개 화면으로 튕긴다.
  * - v3(`regionName` 없음): 예전 짧은 동네 이름을 표시 이름으로 보존한다. regionId는 추측하지 않는다.
+ * - v4(좌표 없음): latitude/longitude를 null로 두고 서버에서 regionId 일치 검색 결과로 복원한다.
  */
 function migrate(state: OnboardingState): OnboardingState {
   let next = state;
   if (!next.authProvider && next.completed) next = { ...next, authProvider: "kakao" };
   if (next.districts.length === 0 && next.district) next = { ...next, districts: [next.district] };
   if (!next.regionName && next.district) next = { ...next, regionName: next.district };
+  const coordinates = regionCoordinatesSchema.safeParse({
+    latitude: next.latitude,
+    longitude: next.longitude,
+  });
+  if (!coordinates.success) next = { ...next, latitude: null, longitude: null };
   return next;
 }
 

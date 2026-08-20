@@ -1,9 +1,12 @@
 "use client";
 
 import {
+  locatedRegionSchema,
+  locatedRegionsSchema,
   nearbyRegionsSchema,
   regionSchema,
   regionSearchRequestSchema,
+  type LocatedRegion,
   type Region,
 } from "../schemas/regions";
 
@@ -38,19 +41,28 @@ async function responseError(response: Response): Promise<RegionClientError> {
   );
 }
 
-async function parseRegions(response: Response): Promise<Region[]> {
+async function readRegionsPayload(response: Response): Promise<unknown> {
   if (!response.ok) throw await responseError(response);
 
-  let payload: unknown;
   try {
-    payload = await response.json();
+    return await response.json();
   } catch {
     throw new RegionClientError(502, "동네 응답을 읽지 못했어요. 잠시 후 다시 시도해 주세요.");
   }
+}
 
+function parseNearbyRegions(payload: unknown): Region[] {
   const parsed = nearbyRegionsSchema.safeParse(payload);
   if (!parsed.success) {
     throw new RegionClientError(502, "동네 응답이 올바르지 않아요. 잠시 후 다시 시도해 주세요.");
+  }
+  return parsed.data;
+}
+
+function parseSearchRegions(payload: unknown): LocatedRegion[] {
+  const parsed = locatedRegionsSchema.safeParse(payload);
+  if (!parsed.success) {
+    throw new RegionClientError(502, "동네 좌표를 확인하지 못했어요. 동네를 다시 선택해 주세요.");
   }
   return parsed.data;
 }
@@ -59,7 +71,10 @@ export function canSearchRegions(keyword: string): boolean {
   return regionSearchRequestSchema.safeParse({ keyword }).success;
 }
 
-export async function searchRegionsAPI(keyword: string, signal?: AbortSignal): Promise<Region[]> {
+export async function searchRegionsAPI(
+  keyword: string,
+  signal?: AbortSignal,
+): Promise<LocatedRegion[]> {
   const parsed = regionSearchRequestSchema.safeParse({ keyword });
   if (!parsed.success) {
     throw new RegionClientError(400, "한글 동 이름을 두 글자 이상 입력해 주세요.");
@@ -70,7 +85,7 @@ export async function searchRegionsAPI(keyword: string, signal?: AbortSignal): P
     cache: "no-store",
     signal,
   });
-  return parseRegions(response);
+  return parseSearchRegions(await readRegionsPayload(response));
 }
 
 export async function getNearbyRegionsAPI(
@@ -85,10 +100,10 @@ export async function getNearbyRegionsAPI(
     cache: "no-store",
     signal,
   });
-  return parseRegions(response);
+  return parseNearbyRegions(await readRegionsPayload(response));
 }
 
-export async function saveSelectedRegionAPI(region: Region): Promise<void> {
+export async function saveSelectedRegionAPI(region: Region): Promise<LocatedRegion> {
   const parsed = regionSchema.safeParse(region);
   if (!parsed.success) {
     throw new RegionClientError(400, "선택한 동네 정보가 올바르지 않아요.");
@@ -101,6 +116,12 @@ export async function saveSelectedRegionAPI(region: Region): Promise<void> {
     cache: "no-store",
   });
   if (!response.ok) throw await responseError(response);
+
+  try {
+    return locatedRegionSchema.parse(await response.json());
+  } catch {
+    throw new RegionClientError(502, "선택한 동네 좌표를 저장하지 못했어요. 동네를 다시 선택해 주세요.");
+  }
 }
 
 /**

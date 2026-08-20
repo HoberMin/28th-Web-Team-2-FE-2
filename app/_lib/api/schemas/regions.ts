@@ -39,38 +39,55 @@ export const regionIdSchema = z.union([
     .transform((value) => String(value).padStart(REGION_ID_LENGTH, "0")),
 ]);
 
-export const regionSchema = z.object({
+const regionIdentitySchema = z.object({
   regionId: regionIdSchema,
   regionName: z.string(),
 });
+
+const latitudeSchema = z.number().finite().min(-90).max(90);
+const longitudeSchema = z.number().finite().min(-180).max(180);
+
+export const regionCoordinatesSchema = z.object({
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+});
+
+/** 지역 검색이 내려주는, 주변 가게 조회에 바로 사용할 수 있는 법정동. */
+export const locatedRegionSchema = regionIdentitySchema.extend(regionCoordinatesSchema.shape);
+export type LocatedRegion = z.infer<typeof locatedRegionSchema>;
+
+/**
+ * 선택 지역 저장 모양. 좌표가 없던 기존 쿠키·localStorage와의 하위 호환을 위해 좌표 쌍을
+ * optional로 두되, 둘 중 하나만 있거나 null/비정상 값인 상태는 허용하지 않는다.
+ */
+export const regionSchema = regionIdentitySchema
+  .extend({
+    latitude: latitudeSchema.optional(),
+    longitude: longitudeSchema.optional(),
+  })
+  .superRefine((region, context) => {
+    if ((region.latitude === undefined) === (region.longitude === undefined)) return;
+    context.addIssue({
+      code: "custom",
+      message: "위도와 경도는 함께 있어야 합니다.",
+      path: [region.latitude === undefined ? "latitude" : "longitude"],
+    });
+  });
 export type Region = z.infer<typeof regionSchema>;
 
-function districtName(regionName: string): string {
-  const parts = regionName.trim().split(/\s+/);
-  return parts.at(-1) ?? regionName;
+export function hasRegionCoordinates(region: Region): region is LocatedRegion {
+  return locatedRegionSchema.safeParse(region).success;
 }
 
 /**
- * 쿠키를 id/name 두 개로 보존하던 기존 버전에서 남은 불일치를 Spring 검색 결과로 복구한다.
- * id와 동명이 모두 맞는 결과를 우선하고, 이름만 맞는 경우는 후보가 하나일 때만 id를 복구한다.
+ * 좌표 없이 id/name만 보존한 기존 선택 지역을 Spring 검색 결과로 복구한다.
+ * 같은 동명이 여러 지역에 있을 수 있으므로 법정동 코드가 정확히 같은 후보만 사용한다.
  */
-export function resolveRegionSelection(selected: Region, candidates: Region[]): Region | null {
-  const selectedDistrict = districtName(selected.regionName);
-  const matchingPair = candidates.find(
-    (candidate) =>
-      candidate.regionId === selected.regionId && districtName(candidate.regionName) === selectedDistrict,
-  );
-  if (matchingPair) return matchingPair;
-
-  const exactNameMatches = candidates.filter(
-    (candidate) => candidate.regionName.trim() === selected.regionName.trim(),
-  );
-  if (exactNameMatches.length === 1) return exactNameMatches[0] ?? null;
-
-  const districtMatches = candidates.filter(
-    (candidate) => districtName(candidate.regionName) === selectedDistrict,
-  );
-  return districtMatches.length === 1 ? (districtMatches[0] ?? null) : null;
+export function resolveRegionSelection(
+  selected: Region,
+  candidates: LocatedRegion[],
+): LocatedRegion | null {
+  return candidates.find((candidate) => candidate.regionId === selected.regionId) ?? null;
 }
 
 /** `RegionSearchRequest` — 실제 쿼리 키는 springdoc 표기의 `request`가 아니라 `keyword`다. */
@@ -85,16 +102,18 @@ export const regionSearchRequestSchema = z.object({
 
 /** `NearbyRegionRequest` — 위·경도 범위는 WGS84의 유효 범위다. */
 export const nearbyRegionRequestSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
 });
 
 /** `/regions/search` 전용 envelope — 이 엔드포인트에만 있다. */
 export const regionSearchEnvelopeSchema = z.object({
   code: z.string().optional(),
   message: z.string().optional(),
-  data: z.object({ searchResults: z.array(regionSchema) }),
+  data: z.object({ searchResults: z.array(locatedRegionSchema) }),
 });
+
+export const locatedRegionsSchema = z.array(locatedRegionSchema);
 
 /** `/regions/nearby`는 최상위 배열을 그대로 준다. */
 export const nearbyRegionsSchema = z.array(regionSchema);

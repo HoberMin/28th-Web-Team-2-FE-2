@@ -8,6 +8,7 @@ import {
   nearbyRegionsSchema,
   regionSearchEnvelopeSchema,
   userRegionsResponseSchema,
+  type LocatedRegion,
   type Region,
   type UserRegion,
 } from "../schemas/regions";
@@ -23,7 +24,7 @@ import { CACHE_TAGS } from "../tags";
  * ⚠️ 쿼리 파라미터가 스펙에는 `request`로 나오지만 실제 키는 `keyword`다
  * (springdoc의 POJO 바인딩 표기 — `backend-api-reference` §2).
  */
-export async function searchRegions(keyword: string): Promise<Region[]> {
+export async function searchRegions(keyword: string): Promise<LocatedRegion[]> {
   const envelope = await springFetch({
     path: "/api/v1/regions/search",
     query: { keyword },

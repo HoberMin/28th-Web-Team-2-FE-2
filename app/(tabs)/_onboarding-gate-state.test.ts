@@ -8,6 +8,8 @@ const COMPLETED_STATE: OnboardingState = {
   district: "광진구",
   regionId: "",
   regionName: "광진구",
+  latitude: null,
+  longitude: null,
   districts: ["광진구"],
   completed: true,
   avatar: "",

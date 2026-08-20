@@ -15,6 +15,7 @@ interface OnboardingPageProps {
     loginError?: string;
     loginDebug?: string;
     onboardingStep?: string;
+    selectRegion?: string;
   }>;
 }
 
@@ -71,6 +72,7 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
       initialLoginError={params.loginError ? LOGIN_ERROR_MESSAGES[params.loginError] ?? "" : ""}
       initialLoginDebug={params.loginDebug ?? ""}
       isAuthenticated={Boolean(accessToken)}
+      forceRegionSelection={Boolean(accessToken && params.selectRegion === "1")}
       onboardingStepHint={step}
       serverNickname={nickname}
     />

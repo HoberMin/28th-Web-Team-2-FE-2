@@ -14,6 +14,8 @@ import { RegionStep } from "./steps/region-step";
 
 interface OnboardingFlowProps {
   freshLogin: boolean;
+  /** 가게 화면의 좌표 복원 실패에서 진입한 경우, 완료 상태여도 지역 선택을 다시 보여 준다. */
+  forceRegionSelection: boolean;
   initialLoginError: string;
   /** 로그인 설정 실패 사유(키 이름만, 값 없음) — 서버 로그 접근 없이 브라우저 콘솔로 확인하기 위함. */
   initialLoginDebug: string;
@@ -29,6 +31,7 @@ interface OnboardingFlowProps {
 
 export function OnboardingFlow({
   freshLogin,
+  forceRegionSelection,
   initialLoginError,
   initialLoginDebug,
   isAuthenticated,
@@ -68,10 +71,10 @@ export function OnboardingFlow({
   }, [freshLogin, needsSessionSync, router, serverNickname]);
 
   useEffect(() => {
-    if (isAuthenticated && onboardingCompleted && !needsSessionSync) {
+    if (isAuthenticated && onboardingCompleted && !needsSessionSync && !forceRegionSelection) {
       router.replace(ROUTES.home);
     }
-  }, [isAuthenticated, needsSessionSync, onboardingCompleted, router]);
+  }, [forceRegionSelection, isAuthenticated, needsSessionSync, onboardingCompleted, router]);
 
   function handleKakaoLogin() {
     if (isLoggingIn) return;
@@ -110,7 +113,7 @@ export function OnboardingFlow({
   }
 
   async function handleRegionComplete(region: Region) {
-    await saveSelectedRegionAPI(region);
+    const selectedRegion = await saveSelectedRegionAPI(region);
 
     // Spring에도 등록한다 — 이게 없으면 `onboardingStep`이 계정 쪽에서 영영 REGION에 머물러
     // 재방문자 홈 리다이렉트(로그인 콜백)가 도달 못 하는 코드가 된다. 온보딩 화면은
@@ -118,20 +121,22 @@ export function OnboardingFlow({
     // 실패해도 화면 진행은 막지 않는다 — 쿠키(위 saveSelectedRegionAPI)만으로 앱은 이미
     // 정상 동작하고, 여기서 막으면 부가 동기화 실패가 온보딩 완료 자체를 가로막게 된다.
     try {
-      await registerCurrentRegionAPI(region);
+      await registerCurrentRegionAPI(selectedRegion);
     } catch (error) {
       console.error("[onboarding] 관심 지역을 Spring에 등록하지 못했어요", error);
     }
 
     // 기존 prototype 소비자는 짧은 동 이름을 키로 사용한다. Spring의 전체 이름도 별도로 보존한다.
-    const district = region.regionName.split(" ").at(-1) ?? region.regionName;
+    const district = selectedRegion.regionName.split(" ").at(-1) ?? selectedRegion.regionName;
     setOnboarding({
       district,
-      regionId: region.regionId,
-      regionName: region.regionName,
+      regionId: selectedRegion.regionId,
+      regionName: selectedRegion.regionName,
+      latitude: selectedRegion.latitude,
+      longitude: selectedRegion.longitude,
       completed: true,
     });
-    router.replace(ROUTES.home);
+    router.replace(forceRegionSelection ? ROUTES.stores : ROUTES.home);
   }
 
   if (onboarding === null || needsSessionSync) {
@@ -142,7 +147,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (isAuthenticated && onboarding.completed) {
+  if (isAuthenticated && onboarding.completed && !forceRegionSelection) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-surface-primary" role="status">
         <span className="sr-only">홈으로 이동하는 중</span>
@@ -160,7 +165,7 @@ export function OnboardingFlow({
     );
   }
 
-  if (!onboarding.nickname && !skipNicknameStep) {
+  if (!onboarding.nickname && !skipNicknameStep && !forceRegionSelection) {
     return (
       <NicknameStep
         defaultValue={onboarding.nickname}
@@ -173,8 +178,14 @@ export function OnboardingFlow({
   }
 
   const defaultRegion =
-    onboarding.regionId && onboarding.regionName
-      ? { regionId: onboarding.regionId, regionName: onboarding.regionName }
+    !forceRegionSelection && onboarding.regionId && onboarding.regionName
+      ? {
+          regionId: onboarding.regionId,
+          regionName: onboarding.regionName,
+          ...(onboarding.latitude !== null && onboarding.longitude !== null
+            ? { latitude: onboarding.latitude, longitude: onboarding.longitude }
+            : {}),
+        }
       : null;
 
   return <RegionStep defaultValue={defaultRegion} onComplete={handleRegionComplete} />;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
-import { findRegionCenter, getRegionDisplayName } from "@/app/_lib/region-center";
+import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region";
+import { getRegionDisplayName } from "@/app/_lib/region-center";
 import { ROUTES } from "@/app/_lib/routes";
 import { loadInitialNearbyStores } from "./_initial-nearby";
 import { StoresMapView } from "./_map-view";
@@ -20,10 +20,14 @@ export const metadata: Metadata = {
 };
 
 export default async function StoresPage() {
-  const region = await getSelectedRegion();
-  const center = region ? findRegionCenter(region.regionName) : null;
+  let region = null;
+  try {
+    region = await getVerifiedSelectedRegion();
+  } catch {
+    // 기존 선택값의 좌표 복원이 실패하면 고정 좌표로 대체하지 않는다.
+  }
 
-  if (!region || !center) {
+  if (!region) {
     return (
       <div className="flex h-full items-center justify-center px-4 text-center" role="alert">
         <div className="flex max-w-72 flex-col items-center gap-3">
@@ -32,7 +36,7 @@ export default async function StoresPage() {
             동네를 다시 선택하면 주변 가게를 보여 드릴게요.
           </p>
           <Link
-            href={ROUTES.onboarding}
+            href={{ pathname: ROUTES.onboarding, query: { selectRegion: "1" } }}
             className="rounded-lg bg-action-primary-default px-4 py-2 text-body-14-semibold text-content-inverse active:bg-action-primary-pressed"
           >
             동네 다시 선택
@@ -42,6 +46,7 @@ export default async function StoresPage() {
     );
   }
 
+  const center = { lat: region.latitude, lng: region.longitude };
   const initialNearbyState = await loadInitialNearbyStores(center);
   return (
     <StoresMapView
