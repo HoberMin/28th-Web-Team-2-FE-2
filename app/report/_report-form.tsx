@@ -7,7 +7,7 @@ import { Button } from "@/app/_components/button";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
-import { submitReportAction } from "./_actions";
+import { submitReportAction, uploadReportPhotoAction } from "./_actions";
 import {
   FieldInput,
   FieldSelect,
@@ -55,10 +55,10 @@ import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo
 //  · **reportType을 "PURCHASE"로 고정한다.** Figma 어디에도 "구매/목격"을 고르는 토글이 없다.
 //    유일하게 UI가 있는 흐름(사진 찍어 가격 입력)이 "실제로 산 가격 확인"에 가깝다고 보고
 //    골랐다 — 토글이 생기면 `_actions.ts`의 `FIXED_REPORT_TYPE` 하나만 바꾸면 된다.
-//  · **현재 제출 API에는 photoUrl만 있고 바이너리 업로드 계약이 없다.** 사진 원본은 품목·장소
-//    화면을 다녀와도 잃지 않도록 `_lib/photo-draft.ts`의 IndexedDB에 임시 보관한다. 백엔드가
-//    multipart 업로드 계약을 내면 `handleSubmit`의 단일 제출 어댑터에서 이 File을 FormData에
-//    함께 붙이면 된다. 지금은 존재하지 않는 업로드 엔드포인트를 프런트에서 지어내지 않는다.
+//  · **사진 업로드가 붙었다**(2026-08-20, `POST /api/v1/images`). 제출은 2단계다 —
+//    사진을 먼저 올려 `imageUrl`을 받고, 그 URL을 제보 생성의 `photoUrl`로 넘긴다.
+//    사진 원본은 품목·장소 화면을 다녀와도 잃지 않도록 `_lib/photo-draft.ts`의 IndexedDB에
+//    계속 임시 보관한다. 업로드 실패는 제보를 막지 않는다(사진은 선택 입력이다).
 //  · **F04-2 카테고리 매핑**(한글 7종 ↔ Spring `ItemCategory`)은 `_data.ts`가 `(tabs)/prices`의
 //    기존 `PRICE_GROUPS` 매핑을 재사용한다 — 판단 근거는 그 파일 머리말 참고.
 //
@@ -193,12 +193,31 @@ export function ReportForm({
     setIsSubmitting(true);
     setSubmitError("");
     try {
+      // 사진이 있으면 먼저 올려 URL을 받는다(`POST /api/v1/images` → 그 다음 제보 생성).
+      // **업로드 실패로 제보 자체를 막지 않는다** — 사진은 선택 입력이라, 실패하면 안내만 남기고
+      // 사진 없이 제보를 이어 간다. 유일한 예외가 로그인 만료로, 그건 제보도 어차피 못 한다.
+      let photoUrl: string | undefined;
+      if (photo?.file) {
+        const form = new FormData();
+        form.append("image", photo.file);
+        const uploaded = await uploadReportPhotoAction(form);
+        if (uploaded.status === "success") {
+          photoUrl = uploaded.imageUrl;
+        } else if (uploaded.status === "unauthorized") {
+          setSubmitError(uploaded.message);
+          return;
+        } else {
+          setPhotoError(uploaded.message);
+        }
+      }
+
       const result = await submitReportAction({
         itemId,
         store,
         price: Number(digitsOnly(price)),
         amount: Number(amount),
         unit,
+        photoUrl,
       });
       if (result.status === "success") {
         await clearReportPhoto();
