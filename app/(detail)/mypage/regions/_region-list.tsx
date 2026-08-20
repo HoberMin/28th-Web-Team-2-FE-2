@@ -30,11 +30,11 @@ export function RegionList({ regions }: RegionListProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  function handleSwitch(regionId: string) {
+  function handleSwitch(regionId: string, regionName: string) {
     setMessage(null);
     setPendingRegionId(regionId);
     startTransition(async () => {
-      const result = await switchCurrentRegionAction(regionId);
+      const result = await switchCurrentRegionAction(regionId, regionName);
       setPendingRegionId(null);
       if (result.ok) {
         router.refresh();
@@ -55,7 +55,11 @@ export function RegionList({ regions }: RegionListProps) {
               aria-current={region.isCurrent || undefined}
               disabled={region.isCurrent || pendingRegionId !== null}
               badge={region.isCurrent ? <CurrentRegionBadge /> : undefined}
-              onClick={region.isCurrent ? undefined : () => handleSwitch(region.regionId)}
+              onClick={
+                region.isCurrent
+                  ? undefined
+                  : () => handleSwitch(region.regionId, region.regionName)
+              }
             />
           </li>
         ))}

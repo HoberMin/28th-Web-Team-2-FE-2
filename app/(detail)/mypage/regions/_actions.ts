@@ -5,12 +5,22 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { clearTokens, getAccessToken } from "@/app/_lib/api/auth/session";
 import { regionIdSchema } from "@/app/_lib/api/schemas/regions";
 import { addUserRegion, setCurrentUserRegion } from "@/app/_lib/api/server/regions";
+import {
+  resolveSelectedRegionCoordinates,
+  saveSelectedRegion,
+} from "@/app/_lib/api/server/selected-region";
 import { ROUTES } from "@/app/_lib/routes";
 
 // "내 동네 관리"(F05 하위, Figma 시안 없음) 전용 Server Action. 이미 완성된 서버 fetch
 // 함수(`server/regions.ts`)를 그대로 호출한다 — Route Handler(`app/api/regions/me*`)는
 // 클라이언트 fetch 전용 경로라 여기서는 거치지 않는다. 에러 문구는 그 라우트의
 // `_user-regions-error.ts`와 같은 톤으로 맞춘다.
+//
+// ⚠️ Spring의 "현재 관심 지역"(`isCurrent`)과 홈·시세·가게 화면이 실제로 읽는 "선택 지역"
+// (`mg_region_*` 쿠키, `selected-region.ts`)은 서로 다른 상태다 — 비회원도 쓰는 로컬
+// 선택값이라 계정 상태와 자동으로 맞물리지 않는다(`client/regions.ts`의
+// `registerCurrentRegionAPI` 주석과 같은 구분). 그래서 전환 성공 후 쿠키도 같이
+// 갱신하지 않으면 Spring 쪽은 바뀌었는데 화면은 그대로인 상태가 된다.
 
 export type RegionActionResult = { ok: true } | { ok: false; message: string };
 
@@ -42,8 +52,16 @@ function parseRegionId(regionId: string): string | null {
   return parsed.success ? parsed.data : null;
 }
 
-/** 현재 동네 전환. 이미 등록된 동네끼리만 전환하므로 성공하면 두 화면 모두 갱신한다. */
-export async function switchCurrentRegionAction(regionId: string): Promise<RegionActionResult> {
+/**
+ * 현재 동네 전환. Spring 계정 상태를 바꾼 뒤, 홈·시세·가게가 실제로 읽는 선택 지역
+ * 쿠키도 같은 동네로 맞춘다(위 머리말 참고). 쿠키 갱신은 좌표 검색에 실패해도
+ * Spring 쪽 전환 자체는 이미 성공했으므로 실패로 취급하지 않는다 — 다음 재검색에서
+ * 복구된다(`getVerifiedSelectedRegion`과 같은 회복 경로).
+ */
+export async function switchCurrentRegionAction(
+  regionId: string,
+  regionName: string,
+): Promise<RegionActionResult> {
   const token = await requireToken();
   if (isResult(token)) return token;
 
@@ -74,9 +92,21 @@ export async function switchCurrentRegionAction(regionId: string): Promise<Regio
     return { ok: false, message: "동네를 전환하지 못했어요. 잠시 후 다시 시도해 주세요." };
   }
 
-  // 마이페이지 상단에도 현재 동네 이름이 보이므로 함께 무효화한다.
+  try {
+    const located = await resolveSelectedRegionCoordinates({
+      regionId: validRegionId,
+      regionName,
+    });
+    if (located) await saveSelectedRegion(located);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    console.error("선택 지역 쿠키 갱신 실패", { kind: error.kind, status: error.status });
+  }
+
+  // 마이페이지·홈·시세 등 선택 지역을 읽는 화면 전부 갱신 대상이라 홈까지 함께 무효화한다.
   revalidatePath(ROUTES.mypageRegions);
   revalidatePath(ROUTES.mypage);
+  revalidatePath(ROUTES.home);
   return { ok: true };
 }
 
