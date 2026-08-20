@@ -1,7 +1,10 @@
 import "server-only";
 
 import { ApiError } from "@/app/_lib/api/api-error";
-import { getItemDetail, getItems } from "@/app/_lib/api/server/items";
+import {
+  getItemDetailWithTemporaryFallback,
+  getItemsWithTemporaryFallback,
+} from "@/app/_lib/api/server/items-fallback";
 import { storeRequestSchema, type StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { PRICE_GROUPS, mapGroupToApi, normalizeGroup } from "@/app/(tabs)/prices/_query";
 import type { VegetableGroup } from "@/app/_lib/types";
@@ -46,7 +49,7 @@ export async function getReportVegetables(params: {
   category?: VegetableGroup;
   keyword?: string;
 }): Promise<ReportVegetableOption[]> {
-  const page = await getItems({
+  const { page } = await getItemsWithTemporaryFallback({
     regionId: params.regionId,
     token: params.token,
     category: params.keyword ? undefined : mapGroupToApi(params.category),
@@ -76,7 +79,7 @@ export async function getReportVegetable(params: {
   token: string | undefined;
 }): Promise<ReportVegetableOption | undefined> {
   try {
-    const detail = await getItemDetail(params);
+    const { detail } = await getItemDetailWithTemporaryFallback(params);
     return toReportVegetableOption(detail);
   } catch (error) {
     if (
