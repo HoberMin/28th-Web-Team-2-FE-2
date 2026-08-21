@@ -101,11 +101,26 @@ async function reissueTokens(refreshToken: string): Promise<ReissueOutcome> {
  * 세션 종료 — 요청·응답 쿠키를 **둘 다** 지운다.
  * 응답 쿠키만 지우면 이번 렌더의 RSC가 죽은 토큰을 그대로 읽어 401 에러 화면이 뜬다.
  */
-function signOut(request: NextRequest, alsoRefresh: boolean): NextResponse {
+function shouldRedirectToOnboarding(request: NextRequest): boolean {
+  return (
+    request.nextUrl.pathname !== "/onboarding" &&
+    !request.nextUrl.pathname.startsWith("/api/") &&
+    (request.headers.get("accept")?.includes("text/html") === true ||
+      request.headers.get("RSC") === "1")
+  );
+}
+
+function signOut(
+  request: NextRequest,
+  alsoRefresh: boolean,
+  redirectToOnboarding = false,
+): NextResponse {
   request.cookies.delete(ACCESS_TOKEN_COOKIE);
   if (alsoRefresh) request.cookies.delete(REFRESH_TOKEN_COOKIE);
 
-  const response = NextResponse.next({ request });
+  const response = redirectToOnboarding
+    ? NextResponse.redirect(new URL("/onboarding", request.url))
+    : NextResponse.next({ request });
   response.cookies.delete(ACCESS_TOKEN_COOKIE);
   if (alsoRefresh) response.cookies.delete(REFRESH_TOKEN_COOKIE);
   return response;
@@ -138,7 +153,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return backedOff;
   }
 
-  if (outcome.status === "rejected") return signOut(request, true);
+  if (outcome.status === "rejected") {
+    return signOut(request, true, shouldRedirectToOnboarding(request));
+  }
 
   // 요청 쿠키까지 바꿔야 **이번 렌더의 RSC가** 새 토큰을 읽는다.
   // 응답 쿠키만 세팅하면 다음 요청부터 적용돼 이번 화면은 만료된 토큰으로 그려진다.

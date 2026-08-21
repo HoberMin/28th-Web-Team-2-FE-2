@@ -19,6 +19,8 @@ function sessionRequest(params: {
   accessToken?: string;
   refreshToken?: string;
   backoff?: boolean;
+  path?: string;
+  accept?: string;
 }): NextRequest {
   const cookies = [
     params.accessToken ? `${ACCESS_TOKEN_COOKIE}=${params.accessToken}` : null,
@@ -26,8 +28,11 @@ function sessionRequest(params: {
     params.backoff ? `${REISSUE_BACKOFF_COOKIE}=1` : null,
   ].filter((value): value is string => value !== null);
 
-  return new NextRequest("https://app.example.com/prices", {
-    headers: cookies.length > 0 ? { Cookie: cookies.join("; ") } : undefined,
+  return new NextRequest(`https://app.example.com${params.path ?? "/prices"}`, {
+    headers: {
+      ...(cookies.length > 0 ? { Cookie: cookies.join("; ") } : {}),
+      ...(params.accept ? { Accept: params.accept } : { Accept: "text/html" }),
+    },
   });
 }
 
@@ -126,6 +131,37 @@ describe("auth proxy", () => {
     expect(request.cookies.get(REFRESH_TOKEN_COOKIE)).toBeUndefined();
     expect(response.headers.get("set-cookie")).toContain(`${ACCESS_TOKEN_COOKIE}=`);
     expect(response.headers.get("set-cookie")).toContain(`${REFRESH_TOKEN_COOKIE}=`);
+  });
+
+  it("페이지 요청에서 세션이 끝나면 /onboarding으로 이동한다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ message: "expired" }, { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await proxy(
+      sessionRequest({ accessToken: "invalid", refreshToken: "stored-refresh" }),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://app.example.com/onboarding");
+  });
+
+  it("API 요청에서 세션이 끝나면 리다이렉트하지 않는다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockResolvedValueOnce(Response.json({ message: "expired" }, { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await proxy(
+      sessionRequest({
+        path: "/api/items",
+        accept: "application/json",
+        accessToken: "invalid",
+        refreshToken: "stored-refresh",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
   });
 
   it("안전하지 않은 base URL 설정은 통신 실패로 숨기지 않고 거부한다", async () => {
