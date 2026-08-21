@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
-import { findRegionCenter } from "@/app/_lib/region-center";
+import {
+  getSelectedRegion,
+  resolveSelectedRegionCoordinates,
+} from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "../_components/report-header";
@@ -45,8 +47,18 @@ import { ReportPlaceMap } from "./_report-place-map";
 //                    → 시트 높이를 고정하고 목록만 스크롤시킨다.
 //   행(364:8300)   — "탭한 즉시 F04-1_야채 제보로 이동" → 행 전체가 Link이고 즉시 확정된다(CTA 없음).
 //
-// 선택 지역 쿠키의 동명을 행정동 중심 좌표로 변환해 JS SDK 장소 검색에 사용한다.
-// 지역 매칭이나 검색이 실패하면 가짜 가게를 만들지 않고 선택을 막는다.
+// 선택 지역 쿠키의 **실제 좌표**를 JS SDK 장소 검색에 쓴다. 예전에는 지역명을 로컬 행정동
+// 목록과 이름으로 재매칭했는데, Spring이 주는 지역명은 법정동 기준이라(역삼동 하나가
+// 역삼1동·역삼2동처럼 행정동 여러 개로 쪼개지는 경우 등) 매칭이 자주 실패했다 —
+// `/stores`가 애초에 이 재매칭을 안 거쳐서 멀쩡했던 것과 같은 이유.
+//
+// ⚠️ `/stores`가 쓰는 `getVerifiedSelectedRegion`이 아니라 `resolveSelectedRegionCoordinates`를
+//    직접 쓴다. 전자는 복구한 좌표를 쿠키에 되쓰는데 **RSC 렌더 중 `cookies().set`은 Next가
+//    막는다**("Cookies can only be modified in a Server Action or Route Handler" — `auth-session` §3).
+//    좌표 없는 옛 쿠키를 가진 사용자에게 그 쓰기가 그대로 터져 안내 문구 대신 에러 화면이 뜬다.
+//    저장 없는 복구만 쓰면 이 화면에서는 매 요청 재검색이지만(`/regions/search`는 하루 캐시)
+//    화면은 정상 동작한다. 재검색 자체의 실패(Spring 장애 등)도 `.catch`로 흡수한다.
+// 좌표 복구가 실패하면 가짜 가게를 만들지 않고 선택을 막는다.
 // 로딩은 `loading.tsx`, 빈 결과와 검색 장애는 목록 영역의 상태 문구로 보여 준다.
 
 export const metadata: Metadata = {
@@ -60,7 +72,12 @@ interface ReportPlacePageProps {
 export default async function ReportPlacePage({ searchParams }: ReportPlacePageProps) {
   const { item } = await searchParams;
   const region = await getSelectedRegion();
-  const center = region ? findRegionCenter(region.regionName) : null;
+  const resolvedRegion = region
+    ? await resolveSelectedRegionCoordinates(region).catch(() => null)
+    : null;
+  const center = resolvedRegion
+    ? { lat: resolvedRegion.latitude, lng: resolvedRegion.longitude }
+    : null;
   const unavailableMessage = !region
     ? "동네를 먼저 선택해 주세요."
     : !center
