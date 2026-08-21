@@ -84,6 +84,10 @@ export interface ReportFormProps {
   placeName?: string;
   /** 선택값을 물고 다니기 위한 현재 쿼리스트링(품목·장소 화면으로 넘길 때 붙인다). */
   carryQuery: string;
+  /** URL의 `price`(숫자 문자열) — 장소 화면을 다녀와도 입력값이 살아남게 하는 값. */
+  initialPrice?: string;
+  /** URL의 `amount`(숫자 문자열). */
+  initialAmount?: string;
 }
 
 type PhotoState = { file: File; url: string; scanning: boolean } | null;
@@ -109,6 +113,8 @@ export function ReportForm({
   store,
   placeName,
   carryQuery,
+  initialPrice,
+  initialAmount,
 }: ReportFormProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -116,8 +122,8 @@ export function ReportForm({
   const scanTimerRef = useRef<number | null>(null);
   const [photo, setPhoto] = useState<PhotoState>(null);
   const [photoError, setPhotoError] = useState("");
-  const [price, setPrice] = useState("");
-  const [amount, setAmount] = useState("");
+  const [price, setPrice] = useState(() => formatPriceInput(initialPrice ?? ""));
+  const [amount, setAmount] = useState(() => digitsOnly(initialAmount ?? ""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const reportUnit = getExactReportUnit(unitType);
