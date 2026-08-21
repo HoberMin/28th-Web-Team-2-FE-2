@@ -21,6 +21,15 @@ import { useEffect, useState, type ReactNode } from "react";
 /** 본문 스크롤 컨테이너의 id. `page.tsx`의 `<main>`이 이 값을 단다. */
 export const PRICE_DETAIL_SCROLL_ID = "price-detail-scroll";
 
+/**
+ * 헤더 높이(px). Figma `header/vegetable-detail`(639:8119) 실측 **49**.
+ *
+ * 스크롤하면 이 헤더가 본문 위에 겹쳐 뜨므로, 같이 상단에 고정되는 `tab/bar`는 이만큼
+ * 아래에 붙어야 한다 — Figma도 헤더 44~93 · 탭 92~136으로 **위아래로 쌓아** 두었다.
+ * 두 값이 어긋나면 탭이 헤더 뒤로 숨는다.
+ */
+export const PRICE_DETAIL_HEADER_HEIGHT = 49;
+
 export interface PriceDetailHeaderProps {
   /** 항상 보이는 뒤로가기 버튼. */
   backButton: ReactNode;

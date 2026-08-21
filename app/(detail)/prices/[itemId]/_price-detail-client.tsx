@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { SheetHandle } from "@/app/_components/sheet-handle";
+import { PRICE_DETAIL_HEADER_HEIGHT } from "./_detail-header";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import type { PricePeriod, PricePoint } from "@/app/_lib/types";
@@ -43,7 +44,8 @@ export function PriceSectionNav() {
     if (!scroller) return;
 
     const nav = scroller.querySelector<HTMLElement>('nav[aria-label="시세 상세 섹션"]');
-    const activationOffset = Math.max(nav?.offsetHeight ?? 44, scroller.clientHeight * 0.45);
+    const stickyOffset = (nav?.offsetHeight ?? 44) + PRICE_DETAIL_HEADER_HEIGHT;
+    const activationOffset = Math.max(stickyOffset, scroller.clientHeight * 0.45);
     const scrollerTop = scroller.getBoundingClientRect().top;
     const sectionTop = (section: HTMLElement) =>
       section.getBoundingClientRect().top - scrollerTop + scroller.scrollTop;
@@ -60,7 +62,7 @@ export function PriceSectionNav() {
     const hashId = window.location.hash.slice(1);
     const hashSection = sections.find((section) => section.id === hashId);
     if (hashSection) {
-      scroller.scrollTo({ top: sectionTop(hashSection) - (nav?.offsetHeight ?? 44) });
+      scroller.scrollTo({ top: sectionTop(hashSection) - stickyOffset });
     }
     updateActiveSection();
     scroller.addEventListener("scroll", updateActiveSection, { passive: true });
@@ -81,7 +83,7 @@ export function PriceSectionNav() {
       section.getBoundingClientRect().top -
       scroller.getBoundingClientRect().top +
       scroller.scrollTop -
-      (nav?.offsetHeight ?? 44);
+      ((nav?.offsetHeight ?? 44) + PRICE_DETAIL_HEADER_HEIGHT);
     setActive(id);
     window.history.replaceState(null, "", `#${id}`);
     scroller.scrollTo({ top, behavior: "smooth" });
@@ -96,7 +98,10 @@ export function PriceSectionNav() {
     //     default   border-b-**1** border/secondary · body/16-medium   · content/disabled
     <nav
       aria-label="시세 상세 섹션"
-      className="sticky top-0 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4"
+      // top-12.25(49px) — 스크롤하면 나타나는 헤더 **아래에** 붙는다. top-0으로 두면 헤더(z-20)가
+      // 이 탭을 완전히 덮어 "스티키가 사라진" 것처럼 보인다. Figma도 헤더 44~93 · 탭 92~136으로
+      // 위아래로 쌓아 두었다(639:8119 · 639:11447).
+      className="sticky top-12.25 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4"
     >
       {DETAIL_SECTIONS.map(({ id, label }) => (
         <a
@@ -136,7 +141,7 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
   const visible = sorted.slice(0, 3);
 
   return (
-    <section id="neighborhood-prices" className="scroll-mt-12 px-4 py-8">
+    <section id="neighborhood-prices" className="scroll-mt-23.25 px-4 py-8">
       <div
         role="group"
         aria-label="동네 제보가 정렬"
@@ -375,7 +380,7 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
   const chart = buildChart(points);
 
   return (
-    <section id="public-price" className="scroll-mt-12 px-4 py-8">
+    <section id="public-price" className="scroll-mt-23.25 px-4 py-8">
       <div
         role="group"
         aria-label="공공 시세 조회 기간"

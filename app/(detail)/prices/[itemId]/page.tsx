@@ -184,7 +184,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
           {publicPriceSeries ? <PublicPriceChart series={publicPriceSeries} /> : null}
           <div className="h-2 bg-border-secondary" />
 
-          <section id="online-prices" className="scroll-mt-12 px-4 py-8">
+          <section id="online-prices" className="scroll-mt-23.25 px-4 py-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between rounded-md border border-border-primary p-3">
                 <span className="text-body-14-medium text-content-secondary">최근 동네 제보가</span>
