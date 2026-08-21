@@ -1,0 +1,140 @@
+diff --git a/external/kakao-client/src/main/java/com/example/demo/external/kakao/feign/KakaoResponseDecoder.java b/external/kakao-client/src/main/java/com/example/demo/external/kakao/feign/KakaoResponseDecoder.java
+index 543a239..5a0dbc0 100644
+--- a/external/kakao-client/src/main/java/com/example/demo/external/kakao/feign/KakaoResponseDecoder.java
++++ b/external/kakao-client/src/main/java/com/example/demo/external/kakao/feign/KakaoResponseDecoder.java
+@@ -52,8 +52,7 @@ public final class KakaoResponseDecoder implements Decoder {
+ 
+     private ObjectNode normalize(final JsonNode root, final Type type) {
+         validateEnvelope(root, type);
+-        final JsonNode documents = root.get(DOCUMENTS);
+-        validateDocuments(documents, type);
++        final JsonNode documents = usableDocuments(root.get(DOCUMENTS), type);
+         final ObjectNode normalized = root.deepCopy();
+         final JsonNode meta = root.get(META);
+         normalized.set(TOTAL_COUNT_CAMEL_CASE, meta.get(TOTAL_COUNT));
+@@ -101,8 +100,59 @@ public final class KakaoResponseDecoder implements Decoder {
+         }
+     }
+ 
+-    private void validateDocuments(final JsonNode documents, final Type type) {
+-        documents.forEach(document -> validateDocument(document, type));
++    /**
++     * 카카오 주소 검색은 한 응답 안에 <b>법정동 정보가 없는 문서를 정상적으로</b> 섞어 내려준다.
++     * 도로명으로만 매칭돼 {@code address}가 null인 결과와, 동이 없어
++     * {@code region_3depth_name}이 빈 문자열인 시·구 단위 결과가 그렇다.
++     * 이는 외부 API 장애가 아니므로 해당 문서만 버리고 나머지는 그대로 쓴다.
++     *
++     * <p>예전에는 배열 전체를 엄격 검증해 한 건만 어긋나도 502를 던졌다. 그 결과
++     * 후보가 많은 검색어("서초"·"역삼"·"강남" 등)가 통째로 실패했다.
++     *
++     * <p>완화는 <b>형태 차이에만</b> 적용한다. 남은 문서의 좌표 범위·필수 필드는 예전처럼
++     * 엄격히 검증해 이상이면 502를 던지고, 응답 구조 자체가 깨진 경우는
++     * {@link #validateEnvelope}가 막는다. 좌표→행정구역과 장소 검색은 결과 형태가 균일해
++     * 필수 필드 누락이 곧 이상 신호이므로 완화 대상이 아니다.
++     */
++    private JsonNode usableDocuments(final JsonNode documents, final Type type) {
++        if (type != KakaoAddressSearchResult.class) {
++            documents.forEach(document -> validateDocument(document, type));
++            return documents;
++        }
++        final var usable = objectMapper.createArrayNode();
++        documents.forEach(document -> {
++            if (!carriesLegalRegion(document)) {
++                return;
++            }
++            validateDocument(document, type);
++            usable.add(document);
++        });
++        return usable;
++    }
++
++    /**
++     * 법정동(지번) 정보를 담은 문서인지. 담고 있지 않은 것은 오류가 아니라 "쓸 수 없음"이다.
++     *
++     * <p>판정 대상은 <b>형태를 갖춘 문서</b>뿐이다. 최상위 필수 필드조차 없는 문서(빈 객체 등)는
++     * 카카오의 정상 변형이 아니라 이상 응답이므로 {@code true}를 돌려 엄격 검증(502)으로 넘긴다.
++     */
++    private boolean carriesLegalRegion(final JsonNode document) {
++        if (document == null || !document.isObject()) {
++            return true;
++        }
++        if (!isNonBlankText(document, "address_name") || !isNonBlankText(document, "address_type")) {
++            return true;
++        }
++        final JsonNode detail = document.get("address");
++        if (detail == null || !detail.isObject()) {
++            return false;
++        }
++        return isNonBlankText(detail, "region_3depth_name");
++    }
++
++    private boolean isNonBlankText(final JsonNode document, final String field) {
++        final JsonNode value = document.get(field);
++        return value != null && value.isTextual() && !value.textValue().isBlank();
+     }
+ 
+     private void validateDocument(final JsonNode document, final Type type) {
+diff --git a/external/kakao-client/src/test/java/com/example/demo/external/kakao/feign/KakaoResponseDecoderTest.java b/external/kakao-client/src/test/java/com/example/demo/external/kakao/feign/KakaoResponseDecoderTest.java
+index 2310ee2..2bdc7f1 100644
+--- a/external/kakao-client/src/test/java/com/example/demo/external/kakao/feign/KakaoResponseDecoderTest.java
++++ b/external/kakao-client/src/test/java/com/example/demo/external/kakao/feign/KakaoResponseDecoderTest.java
+@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
+ 
+ import com.example.demo.common.exception.ApiException;
+ import com.example.demo.common.exception.ErrorType;
++import com.example.demo.external.kakao.KakaoAddressSearchResult;
+ import com.example.demo.external.kakao.KakaoCategorySearchResult;
+ import com.example.demo.external.kakao.KakaoRegionCodeResult;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+@@ -120,6 +121,51 @@ class KakaoResponseDecoderTest {
+                 .isInstanceOfSatisfying(ApiException.class, this::assertExternalApiException);
+     }
+ 
++    @Test
++    void 도로명으로만_매칭돼_address가_null인_문서는_버리고_나머지를_반환한다() throws Exception {
++        final var result = decode(
++                "{\"meta\":{\"total_count\":2},\"documents\":["
++                        + "{\"address_name\":\"서울 서초구 반포대로 58\",\"address_type\":\"ROAD_ADDR\","
++                        + "\"x\":\"127.0100\",\"y\":\"37.4900\",\"address\":null,"
++                        + "\"road_address\":{\"address_name\":\"서울 서초구 반포대로 58\"}},"
++                        + "{\"address_name\":\"서울 서초구 서초동\",\"address_type\":\"REGION\","
++                        + "\"x\":\"127.0276\",\"y\":\"37.4979\","
++                        + "\"address\":{\"address_name\":\"서울 서초구 서초동\","
++                        + "\"region_1depth_name\":\"서울\",\"region_2depth_name\":\"서초구\","
++                        + "\"region_3depth_name\":\"서초동\",\"b_code\":\"1165010800\"}}]}",
++                KakaoAddressSearchResult.class);
++
++        assertThat(result.addresses()).singleElement().satisfies(address ->
++                assertThat(address.address().bCode()).isEqualTo("1165010800"));
++    }
++
++    @Test
++    void 동이_없는_시_구_단위_문서는_버리고_나머지를_반환한다() throws Exception {
++        final var result = decode(
++                "{\"meta\":{\"total_count\":2},\"documents\":["
++                        + "{\"address_name\":\"서울 종로구\",\"address_type\":\"REGION\","
++                        + "\"x\":\"126.9790\",\"y\":\"37.5735\","
++                        + "\"address\":{\"address_name\":\"서울 종로구\","
++                        + "\"region_1depth_name\":\"서울\",\"region_2depth_name\":\"종로구\","
++                        + "\"region_3depth_name\":\"\",\"b_code\":\"1111000000\"}},"
++                        + "{\"address_name\":\"서울 종로구 청운동\",\"address_type\":\"REGION\","
++                        + "\"x\":\"126.9707\",\"y\":\"37.5874\","
++                        + "\"address\":{\"address_name\":\"서울 종로구 청운동\","
++                        + "\"region_1depth_name\":\"서울\",\"region_2depth_name\":\"종로구\","
++                        + "\"region_3depth_name\":\"청운동\",\"b_code\":\"1111010100\"}}]}",
++                KakaoAddressSearchResult.class);
++
++        assertThat(result.addresses()).singleElement().satisfies(address ->
++                assertThat(address.address().region3DepthName()).isEqualTo("청운동"));
++    }
++
++    @Test
++    void 응답_구조_자체가_깨지면_여전히_502로_막는다() {
++        assertThatThrownBy(() -> decode(
++                        "{\"documents\":[]}", KakaoAddressSearchResult.class))
++                .isInstanceOfSatisfying(ApiException.class, this::assertExternalApiException);
++    }
++
+     private void assertExternalApiException(final ApiException exception) {
+         assertThat(exception.errorType())
+                 .isEqualTo(ErrorType.EXTERNAL_API_ERROR);
