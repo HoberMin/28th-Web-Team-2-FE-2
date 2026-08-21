@@ -33,11 +33,8 @@ const ITEMS: NavGnbItem[] = [
   {
     href: ROUTES.mypage,
     label: "내 정보",
-    // Figma 실측(nav/gnb 342:16909): person-fill 글리프는 24×24 슬롯 안에
-    // inset(left 2.24 · top 2.21)으로 20×20 정도만 채운다. `currentColor` 마스크는
-    // mask-size:contain이라 원본 SVG(19.52×20.15, 자체 padding 없음)를 24×24로 그대로
-    // 채우면 다른 아이콘보다 커 보인다 — 20으로 낮춰 Figma의 여백을 재현한다.
-    icon: <FigmaIcon name="person-fill" width={20} currentColor />,
+    // 전달받은 person-fill 원본을 Figma의 24×24 GNB 슬롯에 그대로 적용한다.
+    icon: <FigmaIcon name="person-fill" width={24} currentColor />,
   },
 ];
 
