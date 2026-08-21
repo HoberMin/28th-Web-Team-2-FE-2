@@ -10,7 +10,7 @@ import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getNewsWithTemporaryFallback } from "@/app/_lib/api/server/news-fallback";
 import { getRegionLowestPricesWithTemporaryFallback } from "@/app/_lib/api/server/reports-fallback";
 import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
-import { getRecommendedStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
+import { getRecommendedStores } from "@/app/_lib/api/server/stores";
 
 // F01 홈 — Figma `화면GUI` 298:3477(F01_홈) · 298:3509(F01_홈_더보기).
 //
@@ -59,14 +59,13 @@ export default async function HomePage() {
 
   const [newsItems, recommendation, lowestPrices] = await Promise.all([
     loadHomeNewsItems(async () => (await getNewsWithTemporaryFallback()).articles),
+    // ⚠️ `getRecommendedStoresWithTemporaryFallback`을 쓰지 않는다 — 그 더미의 storeId
+    // (`storeIdForIndex` = 1,2,3…)가 라이브 실제 storeId와 겹친다. 카드는 더미 가게 이름을
+    // 보여주지만 눌러서 `/stores/{storeId}`로 들어가면 그 id의 **진짜 다른 가게**가 뜬다 —
+    // `/stores` 지도 목록에서 발견한 것과 똑같은 버그다(2026-08-21). 진짜 빈 결과는
+    // `SectionRecommendedStore`의 "아직 추천할 가게가 없어요" 빈 상태가 처리한다.
     region
-      ? sectionData("추천 가게", async () => {
-          const { stores } = await getRecommendedStoresWithTemporaryFallback({
-            regionId: region.regionId,
-            token,
-          });
-          return stores;
-        })
+      ? sectionData("추천 가게", () => getRecommendedStores({ regionId: region.regionId, token }))
       : Promise.resolve(null),
     region
       ? sectionData("동네 최저가", async () => {
