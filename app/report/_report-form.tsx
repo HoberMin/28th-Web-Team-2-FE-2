@@ -17,13 +17,13 @@ import {
   FieldInput,
   FieldSelect,
   FieldUnitDisplay,
+  type ReportUnit,
 } from "./_components/field-price";
 import { PhotoDropzone } from "./_components/photo-dropzone";
 import { PhotoPreview } from "./_components/photo-preview";
 import { ReportCtaFooter } from "./_components/report-cta-footer";
 import { ScanModal } from "./_components/scan-modal";
 import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo-draft";
-import { getExactReportUnit } from "./_lib/report-unit";
 
 // 실측 출처: 장보고 Design `d5j7K9BNpSXxVUu3fmZfY4` / `화면GUI(원본)` 364:6742 — 상세는 `app/report/page.tsx` 머리말.
 
@@ -51,8 +51,7 @@ import { getExactReportUnit } from "./_lib/report-unit";
 //  · **인식 성공 시 품목·가격을 자동 입력한다는 안내문구가 dropzone에 있지만 그 동작 정의가 없다.**
 //    백엔드가 실제로 반환한 품목·가격·수량 후보만 자동 입력하고, 사용자가 수정할 수 있게 한다.
 //  · 인식 **실패** 상태가 없다. 파일 로드가 실패하면 모달을 닫고 사진을 버린다.
-//  · 단위는 품목 API의 `defaultUnit`을 그대로 표시·제출한다. Spring이 이 문자열과 정확히
-//    일치하는 값만 저장하므로 `1kg`을 `kg`으로 줄이거나 임의 단위로 바꾸지 않는다.
+//  · 단위는 `kg`·`g`·`개`·`포기` 중 사용자가 선택해 제보한다.
 //  · CTA "확인"의 이동 대상이 명시돼 있지 않다 → F04-4 제보 완료로 보냈다(플로우상 유일한 전진 경로).
 //
 // ── 2026-08-19: 실 Spring 연동으로 코드가 새로 내린 판단 ────────────────────────
@@ -89,6 +88,8 @@ export interface ReportFormProps {
   initialPrice?: string;
   /** URL의 `amount`(숫자 문자열). */
   initialAmount?: string;
+  /** URL의 `unit`(선택 단위). */
+  initialUnit?: string;
 }
 
 type PhotoState = {
@@ -113,6 +114,11 @@ function formatPriceInput(value: string): string {
   return digits ? Number(digits).toLocaleString("ko-KR") : "";
 }
 
+function normalizeReportUnit(unit: string | undefined): ReportUnit | undefined {
+  const match = unit?.trim().match(/(kg|g|개|포기)$/);
+  return match?.[1] as ReportUnit | undefined;
+}
+
 /**
  * "판매 장소" 화면으로 나갈 때 현재 입력한 가격·양을 쿼리에 얹는다.
  *
@@ -123,11 +129,12 @@ function formatPriceInput(value: string): string {
  * 가격도 그 품목 기준으로 다시 입력해야 해서, 폼을 통째로 리셋하는 기존 동작
  * (`page.tsx`의 `key={itemId}`)이 맞다.
  */
-function buildPlaceQuery(carryQuery: string, price: string, amount: string): string {
+function buildPlaceQuery(carryQuery: string, price: string, amount: string, unit?: ReportUnit): string {
   const params = new URLSearchParams(carryQuery.startsWith("?") ? carryQuery.slice(1) : carryQuery);
   const priceDigits = digitsOnly(price);
   if (priceDigits) params.set("price", priceDigits);
   if (amount.trim()) params.set("amount", amount);
+  if (unit) params.set("unit", unit);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -151,6 +158,7 @@ export function ReportForm({
   carryQuery,
   initialPrice,
   initialAmount,
+  initialUnit,
 }: ReportFormProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -159,13 +167,14 @@ export function ReportForm({
   const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState(() => formatPriceInput(initialPrice ?? ""));
   const [amount, setAmount] = useState(() => digitsOnly(initialAmount ?? ""));
+  const [reportUnit, setReportUnit] = useState<ReportUnit | undefined>(() =>
+    normalizeReportUnit(initialUnit) ?? normalizeReportUnit(unitType),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
   const selectedItemId = itemId ?? detectedItem?.itemId;
   const selectedVegetableName = vegetableName ?? detectedItem?.name;
-  const selectedUnitType = unitType ?? detectedItem?.unit;
-  const reportUnit = getExactReportUnit(selectedUnitType);
   const reportCarryQuery = buildItemQuery(carryQuery, selectedItemId);
 
   // 품목·장소 선택은 별도 라우트로 이동하므로 컴포넌트가 다시 마운트된다. 사진 원본은
@@ -267,6 +276,7 @@ export function ReportForm({
           name: parsed.data.item.name,
           unit: parsed.data.item.unit,
         });
+        setReportUnit(normalizeReportUnit(parsed.data.item.unit));
       }
       if (parsed.data.price?.value !== null && parsed.data.price?.value !== undefined) {
         setPrice(formatPriceInput(String(parsed.data.price.value)));
@@ -469,8 +479,8 @@ export function ReportForm({
                   onChange={(event) => setAmount(digitsOnly(event.target.value))}
                 />
                 <FieldUnitDisplay
-                  unit={reportUnit ?? "단위 없음"}
-                  aria-label={reportUnit ? `제보 단위 ${reportUnit}` : "제보 단위 없음"}
+                  unit={reportUnit}
+                  onChange={setReportUnit}
                 />
               </div>
             </FieldBlock>
@@ -479,7 +489,7 @@ export function ReportForm({
               <FieldSelect
                 value={placeName ?? "장소를 선택해 주세요"}
                 actionLabel={placeName ? "위치 변경" : "선택"}
-                href={`${ROUTES.reportPlace}${buildPlaceQuery(reportCarryQuery, price, amount)}`}
+                href={`${ROUTES.reportPlace}${buildPlaceQuery(reportCarryQuery, price, amount, reportUnit)}`}
                 ariaLabel={placeName ? `판매 장소 ${placeName}, 위치 변경` : "판매 장소 선택"}
               />
             </FieldBlock>

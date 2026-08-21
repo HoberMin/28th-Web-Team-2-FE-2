@@ -32,11 +32,11 @@ export const metadata: Metadata = {
 };
 
 interface ReportPageProps {
-  searchParams: Promise<{ item?: string; store?: string; price?: string; amount?: string }>;
+  searchParams: Promise<{ item?: string; store?: string; price?: string; amount?: string; unit?: string }>;
 }
 
 export default async function ReportPage({ searchParams }: ReportPageProps) {
-  const { item, store, price, amount } = await searchParams;
+  const { item, store, price, amount, unit } = await searchParams;
   const parsedItemId = item ? Number(item) : NaN;
   const itemId = Number.isSafeInteger(parsedItemId) ? parsedItemId : undefined;
   const selectedStore = parseCarriedStore(store);
@@ -55,6 +55,7 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
   const carry = new URLSearchParams();
   if (item) carry.set("item", item);
   if (store) carry.set("store", store);
+  if (unit) carry.set("unit", unit);
   const carryQuery = carry.size > 0 ? `?${carry.toString()}` : "";
 
   return (
@@ -92,6 +93,7 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
           // 다시 마운트돼도 가격·양이 지워지지 않게 URL에서 복원한다.
           initialPrice={price}
           initialAmount={amount}
+          initialUnit={unit}
         />
       </div>
     </main>

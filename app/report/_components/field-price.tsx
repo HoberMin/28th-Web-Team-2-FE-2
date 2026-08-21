@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
@@ -189,33 +189,74 @@ export function FieldSelect({
   );
 }
 
-export interface FieldUnitDisplayProps extends ComponentPropsWithoutRef<"div"> {
-  /** 품목 API의 defaultUnit 원문. 예: "1kg", "100g", "1개", "1포기". */
-  unit: string;
+export const REPORT_UNIT_OPTIONS = ["kg", "g", "개", "포기"] as const;
+export type ReportUnit = (typeof REPORT_UNIT_OPTIONS)[number];
+
+export interface FieldUnitDisplayProps {
+  unit?: ReportUnit;
+  onChange: (unit: ReportUnit) => void;
+  className?: string;
 }
 
 /**
- * Figma `field/unit-select` — 364:8167. 양 입력 오른쪽의 단위 표시.
+ * Figma `field/unit-select` — 364:8167. 양 입력 오른쪽의 단위 선택.
  *
  * 실측: 같은 박스 + justify-between · **w-[124px] 고정** ·
  *       라벨 body/16-**medium** content/primary(입력값과 굵기가 다르다)
  *
- * Spring 제보 저장은 `unit`이 품목의 `defaultUnit`과 문자열까지 같아야 한다. 따라서
- * `1kg`을 `kg`으로 줄이거나 다른 단위로 바꾸지 않고 API 원문을 그대로 표시한다.
- *
- * ── 2026-08-19 재실측 (node 429:18069 · 구 364:8167은 파일 재생성으로 소멸) ──────
- *  · 폭 124 · gap 4 · px-16 py-12 · radius/lg · 라벨 body/16-medium content/primary ·
- *    icon/chevron-down 16 — **위 실측값이 지금도 전부 맞다.**
- *  · API 계약상 단위를 선택할 수 없어 chevron은 렌더하지 않는다.
+ * 품목의 기본 단위가 있어도 사용자가 kg·g·개·포기 중 제보 단위를 선택할 수 있다.
  */
 export function FieldUnitDisplay({
   unit,
   className,
-  ...rest
+  onChange,
 }: FieldUnitDisplayProps) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className={cn(FIELD_BOX, "w-31 shrink-0", className)} {...rest}>
-      <span className="whitespace-nowrap text-body-16-medium text-content-primary">{unit}</span>
+    <div className={cn("relative w-31 shrink-0", className)}>
+      <button
+        type="button"
+        className={cn(
+          FIELD_BOX,
+          "w-full justify-between gap-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary",
+        )}
+        aria-label={unit ? `제보 단위 ${unit}` : "제보 단위 선택"}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className={cn("whitespace-nowrap text-body-16-medium", unit ? "text-content-primary" : "text-content-disabled")}>
+          {unit ?? "단위 선택"}
+        </span>
+        <FigmaIcon name="chevron-down" width={16} currentColor className="text-content-secondary" />
+      </button>
+      {open ? (
+        <div
+          role="listbox"
+          aria-label="제보 단위"
+          className="absolute inset-x-0 top-[calc(100%+4px)] z-20 overflow-hidden rounded-lg bg-surface-primary py-1 shadow-dropdown"
+        >
+          {REPORT_UNIT_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="option"
+              aria-selected={unit === option}
+              className={cn(
+                "flex w-full items-center px-4 py-2 text-left text-body-14-medium text-content-primary",
+                unit === option && "bg-surface-secondary",
+              )}
+              onClick={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
