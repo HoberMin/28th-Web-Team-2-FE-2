@@ -134,7 +134,7 @@ function PricesInfiniteListContent({
       </ul>
       <div ref={loadMoreRef} className="flex min-h-16 items-center justify-center">
         {isFetchingNextPage ? (
-          <LoadingCircular animate label="야채 시세를 더 불러오고 있어요" />
+          <LoadingCircular animate currentColor className="text-content-brand-light" label="야채 시세를 더 불러오고 있어요" />
         ) : null}
         {isFetchNextPageError ? (
           <button

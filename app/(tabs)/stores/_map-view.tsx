@@ -125,7 +125,7 @@ function StatusOverlay({
       role={error ? "alert" : "status"}
     >
       <div className="pointer-events-auto flex max-w-72 flex-col items-center gap-1 rounded-lg bg-surface-primary px-5 py-4 text-center shadow-floating">
-        {loading ? <LoadingCircular animate /> : null}
+        {loading ? <LoadingCircular animate currentColor className="text-content-brand-light" /> : null}
         <p className="text-body-16-semibold text-content-primary">{title}</p>
         <p className="text-body-14-regular text-content-secondary">{description}</p>
       </div>

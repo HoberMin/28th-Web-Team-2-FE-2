@@ -6,7 +6,7 @@ export default function ReportPlaceLoading() {
   return (
     <main className="min-h-dvh bg-surface-secondary">
       <div className="mx-auto flex h-dvh w-full max-w-97.5 items-center justify-center bg-surface-primary">
-        <LoadingCircular animate label="근처 가게를 찾고 있어요" />
+        <LoadingCircular animate currentColor className="text-content-brand-light" label="근처 가게를 찾고 있어요" />
       </div>
     </main>
   );

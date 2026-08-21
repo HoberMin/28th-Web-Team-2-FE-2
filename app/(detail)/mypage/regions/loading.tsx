@@ -7,7 +7,7 @@ export default function MyPageRegionsLoading() {
   return (
     <div className="flex h-dvh justify-center bg-surface-secondary">
       <div className="flex h-full w-full max-w-97.5 flex-col items-center justify-center bg-surface-primary text-content-secondary">
-        <LoadingCircular animate label="동네 정보를 불러오고 있어요" />
+        <LoadingCircular animate currentColor className="text-content-brand-light" label="동네 정보를 불러오고 있어요" />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ export default function SavedLoading() {
   return (
     <div className="flex justify-center px-4 pt-4 pb-20 text-content-secondary">
       <div className="py-20">
-        <LoadingCircular animate label="찜 목록을 불러오고 있어요" />
+        <LoadingCircular animate currentColor className="text-content-brand-light" label="찜 목록을 불러오고 있어요" />
       </div>
     </div>
   );
