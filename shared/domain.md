@@ -38,8 +38,12 @@
   제보 사진 인식(`/user-reports/image-analysis`).
   가게 **단골 수**는 `StoreDetailResponse.favoriteCount`로 와서 하트 아래 숫자를 되살렸다.
 - **여전히 막힌 것** (`농산물-문서/be-요청-2026-08-21-디자인QA.md` 대상):
-  - 「오늘 제보된 품목」 수 — 응답이 `totalReportedItemCount`(누적)뿐이라 2번 배지는
-    「비싼 야채」 수로 대체돼 있다
+  - 「오늘 제보된 품목」 수 — 응답이 `totalReportedItemCount`(누적)뿐이라 실제로는 "오늘"이
+    아니다. 가게 상세 페이지(`_store-detail-client.tsx`)는 이 간극을 「비싼 야채」 수로
+    대체 표시해 정직하게 우회했지만, **지도 시트(F03-2 `sheet/store-detail`, 2026-08-21
+    연결)는 사용자 결정으로 Figma 기획 라벨 "오늘 제보된 품목"을 유지**하고 숫자만
+    `totalReportedItemCount`를 채운다 — 같은 백엔드 제약에 화면마다 다른 절충을 쓰고 있다는
+    뜻이니, 두 화면 중 하나를 맞출 근거(진짜 "오늘" 카운트 필드)가 생기면 통일한다
   - 품목 카테고리 「깨·견과류」 · 품목 정렬 「시세보다 저렴한 순」·「최근 제보순」
   - **공공가격·온라인가 데이터 미적재** — 엔드포인트는 있는데 라이브 응답이 비어 있다
     (2026-08-21 재확인: `items`의 `price`·`baseDate` 전부 null, `public-prices.points`·
