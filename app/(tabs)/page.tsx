@@ -9,6 +9,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getNewsWithTemporaryFallback } from "@/app/_lib/api/server/news-fallback";
 import { getRegionLowestPricesWithTemporaryFallback } from "@/app/_lib/api/server/reports-fallback";
+import { getMe } from "@/app/_lib/api/server/users";
 import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { getRecommendedStores } from "@/app/_lib/api/server/stores";
 
@@ -54,8 +55,24 @@ async function sectionData<T>(label: string, load: () => Promise<T>): Promise<T 
   }
 }
 
+/** 로그인 사용자는 계정에 저장된 현재 동네를 홈의 기준으로 사용한다. */
+async function getHomeRegion() {
+  const [selectedRegion, token] = await Promise.all([getSelectedRegion(), getAccessToken()]);
+  if (!token) return { region: selectedRegion, token };
+
+  try {
+    const me = await getMe(token);
+    if (!me.currentRegion) return { region: selectedRegion, token };
+    return { region: me.currentRegion, token };
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    console.error("홈 현재 동네 조회 실패", { kind: error.kind, status: error.status });
+    return { region: selectedRegion, token };
+  }
+}
+
 export default async function HomePage() {
-  const [region, token] = await Promise.all([getSelectedRegion(), getAccessToken()]);
+  const { region, token } = await getHomeRegion();
 
   const [newsItems, recommendation, lowestPrices] = await Promise.all([
     loadHomeNewsItems(async () => (await getNewsWithTemporaryFallback()).articles),
