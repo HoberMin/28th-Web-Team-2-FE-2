@@ -66,11 +66,11 @@ export const metadata: Metadata = {
 };
 
 interface ReportPlacePageProps {
-  searchParams: Promise<{ item?: string }>;
+  searchParams: Promise<{ item?: string; price?: string; amount?: string }>;
 }
 
 export default async function ReportPlacePage({ searchParams }: ReportPlacePageProps) {
-  const { item } = await searchParams;
+  const { item, price, amount } = await searchParams;
   const region = await getSelectedRegion();
   const resolvedRegion = region
     ? await resolveSelectedRegionCoordinates(region).catch(() => null)
@@ -84,8 +84,12 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
       ? "선택한 동네의 위치를 찾지 못했어요."
       : undefined;
 
+  // "닫기"·장소 선택 모두 `/report`로 돌아간다 — 가격·양도 함께 실어 보내
+  // 폼이 다시 마운트될 때 지워지지 않게 한다(`_report-form.tsx#buildPlaceQuery`와 짝).
   const backParams = new URLSearchParams();
   if (item) backParams.set("item", item);
+  if (price) backParams.set("price", price);
+  if (amount) backParams.set("amount", amount);
 
   return (
     <main className="min-h-dvh bg-surface-secondary">
@@ -114,6 +118,8 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
         <ReportPlaceMap
           center={center}
           item={item}
+          price={price}
+          amount={amount}
           unavailableMessage={unavailableMessage}
         />
       </div>
