@@ -400,6 +400,7 @@ export function ReportForm({
                 </PhotoPreview>
               ) : (
                 <PhotoDropzone
+                  icon={<FigmaIcon name="sparkle" width={24} />}
                   action={
                     <Button
                       variant="primary"

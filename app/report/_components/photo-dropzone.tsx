@@ -17,11 +17,7 @@ import { cn } from "@/app/_lib/cn";
 //   버튼   px-[20px] py-[8px] gap-[4px] radius/md · body/14-semibold → 우리 `Button size="small"`과
 //          패딩·radius·타이포가 **정확히 일치**한다. 그래서 새로 만들지 않고 슬롯으로 받는다.
 //
-// ⚠️ **sparkle 아이콘(364:8154) 에셋이 레포에 없다.** 24×24 슬롯 안에 별 2개가 들어가는 벡터
-//    (leaf 14.897 at 1.69,7.27 / 10.35 at 11.86,1.65)인데 export본을 받지 못했다.
-//    figma-bridge §0-0에 따라 REST·curl로 우회하지 않았다 — 디자이너 export 대기.
-//    지금은 **24×24 자리만 정확히 비워 둔다**(레이아웃은 시안과 동일, 그림만 없음).
-//    받으면 `public/figma/design-library/icons/`에 넣고 `icon` prop으로 넘기면 끝난다.
+// sparkle 아이콘은 `public/figma/design-library/icons/sparkle.svg`를 사용한다.
 //
 // ⚠️ 문구 안 강조색이 raw hex다 — `#05a163`·`#262f3c`. 값은 각각 `content/brand/light`·
 //    `content/primary`와 같아서 토큰으로 옮겼다(변수 바인딩만 안 돼 있는 상태).
@@ -32,8 +28,7 @@ import { cn } from "@/app/_lib/cn";
 
 export interface PhotoDropzoneProps {
   /**
-   * 24×24 sparkle 아이콘. **아직 에셋이 없어 기본값은 빈 자리다.**
-   * 위 ⚠️ 참고 — export를 받으면 여기로 넘긴다.
+   * 24×24 sparkle 아이콘.
    */
   icon?: ReactNode;
   /** 사진을 고르는 버튼. `<Button size="small" className="w-full">` 형태를 기대한다. */

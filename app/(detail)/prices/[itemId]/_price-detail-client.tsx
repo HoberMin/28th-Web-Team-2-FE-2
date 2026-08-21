@@ -223,9 +223,7 @@ export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boole
           댓글이 아니라 온라인가 비교 섹션의 프레임 이름이다(이름이 안 갱신된 자리, 디자인팀 확인 항목).
           실측 1116:11932 — 문구는 body/14-**medium** · content/**disabled**,
           아이콘은 `icon/information-circle-2` 20px.
-          ⚠️ 아이콘 원본(information-circle-2)은 아직 레포에 없다. 지금 쓰는
-             `information-circle.svg`는 16px PNG를 SVG로 감싼 파일이라 20px로 늘리면 뭉갠다
-             — 아이콘 일괄 교체 때 같이 받는다.
+          아이콘은 원본 `information-circle-2.svg`를 20px로 사용한다.
         */}
         <div className="flex items-center gap-2">
           <p className="text-body-14-medium text-content-disabled">
@@ -241,7 +239,7 @@ export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boole
           onClick={() => setOpen((value) => !value)}
           className="flex size-6 items-center justify-center rounded-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
         >
-          <FigmaIcon name="information-circle" width={20} />
+          <FigmaIcon name="information-circle-2" width={20} />
         </button>
       </div>
       {open ? (
