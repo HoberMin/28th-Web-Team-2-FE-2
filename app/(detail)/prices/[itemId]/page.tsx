@@ -91,20 +91,31 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     : [];
   const latestReport = reports[0];
-  const online = vegetable ? getOnlinePrices(vegetable.id) : undefined;
+  // 더미 보정에 쓸 기준가 — 실 공공시세가 있으면 그걸, 없으면 그래프와 같은 baseline
+  // (=BASE_PRICE)을 쓴다. 온라인가·동네 제보가 더미 둘 다 이 값 하나에 비례시켜서 서로
+  // 어긋나지 않게 한다(사용자 지적, 2026-08-21 — "그 더미도 공공시세와 온라인 최저가를
+  // 보고 그럴듯하게").
+  const anchorPrice = detail.todayPublicPrice ?? baseline?.current ?? undefined;
+  const online = vegetable ? getOnlinePrices(vegetable.id, anchorPrice) : undefined;
   const averageWeightNote = vegetable?.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
   const dummyDetailReports: PriceDetailReport[] =
     vegetable && baseline
-      ? reports.map((report) => ({
-          id: report.id,
-          reportedAt: Date.parse(report.createdAt),
-          place: report.place ?? report.district,
-          age: formatAge(report.createdAt, baseline.asOf),
-          price: report.pricePerKg,
-          unit: vegetable.unit,
-          diff: report.pricePerKg - baseline.current,
-          diffPercent: ((report.pricePerKg - baseline.current) / baseline.current) * 100,
-        }))
+      ? reports.map((report) => {
+          const base = anchorPrice ?? baseline.current;
+          const scale = baseline.current > 0 ? base / baseline.current : 1;
+          const price = round10(report.pricePerKg * scale);
+          const diff = price - base;
+          return {
+            id: report.id,
+            reportedAt: Date.parse(report.createdAt),
+            place: report.place ?? report.district,
+            age: formatAge(report.createdAt, baseline.asOf),
+            price,
+            unit: vegetable.unit,
+            diff,
+            diffPercent: base === 0 ? 0 : (diff / base) * 100,
+          };
+        })
       : [];
 
   const unit = detail.defaultUnit ?? vegetable?.unit ?? "";
@@ -388,4 +399,8 @@ function formatAge(createdAt: string, asOf: string): string {
   if (days === 0) return "오늘";
   if (days === 1) return "어제";
   return `${days}일 전`;
+}
+
+function round10(n: number): number {
+  return Math.round(n / 10) * 10;
 }
