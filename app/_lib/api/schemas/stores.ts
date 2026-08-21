@@ -118,6 +118,42 @@ export type StoreReportFilter = (typeof STORE_REPORT_FILTERS)[number];
 export const PRICE_CLASSIFICATIONS = ["CHEAP", "EXPENSIVE", "EQUAL"] as const;
 export type PriceClassification = (typeof PRICE_CLASSIFICATIONS)[number];
 
+/**
+ * 제보자 등급 · 프로필 색.
+ *
+ * ⚠️ **아직 백엔드 스펙에 없다** (2026-08-21 `/v3/api-docs` 재조회 확인 —
+ *    `StoreReportResponse`는 reportId·itemId·itemName·itemImageUrl·price·unit·
+ *    reportedDate·publicPriceDiff·priceDiffRate·priceClassification 10개뿐이다).
+ *    Figma `row/saved type=photo`(1096:19281)가 제보 행마다 아바타·닉네임·등급 배지를
+ *    요구해서, **필드가 생길 때까지 nullable로 받아 두고 화면은 "제보자 정보 없음"을 그린다.**
+ *
+ *    아래 이름·enum 값은 **프론트 제안이고 합의 전이다(가설)** —
+ *    `농산물-문서/be-요청-2026-08-21-가게상세-제보행.md` 1번에서 확정한다.
+ *    실제 응답 키가 다르게 정해지면 여기만 고치면 화면은 그대로 동작한다.
+ */
+export const REPORTER_RANKS = ["SPROUT", "ROOKIE", "EXPERT", "KING"] as const;
+export type ReporterRankCode = (typeof REPORTER_RANKS)[number];
+
+export const REPORTER_PROFILE_COLORS = ["GREEN", "BLUE", "ORANGE", "GRAY"] as const;
+export type ReporterProfileColorCode = (typeof REPORTER_PROFILE_COLORS)[number];
+
+/** 모르는 값은 `null`로 떨어뜨린다 — 등급이 늘어나도 화면이 죽지 않는다. */
+const reporterRankSchema = z
+  .string()
+  .nullish()
+  .transform((value): ReporterRankCode | null =>
+    REPORTER_RANKS.includes(value as ReporterRankCode) ? (value as ReporterRankCode) : null,
+  );
+
+const reporterProfileColorSchema = z
+  .string()
+  .nullish()
+  .transform((value): ReporterProfileColorCode | null =>
+    REPORTER_PROFILE_COLORS.includes(value as ReporterProfileColorCode)
+      ? (value as ReporterProfileColorCode)
+      : null,
+  );
+
 export const storeReportSchema = z.object({
   reportId: z.number().int().safe(),
   itemId: z.number().int().safe(),
