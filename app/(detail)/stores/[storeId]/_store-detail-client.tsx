@@ -65,8 +65,8 @@ function StoreInformation({
             {/*
               store-profile-address(429:17637) — gap-[4px] items-start · 아이콘 22 ·
               body/14-regular · content/primary.
-              ⚠️ 주소 API가 없다 — 직전 화면이 안 넘겼으면 **줄 자체를 그리지 않는다**
-                 (예시 주소로 채우지 않는다).
+              주소는 `GET /stores/{storeId}`의 `address`다. 그것도 쿼리 폴백도 비면
+              **줄 자체를 그리지 않는다**(예시 주소로 채우지 않는다).
             */}
             {profile.address ? (
               <div className="flex w-full items-start gap-1">
@@ -83,9 +83,10 @@ function StoreInformation({
               → 접힘/펼침이 상태축이고, chevron 방향이 그걸 나른다.
               ⚠️ v3 프레임 3개는 **전부 펼친 상태(icon/chevron-up 429:17648)**라 접힘 시안이 없다 —
                  chevron-down은 v2 시안(구 364:7897) 근거로 유지한다.
-              ⚠️ 요일별 영업시간 API가 없다. `favorite-stores`가 주는 건 **오늘 영업시간 한 줄**
-                 (`todayBusinessHours`)뿐이라 펼침 상세도 그 한 줄이다. 시안의 3줄(브레이크타임·
-                 라스트오더)은 계약이 생기면 채운다.
+              ⚠️ 상세 응답의 `businessHours`는 요일별 문자열 배열인데 **지금 라이브는 빈 배열**
+                 이라 실질적으로는 `favorite-stores`의 **오늘 영업시간 한 줄**(`todayBusinessHours`)
+                 폴백만 들어온다 — 그래서 펼침 상세도 그 한 줄이다. 값이 차면 배열째 그린다.
+                 시안의 3줄(브레이크타임·라스트오더)은 계약이 생기면 채운다.
             */}
             {hasHours ? (
               <button

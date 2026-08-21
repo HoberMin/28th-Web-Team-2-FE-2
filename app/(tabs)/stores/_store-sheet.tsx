@@ -23,7 +23,9 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const [, startFavoriteTransition] = useTransition();
   const distance = formatStoreDistance(store.distanceMeters);
-  // 가게 상세 엔드포인트가 없어서 프로필(이름·주소·전화)을 쿼리로 실어 보낸다.
+  // 프로필(이름·주소)은 상세 화면이 `GET /stores/{storeId}`로 직접 조회한다(2026-08-21 신설) —
+  // 여기서 실어 보내는 건 그 조회가 실패했을 때의 폴백이고, **전화번호는 상세 응답에 없어서**
+  // 지금도 이 쿼리가 유일한 경로다.
   // 경로는 **Spring의 숫자 storeId**다 — 예전의 `/stores/temporary?backendStoreId=…`는
   // 제보 목록 API가 붙으면서 없어졌다(2026-08-20).
   const detailQuery = new URLSearchParams({ name: store.name });
