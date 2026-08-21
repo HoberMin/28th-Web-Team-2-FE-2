@@ -91,10 +91,31 @@ export type ButtonState = "normal" | "pressed" | "loading";
 /** 색 상태가 있는 3종(primary·secondary·tertiary) 전용 타입 — outlined는 아래에서 별도 처리한다. */
 export type ColorVariant = "primary" | "secondary" | "tertiary";
 
-/** 레이아웃(패딩·radius)만. gap은 내용 래퍼가 들고 있다 — loading일 때 래퍼째 숨기기 위함. */
+/** 레이아웃(패딩)만. gap은 내용 래퍼가 들고 있다 — loading일 때 래퍼째 숨기기 위함. */
 const SIZE: Record<ButtonSize, string> = {
-  medium: "rounded-lg px-7 py-3",
-  small: "rounded-md px-5 py-2",
+  medium: "px-7 py-3",
+  small: "px-5 py-2",
+};
+
+/**
+ * radius는 size에서 분리돼 있다.
+ *
+ * Figma의 `button/base`(F01 홈 「더보기/닫기」 429:16757)가 **medium 패딩 + radius/md** 조합을
+ * 쓰는데, 예전엔 호출부가 `className="rounded-md"`로 덮으려 했다. 그건 안 먹는다 —
+ * `cn`은 tailwind-merge가 아니라 단순 join이고, `rounded-md`/`rounded-lg`는 같은 속성이라
+ * 승자가 `@theme` 선언 순서(--radius-md가 먼저 → rounded-lg가 뒤에 emit → lg가 이김)로 정해진다.
+ * (UI QA 2026-08-20 #7의 radius 부분이 그래서 화면에 반영되지 않았다 — 2026-08-21 교정)
+ */
+export type ButtonRadius = "md" | "lg";
+
+const RADIUS: Record<ButtonRadius, string> = {
+  md: "rounded-md",
+  lg: "rounded-lg",
+};
+
+const DEFAULT_RADIUS: Record<ButtonSize, ButtonRadius> = {
+  medium: "lg",
+  small: "md",
 };
 
 const GAP: Record<ButtonSize, string> = {
@@ -167,6 +188,8 @@ export interface ButtonProps extends ComponentPropsWithoutRef<"button"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   state?: ButtonState;
+  /** 모서리. 기본은 size가 정한다(medium=lg 12px · small=md 8px). Figma가 조합을 섞어 쓰는 자리만 넘긴다. */
+  radius?: ButtonRadius;
   /** Figma Boolean property. 기본값은 true다. */
   leading?: boolean;
   /** Figma의 Leading Icon 슬롯(16×16). 비우면 원본 기본 Shape를 렌더한다. */
@@ -181,6 +204,7 @@ export function Button({
   variant = "primary",
   size = "medium",
   state = "normal",
+  radius,
   leading = true,
   leadingIcon,
   trailing = true,
@@ -217,6 +241,7 @@ export function Button({
       className={cn(
         BASE,
         SIZE[size],
+        RADIUS[radius ?? DEFAULT_RADIUS[size]],
         TEXT[variant][size],
         colorClasses,
         secondaryPressedBg,
