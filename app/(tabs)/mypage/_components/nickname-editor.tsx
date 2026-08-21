@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/app/_components/button";
+import { BadgeReporterRank, type ReporterRank } from "@/app/_components/badge-reporter-rank";
 import { ImageProfileReporter } from "@/app/_components/image-profile-reporter";
 import { TextField } from "@/app/_components/text-field";
 import { saveNicknameAction } from "@/app/onboarding/_actions";
@@ -16,9 +17,10 @@ import { NICKNAME_MAX } from "@/app/_lib/nickname";
 interface NicknameEditorProps {
   nickname: string;
   regionName?: string;
+  rank?: ReporterRank;
 }
 
-export function NicknameEditor({ nickname, regionName }: NicknameEditorProps) {
+export function NicknameEditor({ nickname, regionName, rank }: NicknameEditorProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(nickname);
@@ -43,9 +45,12 @@ export function NicknameEditor({ nickname, regionName }: NicknameEditorProps) {
       <div className="flex items-center gap-3">
         <ImageProfileReporter color="green" />
         <div className="flex min-w-0 flex-1 flex-col">
-          <p className="truncate text-title-18-bold text-content-primary">
-            {nickname || "우리 동네 이웃"}
-          </p>
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="truncate text-title-18-bold text-content-primary">
+              {nickname || "우리 동네 이웃"}
+            </p>
+            {rank ? <BadgeReporterRank rank={rank} /> : null}
+          </div>
           <p className="truncate text-body-14-regular text-content-secondary">
             {regionName ?? "동네를 아직 고르지 않았어요"}
           </p>

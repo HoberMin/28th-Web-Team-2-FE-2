@@ -7,6 +7,7 @@ import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { getFavoriteStores } from "@/app/_lib/api/server/stores";
 import { getMyReports, getMyWeeklyReports } from "@/app/_lib/api/server/my-reports";
 import { getMe } from "@/app/_lib/api/server/users";
+import type { UserRank } from "@/app/_lib/api/schemas/users";
 import { ROUTES } from "@/app/_lib/routes";
 import { LogoutButton } from "./_components/logout-button";
 import { MyPageMenuRow } from "./_components/mypage-menu-row";
@@ -54,6 +55,11 @@ function countLabel(count: number | null, unit: string, emptyLabel: string): str
   if (count === null) return "-";
   if (count === 0) return emptyLabel;
   return `${count}${unit}`;
+}
+
+function toBadgeReporterRank(rank: UserRank | null | undefined) {
+  if (!rank) return undefined;
+  return rank.toLowerCase() as "sprout" | "rookie" | "expert" | "king";
 }
 
 export default async function MyPage() {
@@ -130,6 +136,7 @@ export default async function MyPage() {
       <NicknameEditor
         nickname={me?.nickname ?? ""}
         regionName={me?.currentRegion?.regionName ?? undefined}
+        rank={toBadgeReporterRank(me?.rank)}
       />
 
       <nav aria-label="내 정보 메뉴" className="flex flex-col pt-2">

@@ -25,8 +25,12 @@ export type UpdateNicknameRequest = z.infer<typeof updateNicknameRequestSchema>;
 export const onboardingStepSchema = z.enum(["NICKNAME", "REGION", "COMPLETED"]);
 export type OnboardingStep = z.infer<typeof onboardingStepSchema>;
 
+export const userRankSchema = z.enum(["SPROUT", "ROOKIE", "EXPERT", "KING"]);
+export type UserRank = z.infer<typeof userRankSchema>;
+
 export const userMeResponseSchema = z.object({
   nickname: z.string().optional().nullable(),
+  rank: userRankSchema,
   currentRegion: z
     .object({
       regionId: z.string(),
