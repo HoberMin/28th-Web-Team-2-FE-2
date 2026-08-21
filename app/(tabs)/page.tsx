@@ -7,7 +7,7 @@ import { SectionNews } from "./_home/section-news";
 import { SectionRecommendedStore } from "./_home/section-recommended-store";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getNews } from "@/app/_lib/api/server/news";
+import { getNewsWithTemporaryFallback } from "@/app/_lib/api/server/news-fallback";
 import { getRegionLowestPricesWithTemporaryFallback } from "@/app/_lib/api/server/reports-fallback";
 import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { getRecommendedStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
@@ -57,7 +57,7 @@ export default async function HomePage() {
   const [region, token] = await Promise.all([getSelectedRegion(), getAccessToken()]);
 
   const [newsItems, recommendation, lowestPrices] = await Promise.all([
-    loadHomeNewsItems(getNews),
+    loadHomeNewsItems(async () => (await getNewsWithTemporaryFallback()).articles),
     region
       ? sectionData("추천 가게", async () => {
           const { stores } = await getRecommendedStoresWithTemporaryFallback({
