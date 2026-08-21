@@ -149,8 +149,13 @@ export function ReportPlaceMap({
         );
       })}
 
+      {/*
+        max-h-1/2: 목록이 길면 시트가 지도를 다 가리던 문제(2026-08-21 버그 리포트) — 시트
+        높이를 지도 영역의 절반으로 캡하고, 그 이상은 아래 overflow-y-auto가 스크롤시킨다.
+        (원래 Figma 실측은 h649 고정값이지만, 사용자 지시로 반응형 절반 캡으로 바꿨다.)
+      */}
       <div
-        className="absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col rounded-t-3xl bg-surface-primary px-4 pb-5 pt-7"
+        className="absolute inset-x-0 bottom-0 z-20 flex max-h-1/2 flex-col rounded-t-3xl bg-surface-primary px-4 pb-5 pt-7"
         style={{ boxShadow: "0px -4px 6px 0px rgba(74, 86, 103, 0.2)" }}
       >
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
