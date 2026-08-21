@@ -35,10 +35,11 @@ import { getRecommendedStoresWithTemporaryFallback } from "@/app/_lib/api/server
 //
 // ── 상태 3종 ──────────────────────────────────────────────────────────────────
 //  · 빈 상태: 구현했다(각 섹션이 처리 — `_home/section-empty.tsx`). **Figma 시안 없는 임시 구현이다.**
-//    뉴스 API가 빈 배열을 주거나 ApiError가 나도 뉴스 섹션만 빈 상태를 보여 준다.
-//  · 세 섹션 모두 실 API다(더미 상수는 2026-08-20에 제거했다):
+//    뉴스는 아래 임시 폴백이 못 잡는 에러(kind가 temporary 목록 밖)일 때만 빈 상태로 떨어진다.
+//  · 세 섹션 모두 실 API다:
 //      추천 가게 `GET /stores/recommendation` · 최저가 `GET /regions/{regionId}/reports/lowest-prices`
-//      · 뉴스 `GET /news`. 셋 다 실패하면 그 섹션만 빈 상태로 떨어진다 — 하나가 죽어도 홈은 뜬다.
+//      · 뉴스 `GET /news`. 셋 다 각자의 `*-fallback.ts`(2026-08-21 뉴스 추가)로 감싸져 있어
+//      네트워크·5xx·빈 목록이면 더미로 폴백하고, 그 밖의 에러만 그 섹션을 빈 상태로 떨어뜨린다.
 //  · 위치 칩의 동네 이름도 상수가 아니라 선택 지역 쿠키에서 온다. 동네를 아직 안 골랐으면
 //    최저가·추천 가게는 조회 자체가 불가능하므로(둘 다 regionId 필수) 빈 상태를 보여 준다.
 
