@@ -9,9 +9,11 @@ import {
   favoriteStoresEnvelopeSchema,
   nearbyStoresEnvelopeSchema,
   storeRecommendationEnvelopeSchema,
+  storeDetailEnvelopeSchema,
   storeReportsEnvelopeSchema,
   type FavoriteStores,
   type NearbyStores,
+  type StoreDetail,
   type StoreRecommendation,
   type StoreReportFilter,
   type StoreReports,
@@ -140,6 +142,36 @@ export async function getRecommendedStores(params: {
     query: { ...query },
     token,
     schema: storeRecommendationEnvelopeSchema,
+    cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
+  });
+  return envelope.data;
+}
+
+export interface GetStoreDetailParams {
+  storeId: number;
+  /** 넘기면 응답에 거리·도보시간이 채워진다. 없으면 그 두 필드가 null이다. */
+  latitude?: number;
+  longitude?: number;
+  /** 로그인 상태면 넘긴다. **키는 필수** — 익명 호출을 실수로 하는 걸 막는다. */
+  token: string | undefined;
+}
+
+/**
+ * 가게 상세.
+ *
+ * ⚠️ `isLiked`(단골 여부)가 개인화 필드라 **로그인 상태의 응답은 공유 캐시에 넣지 않는다**
+ * (`auth-session` §5). 스펙에 `security` 선언이 없어 공개 API처럼 보이지만 개인화 응답이다.
+ */
+export async function getStoreDetail({
+  storeId,
+  token,
+  ...query
+}: GetStoreDetailParams): Promise<StoreDetail> {
+  const envelope = await springFetch({
+    path: `/api/v1/stores/${storeId}`,
+    query: { ...query },
+    token,
+    schema: storeDetailEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },
   });
   return envelope.data;
