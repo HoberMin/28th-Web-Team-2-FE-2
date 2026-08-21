@@ -55,18 +55,20 @@ describe("loadInitialNearbyStores", () => {
     });
   });
 
-  it("live backend 502는 화면 유지용 임시 더미 가게로 폴백한다", async () => {
-    // DB에 실데이터가 없는 동안 화면 구조를 테스트할 수 있도록 `getNearbyStoresWithTemporaryFallback`이
-    // 업스트림 에러를 삼키고 더미로 채운다(`stores-fallback.ts`) — 더 이상 에러 상태로 격리하지 않는다.
+  it("live backend 502는 에러 상태로 넘긴다(더미로 가리지 않는다)", async () => {
+    // 예전엔 이 실패를 `getNearbyStoresWithTemporaryFallback`이 삼키고 더미로 채웠는데,
+    // 더미 storeId가 라이브 실제 storeId와 겹쳐서 목록엔 더미가 보이고 눌러서 들어가면
+    // 다른 진짜 가게가 뜨는 버그로 이어졌다(2026-08-21 리포트). 지금은 실패를 그대로
+    // "error" 상태로 넘겨 화면이 정직한 에러 문구를 보여준다.
     getNearbyStoresMock.mockRejectedValue(
       ApiError.fromStatus(502, "GET /api/v1/stores/nearby"),
     );
 
     const result = await loadInitialNearbyStores(seongseongCenter);
 
-    expect(result.status).toBe("success");
-    expect(result.error).toBeNull();
-    expect(result.stores.length).toBeGreaterThan(0);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("주변 가게를 불러오지 못했어요.");
+    expect(result.stores).toHaveLength(0);
   });
 
   it("예상하지 못한 오류는 route error boundary로 다시 던진다", async () => {
