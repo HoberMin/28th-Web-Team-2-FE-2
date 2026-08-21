@@ -281,3 +281,16 @@ export type StoreDetail = z.infer<typeof storeDetailSchema>;
 export const storeDetailEnvelopeSchema = z.object({
   data: storeDetailSchema,
 });
+
+/** BFF `/api/stores/{storeId}` 쿼리 — 좌표는 있으면 거리·도보시간이 채워지는 optional. */
+const optionalNumberQuerySchema = z.preprocess((value) => {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+}, z.coerce.number().finite().optional());
+
+export const storeDetailRequestSchema = z.object({
+  latitude: optionalNumberQuerySchema.pipe(z.number().min(-90).max(90).optional()),
+  longitude: optionalNumberQuerySchema.pipe(z.number().min(-180).max(180).optional()),
+});
+export type StoreDetailRequest = z.infer<typeof storeDetailRequestSchema>;
