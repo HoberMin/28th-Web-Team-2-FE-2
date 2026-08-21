@@ -27,3 +27,9 @@ const TEMPORARY_NEWS: NewsArticle[] = [
     thumbnailUrl: "https://img1.newsis.com/2025/05/08/NISI20250508_0020801708_web.jpg?rnd=20250508130110",
   }),
 ];
+
+export function isTemporaryNewsDataError(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("kind" in error)) return false;
+  const kind = Reflect.get(error, "kind");
+  return kind === "network" || kind === "upstream" || kind === "server" || kind === "parse" || kind === "notFound";
+}
