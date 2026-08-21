@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { getRegionDisplayName } from "@/app/_lib/region-center";
+import { ASSADA_MART_CENTER } from "@/app/_lib/assada-mart";
 import { ROUTES } from "@/app/_lib/routes";
 import { loadInitialNearbyStores } from "./_initial-nearby";
 import { StoresMapView } from "./_map-view";
@@ -46,7 +47,7 @@ export default async function StoresPage() {
     );
   }
 
-  const center = { lat: region.latitude, lng: region.longitude };
+  const center = ASSADA_MART_CENTER;
   const initialNearbyState = await loadInitialNearbyStores(center);
   return (
     <StoresMapView

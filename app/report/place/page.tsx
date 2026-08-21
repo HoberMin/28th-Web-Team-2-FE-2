@@ -1,10 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  getSelectedRegion,
-  resolveSelectedRegionCoordinates,
-} from "@/app/_lib/api/server/selected-region";
+import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
+import { ASSADA_MART_CENTER } from "@/app/_lib/assada-mart";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "../_components/report-header";
 import { ReportPlaceMap } from "./_report-place-map";
@@ -72,17 +70,10 @@ interface ReportPlacePageProps {
 export default async function ReportPlacePage({ searchParams }: ReportPlacePageProps) {
   const { item, price, amount } = await searchParams;
   const region = await getSelectedRegion();
-  const resolvedRegion = region
-    ? await resolveSelectedRegionCoordinates(region).catch(() => null)
-    : null;
-  const center = resolvedRegion
-    ? { lat: resolvedRegion.latitude, lng: resolvedRegion.longitude }
-    : null;
+  const center = ASSADA_MART_CENTER;
   const unavailableMessage = !region
     ? "동네를 먼저 선택해 주세요."
-    : !center
-      ? "선택한 동네의 위치를 찾지 못했어요."
-      : undefined;
+    : undefined;
 
   // "닫기"·장소 선택 모두 `/report`로 돌아간다 — 가격·양도 함께 실어 보내
   // 폼이 다시 마운트될 때 지워지지 않게 한다(`_report-form.tsx#buildPlaceQuery`와 짝).

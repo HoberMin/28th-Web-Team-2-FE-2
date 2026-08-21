@@ -2,7 +2,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { DEFAULT_NEARBY_STORE_RADIUS } from "@/app/_lib/api/schemas/stores";
 import { getNearbyStores } from "@/app/_lib/api/server/stores";
-import { mapNearbyStoreToMapStore, type MapCenter } from "./_data";
+import { mapAssadaMartToMapStore, mapNearbyStoreToMapStore, type MapCenter } from "./_data";
 import { createNearbyStoresRequestKey, type NearbyStoresState } from "./_nearby-state";
 
 export async function loadInitialNearbyStores(center: MapCenter): Promise<NearbyStoresState> {
@@ -29,9 +29,12 @@ export async function loadInitialNearbyStores(center: MapCenter): Promise<Nearby
     });
     return {
       key,
-      stores: result.stores.map((store) =>
-        mapNearbyStoreToMapStore(store, request.center, request.radius),
-      ),
+      stores: [
+        mapAssadaMartToMapStore(request.center, request.radius),
+        ...result.stores
+          .filter((store) => store.storeId !== 999)
+          .map((store) => mapNearbyStoreToMapStore(store, request.center, request.radius)),
+      ],
       status: "success",
       error: null,
     };
@@ -39,7 +42,7 @@ export async function loadInitialNearbyStores(center: MapCenter): Promise<Nearby
     if (!(error instanceof ApiError)) throw error;
     return {
       key,
-      stores: [],
+      stores: [mapAssadaMartToMapStore(request.center, request.radius)],
       status: "error",
       error: "주변 가게를 불러오지 못했어요.",
     };

@@ -1,4 +1,5 @@
 import { storeRequestSchema, type StoreRequest } from "./api/schemas/reports";
+import { ASSADA_MART_STORE } from "./assada-mart";
 import type {
   KakaoGlobal,
   KakaoPlaceSearchResult,
@@ -93,5 +94,8 @@ export async function searchNearbyStorePlacesWithSdk(params: {
   }
 
   stores.sort((a, b) => (a.distance ?? RADIUS_METERS) - (b.distance ?? RADIUS_METERS));
-  return stores.slice(0, RESULT_LIMIT);
+  return [ASSADA_MART_STORE, ...stores.filter((store) => store.id !== ASSADA_MART_STORE.id)].slice(
+    0,
+    RESULT_LIMIT,
+  );
 }

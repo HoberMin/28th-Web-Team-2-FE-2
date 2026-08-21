@@ -6,7 +6,12 @@ import {
   STORES_QUERY_DEBOUNCE_MS,
   StoresClientError,
 } from "@/app/_lib/api/client/stores";
-import { mapNearbyStoreToMapStore, type MapCenter, type MapStore } from "./_data";
+import {
+  mapAssadaMartToMapStore,
+  mapNearbyStoreToMapStore,
+  type MapCenter,
+  type MapStore,
+} from "./_data";
 import {
   createNearbyStoresRequestKey,
   shouldFetchNearbyStores,
@@ -64,9 +69,12 @@ export function useNearbyStores({
           if (!active) return;
           setState({
             key: requestKey,
-            stores: result.stores.map((store) =>
-              mapNearbyStoreToMapStore(store, { lat, lng }, radius),
-            ),
+            stores: [
+              mapAssadaMartToMapStore({ lat, lng }, radius),
+              ...result.stores
+                .filter((store) => store.storeId !== 999)
+                .map((store) => mapNearbyStoreToMapStore(store, { lat, lng }, radius)),
+            ],
             status: "success",
             error: null,
           });
@@ -79,7 +87,12 @@ export function useNearbyStores({
                 ? "찜한 가게는 로그인 후 볼 수 있어요."
                 : error.message
               : "주변 가게를 불러오지 못했어요.";
-          setState({ key: requestKey, stores: [], status: "error", error: message });
+          setState({
+            key: requestKey,
+            stores: [mapAssadaMartToMapStore({ lat, lng }, radius)],
+            status: "error",
+            error: message,
+          });
         });
     }, STORES_QUERY_DEBOUNCE_MS);
 
@@ -91,7 +104,11 @@ export function useNearbyStores({
   }, [lat, lng, normalizedKeyword, onlyLiked, radius, requestKey, state.key]);
 
   if (state.key !== requestKey) {
-    return { stores: [], status: "loading", error: null };
+    return {
+      stores: [mapAssadaMartToMapStore({ lat, lng }, radius)],
+      status: "loading",
+      error: null,
+    };
   }
   return { stores: state.stores, status: state.status, error: state.error };
 }

@@ -61,6 +61,10 @@ describe("searchNearbyStorePlacesWithSdk", () => {
       }),
     ).resolves.toEqual([
       expect.objectContaining({
+        id: "999",
+        placeName: "아!싸다 마트",
+      }),
+      expect.objectContaining({
         id: "123",
         placeName: "공덕청과",
         distance: 120,
