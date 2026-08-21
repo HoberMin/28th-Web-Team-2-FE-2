@@ -12,6 +12,7 @@ import { uploadImage } from "@/app/_lib/api/server/images";
 import { ensureCurrentUserRegion } from "@/app/_lib/api/server/regions";
 import { createReport } from "@/app/_lib/api/server/reports";
 import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region";
+import { FIXED_REGION_ID } from "@/app/_lib/api/fixed-region";
 
 /**
  * Figma에 "구매/목격" 토글이 없다(제보 폼 어디에도 이 값을 고르는 UI가 없음). 유일하게 UI가
@@ -20,7 +21,6 @@ import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region
  * 같은 기록을 남겨 둔다 — 이 레포는 정의되지 않은 지점의 판단을 한곳에 모으는 관행이 있다)
  */
 const FIXED_REPORT_TYPE = "PURCHASE";
-const FIXED_REPORT_REGION_ID = "1144010200";
 
 export type SubmitReportResult =
   | { status: "success" }
@@ -140,7 +140,7 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
   }
 
   const body = createReportRequestSchema.safeParse({
-    regionId: FIXED_REPORT_REGION_ID,
+    regionId: FIXED_REGION_ID,
     reportType: FIXED_REPORT_TYPE,
     price: input.price,
     unit: input.unit,

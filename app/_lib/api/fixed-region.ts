@@ -1,0 +1,1 @@
+export const FIXED_REGION_ID = "1144010200";

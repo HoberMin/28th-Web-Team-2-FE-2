@@ -1,5 +1,7 @@
 import "server-only";
 
+import { FIXED_REGION_ID } from "../fixed-region";
+
 import { revalidateTag } from "next/cache";
 import {
   createReportEnvelopeSchema,
@@ -55,7 +57,7 @@ export async function getRegionLowestPrices(params: {
   limit?: number;
 }): Promise<RegionLowestPrices> {
   const envelope = await springFetch({
-    path: `/api/v1/regions/${encodeURIComponent(params.regionId)}/reports/lowest-prices`,
+    path: `/api/v1/regions/${encodeURIComponent(FIXED_REGION_ID)}/reports/lowest-prices`,
     query: { limit: params.limit },
     schema: regionLowestPricesEnvelopeSchema,
     cache: { revalidate: 300, tags: [CACHE_TAGS.stores] },
@@ -81,9 +83,9 @@ export interface GetRegionItemReportsParams {
 export async function getRegionItemReports(
   params: GetRegionItemReportsParams,
 ): Promise<RegionItemReportPage> {
-  const { regionId, itemId, ...query } = params;
+  const { itemId, ...query } = params;
   const envelope = await springFetch({
-    path: `/api/v1/regions/${encodeURIComponent(regionId)}/items/${itemId}/reports`,
+    path: `/api/v1/regions/${encodeURIComponent(FIXED_REGION_ID)}/items/${itemId}/reports`,
     query: { ...query },
     schema: regionItemReportPageEnvelopeSchema,
     cache: { revalidate: 300, tags: [CACHE_TAGS.stores] },

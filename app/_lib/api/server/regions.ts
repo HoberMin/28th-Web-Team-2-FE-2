@@ -1,5 +1,7 @@
 import "server-only";
 
+import { FIXED_REGION_ID } from "../fixed-region";
+
 // ⚠️ **이름 충돌 주의**: `app/_lib/regions.ts`에 같은 이름의 프로토타입 더미
 // (`searchRegions`·`Region`)가 있다. 화면 연결 때 자동 import가 더미를 집어오지 않도록
 // import 경로를 눈으로 확인할 것. 더미를 걷어내는 시점에 이 주석도 지운다.
@@ -75,7 +77,7 @@ export async function addUserRegion(params: { regionId: string; token: string })
   await springFetch({
     path: "/api/v1/users/me/regions",
     method: "POST",
-    body: { regionId: params.regionId },
+    body: { regionId: FIXED_REGION_ID },
     token: params.token,
     cache: "no-store",
   });
@@ -87,7 +89,7 @@ export async function setCurrentUserRegion(params: {
   token: string;
 }): Promise<void> {
   await springFetch({
-    path: `/api/v1/users/me/regions/${params.regionId}/current`,
+    path: `/api/v1/users/me/regions/${FIXED_REGION_ID}/current`,
     method: "PUT",
     token: params.token,
     cache: "no-store",
@@ -105,7 +107,7 @@ export async function ensureCurrentUserRegion(params: {
   token: string;
 }): Promise<void> {
   const regions = await getUserRegions(params.token);
-  const selected = regions.find((region) => region.regionId === params.regionId);
+  const selected = regions.find((region) => region.regionId === FIXED_REGION_ID);
 
   if (!selected) {
     await addUserRegion(params);

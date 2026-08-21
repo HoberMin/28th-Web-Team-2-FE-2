@@ -121,7 +121,7 @@ export function OnboardingFlow({
     // 실패해도 화면 진행은 막지 않는다 — 쿠키(위 saveSelectedRegionAPI)만으로 앱은 이미
     // 정상 동작하고, 여기서 막으면 부가 동기화 실패가 온보딩 완료 자체를 가로막게 된다.
     try {
-      await registerCurrentRegionAPI(selectedRegion);
+      await registerCurrentRegionAPI();
     } catch (error) {
       console.error("[onboarding] 관심 지역을 Spring에 등록하지 못했어요", error);
     }

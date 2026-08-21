@@ -1,5 +1,7 @@
 import "server-only";
 
+import { FIXED_REGION_ID } from "../fixed-region";
+
 import {
   itemDetailSchema,
   itemPageEnvelopeSchema,
@@ -48,7 +50,7 @@ export interface GetItemsParams {
 export async function getItems({ token, ...query }: GetItemsParams): Promise<ItemPage> {
   const envelope = await springFetch({
     path: "/api/v1/items",
-    query: { ...query },
+    query: { ...query, regionId: FIXED_REGION_ID },
     token,
     schema: itemPageEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.items] },
@@ -71,7 +73,7 @@ export function getItemDetail({ token, ...query }: GetItemDetailParams): Promise
   const { itemId, ...rest } = query;
   return springFetch({
     path: `/api/v1/items/${itemId}`,
-    query: { ...rest },
+    query: { ...rest, regionId: FIXED_REGION_ID },
     token,
     schema: itemDetailSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.items] },
@@ -117,7 +119,7 @@ export function getPublicPriceTrend({
 }: GetPublicPriceTrendParams): Promise<PublicPriceTrend> {
   return springFetch({
     path: `/api/v1/items/${itemId}/public-prices`,
-    query: { ...query },
+    query: { ...query, regionId: FIXED_REGION_ID },
     schema: publicPriceTrendSchema,
     cache: { revalidate: 3_600, tags: [CACHE_TAGS.items] },
   });

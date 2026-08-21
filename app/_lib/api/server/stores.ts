@@ -1,5 +1,7 @@
 import "server-only";
 
+import { FIXED_REGION_ID } from "../fixed-region";
+
 // ⚠️ **이름 충돌 주의**: `app/_lib/nearby-stores.ts`에 같은 이름의 프로토타입 더미
 // (`getNearbyStores`·`NearbyStore`)가 있다. 모양이 달라서, 화면 연결 때 에디터 자동 import가
 // 더미를 집어오면 **조용히 가짜 데이터가 화면에 뜬다.** import 경로를 눈으로 확인할 것.
@@ -139,7 +141,7 @@ export async function getRecommendedStores(params: {
   const { token, ...query } = params;
   const envelope = await springFetch({
     path: "/api/v1/stores/recommendation",
-    query: { ...query },
+    query: { ...query, regionId: FIXED_REGION_ID },
     token,
     schema: storeRecommendationEnvelopeSchema,
     cache: token ? "no-store" : { revalidate: 300, tags: [CACHE_TAGS.stores] },

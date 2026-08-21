@@ -1,5 +1,6 @@
 "use client";
 
+import { FIXED_REGION_ID } from "../fixed-region";
 import {
   locatedRegionSchema,
   locatedRegionsSchema,
@@ -134,18 +135,18 @@ export async function saveSelectedRegionAPI(region: Region): Promise<LocatedRegi
  * 이미 등록된 지역(409)은 실패로 취급하지 않는다 — 재방문자가 같은 동네를 다시 고르는 경우라
  * "현재 지역 지정"만 마저 하면 된다.
  */
-export async function registerCurrentRegionAPI(region: Region): Promise<void> {
+export async function registerCurrentRegionAPI(): Promise<void> {
   const addResponse = await fetch("/api/regions/me", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ regionId: region.regionId }),
+    body: JSON.stringify({ regionId: FIXED_REGION_ID }),
     cache: "no-store",
   });
   if (!addResponse.ok && addResponse.status !== 409) {
     throw await responseError(addResponse);
   }
 
-  const currentResponse = await fetch(`/api/regions/me/${region.regionId}/current`, {
+  const currentResponse = await fetch(`/api/regions/me/${FIXED_REGION_ID}/current`, {
     method: "PUT",
     cache: "no-store",
   });
