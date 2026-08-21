@@ -64,11 +64,17 @@ export const metadata: Metadata = {
 };
 
 interface ReportPlacePageProps {
-  searchParams: Promise<{ item?: string; price?: string; amount?: string }>;
+  searchParams: Promise<{
+    item?: string;
+    store?: string;
+    price?: string;
+    amount?: string;
+    unit?: string;
+  }>;
 }
 
 export default async function ReportPlacePage({ searchParams }: ReportPlacePageProps) {
-  const { item, price, amount } = await searchParams;
+  const { item, store, price, amount, unit } = await searchParams;
   const region = await getSelectedRegion();
   const center = ASSADA_MART_CENTER;
   const unavailableMessage = !region
@@ -79,8 +85,10 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
   // 폼이 다시 마운트될 때 지워지지 않게 한다(`_report-form.tsx#buildPlaceQuery`와 짝).
   const backParams = new URLSearchParams();
   if (item) backParams.set("item", item);
+  if (store) backParams.set("store", store);
   if (price) backParams.set("price", price);
   if (amount) backParams.set("amount", amount);
+  if (unit) backParams.set("unit", unit);
 
   return (
     <main className="min-h-dvh bg-surface-secondary">
@@ -111,6 +119,7 @@ export default async function ReportPlacePage({ searchParams }: ReportPlacePageP
           item={item}
           price={price}
           amount={amount}
+          unit={unit}
           unavailableMessage={unavailableMessage}
         />
       </div>

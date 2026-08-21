@@ -80,6 +80,8 @@ export interface ReportFormProps {
   unitType?: string;
   /** F04-3에서 고른 판매 장소 — 제출 시 그대로 실어 보낸다. */
   store?: StoreRequest;
+  /** 가게 상세에서 진입한 기존 매장 ID — 이 경우 새 매장 정보 대신 `storeId`로 제출한다. */
+  storeId?: number;
   /** 화면에 보여줄 장소 이름. */
   placeName?: string;
   /** 선택값을 물고 다니기 위한 현재 쿼리스트링(품목·장소 화면으로 넘길 때 붙인다). */
@@ -154,6 +156,7 @@ export function ReportForm({
   vegetableName,
   unitType,
   store,
+  storeId,
   placeName,
   carryQuery,
   initialPrice,
@@ -210,7 +213,7 @@ export function ReportForm({
   const canSubmit =
     Boolean(selectedItemId) &&
     Boolean(selectedVegetableName) &&
-    Boolean(store) &&
+    Boolean(store || storeId) &&
     Boolean(placeName) &&
     Boolean(reportUnit) &&
     price.trim() !== "" &&
@@ -297,8 +300,16 @@ export function ReportForm({
   }
 
   async function handleSubmit() {
-    // canSubmit이 이미 품목·store 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
-    if (!canSubmit || isSubmitting || !selectedItemId || !store || !reportUnit) return;
+    // canSubmit이 이미 품목·장소 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
+    if (
+      !canSubmit ||
+      isSubmitting ||
+      !selectedItemId ||
+      (!store && storeId === undefined) ||
+      !reportUnit
+    ) {
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -329,6 +340,7 @@ export function ReportForm({
       const result = await submitReportAction({
         itemId: selectedItemId,
         store,
+        storeId,
         price: Number(digitsOnly(price)),
         amount: Number(amount),
         unit: reportUnit,

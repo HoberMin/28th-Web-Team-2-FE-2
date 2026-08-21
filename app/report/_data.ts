@@ -5,7 +5,6 @@ import {
   getItemDetailWithTemporaryFallback,
   getItemsWithTemporaryFallback,
 } from "@/app/_lib/api/server/items-fallback";
-import { storeRequestSchema, type StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { PRICE_GROUPS, mapGroupToApi, normalizeGroup } from "@/app/(tabs)/prices/_query";
 import type { VegetableGroup } from "@/app/_lib/types";
 
@@ -91,27 +90,5 @@ export async function getReportVegetable(params: {
       return { vegetable: undefined, isTemporary: false };
     }
     throw error;
-  }
-}
-
-/**
- * F04-3에서 고른 장소를 URL로 물고 다닐 때 쓰는 JSON 문자열을 만든다.
- *
- * 카카오 검색 결과는 id로 재조회할 수 있는 엔드포인트가 없어(키워드 재검색만 가능하고 순서·
- * 존재가 보장 안 됨) 제출에 필요한 필드 전체를 실어 날라야 한다. 가게 공개 정보라 URL에
- * 실어도 무방하다(민감정보 아님).
- */
-export function encodeCarriedStore(store: StoreRequest): string {
-  return JSON.stringify(store);
-}
-
-/** 위 함수의 역변환. 형식이 깨졌거나 없으면 조용히 undefined — 장소를 다시 고르면 된다. */
-export function parseCarriedStore(raw: string | undefined): StoreRequest | undefined {
-  if (!raw) return undefined;
-  try {
-    const parsed = storeRequestSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : undefined;
-  } catch {
-    return undefined;
   }
 }

@@ -35,6 +35,7 @@ interface ReportPlaceMapProps {
   /** 폼에서 입력 중이던 가격·양 — 장소를 골라 `/report`로 돌아갈 때 그대로 실어 보낸다. */
   price?: string;
   amount?: string;
+  unit?: string;
   unavailableMessage?: string;
   level?: number;
 }
@@ -48,6 +49,7 @@ export function ReportPlaceMap({
   item,
   price,
   amount,
+  unit,
   unavailableMessage,
   level = 5,
 }: ReportPlaceMapProps) {
@@ -185,6 +187,7 @@ export function ReportPlaceMap({
     if (item) params.set("item", item);
     if (price) params.set("price", price);
     if (amount) params.set("amount", amount);
+    if (unit) params.set("unit", unit);
     params.set("store", JSON.stringify(store));
     return `${ROUTES.report}?${params.toString()}`;
   }

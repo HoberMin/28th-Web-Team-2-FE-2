@@ -42,7 +42,7 @@ export const createReportRequestSchema = z.object({
   price: z.number().int().min(0),
   unit: z.string().max(20),
   amount: z.number().min(0),
-  /** 기존 매장 id로 붙이는 경로 — 지금은 쓰지 않는다(항상 `store`로 새로 실어 보낸다). */
+  /** 기존 매장 id로 붙이는 경로. 새 매장은 아래 `store`를 사용한다. */
   storeId: z.number().int().min(0).nullable().optional(),
   store: storeRequestSchema.optional(),
   photoUrl: z.string().max(500).optional(),

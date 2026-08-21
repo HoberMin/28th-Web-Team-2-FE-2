@@ -14,7 +14,7 @@ import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
 import { SheetHandle } from "@/app/_components/sheet-handle";
 import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
-import { ROUTES } from "@/app/_lib/routes";
+import { buildExistingStoreReportHref } from "@/app/report/_lib/report-entry-query";
 import { StoreDetailBackButton } from "./_back-button";
 import type { StoreDetailPrice, StoreDetailPriceTrend, StoreDetailProfile } from "./_data";
 
@@ -581,7 +581,11 @@ export function StoreDetailClient({
             )}
           </button>
           <Link
-            href={`${ROUTES.report}?store=${storeId}`}
+            href={buildExistingStoreReportHref({
+              storeId,
+              placeName: profile.name ?? "가게",
+              addressName: profile.address ?? "",
+            })}
             className="flex flex-1 items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
           >
             가게에 제보하기

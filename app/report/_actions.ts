@@ -31,7 +31,10 @@ export type SubmitReportResult =
 
 export interface SubmitReportInput {
   itemId: number;
-  store: StoreRequest;
+  /** 카카오 장소 검색으로 고른 새 매장 정보. 기존 매장 ID와 동시에 보내지 않는다. */
+  store?: StoreRequest;
+  /** 가게 상세에서 제보할 때 사용하는 기존 매장 ID. */
+  storeId?: number;
   price: number;
   amount: number;
   /** 폼에서 선택한 판매 단위(`kg`·`g`·`개`·`포기`). */
@@ -107,7 +110,8 @@ export async function uploadReportPhotoAction(formData: FormData): Promise<Uploa
 /**
  * ⚠️ **Server Action은 네트워크 진입점이다** — 이 인자는 브라우저가 보낸 값이고, 타입 선언은
  * 런타임에 아무것도 막지 않는다. 특히 `store`는 F04-3이 URL(`store=` JSON 쿼리)로 물고 다니는
- * 값이라 조작이 쉽다. RSC 경로(`_data.ts#parseCarriedStore`)가 이미 zod로 거르지만 그건
+ * 값이라 조작이 쉽다. RSC 경로(`_lib/carried-store.ts#parseCarriedStore`)가 이미 zod로
+ * 거르지만 그건
  * **화면에 그릴 때**의 검증이고, 액션은 클라이언트가 직접 부를 수 있으므로 그 검증을 우회한다.
  * → 제출 직전에 스펙 스키마(`createReportRequestSchema`)로 한 번 더 판정하고, 통과한 값만
  * Spring에 넘긴다(`nextjs-app-router` "입력은 zod로 서버에서 재검증").
@@ -117,6 +121,12 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
   const itemId = input?.itemId;
   if (typeof itemId !== "number" || !Number.isSafeInteger(itemId) || itemId <= 0) {
     return { status: "invalid", message: "품목 정보가 올바르지 않아요. 다시 선택해 주세요." };
+  }
+
+  const hasInputStoreId = input.storeId !== undefined;
+  const hasInputStore = input.store !== undefined;
+  if (hasInputStoreId === hasInputStore) {
+    return { status: "invalid", message: "판매 장소를 선택해 주세요." };
   }
 
   const token = await getAccessToken();
@@ -145,6 +155,7 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
     price: input.price,
     unit: input.unit,
     amount: input.amount,
+    storeId: input.storeId,
     store: input.store,
     // 사진은 `uploadReportPhotoAction`이 먼저 올리고 그 결과 URL만 여기로 온다
     // (2026-08-20 `POST /api/v1/images` 연결). 로컬 blob URL은 절대 넘기지 않는다.
@@ -153,10 +164,11 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
   if (!body.success) {
     return { status: "invalid", message: "입력값을 확인해 주세요." };
   }
-  // 스키마는 `store`를 optional로 둔다(스펙상 `storeId`로 붙이는 경로가 따로 있어서다).
-  // 이 플로우는 항상 `store`로 보내므로 여기서 필수로 좁힌다 — 장소 없는 제보는 시세 비교에
-  // 쓸 수 없다는 폼의 판단(`_report-form.tsx` canSubmit)을 서버에서도 같게 유지한다.
-  if (!body.data.store) {
+  // 라이브 OpenAPI는 기존 매장은 `storeId`, 카카오 검색으로 고른 새 매장은 `store`를 받는다.
+  // 둘 중 정확히 하나만 허용해 조작된 Server Action 입력이 두 경로를 섞지 못하게 한다.
+  const hasStoreId = body.data.storeId !== undefined && body.data.storeId !== null;
+  const hasStore = body.data.store !== undefined;
+  if (hasStoreId === hasStore) {
     return { status: "invalid", message: "판매 장소를 선택해 주세요." };
   }
 

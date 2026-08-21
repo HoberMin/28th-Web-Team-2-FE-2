@@ -5,7 +5,8 @@ import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "./_components/report-header";
-import { getReportVegetable, parseCarriedStore } from "./_data";
+import { getReportVegetable } from "./_data";
+import { parseCarriedStore } from "./_lib/carried-store";
 import { ReportForm } from "./_report-form";
 
 // ── 실측 출처 (검산용) ─────────────────────────────────────────────────────────
@@ -86,7 +87,8 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
           itemId={vegetable ? itemId : undefined}
           vegetableName={vegetable?.name}
           unitType={vegetable?.unit ?? undefined}
-          store={selectedStore}
+          store={selectedStore?.source === "search" ? selectedStore.store : undefined}
+          storeId={selectedStore?.source === "existing" ? selectedStore.storeId : undefined}
           placeName={selectedStore?.placeName}
           carryQuery={carryQuery}
           // 장소 선택 왕복(`_report-form.tsx#buildPlaceQuery`)이 실어 보낸 값 — 폼이

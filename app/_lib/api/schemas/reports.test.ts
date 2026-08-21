@@ -30,6 +30,19 @@ describe("create report request schema", () => {
     ).toBe(true);
   });
 
+  it("가게 상세에서 넘어온 기존 매장 ID payload를 허용한다", () => {
+    expect(
+      createReportRequestSchema.safeParse({
+        regionId: "1144010200",
+        reportType: "PURCHASE",
+        price: 3_000,
+        unit: "1kg",
+        amount: 1,
+        storeId: 7,
+      }).success,
+    ).toBe(true);
+  });
+
   it("잘못된 법정동 코드와 필수 가게 필드를 거부한다", () => {
     expect(
       createReportRequestSchema.safeParse({
