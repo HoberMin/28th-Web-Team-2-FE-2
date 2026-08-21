@@ -16,6 +16,7 @@ import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
 import { buildItemReportHref } from "@/app/report/_lib/report-entry-query";
 import type { OnlineMall, PricePoint } from "@/app/_lib/types";
+import { getPriceTrendDirection } from "./_price-summary";
 import {
   getOnlinePrices,
   VEGETABLES,
@@ -289,7 +290,7 @@ function PriceSummary({
   publicPriceDiff,
   publicPriceDiffPercent,
 }: PriceSummaryProps) {
-  const direction = publicPriceDiff < 0 ? "down" : publicPriceDiff > 0 ? "up" : "flat";
+  const direction = getPriceTrendDirection(publicPrice, publicPriceDiff);
 
   return (
     <section aria-label={`${name} 가격 요약`} className="flex gap-5 px-4 pt-7 pb-8">
@@ -329,16 +330,18 @@ function PriceSummary({
                   : formatWon(publicPrice)}
               </span>
             </p>
-            <p className="flex items-center justify-end py-0.5">
-              {direction === "flat" ? (
+            {direction === null ? null : (
+              <p className="flex items-center justify-end py-0.5">
+                {direction === "flat" ? (
                 <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
-              ) : (
-                <span className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}>
-                  <FigmaIcon name={`trend-${direction}`} width={16} />
-                  {formatWon(Math.abs(publicPriceDiff))}({publicPriceDiffPercent > 0 ? "+" : "-"}{Math.abs(publicPriceDiffPercent).toFixed(1)}%)
-                </span>
-              )}
-            </p>
+                ) : (
+                  <span className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}>
+                    <FigmaIcon name={`trend-${direction}`} width={16} />
+                    {formatWon(Math.abs(publicPriceDiff))}({publicPriceDiffPercent > 0 ? "+" : "-"}{Math.abs(publicPriceDiffPercent).toFixed(1)}%)
+                  </span>
+                )}
+              </p>
+            )}
           </div>
           <p className="flex items-center justify-between">
             <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>

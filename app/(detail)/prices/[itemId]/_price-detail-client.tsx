@@ -7,7 +7,7 @@ import { PRICE_DETAIL_HEADER_HEIGHT } from "./_detail-header";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import type { PricePeriod, PricePoint } from "@/app/_lib/types";
-import { getChartTooltipPlacement } from "./_chart-tooltip";
+import { getChartPointX, getChartTooltipPlacement } from "./_chart-tooltip";
 
 export interface PriceDetailReport {
   id: string;
@@ -518,7 +518,7 @@ function buildChart(points: PricePoint[]) {
   const coordinates = points.map((point, index) => ({
     date: point.date,
     price: point.price,
-    x: points.length === 1 ? 0 : (index / (points.length - 1)) * width,
+    x: getChartPointX(index, points.length, width),
     y: top + ((max - point.price) / range) * (bottom - top),
   }));
   const path = coordinates.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
