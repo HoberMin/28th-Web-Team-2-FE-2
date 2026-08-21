@@ -3,7 +3,6 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/_components/button";
-import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import { RowSortOption } from "@/app/_components/row-sort-option";
 import { TextField } from "@/app/_components/text-field";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
@@ -43,7 +42,6 @@ export interface VegetablePickerProps {
   /** 이미 고른 품목 id(폼에서 "다시 선택"으로 들어온 경우). */
   selectedId?: string;
   vegetables: ReportVegetableOption[];
-  isTemporary?: boolean;
 }
 
 export function VegetablePicker({
@@ -51,7 +49,6 @@ export function VegetablePicker({
   initialQuery,
   selectedId,
   vegetables,
-  isTemporary = false,
 }: VegetablePickerProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
@@ -75,10 +72,6 @@ export function VegetablePicker({
   return (
     <>
       <div className="flex flex-1 flex-col overflow-hidden px-4 pt-3.25">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="text-body-14-medium text-content-secondary">제보할 야채를 선택해주세요</p>
-          {isTemporary ? <TemporaryDataBadge /> : null}
-        </div>
         <form role="search" className="w-full shrink-0" onSubmit={handleSearch}>
           <label className="sr-only" htmlFor="report-vegetable-search-2">
             제보할 야채 검색
