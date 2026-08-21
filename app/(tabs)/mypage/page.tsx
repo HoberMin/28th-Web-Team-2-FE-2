@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
+import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { getFavoriteStores } from "@/app/_lib/api/server/stores";
 import { getMyReports, getMyWeeklyReports } from "@/app/_lib/api/server/my-reports";
@@ -95,7 +95,7 @@ export default async function MyPage() {
     // 찜한 야채는 지역 시세와 함께 오는 목록이라 동네가 정해져 있어야 조회된다.
     regionId
       ? countOrNull(async () => {
-          const { page } = await getItemsWithTemporaryFallback({
+          const page = await getItems({
             regionId,
             page: 0,
             size: 100,
