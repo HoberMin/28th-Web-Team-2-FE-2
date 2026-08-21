@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/app/_lib/cn";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
@@ -77,16 +77,47 @@ export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
   // 밀려나 있었고**, 굵기·색도 body/16-medium content/secondary로 값과 달랐다.
   //   → 입력칸을 내용 폭으로 줄여(보이지 않는 mirror 텍스트가 폭을 정한다) 단위가 숫자
   //     바로 뒤에 붙게 하고, 값이 없을 때는 단위를 렌더하지 않는다.
+  //
+  // ⚠️ mirror 방식은 **단위가 붙는 칸에서만** 쓴다. 단위가 없는 「양」 칸까지 내용 폭으로
+  //    줄이면 안내문구가 "1" 한 글자라 입력칸이 8px짜리가 되고 나머지 박스가 죽는다.
+  const inputRef = useRef<HTMLInputElement>(null);
   const text = rest.value === undefined || rest.value === null ? "" : String(rest.value);
   const placeholder = typeof rest.placeholder === "string" ? rest.placeholder : "";
   const showSuffix = Boolean(suffix) && text.length > 0;
+
+  if (!suffix) {
+    return (
+      <div className={cn(FIELD_BOX, "w-full focus-within:border-border-tertiary", className)}>
+        <input
+          className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
+          {...rest}
+        />
+      </div>
+    );
+  }
 
   return (
     // 입력중(focus) 테두리 — Figma에 focus 심볼이 없어 border/tertiary를 쓴다. 브라우저 기본
     // 파란 링을 끈 자리를 메우는 표시이기도 하다(UI QA #45). border 폭은 1px 그대로라
     // 색만 바뀌고 레이아웃은 흔들리지 않는다.
-    <div className={cn(FIELD_BOX, "w-full focus-within:border-border-tertiary", className)}>
-      <span className="flex min-w-0 flex-1 items-center">
+    <div
+      className={cn(FIELD_BOX, "w-full focus-within:border-border-tertiary", className)}
+      // 입력칸이 내용 폭이라 박스 오른쪽에 빈 자리가 생긴다. 거기를 눌러도 입력이 시작되도록
+      // 포커스를 넘긴다(누르는 곳이 곧 입력칸이라는 기대를 지킨다).
+      onMouseDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        event.preventDefault();
+        inputRef.current?.focus();
+      }}
+    >
+      <span
+        className="flex min-w-0 flex-1 items-center"
+        onMouseDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          event.preventDefault();
+          inputRef.current?.focus();
+        }}
+      >
         {/*
           grid 1칸에 mirror와 input을 겹쳐 둔다 — 칸 폭을 보이지 않는 mirror가 정하므로
           입력칸이 내용 길이만큼만 차지하고, 뒤따르는 단위가 숫자에 붙는다.
@@ -100,6 +131,7 @@ export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
             {text || placeholder}
           </span>
           <input
+            ref={inputRef}
             className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
             {...rest}
           />
