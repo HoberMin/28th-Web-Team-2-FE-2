@@ -222,6 +222,7 @@ export function mapStoreReportToPrice(report: StoreReport, now: number): StoreDe
     unit: report.unit ? `/${report.unit}` : "",
     trend: formatTrend(report),
     kind: report.priceClassification === "CHEAP" ? "cheap" : "expensive",
+    reporter: mapReporter(report),
     imageUrl: report.itemImageUrl?.trim() || undefined,
   };
 }
