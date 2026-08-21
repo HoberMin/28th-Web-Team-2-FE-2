@@ -33,6 +33,7 @@ export interface PriceVegetableCardProps {
   trendState: TrendState;
   trendAmount: string;
   trendPercent: string;
+  isTemporary?: boolean;
   initialFavorite: boolean;
   canFavorite: boolean;
   detailHref?: string;
@@ -47,6 +48,7 @@ export function PriceVegetableCard({
   trendState,
   trendAmount,
   trendPercent,
+  isTemporary = false,
   initialFavorite,
   canFavorite,
   detailHref,
@@ -153,6 +155,11 @@ export function PriceVegetableCard({
           </button>
         }
       />
+      {isTemporary ? (
+        <span className="pointer-events-none absolute top-1 left-1 z-20 rounded bg-surface-accent-orange-subtle px-1.5 py-0.5 text-caption-12-medium text-content-accent-badge">
+          예시
+        </span>
+      ) : null}
       {state.message ? (
         <p role="status" className="mt-1 text-caption-12-regular text-content-error">
           {state.message}

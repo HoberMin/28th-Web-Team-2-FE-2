@@ -106,7 +106,10 @@ function PricesInfiniteListContent({
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
-  const rows = data.pages.flatMap((page) => page.items).map(mapItemToPriceView);
+  const rows = data.pages
+    .flatMap((page) => page.items)
+    .map(mapItemToPriceView)
+    .sort((left, right) => Number(left.isTemporary) - Number(right.isTemporary));
 
   return (
     <>
@@ -125,6 +128,7 @@ function PricesInfiniteListContent({
               trendState={row.trendState}
               trendAmount={row.trendAmount}
               trendPercent={row.trendPercent}
+              isTemporary={row.isTemporary}
               initialFavorite={row.isLiked}
               canFavorite={canFavorite}
               detailHref={ROUTES.priceDetail(String(row.itemId))}

@@ -11,6 +11,7 @@ const ITEM: Item = {
   priceGap: -500,
   priceDiffRate: -12.5,
   isLiked: true,
+  isTemporary: false,
 };
 
 describe("mapItemToPriceView", () => {
@@ -25,6 +26,7 @@ describe("mapItemToPriceView", () => {
       trendAmount: "500원",
       trendPercent: "(-12.5%)",
       isLiked: true,
+      isTemporary: false,
     });
   });
 
@@ -43,6 +45,7 @@ describe("mapItemToPriceView", () => {
       trendState: "flat",
       trendAmount: "",
       trendPercent: "",
+      isTemporary: false,
     });
   });
 

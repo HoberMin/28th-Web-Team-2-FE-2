@@ -82,7 +82,7 @@ export default async function PricesPage({
 
   const apiSort = mapSortToApi(sort);
   const category = mapGroupToApi(group);
-  const { page: itemPage, isTemporary } = await getItemsWithTemporaryFallback({
+  const { page: itemPage } = await getItemsWithTemporaryFallback({
     regionId,
     page: 0,
     size: ITEMS_PAGE_SIZE,
@@ -101,16 +101,6 @@ export default async function PricesPage({
   return (
     <div className="relative pt-6 pb-20">
       <h1 className="sr-only">야채 시세</h1>
-
-      {isTemporary ? (
-        <p
-          role="status"
-          data-data-source="temporary"
-          className="absolute left-4 top-1 z-10 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
-        >
-          예시 데이터 · API 연결 시 자동 전환
-        </p>
-      ) : null}
 
       <div className="px-4">
         <PricesSearchField query={query} group={group} sort={sortParam} autoFocus={focusSearch} />
@@ -158,6 +148,13 @@ export default async function PricesPage({
           />
         )}
       </div>
+      <p
+        role="note"
+        data-data-source="temporary"
+        className="mt-8 px-4 text-center text-caption-12-regular text-content-secondary"
+      >
+        ‘예시’ 표시가 있는 품목은 API 가격이 없어 임시 가격을 표시하고 있어요.
+      </p>
     </div>
   );
 }

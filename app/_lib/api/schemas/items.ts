@@ -59,6 +59,8 @@ export const itemSchema = z.object({
    * `null`은 그대로 실패시킨다. Jackson이 미설정 boolean을 null로 직렬화하는 일이 흔하다.
    */
   isLiked: z.boolean().nullish().transform((value) => value ?? false),
+  /** BFF가 가격 폴백을 적용한 품목인지 표시한다. */
+  isTemporary: z.boolean().optional().default(false),
 });
 export type Item = z.infer<typeof itemSchema>;
 

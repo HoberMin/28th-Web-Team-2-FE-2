@@ -14,6 +14,7 @@ export interface PriceItemView {
   trendAmount: string;
   trendPercent: string;
   isLiked: boolean;
+  isTemporary: boolean;
 }
 
 /**
@@ -55,5 +56,6 @@ export function mapItemToPriceView(item: Item): PriceItemView {
       ? `(${trend === "up" ? "+" : "-"}${Math.abs(item.priceDiffRate ?? 0)}%)`
       : "",
     isLiked: item.isLiked,
+    isTemporary: item.isTemporary,
   };
 }

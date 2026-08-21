@@ -60,6 +60,7 @@ describe("getItemsWithTemporaryFallback", () => {
 
     expect(result.isTemporary).toBe(true);
     expect(result.page.items.length).toBeGreaterThan(0);
+    expect(result.page.items.every((item) => item.isTemporary)).toBe(true);
   });
 
   it("목록은 실데이터인데 가격만 null이면 이름이 맞는 더미로 가격만 채운다", async () => {
@@ -95,6 +96,7 @@ describe("getItemsWithTemporaryFallback", () => {
     expect(patched.isLiked).toBe(true);
     // 가격만 채워진다.
     expect(patched.price).not.toBeNull();
+    expect(patched.isTemporary).toBe(true);
   });
 
   it("괄호/하이픈 표기 차이가 있어도 정규화해서 매칭한다 (\"고춧가루-국산\" ↔ 더미 \"고춧가루(국산)\")", async () => {

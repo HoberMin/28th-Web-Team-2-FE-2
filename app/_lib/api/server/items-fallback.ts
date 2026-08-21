@@ -114,7 +114,7 @@ function withTemporaryPriceIfMissing(item: ItemPage["items"][number]): ItemPage[
   const vegetable = findDummyVegetableByName(item.itemName);
   if (!vegetable) return item;
   const { price, priceGap, priceDiffRate } = temporaryPriceFields(vegetable.id);
-  return { ...item, price, priceGap, priceDiffRate };
+  return { ...item, price, priceGap, priceDiffRate, isTemporary: true };
 }
 
 function buildTemporaryItem(index: number) {
@@ -145,6 +145,7 @@ function buildTemporaryItem(index: number) {
     priceGap,
     priceDiffRate,
     isLiked: false,
+    isTemporary: true,
   };
 }
 
