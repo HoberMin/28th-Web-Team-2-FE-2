@@ -9,7 +9,43 @@
 // 그린다(주소·전화번호를 링크로 만들지 않는다).
 
 import { z } from "zod";
-import type { StoreReport } from "@/app/_lib/api/schemas/stores";
+import type { ReporterRank } from "@/app/_components/badge-reporter-rank";
+import type { ReporterTone } from "@/app/_components/image-profile-reporter";
+import type {
+  ReporterProfileColorCode,
+  ReporterRankCode,
+  StoreReport,
+} from "@/app/_lib/api/schemas/stores";
+
+/**
+ * 공공 시세 대비 변동.
+ *
+ * 문자열 한 덩어리("▼ 1,000원(-7.4%)")가 아니라 쪼개서 넘긴다 — Figma
+ * `text/vegetable-trend`는 화살표가 글자가 아니라 **`icon/trend-*` 16px SVG**라서,
+ * 화면이 방향으로 아이콘을 고르고 숫자만 글자로 그려야 한다.
+ */
+export interface StoreDetailPriceTrend {
+  direction: "down" | "up";
+  /** 예: "1,000원" */
+  amount: string;
+  /** 예: "(-7.4%)". 변동률이 없으면 빈 문자열. */
+  percent: string;
+}
+
+/**
+ * 제보자.
+ *
+ * ⚠️ 지금 백엔드가 이 정보를 주지 않아 **항상 `null`이다** — 화면은 그때 "제보자 정보 없음"을
+ * 그린다(자리를 없애지 않는다: 시안의 133px 행 높이가 이 줄을 포함한다).
+ * 계약은 `농산물-문서/be-요청-2026-08-21-가게상세-제보행.md` 1번.
+ */
+export interface StoreDetailReporter {
+  nickname: string;
+  /** 등급을 모르면 `null` — 배지를 그리지 않는다. */
+  rank: ReporterRank | null;
+  /** 프로필 색을 모르면 `null` — 기본색(green)으로 그린다. */
+  color: ReporterTone | null;
+}
 
 export interface StoreDetailPrice {
   id: string;
