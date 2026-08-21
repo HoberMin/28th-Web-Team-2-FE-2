@@ -103,6 +103,25 @@ function formatPriceInput(value: string): string {
   return digits ? Number(digits).toLocaleString("ko-KR") : "";
 }
 
+/**
+ * "판매 장소" 화면으로 나갈 때 현재 입력한 가격·양을 쿼리에 얹는다.
+ *
+ * 장소 선택은 별도 라우트라 폼이 통째로 다시 마운트된다 — 사진은 IndexedDB로 따로
+ * 보관해 살아남지만, 가격·양은 로컬 state뿐이라 그냥 두면 장소를 고르고 돌아왔을 때
+ * 지워져 있었다(2026-08-21 버그 리포트). `item`이 그대로면 값은 여전히 유효하므로
+ * URL에 실어 왕복시킨다. 품목을 다시 고르는 링크는 건드리지 않는다 — 품목이 바뀌면
+ * 가격도 그 품목 기준으로 다시 입력해야 해서, 폼을 통째로 리셋하는 기존 동작
+ * (`page.tsx`의 `key={itemId}`)이 맞다.
+ */
+function buildPlaceQuery(carryQuery: string, price: string, amount: string): string {
+  const params = new URLSearchParams(carryQuery.startsWith("?") ? carryQuery.slice(1) : carryQuery);
+  const priceDigits = digitsOnly(price);
+  if (priceDigits) params.set("price", priceDigits);
+  if (amount.trim()) params.set("amount", amount);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 /** 사진 로드 실패 안내. Figma에 실패 시안이 없어 문구만 둔다(동작 공백은 메워야 한다). */
 const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
 
@@ -392,7 +411,7 @@ export function ReportForm({
               <FieldSelect
                 value={placeName ?? "장소를 선택해 주세요"}
                 actionLabel={placeName ? "위치 변경" : "선택"}
-                href={`${ROUTES.reportPlace}${carryQuery}`}
+                href={`${ROUTES.reportPlace}${buildPlaceQuery(carryQuery, price, amount)}`}
                 ariaLabel={placeName ? `판매 장소 ${placeName}, 위치 변경` : "판매 장소 선택"}
               />
             </FieldBlock>
