@@ -34,14 +34,24 @@ MECE 축: 화면 하나가 아래 4칸 중 정확히 한 칸에 들어간다.
 
 | Figma | 지금 | 막힌 지점 |
 |---|---|---|
-| **F04-1_야채 제보_양 단위 편집** ([785:29971](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=785-29971)) 의 [list/unit-option](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=831-35676) | 코드에는 단위 **드롭다운이 없다**. 양 입력칸 오른쪽은 선택 불가한 단위 **표시**(`FieldUnitDisplay`)다 | 제보 저장 API가 품목의 `defaultUnit` 문자열과 **정확히 같은 값만** 받는다. Figma는 kg / g / 개 / 포기 **4종 고정 선택**이라 정면 충돌 |
+| **F04-1_야채 제보_양 단위 편집** ([785:29971](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=785-29971)) 의 [list/unit-option](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=831-35676) | 코드에는 단위 **드롭다운이 없다**. 양 입력칸 오른쪽은 선택 불가한 단위 **표시**(`FieldUnitDisplay`)다 | **08-21 갱신** — BE 제약이 풀렸다(백엔드 #216, 배포 확인). `kg`처럼 접두 수량 없는 표기도 받고 무게끼리는 서버가 환산한다. 남은 충돌은 **무게↔낱개**뿐이라, 선택지를 품목의 기준 단위와 같은 차원으로 좁히면 구현 가능하다. 다만 낱개 품목은 선택지가 1개가 되는데 시안은 4개를 보여줘 **디자이너 결정 대기** |
 
 Figma 실측 (구현 시 그대로 쓸 값):
 - 컨테이너 — `bg surface/primary` · `border border/primary 1px` · `p-[2px]` · `radius/lg 12` · 그림자 2겹 `0 2px 4px -2px rgba(23,23,23,.06)`, `0 4px 6px -1px rgba(23,23,23,.06)` → 이미 만들어 둔 `--shadow-dropdown` 값과 **정확히 일치**
 - 행 — `w-[118px]` · `px-[16px] py-[8px]` · `radius/md 8` · `body/16-medium` · `content/primary`
 - 선택 행 — 배경만 `surface/secondary` (컴포넌트 variant가 아니라 그 자리에서 칠한 것 → 디자인팀 확인 항목 9번)
 
-**결정 필요**: BE에 단위 선택을 요청할지 / 이 화면을 시안에서 뺄지. 둘 다 정해지기 전엔 구현하면 저장이 실패한다.
+**결정 필요**: 낱개 품목에서 선택지가 하나뿐일 때 드롭다운을 어떻게 할지. 그것만 정해지면 바로 구현한다.
+
+BE가 실제로 허용하는 조합 (`CreateUserReportUseCase.normalizeQuantity` 실독):
+
+| 요청 | 결과 |
+|---|---|
+| `1kg` 품목에 `kg` | 허용 (접두 수량 없어도 됨) |
+| `1kg` 품목에 `500g` | `amount=0.5` · `unit=1kg`으로 환산 저장 |
+| `1개` 품목에 `포기` | 400 |
+| `1kg` 품목에 `개` | 400 |
+| `2kg`에 `8000원` | `1kg에 4000원`으로 환산 저장 |
 
 ## ③ 코드에 있는데 Figma에 없음 — 2건
 
@@ -83,7 +93,8 @@ Figma 실측 (구현 시 그대로 쓸 값):
 
 ## 후속 액션
 
-**BE 요청 (4)** — 깨·견과류 카테고리 · 정렬 2종 · 「오늘 제보된 품목」 수 · 제보 unit 제약 확인
+**BE 요청 (3)** — 깨·견과류 카테고리 · 정렬 2종 · 「오늘 제보된 품목」 수
+(제보 unit 제약은 백엔드 #216으로 **해소됨** — 08-21 확인)
 
 **프런트 미작업 (BE는 이미 있는데 안 붙음)** — 가게 시트의 영업상태·영업시간·도보시간·저렴한 야채 수·최근 제보 2개 / 온라인가 비교 목록(`GET /items/{itemId}/online-prices`가 있는데 화면은 더미 `_lib/vegetables`를 쓴다 — 서버 fetch 함수 `api/server/items.ts`는 이미 만들어져 있고 호출부만 안 바뀌었다)
 **디자인팀 전달 (18항목)** — `디자인_docs/feedback/0821/화면리뷰.md`
