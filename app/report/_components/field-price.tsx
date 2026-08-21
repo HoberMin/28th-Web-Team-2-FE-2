@@ -66,20 +66,48 @@ export interface FieldInputProps extends ComponentPropsWithoutRef<"input"> {
  * content/primary다. 굵기가 바뀌므로 `placeholder:` 변형으로 둘을 한 요소에 태운다.
  */
 export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
+  // 2026-08-21 재실측 (F04-1_야채 제보_입력완료 `report-form-price` 1183:24038):
+  //   상태 "입력됨" 은 값과 단위가 **한 덩어리 텍스트**다 — "1,000원" 전체가
+  //   body/16-semibold · content/primary 이고 왼쪽 정렬이다.
+  //   상태 "플레이스홀더" 는 "가격을 입력해 주세요" body/16-medium · content/disabled 이고
+  //   **단위 글자가 없다.**
+  //
+  // UI QA 2026-08-20 #35("상태가 디자인과 다름")를 08-20에는 focus 테두리로만 처리했는데,
+  // 실제 어긋남은 여기였다: `suffix`를 `flex-1` 입력 뒤에 두어 "원"이 **박스 오른쪽 끝까지
+  // 밀려나 있었고**, 굵기·색도 body/16-medium content/secondary로 값과 달랐다.
+  //   → 입력칸을 내용 폭으로 줄여(보이지 않는 mirror 텍스트가 폭을 정한다) 단위가 숫자
+  //     바로 뒤에 붙게 하고, 값이 없을 때는 단위를 렌더하지 않는다.
+  const text = rest.value === undefined || rest.value === null ? "" : String(rest.value);
+  const placeholder = typeof rest.placeholder === "string" ? rest.placeholder : "";
+  const showSuffix = Boolean(suffix) && text.length > 0;
+
   return (
-    // 입력중(focus) 상태의 테두리는 Figma `field/price` "상태: 입력중"(F04-1 444:24594)이
-    // border/tertiary로 잡아 둔 값이다 — UI QA 2026-08-20 #35("상태가 디자인과 다름").
-    // 동시에 #45("모든 텍스트필드 선택 시 파란 스트로크")도 여기서 해소된다: 브라우저 기본
-    // 파란 링(outline)을 끄고 디자인 토큰 테두리로 대체한다. border 폭은 그대로 1px이라
+    // 입력중(focus) 테두리 — Figma에 focus 심볼이 없어 border/tertiary를 쓴다. 브라우저 기본
+    // 파란 링을 끈 자리를 메우는 표시이기도 하다(UI QA #45). border 폭은 1px 그대로라
     // 색만 바뀌고 레이아웃은 흔들리지 않는다.
     <div className={cn(FIELD_BOX, "w-full focus-within:border-border-tertiary", className)}>
-      <input
-        className="min-w-0 flex-1 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
-        {...rest}
-      />
-      {suffix ? (
-        <span className="shrink-0 text-body-16-medium text-content-secondary">{suffix}</span>
-      ) : null}
+      <span className="flex min-w-0 flex-1 items-center">
+        {/*
+          grid 1칸에 mirror와 input을 겹쳐 둔다 — 칸 폭을 보이지 않는 mirror가 정하므로
+          입력칸이 내용 길이만큼만 차지하고, 뒤따르는 단위가 숫자에 붙는다.
+          (`field-sizing: content`는 아직 브라우저 편차가 커서 쓰지 않았다)
+        */}
+        <span className="grid max-w-full min-w-0 overflow-hidden">
+          <span
+            aria-hidden="true"
+            className="invisible col-start-1 row-start-1 whitespace-pre text-body-16-semibold"
+          >
+            {text || placeholder}
+          </span>
+          <input
+            className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
+            {...rest}
+          />
+        </span>
+        {showSuffix ? (
+          <span className="shrink-0 text-body-16-semibold text-content-primary">{suffix}</span>
+        ) : null}
+      </span>
     </div>
   );
 }
