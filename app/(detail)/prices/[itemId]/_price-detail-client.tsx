@@ -21,6 +21,26 @@ export interface PriceDetailReport {
 
 interface NeighborhoodPricesProps {
   reports: PriceDetailReport[];
+  /**
+   * 이 목록이 실제 제보가 없어 더미로 채워졌는지. 헤더의 "예시 데이터" 배지는 요약 카드
+   * (공공시세·최근 제보가)가 통째로 비었을 때만 뜨는데, 지금처럼 요약 카드는 실데이터이고
+   * 이 목록만 개별적으로 더미인 경우엔 아무 표시가 없었다 — 실제/예시 구분이 안 돼서
+   * 화면을 본 사람이 "농협하나로마트" 같은 이름이 진짜인지 알 길이 없었다(사용자 지적,
+   * 2026-08-21). 섹션 단위로 같은 배지를 하나 더 둔다.
+   */
+  isTemporary?: boolean;
+}
+
+function TemporaryBadge() {
+  return (
+    <span
+      role="status"
+      data-data-source="temporary"
+      className="inline-flex shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
+    >
+      예시 데이터
+    </span>
+  );
 }
 
 type ReportSort = "cheap" | "recent";
@@ -128,7 +148,7 @@ export function PriceSectionNav() {
   );
 }
 
-export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
+export function NeighborhoodPrices({ reports, isTemporary }: NeighborhoodPricesProps) {
   const [sort, setSort] = useState<ReportSort>("recent");
   const [sheetOpen, setSheetOpen] = useState(false);
   const sorted = useMemo(
@@ -142,6 +162,11 @@ export function NeighborhoodPrices({ reports }: NeighborhoodPricesProps) {
 
   return (
     <section id="neighborhood-prices" className="scroll-mt-23.25 px-4 py-8">
+      {isTemporary ? (
+        <div className="mb-2 flex justify-end">
+          <TemporaryBadge />
+        </div>
+      ) : null}
       <div
         role="group"
         aria-label="동네 제보가 정렬"
@@ -365,6 +390,8 @@ function SortButton({
 
 interface PublicPriceChartProps {
   series: Record<PricePeriod, PricePoint[]>;
+  /** `NeighborhoodPricesProps.isTemporary`와 같은 이유 — 그래프만 개별적으로 더미로 채워진 경우. */
+  isTemporary?: boolean;
 }
 
 const PERIOD_LABEL: Record<PricePeriod, string> = {
@@ -373,7 +400,7 @@ const PERIOD_LABEL: Record<PricePeriod, string> = {
   year: "1년",
 };
 
-export function PublicPriceChart({ series }: PublicPriceChartProps) {
+export function PublicPriceChart({ series, isTemporary }: PublicPriceChartProps) {
   const [period, setPeriod] = useState<PricePeriod>("week");
   const points = series[period];
   const average = points.reduce((sum, point) => sum + point.price, 0) / Math.max(points.length, 1);
@@ -381,6 +408,11 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
 
   return (
     <section id="public-price" className="scroll-mt-23.25 px-4 py-8">
+      {isTemporary ? (
+        <div className="mb-2 flex justify-end">
+          <TemporaryBadge />
+        </div>
+      ) : null}
       <div
         role="group"
         aria-label="공공 시세 조회 기간"
