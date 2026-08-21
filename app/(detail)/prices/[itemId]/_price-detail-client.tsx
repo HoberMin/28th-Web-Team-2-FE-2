@@ -186,7 +186,17 @@ export function OnlinePriceNotice() {
   return (
     <div className="mt-6">
       <div className="flex items-center gap-1">
-        <p className="text-body-14-bold text-content-primary">
+        {/*
+          UI QA 2026-08-20 #31 "comment-section-notice의 텍스트와 아이콘이 디자인과 다름".
+          08-20에는 이 항목을 **댓글 섹션 이야기로 잘못 읽었다** — Figma의 `comment-section`은
+          댓글이 아니라 온라인가 비교 섹션의 프레임 이름이다(이름이 안 갱신된 자리, 디자인팀 확인 항목).
+          실측 1116:11932 — 문구는 body/14-**medium** · content/**disabled**,
+          아이콘은 `icon/information-circle-2` 20px.
+          ⚠️ 아이콘 원본(information-circle-2)은 아직 레포에 없다. 지금 쓰는
+             `information-circle.svg`는 16px PNG를 SVG로 감싼 파일이라 20px로 늘리면 뭉갠다
+             — 아이콘 일괄 교체 때 같이 받는다.
+        */}
+        <p className="text-body-14-medium text-content-disabled">
           온라인 사이트마다 배송 조건이 달라요
         </p>
         <button
