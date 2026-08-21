@@ -254,10 +254,12 @@ export function ReportForm({
 
   return (
     <>
-      {/* pb-10: UI QA 2026-08-20 #38 "스크롤 하단의 영역이 부족함". 스크롤 영역에 하단
-          여백이 없어서 마지막 필드(판매 장소)가 CTA 바에 딱 붙어 끝났고, 단위 드롭다운을
-          열면 그 아래로 나갈 자리도 없었다(#36과 같은 뿌리). */}
-      <div className="flex-1 overflow-y-auto px-4 pt-7 pb-10">
+      {/*
+        pb-20(80px): Figma [F04-1_야채 제보](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=831-34939)
+        실측 — report-form-place 하단 846 · section/cta 상단 926 → 간격 **80px**.
+        08-20에는 40px로 넣었다가 "화면 상에서는 더 좁아 보인다"는 재지적을 받아 실측값으로 맞췄다.
+      */}
+      <div className="flex-1 overflow-y-auto px-4 pt-7 pb-20">
         <div className="flex flex-col gap-10">
           <h1 className="text-title-24-semibold text-content-primary">
             야채의 실제 가격을
