@@ -77,9 +77,22 @@ function TrendIcon({ direction }: { direction: HomeTrendDirection }) {
 export interface SectionLowestVegetablesProps {
   items: HomeLowestVegetable[];
   collapsedCount: number;
+  /**
+   * 이 목록이 이 동네에 실제 저렴 제보가 없어 더미로 채워졌는지. 더미일 때 "최근 7일간 ·
+   * 이웃 제보" 보조문구가 **사실이 아닌 주장**이 돼서(진짜 7일치 제보가 아니다) "예시 데이터"
+   * 배지로 바꾼다 — `/prices/[itemId]` 상세 화면엔 이미 있는 표시인데 홈 화면 세 섹션엔
+   * 어디에도 없었다(사용자 지적, 2026-08-21 — "더미데이터를 사용하더라도 일관성은 유지해야
+   * 한다"). 추천 가게 섹션은 더미 자체를 없앴고(아래 주석 없음, `(tabs)/page.tsx` 참고),
+   * 뉴스는 범위 밖 — 이 섹션만 우선 처리한다.
+   */
+  isTemporary?: boolean;
 }
 
-export function SectionLowestVegetables({ items, collapsedCount }: SectionLowestVegetablesProps) {
+export function SectionLowestVegetables({
+  items,
+  collapsedCount,
+  isTemporary,
+}: SectionLowestVegetablesProps) {
   // 행은 서버에서 만들어 클라이언트 leaf에 넘긴다 — 목록 컴포넌트를 클라 번들에 넣지 않기 위함.
   //
   // 등락 색은 `trendState`로 방향을 따라간다. `ListLowestVegetable`에 `trendState`가 뚫려 있어
@@ -109,9 +122,19 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
         <h2 className="min-w-0 truncate text-title-18-bold text-content-primary">
           우리 동네 최저가 야채
         </h2>
-        <p className="shrink-0 text-right text-caption-12-medium text-content-secondary">
-          최근 7일간 · 이웃 제보
-        </p>
+        {isTemporary ? (
+          <span
+            role="status"
+            data-data-source="temporary"
+            className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
+          >
+            예시 데이터
+          </span>
+        ) : (
+          <p className="shrink-0 text-right text-caption-12-medium text-content-secondary">
+            최근 7일간 · 이웃 제보
+          </p>
+        )}
       </div>
 
       {items.length > 0 ? (
