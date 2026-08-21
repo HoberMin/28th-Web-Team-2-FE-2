@@ -15,7 +15,7 @@ import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
 import { ROUTES } from "@/app/_lib/routes";
-import type { OnlineMall } from "@/app/_lib/types";
+import type { OnlineMall, PricePoint } from "@/app/_lib/types";
 import {
   DEFAULT_DISTRICT,
   getNeighborhoodSeedReports,
@@ -90,7 +90,6 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
         .filter((report) => report.vegetableId === vegetable.id)
         .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
     : [];
-  const latestReport = reports[0];
   // 더미 보정에 쓸 기준가 — 실 공공시세가 있으면 그걸, 없으면 그래프와 같은 baseline
   // (=BASE_PRICE)을 쓴다. 온라인가·동네 제보가 더미 둘 다 이 값 하나에 비례시켜서 서로
   // 어긋나지 않게 한다(사용자 지적, 2026-08-21 — "그 더미도 공공시세와 온라인 최저가를
@@ -130,7 +129,10 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   // 동네 제보 목록과 가격 추이는 2026-08-21에 Spring 엔드포인트가 생겼다. 다만 DB 적재가
   // 아직이라 정상 200으로 빈 배열이 오는 구간이 있어, 비면 위 46종 더미를 그대로 쓴다
   // (`item-prices-fallback`). 적재가 끝나면 그 파일의 폴백 분기만 걷어내면 된다.
-  const [{ reports: detailReports }, { series: publicPriceSeries }] = await Promise.all([
+  const [
+    { reports: detailReports, isTemporary: reportsAreTemporary },
+    { series: publicPriceSeries, isTemporary: seriesIsTemporary },
+  ] = await Promise.all([
     getRegionItemReportsWithFallback({
       regionId,
       itemId,
@@ -144,6 +146,41 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
       dummySeries: baseline?.series ?? null,
     }),
   ]);
+
+  // 요약 카드 "온라인 최저가"도 같은 이유로 손봤다 — 실API가 null이면 방금 만든(공공시세
+  // 기준으로 비례 계산한) 추정치로 채우되, 조용히 진짜인 척하지 않도록 "(예시)"를 붙인다.
+  const summaryOnlineLowestPrice = detail.onlineLowestPrice ?? online?.cheapest.price ?? undefined;
+  // `online.cheapest`가 하필 실측(컬리, `measured: true`)인 드문 경우까지 "(예시)"로
+  // 잘못 표시하지 않도록 cheapest 자신의 measured 여부를 본다(`online.hasEstimated`는
+  // "세트 안에 추정이 하나라도 있나"라 이 판단엔 너무 거칠다).
+  const summaryOnlineLowestIsEstimated =
+    detail.onlineLowestPrice == null && online !== undefined && !online.cheapest.measured;
+
+  // "오늘 공공 시세"도 같은 이유로 손봤다 — 실API가 null인데 그래프(`baseline`)는 더미로
+  // 그려지면, 요약 카드만 "시세 정보 없음"이라고 해서 바로 아래 그래프가 값을 보여주는
+  // 것과 괴리가 생긴다(사용자 지적, 2026-08-21 — "가격 정보가 쓰이는 곳엔 다 들어가야
+  // 한다"). `baseline.isFallback`이 true일 때만 추정치를 쓴다 — baseline 자체가 실측
+  // (KAMIS)인데 이 품목만 today가 null인 애매한 경우까지 덮어쓰지 않기 위해서다.
+  const estimatedPublicPrice =
+    publicPrice === null && baseline?.isFallback ? baseline.current : null;
+  const summaryPublicPrice = publicPrice ?? estimatedPublicPrice;
+  const summaryPublicPriceIsEstimated = estimatedPublicPrice !== null;
+  const estimatedPublicPriceTrend = summaryPublicPriceIsEstimated
+    ? diffFromSeries(baseline?.series.week ?? [])
+    : null;
+  const summaryPublicPriceDiff = estimatedPublicPriceTrend?.diff ?? publicPriceDiff;
+  const summaryPublicPriceDiffPercent = estimatedPublicPriceTrend?.diffPercent ?? publicPriceDiffPercent;
+
+  // "최근 동네 제보가"도 같은 문제였다 — 요약 카드(`detail.latestLocalReportPrice`)는 실API만
+  // 보는데, 바로 아래 "온라인가 비교" 섹션의 같은 라벨은 **더 예전 방식의 별개 더미**
+  // (`getNeighborhoodSeedReports`)를 직접 봐서 둘이 서로 다른 값을 보여줄 수 있었다. 이제
+  // 막 완성된 `detailReports`(실제 있으면 실제, 없으면 더미 — 위 fallback)로 두 자리를 통일한다.
+  const latestDetailReport = detailReports[0];
+  const summaryLatestReportPrice = detail.latestLocalReportPrice ?? latestDetailReport?.price;
+  // `reportsAreTemporary`까지 같이 본다 — 요약 API만 null이고 제보 목록 API는 실제로 뭔가를
+  // 찾은 드문 경우(두 실API끼리의 불일치)까지 "(예시)"로 잘못 표시하지 않기 위해서다.
+  const summaryLatestReportIsEstimated =
+    detail.latestLocalReportPrice == null && latestDetailReport !== undefined && reportsAreTemporary;
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -181,11 +218,14 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             name={detail.itemName}
             unit={unit}
             image={image}
-            latestReportPrice={detail.latestLocalReportPrice ?? undefined}
-            publicPrice={publicPrice}
-            onlineLowestPrice={detail.onlineLowestPrice ?? undefined}
-            publicPriceDiff={publicPriceDiff}
-            publicPriceDiffPercent={publicPriceDiffPercent}
+            latestReportPrice={summaryLatestReportPrice}
+            latestReportPriceIsEstimated={summaryLatestReportIsEstimated}
+            publicPrice={summaryPublicPrice}
+            publicPriceIsEstimated={summaryPublicPriceIsEstimated}
+            onlineLowestPrice={summaryOnlineLowestPrice}
+            onlineLowestPriceIsEstimated={summaryOnlineLowestIsEstimated}
+            publicPriceDiff={summaryPublicPriceDiff}
+            publicPriceDiffPercent={summaryPublicPriceDiffPercent}
           />
           <div className="h-2 bg-border-secondary" />
           <PriceSectionNav />
@@ -201,7 +241,9 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                 <span className="text-body-14-medium text-content-secondary">최근 동네 제보가</span>
                 <p className="flex items-center gap-1">
                   <span className="text-body-14-medium text-content-secondary">
-                    {latestReport ? formatWon(latestReport.pricePerKg) : "제보 없음"}
+                    {summaryLatestReportPrice === undefined
+                      ? "제보 없음"
+                      : `${formatWon(summaryLatestReportPrice)}${summaryLatestReportIsEstimated ? " (예시)" : ""}`}
                   </span>
                   <span className="text-caption-12-regular text-content-disabled">/{unit}</span>
                 </p>
@@ -217,7 +259,8 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             <div className="mt-2 flex flex-col gap-2">
               <ul>
                 {online?.prices.map((price) => {
-                  const comparison = latestReport ? price.price - latestReport.pricePerKg : null;
+                  const comparison =
+                    summaryLatestReportPrice !== undefined ? price.price - summaryLatestReportPrice : null;
                   return (
                     <li key={price.mall} className="border-b border-border-secondary py-4 last:border-b-0">
                       <div className="flex items-center justify-between">
@@ -289,13 +332,19 @@ interface PriceSummaryProps {
   unit: string;
   image?: string;
   latestReportPrice?: number;
+  /** `latestReportPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
+  latestReportPriceIsEstimated?: boolean;
   /** 계절 품목 등 기준일 공공가격이 없으면 `null` — "0원"으로 단정하지 않는다. */
   publicPrice: number | null;
+  /** `publicPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
+  publicPriceIsEstimated?: boolean;
   /**
    * 온라인 최저가. 화면GUI(원본) 364:7185 `public-price-row` — **이 행이 코드에 빠져 있었다.**
    * Figma의 `public-price-group`은 공공 시세 · 온라인 최저가 · 어제 대비 **3행**이다.
    */
   onlineLowestPrice?: number;
+  /** `onlineLowestPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
+  onlineLowestPriceIsEstimated?: boolean;
   publicPriceDiff: number;
   publicPriceDiffPercent: number;
 }
@@ -305,8 +354,11 @@ function PriceSummary({
   unit,
   image,
   latestReportPrice,
+  latestReportPriceIsEstimated,
   publicPrice,
+  publicPriceIsEstimated,
   onlineLowestPrice,
+  onlineLowestPriceIsEstimated,
   publicPriceDiff,
   publicPriceDiffPercent,
 }: PriceSummaryProps) {
@@ -331,14 +383,18 @@ function PriceSummary({
         <div className="mt-0.5 flex items-center justify-between border-b border-border-secondary py-2">
           <span className="text-body-16-medium text-content-secondary">최근 동네 제보가</span>
           <strong className="text-title-18-semibold text-content-primary">
-            {latestReportPrice === undefined ? "제보 없음" : formatWon(latestReportPrice)}
+            {latestReportPrice === undefined
+              ? "제보 없음"
+              : `${formatWon(latestReportPrice)}${latestReportPriceIsEstimated ? " (예시)" : ""}`}
           </strong>
         </div>
         <div className="mt-2 flex flex-col gap-0.5">
           <p className="flex items-center justify-between">
             <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
             <span className="text-body-14-medium text-content-secondary">
-              {publicPrice === null ? "시세 정보 없음" : formatWon(publicPrice)}
+              {publicPrice === null
+                ? "시세 정보 없음"
+                : `${formatWon(publicPrice)}${publicPriceIsEstimated ? " (예시)" : ""}`}
             </span>
           </p>
           {/*
@@ -352,7 +408,9 @@ function PriceSummary({
           <p className="flex items-center justify-between">
             <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>
             <span className="text-body-14-medium text-content-secondary">
-              {onlineLowestPrice === undefined ? "가격 정보 없음" : formatWon(onlineLowestPrice)}
+              {onlineLowestPrice === undefined
+                ? "가격 정보 없음"
+                : `${formatWon(onlineLowestPrice)}${onlineLowestPriceIsEstimated ? " (예시)" : ""}`}
             </span>
           </p>
           {/* 364:7188 `price-trend-row` — 위 두 행과 달리 **py-[2px]** 이 붙어 있다. */}
@@ -403,4 +461,13 @@ function formatAge(createdAt: string, asOf: string): string {
 
 function round10(n: number): number {
   return Math.round(n / 10) * 10;
+}
+
+/** 시계열의 마지막 두 포인트로 "어제 대비"를 구한다 — 요약 카드가 더미 그래프와 같은 값을 쓰게. */
+function diffFromSeries(points: PricePoint[]): { diff: number; diffPercent: number } {
+  if (points.length < 2) return { diff: 0, diffPercent: 0 };
+  const today = points[points.length - 1].price;
+  const yesterday = points[points.length - 2].price;
+  const diff = today - yesterday;
+  return { diff, diffPercent: yesterday === 0 ? 0 : (diff / yesterday) * 100 };
 }
