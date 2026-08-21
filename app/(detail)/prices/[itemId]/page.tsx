@@ -129,6 +129,10 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   // 동네 제보 목록과 가격 추이는 2026-08-21에 Spring 엔드포인트가 생겼다. 다만 DB 적재가
   // 아직이라 정상 200으로 빈 배열이 오는 구간이 있어, 비면 위 46종 더미를 그대로 쓴다
   // (`item-prices-fallback`). 적재가 끝나면 그 파일의 폴백 분기만 걷어내면 된다.
+  //
+  // ⚠️ `isTemporary`를 각 섹션까지 넘긴다 — 헤더의 "예시 데이터" 배지는 요약 카드가 통째로
+  // 빌 때만 뜨는데, 지금처럼 요약 카드는 실데이터고 이 두 섹션만 개별적으로 더미인 경우엔
+  // 아무 표시가 없어서 실제/예시 구분이 안 됐다(사용자 지적, 2026-08-21).
   const [
     { reports: detailReports, isTemporary: reportsAreTemporary },
     { series: publicPriceSeries, isTemporary: seriesIsTemporary },
@@ -230,9 +234,11 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
           <div className="h-2 bg-border-secondary" />
           <PriceSectionNav />
 
-          <NeighborhoodPrices reports={detailReports} />
+          <NeighborhoodPrices reports={detailReports} isTemporary={reportsAreTemporary} />
           <div className="h-2 bg-border-secondary" />
-          {publicPriceSeries ? <PublicPriceChart series={publicPriceSeries} /> : null}
+          {publicPriceSeries ? (
+            <PublicPriceChart series={publicPriceSeries} isTemporary={seriesIsTemporary} />
+          ) : null}
           <div className="h-2 bg-border-secondary" />
 
           <section id="online-prices" className="scroll-mt-23.25 px-4 py-8">
