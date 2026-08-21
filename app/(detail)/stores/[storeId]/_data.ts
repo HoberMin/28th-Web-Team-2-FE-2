@@ -158,18 +158,51 @@ export function formatReportAge(reportedDate: string | null | undefined, now: nu
   return `${days}일 전`;
 }
 
-/** 공공 시세 대비 차이 문구. 차액·비율 중 있는 것만 조합한다. */
-function formatTrend(report: StoreReport): string {
+/**
+ * 공공 시세 대비 변동. 차액·비율 중 있는 것만 조합한다.
+ *
+ * ⚠️ `priceDiffRate`는 **퍼센트로 읽는다**(-10 → "-10.0%"). 예전에는 화살표까지 글자로
+ *    합쳐 한 문자열을 만들었는데, 그 자리가 Figma에서는 `icon/trend-*` SVG라서 쪼갰다.
+ */
+function formatTrend(report: StoreReport): StoreDetailPriceTrend | null {
   const diff = report.publicPriceDiff;
   const rate = report.priceDiffRate;
-  if (typeof diff !== "number" || diff === 0) return "";
+  if (typeof diff !== "number" || diff === 0) return null;
 
-  const arrow = diff < 0 ? "▼" : "▲";
-  const amount = `${Math.abs(diff).toLocaleString("ko-KR")}원`;
-  if (typeof rate !== "number" || !Number.isFinite(rate)) return `${arrow} ${amount}`;
+  return {
+    direction: diff < 0 ? "down" : "up",
+    amount: `${Math.abs(diff).toLocaleString("ko-KR")}원`,
+    percent:
+      typeof rate === "number" && Number.isFinite(rate)
+        ? `(${rate < 0 ? "-" : "+"}${Math.abs(rate).toFixed(1)}%)`
+        : "",
+  };
+}
 
-  const sign = rate < 0 ? "-" : "+";
-  return `${arrow} ${amount}(${sign}${Math.abs(rate).toFixed(1)}%)`;
+const REPORTER_RANK_BY_CODE: Record<ReporterRankCode, ReporterRank> = {
+  SPROUT: "sprout",
+  ROOKIE: "rookie",
+  EXPERT: "expert",
+  KING: "king",
+};
+
+const REPORTER_TONE_BY_CODE: Record<ReporterProfileColorCode, ReporterTone> = {
+  GREEN: "green",
+  BLUE: "blue",
+  ORANGE: "orange",
+  GRAY: "gray",
+};
+
+/** 닉네임이 없으면 제보자 자체를 모르는 것으로 본다 — 등급·색만 와도 그릴 게 없다. */
+function mapReporter(report: StoreReport): StoreDetailReporter | null {
+  const nickname = report.reporterNickname?.trim();
+  if (!nickname) return null;
+
+  return {
+    nickname,
+    rank: report.reporterRank ? REPORTER_RANK_BY_CODE[report.reporterRank] : null,
+    color: report.reporterProfileColor ? REPORTER_TONE_BY_CODE[report.reporterProfileColor] : null,
+  };
 }
 
 /**
