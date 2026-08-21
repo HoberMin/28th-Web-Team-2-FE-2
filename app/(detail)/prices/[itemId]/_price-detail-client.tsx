@@ -413,7 +413,7 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
           {chart.latest ? (
             <div
               className="absolute -translate-x-1/2 -translate-y-full rounded-sm bg-surface-inverse px-3 py-1.5 text-center text-content-inverse after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-t-6 after:border-x-transparent after:border-t-surface-inverse"
-              style={{ left: `${(chart.latest.x / 358) * 100}%`, top: `${chart.latest.y - 10}px` }}
+              style={{ left: `${(chart.latest.x / 358) * 100}%`, top: `${Math.max(chart.latest.y - 10, TOOLTIP_MIN_TOP)}px` }}
             >
               <p className="text-caption-12-regular">오늘</p>
               <p className="text-caption-12-medium">{formatWon(chart.latest.price)}</p>
@@ -439,6 +439,10 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
     </section>
   );
 }
+
+// 툴팁(text-caption-12 두 줄 + py-1.5)의 렌더 높이 근사치. -translate-y-full로 자기 높이만큼
+// 위로 밀리므로, top이 이 값보다 작으면 그래프 컨테이너 상단 밖으로 잘려 보이지 않는다.
+const TOOLTIP_MIN_TOP = 50;
 
 function buildChart(points: PricePoint[]) {
   const width = 267;
