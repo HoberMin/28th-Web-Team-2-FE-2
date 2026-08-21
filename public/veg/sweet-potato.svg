@@ -7,17 +7,17 @@
 <g id="Ellipse 14912" filter="url(#filter1_i_0_50)">
 <ellipse cx="22.6515" cy="10.9864" rx="5.6803" ry="12.1342" transform="rotate(-60 22.6515 10.9864)" fill="url(#paint1_linear_0_50)"/>
 </g>
-<g id="Ellipse 14914" filter="url(#filter2_f_0_50)">
+<g id="Ellipse 14914">
 <ellipse cx="19.1904" cy="27.3983" rx="0.823197" ry="0.30415" transform="rotate(30 19.1904 27.3983)" fill="#850F52" fill-opacity="0.67"/>
 </g>
-<g id="Ellipse 14915" filter="url(#filter3_f_0_50)">
+<g id="Ellipse 14915">
 <circle cx="17.7796" cy="28.321" r="0.261166" transform="rotate(30 17.7796 28.321)" fill="#8B0B54" fill-opacity="0.32"/>
 </g>
 <ellipse id="Ellipse 14916" cx="10.3773" cy="28.3361" rx="0.388457" ry="0.334305" transform="rotate(9.13699 10.3773 28.3361)" fill="#651844" fill-opacity="0.22"/>
-<g id="Ellipse 14918" opacity="0.59" filter="url(#filter4_f_0_50)">
+<g id="Ellipse 14918" opacity="0.59">
 <ellipse cx="10.8447" cy="19.8274" rx="1.42015" ry="0.468954" transform="rotate(33.5342 10.8447 19.8274)" fill="#651844" fill-opacity="0.27"/>
 </g>
-<g id="Ellipse 14917" filter="url(#filter5_f_0_50)">
+<g id="Ellipse 14917">
 <ellipse cx="9.74084" cy="26.6916" rx="0.729757" ry="0.332233" transform="rotate(30 9.74084 26.6916)" fill="#651844" fill-opacity="0.2"/>
 </g>
 <ellipse id="Ellipse 14923" cx="24.8109" cy="23.6353" rx="0.783497" ry="0.391749" fill="#9D1E6F"/>
@@ -44,26 +44,6 @@
 <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
 <feColorMatrix type="matrix" values="0 0 0 0 0.767991 0 0 0 0 0.512856 0 0 0 0 0.155667 0 0 0 0.1 0"/>
 <feBlend mode="normal" in2="shape" result="effect1_innerShadow_0_50"/>
-</filter>
-<filter id="filter2_f_0_50" x="18.0434" y="26.4917" width="2.29393" height="1.81318" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="0.208933" result="effect1_foregroundBlur_0_50"/>
-</filter>
-<filter id="filter3_f_0_50" x="17.205" y="27.7464" width="1.14921" height="1.14921" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="0.156699" result="effect1_foregroundBlur_0_50"/>
-</filter>
-<filter id="filter4_f_0_50" x="8.84912" y="18.1672" width="3.9911" height="3.32044" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="0.391748" result="effect1_foregroundBlur_0_50"/>
-</filter>
-<filter id="filter5_f_0_50" x="8.85217" y="25.9918" width="1.77733" height="1.39948" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-<feGaussianBlur stdDeviation="0.117525" result="effect1_foregroundBlur_0_50"/>
 </filter>
 <linearGradient id="paint0_linear_0_50" x1="10.2824" y1="9.64145" x2="23.1759" y2="29.102" gradientUnits="userSpaceOnUse">
 <stop stop-color="#CE85B8"/>
