@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { FIXED_REGION_ID } from "../fixed-region";
+
 const { springFetchMock } = vi.hoisted(() => ({ springFetchMock: vi.fn() }));
 vi.mock("../spring", () => ({ springFetch: springFetchMock }));
 
@@ -103,7 +105,7 @@ describe("getItemDetail", () => {
     expect(springFetchMock).toHaveBeenCalledWith(
       expect.objectContaining({
         path: "/api/v1/items/1",
-        query: { regionId: "1121510100" },
+        query: { regionId: FIXED_REGION_ID },
         token: undefined,
         cache: { revalidate: 300, tags: ["items"] },
       }),
