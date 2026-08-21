@@ -1,10 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../api-error";
+import { DEDICATED_VEGETABLE_ICON_IDS } from "../../vegetable-images";
 
-const { getNearbyStoresMock } = vi.hoisted(() => ({ getNearbyStoresMock: vi.fn() }));
-vi.mock("./stores", () => ({ getNearbyStores: getNearbyStoresMock }));
+const { getNearbyStoresMock, getStoreReportsMock, getRecommendedStoresMock } = vi.hoisted(() => ({
+  getNearbyStoresMock: vi.fn(),
+  getStoreReportsMock: vi.fn(),
+  getRecommendedStoresMock: vi.fn(),
+}));
+vi.mock("./stores", () => ({
+  getNearbyStores: getNearbyStoresMock,
+  getFavoriteStores: vi.fn(),
+  getStoreReports: getStoreReportsMock,
+  getRecommendedStores: getRecommendedStoresMock,
+}));
 
-import { getNearbyStoresWithTemporaryFallback } from "./stores-fallback";
+import {
+  getNearbyStoresWithTemporaryFallback,
+  getRecommendedStoresWithTemporaryFallback,
+  getStoreReportsWithTemporaryFallback,
+} from "./stores-fallback";
 
 describe("getNearbyStoresWithTemporaryFallback", () => {
   beforeEach(() => {
@@ -74,5 +88,44 @@ describe("getNearbyStoresWithTemporaryFallback", () => {
         token: "access-token",
       }),
     ).rejects.toBe(error);
+  });
+});
+
+describe("더미 품목은 전용 벡터 아이콘이 있는 품목만 쓴다", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // 생강처럼 전용 SVG가 없는 품목은 홈 화면에서 당근 등 다른 벡터로 대체돼 눈에 띄게
+  // 어긋나 보인다(사용자 신고). 더미 생성기가 전용 아이콘이 있는 품목만 고르는지 검증한다.
+
+  it("가게 상세 더미 제보 목록에 전용 아이콘 없는 품목(생강)이 없다", async () => {
+    getStoreReportsMock.mockResolvedValue({ storeId: 1, summary: { cheapCount: 0, expensiveCount: 0 }, reports: [], page: 0, size: 0, hasNext: false });
+
+    const { reports } = await getStoreReportsWithTemporaryFallback({
+      storeId: 1,
+      token: undefined,
+    });
+
+    expect(reports.reports.length).toBeGreaterThan(0);
+    for (const report of reports.reports) {
+      expect(report.itemName).not.toBe("생강");
+    }
+  });
+
+  it("추천 가게 더미의 대표 저렴 상품에 전용 아이콘 없는 품목(생강)이 없다", async () => {
+    getRecommendedStoresMock.mockResolvedValue({ totalCount: 0, stores: [] });
+
+    const { stores } = await getRecommendedStoresWithTemporaryFallback({
+      regionId: "1121510100",
+      token: undefined,
+    });
+
+    expect(stores.stores.length).toBeGreaterThan(0);
+    for (const store of stores.stores) {
+      expect(store.cheapItems).not.toContain("생강");
+    }
+    // 정합성 확인: 전용 아이콘 목록이 실제로 10종이다(회귀 방지).
+    expect(DEDICATED_VEGETABLE_ICON_IDS).toHaveLength(10);
   });
 });

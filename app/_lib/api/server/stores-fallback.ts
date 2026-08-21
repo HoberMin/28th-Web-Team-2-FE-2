@@ -19,6 +19,16 @@ import {
 } from "./stores";
 import { DEFAULT_DISTRICT, VEGETABLES, getBaselineDummy } from "../../vegetables";
 import { getFallbackNearbyStores, type NearbyStore as DummyNearbyStore } from "../../nearby-stores";
+import { hasDedicatedVegetableIcon } from "../../vegetable-images";
+
+/**
+ * 전용 벡터가 있는 품목을 앞으로 오게 정렬한 카탈로그 — `items-fallback.ts`의
+ * `reports-fallback.ts`와 같은 이유(생강처럼 재사용 벡터가 눈에 띄게 안 맞는 품목이
+ * 홈 화면 더미에서 먼저 뽑히지 않게).
+ */
+const VEGETABLES_ICON_FIRST = [...VEGETABLES].sort(
+  (left, right) => Number(hasDedicatedVegetableIcon(right.id)) - Number(hasDedicatedVegetableIcon(left.id)),
+);
 
 /**
  * 백엔드 `/api/v1/stores/nearby`가 아직 배포되지 않았거나(에러) DB에 가게 row가 없어
@@ -171,7 +181,7 @@ export async function getFavoriteStoresWithTemporaryFallback(
 // ── 가게별 가격 제보 (F03-3 가게 상세 「저렴해요」·「비싸요」) ───────────────────────
 
 function buildTemporaryStoreReports(storeId: number): StoreReports {
-  const sample = VEGETABLES.slice(0, 8);
+  const sample = VEGETABLES_ICON_FIRST.slice(0, 8);
   const reports = sample.map((vegetable, index) => {
     const baseline = getBaselineDummy(vegetable.id);
     const cheap = index % 2 === 0;
@@ -227,7 +237,7 @@ export async function getStoreReportsWithTemporaryFallback(
 
 function buildTemporaryRecommendedStores(): StoreRecommendation {
   const dummies = getFallbackNearbyStores(DEFAULT_DISTRICT);
-  const cheapNames = VEGETABLES.slice(0, 5).map((vegetable) => vegetable.name);
+  const cheapNames = VEGETABLES_ICON_FIRST.slice(0, 5).map((vegetable) => vegetable.name);
   const stores = dummies.map((dummy, index) => ({
     storeId: storeIdForIndex(index),
     storeName: dummy.name,
