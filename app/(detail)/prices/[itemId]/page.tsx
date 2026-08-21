@@ -14,7 +14,7 @@ import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import { getBaselinePrice } from "@/app/_lib/kamis";
-import { ROUTES } from "@/app/_lib/routes";
+import { buildItemReportHref } from "@/app/report/_lib/report-entry-query";
 import type { OnlineMall, PricePoint } from "@/app/_lib/types";
 import {
   getOnlinePrices,
@@ -64,7 +64,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
   if (!regionId) return <MissingRegion />;
 
-  const { detail, isTemporary } = await getItemDetailWithTemporaryFallback({
+  const { detail } = await getItemDetailWithTemporaryFallback({
     itemId,
     regionId,
     token,
@@ -113,13 +113,8 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   ]);
 
   // 요약 카드 "온라인 최저가"도 같은 이유로 손봤다 — 실API가 null이면 방금 만든(공공시세
-  // 기준으로 비례 계산한) 추정치로 채우되, 조용히 진짜인 척하지 않도록 "(예시)"를 붙인다.
+  // 기준으로 비례 계산한) 추정치로 채운다.
   const summaryOnlineLowestPrice = detail.onlineLowestPrice ?? online?.cheapest.price ?? undefined;
-  // `online.cheapest`가 하필 실측(컬리, `measured: true`)인 드문 경우까지 "(예시)"로
-  // 잘못 표시하지 않도록 cheapest 자신의 measured 여부를 본다(`online.hasEstimated`는
-  // "세트 안에 추정이 하나라도 있나"라 이 판단엔 너무 거칠다).
-  const summaryOnlineLowestIsEstimated =
-    detail.onlineLowestPrice == null && online !== undefined && !online.cheapest.measured;
 
   // "오늘 공공 시세"도 같은 이유로 손봤다 — 실API가 null인데 그래프(`baseline`)는 더미로
   // 그려지면, 요약 카드만 "시세 정보 없음"이라고 해서 바로 아래 그래프가 값을 보여주는
@@ -138,7 +133,6 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
   const latestDetailReport = detailReports[0];
   const summaryLatestReportPrice = detail.latestLocalReportPrice ?? latestDetailReport?.price;
-  const summaryLatestReportIsEstimated = false;
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -154,10 +148,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             </>
           }
         />
-        {/*
-          상단 패딩을 두지 않는다 — Figma [660:14777]은 상태바 바로 아래에서 썸네일이 시작한다.
-          헤더는 스크롤을 시작해야 나타나고, 그때는 본문 위에 겹쳐 뜬다(absolute).
-        */}
+        {/* 헤더는 스크롤을 시작해야 나타나고, 그때는 본문 위에 겹쳐 뜬다(absolute). */}
         <main
           id={PRICE_DETAIL_SCROLL_ID}
           className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
@@ -168,11 +159,8 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             unit={unit}
             image={image}
             latestReportPrice={summaryLatestReportPrice}
-            latestReportPriceIsEstimated={summaryLatestReportIsEstimated}
             publicPrice={summaryPublicPrice}
-            publicPriceIsEstimated={summaryPublicPriceIsEstimated}
             onlineLowestPrice={summaryOnlineLowestPrice}
-            onlineLowestPriceIsEstimated={summaryOnlineLowestIsEstimated}
             publicPriceDiff={summaryPublicPriceDiff}
             publicPriceDiffPercent={summaryPublicPriceDiffPercent}
           />
@@ -264,11 +252,11 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
         <footer className="shrink-0 border-t border-border-secondary bg-surface-primary px-4 py-3" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
           <Link
-            href={vegetable ? `${ROUTES.report}?item=${vegetable.id}` : ROUTES.report}
+            href={buildItemReportHref(itemId)}
             // UI QA 2026-08-20 #32: 이 CTA는 action-secondary가 아니라 action-primary/default다.
             className="flex w-full items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
           >
-            우리 동네 가격 제보하기
+            동네 가격 제보하기
           </Link>
         </footer>
       </div>
@@ -281,19 +269,12 @@ interface PriceSummaryProps {
   unit: string;
   image?: string;
   latestReportPrice?: number;
-  /** `latestReportPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
-  latestReportPriceIsEstimated?: boolean;
   /** 계절 품목 등 기준일 공공가격이 없으면 `null` — "0원"으로 단정하지 않는다. */
   publicPrice: number | null;
-  /** `publicPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
-  publicPriceIsEstimated?: boolean;
   /**
-   * 온라인 최저가. 화면GUI(원본) 364:7185 `public-price-row` — **이 행이 코드에 빠져 있었다.**
-   * Figma의 `public-price-group`은 공공 시세 · 온라인 최저가 · 어제 대비 **3행**이다.
+   * 온라인 최저가. 최신 `F03_야채시세 상세`(559:46236)의 `public-price-group` 마지막 행.
    */
   onlineLowestPrice?: number;
-  /** `onlineLowestPrice`가 실API가 아니라 예시(더미) 추정치로 채워졌는지(2026-08-21). */
-  onlineLowestPriceIsEstimated?: boolean;
   publicPriceDiff: number;
   publicPriceDiffPercent: number;
 }
@@ -303,18 +284,15 @@ function PriceSummary({
   unit,
   image,
   latestReportPrice,
-  latestReportPriceIsEstimated,
   publicPrice,
-  publicPriceIsEstimated,
   onlineLowestPrice,
-  onlineLowestPriceIsEstimated,
   publicPriceDiff,
   publicPriceDiffPercent,
 }: PriceSummaryProps) {
   const direction = publicPriceDiff < 0 ? "down" : publicPriceDiff > 0 ? "up" : "flat";
 
   return (
-    <section aria-label={`${name} 가격 요약`} className="flex gap-5 px-4 pt-6 pb-7.75">
+    <section aria-label={`${name} 가격 요약`} className="flex gap-5 px-4 pt-7 pb-8">
       <div className="relative size-31 shrink-0 overflow-hidden rounded-xl border border-border-img bg-background-secondary">
         {image ? (
           <Image src={image} alt={name} fill sizes="124px" className="object-cover" priority />
@@ -337,23 +315,31 @@ function PriceSummary({
               : formatWon(latestReportPrice)}
           </strong>
         </div>
-        <div className="mt-2 flex flex-col gap-0.5">
-          <p className="flex items-center justify-between">
-            <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
-            <span className="text-body-14-medium text-content-secondary">
-              {publicPrice === null
-                ? "시세 정보 없음"
-                : formatWon(publicPrice)}
-            </span>
-          </p>
-          {/*
-            화면GUI(원본) 364:7185 — 공공 시세와 같은 형식의 두 번째 행이다.
-            UI QA 2026-08-20 #27 "store-summary에 '온라인 최저가' 없음 → 온라인 최저가 제시":
-            전에는 값이 없으면 **행 자체를 지웠는데**, Spring이 `onlineLowestPrice`를 null로
-            주는 품목이 많아 실제 화면에서 이 줄이 통째로 사라져 있었다. 바로 위 "오늘 공공 시세"가
-            값이 없을 때 "시세 정보 없음"을 보여주는 것과 처리를 맞춘다 — 줄이 사라지면 요약 카드의
-            항목 수가 품목마다 달라져 세로 리듬도 흔들린다.
-          */}
+        {/*
+          최신 `F03_야채시세 상세`(559:46249): 오늘 공공 시세 아래에 라벨 없는 등락값이 붙고,
+          그 묶음 다음에 온라인 최저가가 온다. 이전 구현의 별도 `어제 대비` 행은 구 시안 오독이었다.
+        */}
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="flex flex-col">
+            <p className="flex items-center justify-between">
+              <span className="text-caption-12-medium text-content-disabled">오늘 공공 시세</span>
+              <span className="text-body-14-medium text-content-secondary">
+                {publicPrice === null
+                  ? "시세 정보 없음"
+                  : formatWon(publicPrice)}
+              </span>
+            </p>
+            <p className="flex items-center justify-end py-0.5">
+              {direction === "flat" ? (
+                <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
+              ) : (
+                <span className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}>
+                  <FigmaIcon name={`trend-${direction}`} width={16} />
+                  {formatWon(Math.abs(publicPriceDiff))}({publicPriceDiffPercent > 0 ? "+" : "-"}{Math.abs(publicPriceDiffPercent).toFixed(1)}%)
+                </span>
+              )}
+            </p>
+          </div>
           <p className="flex items-center justify-between">
             <span className="text-caption-12-medium text-content-disabled">온라인 최저가</span>
             <span className="text-body-14-medium text-content-secondary">
@@ -361,18 +347,6 @@ function PriceSummary({
                 ? "가격 정보 없음"
                 : formatWon(onlineLowestPrice)}
             </span>
-          </p>
-          {/* 364:7188 `price-trend-row` — 위 두 행과 달리 **py-[2px]** 이 붙어 있다. */}
-          <p className="flex items-center justify-between py-0.5">
-            <span className="text-caption-12-medium text-content-disabled">어제 대비</span>
-            {direction === "flat" ? (
-              <span className="text-caption-12-medium text-trend-flat">변동 없음</span>
-            ) : (
-              <span className={`flex items-center text-caption-12-medium ${direction === "down" ? "text-trend-down" : "text-trend-up"}`}>
-                <FigmaIcon name={`trend-${direction}`} width={16} />
-                {formatWon(Math.abs(publicPriceDiff))}({publicPriceDiffPercent > 0 ? "+" : "-"}{Math.abs(publicPriceDiffPercent).toFixed(1)}%)
-              </span>
-            )}
           </p>
         </div>
       </div>
@@ -398,7 +372,7 @@ function MallLogo({ mall }: { mall: OnlineMall }) {
   );
 }
 
-/** 시계열의 마지막 두 포인트로 "어제 대비"를 구한다 — 요약 카드가 더미 그래프와 같은 값을 쓰게. */
+/** 시계열의 마지막 두 포인트로 공공 시세 등락을 구한다 — 요약 카드가 더미 그래프와 같은 값을 쓰게. */
 function diffFromSeries(points: PricePoint[]): { diff: number; diffPercent: number } {
   if (points.length < 2) return { diff: 0, diffPercent: 0 };
   const today = points[points.length - 1].price;
