@@ -48,7 +48,12 @@
   - **공공가격·온라인가 데이터 미적재** — 엔드포인트는 있는데 라이브 응답이 비어 있다
     (2026-08-21 재확인: `items`의 `price`·`baseDate` 전부 null, `public-prices.points`·
     `online-prices` 빈 배열). 그래서 그래프·온라인 비교·시세 카드가 아직 더미 폴백이다
-  - 가게 상세의 `businessHours`가 빈 배열 · `openStatus`가 `UNKNOWN` (카카오 영업시간 미적재)
+  - 가게 상세의 `businessHours`가 빈 배열 · `openStatus`가 `UNKNOWN` — 스펙엔
+    `StoreDetailResponse.businessHours`·`walkTimeMinutes`가 이미 있고 BE가 카카오 공개 HTML
+    스크래핑 PR(#229, 2026-08-21 머지)로 채우기 시작했다고 알려왔지만, 같은 날 라이브
+    `GET /stores/{id}` 10곳을 재확인해도 여전히 전부 빈 배열·`UNKNOWN`이다(배포 지연인지
+    best-effort 수집이 해당 가게들에서 실패한 것인지 미확인). 프론트는 필드를 이미 배선했다
+    (`app/(tabs)/stores/_store-sheet.tsx`) — 채워지면 화면은 자동 반영된다
   - 가게 상세에 전화번호 필드 없음 — 직전 화면 쿼리로만 온다
 - `TODO(✍️):` 유저 플로우
 - `TODO(✍️):` 핵심 엔티티·상태머신
