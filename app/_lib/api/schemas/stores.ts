@@ -165,7 +165,17 @@ export const storeReportSchema = z.object({
   reportedDate: z.string().nullish(),
   /** 공공 시세와의 차액. 음수면 더 싸다. */
   publicPriceDiff: z.number().nullish(),
+  /**
+   * 공공 시세 대비 변동률. **화면은 이 값을 퍼센트로 읽는다**(-10 = -10%).
+   * 스펙에 설명이 없고(`type: number`) 라이브 응답이 아직 비어 있어 실계약은 미확인이다 —
+   * `농산물-문서/be-요청-2026-08-21-가게상세-제보행.md` 2번에서 단위를 확정한다.
+   * 그때까지 우리 더미(`api/server/stores-fallback.ts`)도 퍼센트로 맞춰 둔다.
+   */
   priceDiffRate: z.number().nullish(),
+  /** ⚠️ BE 미제공 (위 REPORTER_RANKS 주석 참고). 없으면 화면이 "제보자 정보 없음"을 그린다. */
+  reporterNickname: z.string().nullish(),
+  reporterRank: reporterRankSchema,
+  reporterProfileColor: reporterProfileColorSchema,
   /**
    * 스펙 enum이지만 값이 늘어날 때 화면이 통째로 죽지 않도록 fallback을 둔다 —
    * 모르는 값은 EQUAL로 본다(저렴/비쌈 어느 목록에도 넣지 않는다).
