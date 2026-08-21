@@ -58,9 +58,6 @@ export function mapRegionLowestPriceToView(item: RegionLowestPriceItem): HomeLow
 
 export function mapRecommendedStoreToView(store: RecommendedStore): HomeRecommendedStore {
   const shown = store.cheapItems.slice(0, MAX_CARD_VEGETABLES);
-  // BE의 `remainingItemCount`는 **BE가 자른 나머지**다. 카드가 5개로 한 번 더 자르면
-  // 그만큼을 더해야 뱃지 숫자와 실제 숨은 개수가 맞는다.
-  const hiddenHere = Math.max(0, store.cheapItems.length - shown.length);
 
   return {
     storeId: String(store.storeId),
@@ -69,6 +66,8 @@ export function mapRecommendedStoreToView(store: RecommendedStore): HomeRecommen
     summaryLabel: "공공 시세보다 저렴한 야채",
     summaryValue: `${store.cheapItemCount}가지`,
     vegetables: shown,
-    moreCount: store.remainingItemCount + hiddenHere,
+    // Figma 디자인 목업과 동일하게 고정 — 사용자 요청(2026-08-21)으로 실 데이터의
+    // remainingItemCount 합산 대신 스크린샷/데모용 고정값 5를 쓴다.
+    moreCount: 5,
   };
 }
