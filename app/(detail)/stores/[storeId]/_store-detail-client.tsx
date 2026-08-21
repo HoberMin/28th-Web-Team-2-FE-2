@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
+import IconPictureFill from "@karrotmarket/react-monochrome-icon/IconPictureFill";
+import { BadgeReporterRank } from "@/app/_components/badge-reporter-rank";
+import { ImageProfileReporter } from "@/app/_components/image-profile-reporter";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
 import { SheetHandle } from "@/app/_components/sheet-handle";
@@ -12,7 +15,7 @@ import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { StoreDetailBackButton } from "./_back-button";
-import type { StoreDetailPrice, StoreDetailProfile } from "./_data";
+import type { StoreDetailPrice, StoreDetailPriceTrend, StoreDetailProfile } from "./_data";
 
 interface StoreDetailClientProps {
   storeId: number;
@@ -177,18 +180,58 @@ function StoreInformation({
 }
 
 /**
- * 품목 그림. API가 `itemImageUrl`을 주면 그걸 쓰고, 없으면 품목명으로 Figma 벡터를 찾는다
- * (`HomeVegetableImage`가 이름→벡터 매핑을 이미 들고 있다 — 46종 중 매칭 실패는 양파로 떨어진다).
- * 예전에는 모든 행이 `onion.png` 하나였다.
+ * 제보 사진(80×80).
+ *
+ * **서버가 주는 `itemImageUrl`만 쓴다.** 이 자리는 Figma에서 제보자가 찍어 올린 사진이라
+ * (`row/saved` `Photo=default`) 로컬 일러스트로 대신할 수 있는 값이 아니다 — 예전에는 URL이
+ * 없을 때 품목명으로 `HomeVegetableImage`의 46종 벡터를 찾아 그렸는데, 그러면 실제로 사진이
+ * 없는 제보가 사진이 있는 것처럼 보였다(2026-08-21 제거).
+ *
+ * 없을 때는 Figma `image/vegetable-placeholder`(`Photo=placeholer` variant, 1096:21559):
+ * `surface/secondary` 바탕 + 가운데 사진 아이콘 32.
+ *
+ * ⚠️ 아이콘은 Figma 원본(`material-symbols:photo-rounded`)을 아직 못 받았다 — 같은 파일이
+ *    `icon/clock-filled` 자리에 쓰고 있는 karrot 모노크롬 아이콘으로 대신한다.
+ *    아이콘 일괄 교체 때 원본으로 바꾼다.
  */
-function PriceItemImage({ item, size }: { item: StoreDetailPrice; size: 24 | 40 }) {
+function ReportPhoto({ item }: { item: StoreDetailPrice }) {
+  if (item.imageUrl) {
+    return (
+      <Image
+        src={item.imageUrl}
+        alt={`${item.name} 제보 사진`}
+        width={80}
+        height={80}
+        unoptimized
+        className="size-20 shrink-0 rounded-md object-cover"
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-20 shrink-0 items-center justify-center rounded-md bg-surface-secondary text-content-disabled"
+    >
+      <IconPictureFill className="size-8" />
+    </span>
+  );
+}
+
+/**
+ * 시트 안의 작은 품목 그림(24×24).
+ *
+ * 여기는 위와 달리 **Figma가 `image/vegetable-*` 일러스트를 쓰는 자리**라
+ * (`row/saved type=vegetable-compact`), 서버 사진이 없으면 품목명으로 벡터를 찾는다.
+ */
+function PriceItemThumbnail({ item }: { item: StoreDetailPrice }) {
   if (item.imageUrl) {
     return (
       <Image
         src={item.imageUrl}
         alt={`${item.name} 이미지`}
-        width={size}
-        height={size}
+        width={24}
+        height={24}
         unoptimized
         className="size-full object-contain"
       />
@@ -197,31 +240,88 @@ function PriceItemImage({ item, size }: { item: StoreDetailPrice; size: 24 | 40 
   return <HomeVegetableImage name={item.name} size={40} />;
 }
 
+/** Figma `text/vegetable-trend` — 화살표가 글자가 아니라 `icon/trend-*` 16px SVG다. */
+function PriceTrend({ trend }: { trend: StoreDetailPriceTrend }) {
+  return (
+    <span
+      className={`flex items-center justify-end whitespace-nowrap text-caption-12-medium ${
+        trend.direction === "down" ? "text-trend-down" : "text-trend-up"
+      }`}
+    >
+      <FigmaIcon name={`trend-${trend.direction}`} width={16} currentColor className="shrink-0" />
+      <span>{trend.amount}</span>
+      <span>{trend.percent}</span>
+    </span>
+  );
+}
+
+/**
+ * 가게에 제보된 야채 한 행 — Figma `row/saved` `type=photo`
+ * ([1096:19281](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=1096-19281)).
+ *
+ * get_design_context 실측 (2026-08-21):
+ *   루트    flex-col items-start (높이 133은 hug)
+ *   ① 제보자 줄  flex gap-[8px] items-center
+ *        avatar/reporter **24** (avatar/profile 24 + 사람 벡터) → `ImageProfileReporter size={24}`
+ *        + gap-[6px]: 닉네임 **body/14-bold** content/primary + badge/reporter-rank
+ *   ② 본문  border-b **border/primary** · flex items-start justify-between
+ *          **pt-[12px] pb-[16px] pr-[8px]**
+ *        좌 flex-1 gap-[16px] items-center
+ *             사진 **80×80** radius 8.658(≈radius/md)
+ *             정보 py-[8px]: 이름 body/16-semibold + "3일 전" **caption/12-medium content/disabled**
+ *        우 w-[164px] flex-col items-end justify-center gap-[2px]
+ *             text/vegetable-price: 가격 **body/16-bold** + 단위 caption/12-regular max-w-[36px]
+ *             text/vegetable-trend: icon 16 + 값 caption/12-medium
+ *
+ * ⚠️ 2026-08-21 이전 구현은 **다른 규격이었다** — 한 줄 77px에 사진 40px, 가격이
+ *    body/16-semibold, 추세 화살표가 `▼` 글자였고 제보자 줄이 통째로 없었다.
+ *
+ * ⚠️ 제보자 정보는 **백엔드가 아직 주지 않는다**(`StoreReportResponse`에 필드 없음).
+ *    자리를 지우지 않고 "제보자 정보 없음"을 그린다 — 지우면 행 높이가 시안과 달라지고,
+ *    무엇이 비어 있는지가 화면에서 안 보인다. 계약은 `be-요청-2026-08-21-가게상세-제보행.md` 1번.
+ */
 function PriceRow({ item }: { item: StoreDetailPrice }) {
   return (
-    <div className="flex min-h-19.25 w-full items-center gap-3">
-      <span className="size-10 shrink-0">
-        <PriceItemImage item={item} size={40} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-body-16-semibold text-content-primary">{item.name}</p>
-        <p className="text-caption-12-regular text-content-secondary">{item.age}</p>
+    <div className="flex w-full flex-col items-start">
+      <div className="flex w-full items-center gap-2">
+        {item.reporter ? (
+          <>
+            <ImageProfileReporter
+              size={24}
+              color={item.reporter.color ?? "green"}
+              className="rounded-full"
+            />
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate text-body-14-bold text-content-primary">
+                {item.reporter.nickname}
+              </span>
+              {item.reporter.rank ? <BadgeReporterRank rank={item.reporter.rank} /> : null}
+            </span>
+          </>
+        ) : (
+          <span className="text-body-14-medium text-content-disabled">제보자 정보 없음</span>
+        )}
       </div>
-      <div className="shrink-0 text-right">
-        <p className="text-body-16-semibold text-content-primary">
-          {item.price}<span className="ml-1 text-caption-12-regular text-content-disabled">{item.unit}</span>
-        </p>
-        {item.trend ? (
-          <p
-            className={
-              item.kind === "cheap"
-                ? "text-caption-12-medium text-trend-down"
-                : "text-caption-12-medium text-trend-up"
-            }
-          >
-            {item.trend}
-          </p>
-        ) : null}
+
+      <div className="flex w-full items-start justify-between border-b border-border-primary pt-3 pr-2 pb-4">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          <ReportPhoto item={item} />
+          <div className="flex min-w-0 flex-1 items-start justify-between py-2">
+            <div className="flex min-w-0 flex-col justify-center gap-0.5">
+              <p className="truncate text-body-16-semibold text-content-primary">{item.name}</p>
+              <p className="text-caption-12-medium text-content-disabled">{item.age}</p>
+            </div>
+            <div className="flex w-41 shrink-0 flex-col items-end justify-center gap-0.5">
+              <p className="flex items-center justify-end gap-1 whitespace-nowrap">
+                <span className="text-body-16-bold text-content-primary">{item.price}</span>
+                <span className="max-w-9 text-caption-12-regular text-content-disabled">
+                  {item.unit}
+                </span>
+              </p>
+              {item.trend ? <PriceTrend trend={item.trend} /> : null}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -232,7 +332,7 @@ function SheetPriceRow({ item }: { item: StoreDetailPrice }) {
     <div className="flex h-14.5 w-full items-center justify-between border-b border-border-secondary px-2 last:border-b-0">
       <div className="flex w-42 items-center gap-1">
         <span className="size-6 shrink-0">
-          <PriceItemImage item={item} size={24} />
+          <PriceItemThumbnail item={item} />
         </span>
         <div className="flex min-w-0 items-center gap-1">
           <p className="truncate text-body-14-medium text-content-primary">{item.name}</p>
@@ -338,8 +438,13 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
             </button>
           ))}
         </div>
-        {/* 구분선은 row/saved 안쪽 `border-b border/primary`다 — border/secondary가 아니다 */}
-        <div className="mt-6 divide-y divide-border-primary">
+        {/*
+          `reported-vegetable-list`(1096:18780) 실측 — 행이 y 0 · 149 · 299 · 448에 놓이고
+          각 행 높이가 133이라 **행 사이 간격이 16**이다. 구분선은 컨테이너의 divide가 아니라
+          `row/saved` 안쪽의 `border-b border/primary`다(마지막 행에도 있다) —
+          `divide-y`로는 마지막 행 선이 빠지고 간격도 0이 된다(2026-08-21 수정).
+        */}
+        <div className="mt-6 flex flex-col gap-4">
           {filtered.slice(0, 4).map((item) => <PriceRow key={item.id} item={item} />)}
           {filtered.length === 0 && <p className="py-12 text-center text-body-14-medium text-content-secondary">아직 제보가 없어요</p>}
         </div>
