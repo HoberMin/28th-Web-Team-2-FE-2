@@ -55,7 +55,7 @@ export function mapItemToPriceView(item: Item): PriceItemView {
     trendState: hasTrend ? trend : "flat",
     trendAmount: hasTrend && comparisonGap !== null ? formatWon(Math.abs(comparisonGap)) : "",
     trendPercent: hasTrend
-      ? `(${trend === "up" ? "+" : "-"}${Math.abs(comparisonRate ?? 0)}%)`
+      ? `(${trend === "up" ? "+" : "-"}${Math.abs(comparisonRate ?? 0).toFixed(1)}%)`
       : "",
     isLiked: item.isLiked,
     isTemporary: item.isTemporary,

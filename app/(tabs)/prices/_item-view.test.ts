@@ -49,6 +49,16 @@ describe("mapItemToPriceView", () => {
     });
   });
 
+  it("가격 변동률을 소수점 첫째 자리까지 표시한다", () => {
+    expect(
+      mapItemToPriceView({
+        ...ITEM,
+        monthlyPriceGap: 220,
+        monthlyPriceDiffRate: 11.150532184490624,
+      }).trendPercent,
+    ).toBe("(+11.2%)");
+  });
+
   it("백엔드 이미지 URL은 사용하지 않고 이름으로 프런트 사진을 고른다", () => {
     expect(mapItemToPriceView({ ...ITEM, itemImageUrl: "javascript:alert(1)" }).image).toBe(
       "/vegetables/coupang/potato.webp",
