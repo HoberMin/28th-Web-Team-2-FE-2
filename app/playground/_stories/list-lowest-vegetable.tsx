@@ -6,9 +6,11 @@ import type { Story } from "./types";
 // Figma 심볼은 행 하나뿐이라(이름은 list이지만 안에 반복 구조가 없다) 여기서는 여러 줄을 쌓아
 // 순위가 이어지는 모습까지 보여 준다.
 //
+// 야채 그림은 Figma 원본(40×40) 대신 48×48이다 — 홈 화면 추천 가게 카드와 크기를 맞춘
+// 의도적 이탈(사용자 요청 2026-08-21, 컴포넌트 주석 참고).
 function VegetableImage() {
   return (
-    <FigmaImage name="onion.png" width={40} height={40} className="size-10 object-contain" />
+    <FigmaImage name="onion.png" width={48} height={48} className="size-12 object-contain" />
   );
 }
 
