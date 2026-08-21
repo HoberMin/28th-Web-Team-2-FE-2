@@ -7,6 +7,7 @@ import { PRICE_DETAIL_HEADER_HEIGHT } from "./_detail-header";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
 import type { PricePeriod, PricePoint } from "@/app/_lib/types";
+import { getChartTooltipPlacement } from "./_chart-tooltip";
 
 export interface PriceDetailReport {
   id: string;
@@ -406,6 +407,9 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
     ? points.reduce((sum, point) => sum + point.price, 0) / points.length
     : null;
   const chart = points.length ? buildChart(points) : null;
+  const tooltipPlacement = chart?.latest
+    ? getChartTooltipPlacement(chart.latest.y)
+    : null;
 
   return (
     <section id="public-price" className="scroll-mt-23.25 px-4 py-8">
@@ -459,12 +463,16 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
               ) : null}
             </svg>
 
-            {chart.latest ? (
+            {chart.latest && tooltipPlacement ? (
               <div
-                className="absolute -translate-x-1/2 -translate-y-full rounded-sm bg-surface-inverse px-3 py-1.5 text-center text-content-inverse after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-t-6 after:border-x-transparent after:border-t-surface-inverse"
+                className={`absolute -translate-x-1/2 rounded-sm bg-surface-inverse px-3 py-1.5 text-center text-content-inverse ${
+                  tooltipPlacement.side === "above"
+                    ? "-translate-y-full after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-t-6 after:border-x-transparent after:border-t-surface-inverse"
+                    : "after:absolute after:bottom-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-b-6 after:border-x-transparent after:border-b-surface-inverse"
+                }`}
                 style={{
                   left: `${(chart.latest.x / 358) * 100}%`,
-                  top: `${Math.max(chart.latest.y - 10, TOOLTIP_MIN_TOP)}px`,
+                  top: `${tooltipPlacement.top}px`,
                 }}
               >
                 <p className="text-caption-12-regular">오늘</p>
@@ -498,10 +506,6 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
     </section>
   );
 }
-
-// 툴팁(text-caption-12 두 줄 + py-1.5)의 렌더 높이 근사치. -translate-y-full로 자기 높이만큼
-// 위로 밀리므로, top이 이 값보다 작으면 그래프 컨테이너 상단 밖으로 잘려 보이지 않는다.
-const TOOLTIP_MIN_TOP = 50;
 
 function buildChart(points: PricePoint[]) {
   const width = 267;
