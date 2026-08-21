@@ -8,7 +8,11 @@ import { ButtonCircle } from "../../_components/button-circle";
 import { LoadingCircular } from "../../_components/loading-circular";
 import { MarkerStoreMap, type MarkerStoreMapType } from "../../_components/marker-store-map";
 import { TextField } from "../../_components/text-field";
-import { clusterStoreMarkers, type MapScreenPoint } from "./_cluster";
+import {
+  clusterStoreMarkers,
+  isPointInsideMap,
+  type MapScreenPoint,
+} from "./_cluster";
 import type { MapCenter, MapStore } from "./_data";
 import {
   MapCanvas,
@@ -50,7 +54,7 @@ import { useNearbyStores } from "./_use-nearby-stores";
 // 🔴 마커는 **중심 앵커**(`-translate-x/y-1/2`)로 고정한다. icon(48) → name(108) →
 //    favorite(128)은 서로 다른 부품이 아니라 같은 `marker/store-map`의 type 변형이고,
 //    Figma의 좌표 변화(Δx=−40=−(128−48)/2 등)가 전부 "중심 보존"의 결과였다. 좌상단 기준으로
-//    앉히면 type이 바뀔 때마다 핀이 튄다. 화면 밖으로 잘리는 건 정상 동작으로 허용한다.
+//    앉히면 type이 바뀔 때마다 핀이 튄다. 화면 밖 좌표의 마커는 렌더링하지 않는다.
 //
 // ── 상태 3종 ──────────────────────────────────────────────────────
 // 로딩·에러·빈 결과 모두 지도 위 상태 오버레이로 알린다. 전용 시안은 없어 문구와 위계는
@@ -70,7 +74,7 @@ function createFallbackViewport(center: MapCenter, stores: readonly MapStore[]):
       y: (FALLBACK_MAP_SIZE.height * store.y) / 100,
     };
   }
-  return { level: 5, center, points };
+  return { level: 5, center, size: FALLBACK_MAP_SIZE, points };
 }
 
 // ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────
@@ -175,9 +179,13 @@ export function StoresMapView({ region, initialCenter, initialNearbyState }: Sto
   };
 
   const compactMarkers = viewport.level >= COMPACT_MARKER_LEVEL;
+  const visibleStores = stores.filter((store) => {
+    const point = viewport.points[store.id];
+    return point ? isPointInsideMap(point, viewport.size) : false;
+  });
   const markerClusters = compactMarkers
-    ? clusterStoreMarkers(stores, viewport.points)
-    : stores.flatMap((store) => {
+    ? clusterStoreMarkers(visibleStores, viewport.points)
+    : visibleStores.flatMap((store) => {
         const point = viewport.points[store.id];
         return point ? [{ id: store.id, stores: [store], ...point }] : [];
       });

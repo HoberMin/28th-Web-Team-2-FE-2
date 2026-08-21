@@ -8,7 +8,7 @@ import {
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
 import type { MapCenter } from "./_data";
-import type { MapScreenPoint } from "./_cluster";
+import type { MapScreenPoint, MapScreenSize } from "./_cluster";
 
 const INITIAL_MAP_LEVEL = 5;
 // Kakao level은 숫자가 클수록 축소다. Figma의 축소 상태(level 5)를 기본값으로 사용해
@@ -27,6 +27,7 @@ export interface MapCanvasStorePosition {
 export interface MapViewport {
   level: number;
   center: MapCenter;
+  size: MapScreenSize;
   points: Readonly<Record<string, MapScreenPoint>>;
 }
 
@@ -90,6 +91,7 @@ export function MapCanvas({
     onViewportChangeRef.current?.({
       level: INITIAL_MAP_LEVEL,
       center: { lat: initialLat, lng: initialLng },
+      size: { width: container.clientWidth, height: container.clientHeight },
       points,
     });
   }, [initialLat, initialLng, stores]);
@@ -114,6 +116,7 @@ export function MapCanvas({
     onViewportChangeRef.current?.({
       level: INITIAL_MAP_LEVEL,
       center: { lat: initialLat, lng: initialLng },
+      size: { width: container.clientWidth, height: container.clientHeight },
       points: fallbackPoints,
     });
 
@@ -148,6 +151,7 @@ export function MapCanvas({
           onViewportChangeRef.current?.({
             level: map.getLevel(),
             center: { lat: center.getLat(), lng: center.getLng() },
+            size: { width: container.clientWidth, height: container.clientHeight },
             points,
           });
         };

@@ -3,6 +3,22 @@ export interface MapScreenPoint {
   y: number;
 }
 
+export interface MapScreenSize {
+  width: number;
+  height: number;
+}
+
+export function isPointInsideMap(point: MapScreenPoint, size: MapScreenSize): boolean {
+  return (
+    Number.isFinite(point.x) &&
+    Number.isFinite(point.y) &&
+    point.x >= 0 &&
+    point.x < size.width &&
+    point.y >= 0 &&
+    point.y < size.height
+  );
+}
+
 export interface StoreMarkerCluster<TStore> extends MapScreenPoint {
   id: string;
   stores: TStore[];
