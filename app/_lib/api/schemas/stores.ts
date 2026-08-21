@@ -197,3 +197,41 @@ export const storeRecommendationEnvelopeSchema = z.object({
   message: z.string().optional(),
   data: storeRecommendationSchema,
 });
+
+// ---------------------------------------------------------------------------
+// GET /api/v1/stores/{storeId} — 가게 상세 (2026-08-21 신설)
+//
+// 이 엔드포인트가 생기기 전까지 가게 상세 화면은 이름·주소·영업시간을 **직전 화면이 쿼리로
+// 실어 날랐다**. 상세 URL을 직접 열면 프로필 줄이 비는 문제가 이걸로 닫힌다.
+// ---------------------------------------------------------------------------
+
+export const storeDetailSchema = z.object({
+  storeId: z.number().int().safe(),
+  storeName: z.string(),
+  storeImageUrl: z.string().nullable().optional(),
+  /** 로그인 사용자의 단골 여부 — **개인화 필드라 공유 캐시 금지.** */
+  isLiked: z.boolean().nullish().transform((value) => value ?? false),
+  favoriteCount: z.number().int().safe().nullable().optional(),
+  cheapItemCount: z.number().int().safe().nullable().optional(),
+  expensiveItemCount: z.number().int().safe().nullable().optional(),
+  totalReportedItemCount: z.number().int().safe().nullable().optional(),
+  /** 법정동 코드 — 앞자리 0 보존을 위해 문자열이다. */
+  regionId: z.string().nullable().optional(),
+  regionName: z.string().nullable().optional(),
+  latestReportedDate: z.string().nullable().optional(),
+  latestReportedAt: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  /** 좌표를 안 넘기면 거리·도보시간이 없다(쿼리 파라미터가 optional이다). */
+  distance: z.number().int().safe().nullable().optional(),
+  walkTimeMinutes: z.number().int().safe().nullable().optional(),
+  /** 요일별 영업시간 문자열 목록. 없으면 빈 배열이다. */
+  businessHours: z.array(z.string()).nullish().transform((value) => value ?? []),
+  openStatus: z.string().nullable().optional(),
+});
+export type StoreDetail = z.infer<typeof storeDetailSchema>;
+
+export const storeDetailEnvelopeSchema = z.object({
+  data: storeDetailSchema,
+});
