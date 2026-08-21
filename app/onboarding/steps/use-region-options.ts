@@ -98,6 +98,18 @@ export function useRegionSearchOptions(query: string): RegionOptionsState {
   return state.keyword === keyword ? state : INITIAL_SEARCH_STATE;
 }
 
+/**
+ * 현재 위치 기준 동네 후보.
+ *
+ * ⚠️ `/regions/nearby`는 `/regions/search`와 달리 **좌표를 돌려주지 않는다**. 좌표가 없는 채로
+ * 선택하면 `POST /api/regions/selection`이 동 이름으로 Spring 재검색을 돌게 되는데,
+ * 그 `/regions/search`가 후보 다건 검색어에서 502를 낸다(`농산물-문서/be-검토-2026-08-21.md` §1).
+ * 그래서 조회에 쓴 사용자 좌표를 후보에 얹어 **재검색 자체가 일어나지 않게** 한다.
+ *
+ * 얹는 값은 동 중심이 아니라 사용자 위치다. 이 좌표의 용도가 주변 가게 조회라 오히려 더
+ * 적합하고, `/regions/nearby`는 보통 좌표가 속한 동 하나를 돌려준다. BE가 좌표를 함께
+ * 내려주면(§4) `...region`이 뒤에 오므로 그쪽 값이 자동으로 우선한다.
+ */
 export function useNearbyRegionOptions(): RegionOptionsState {
   const [state, setState] = useState<RegionOptionsState>(INITIAL_NEARBY_STATE);
 
@@ -112,7 +124,7 @@ export function useNearbyRegionOptions(): RegionOptionsState {
         if (!active) return;
         setState({
           status: regions.length > 0 ? "success" : "empty",
-          regions,
+          regions: regions.map((region) => ({ ...coordinates, ...region })),
           message: regions.length > 0 ? "" : "현재 위치 근처의 동네를 찾지 못했어요.",
         });
       } catch (error) {
