@@ -141,7 +141,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (request.cookies.has(REISSUE_BACKOFF_COOKIE)) return NextResponse.next();
 
   // 갱신이 필요한데 수단이 없다 = 세션 종료. 낡은 쿠키를 남기면 매 요청이 401로 실패한다.
-  if (!refreshToken) return signOut(request, false);
+  if (!refreshToken) return signOut(request, false, shouldRedirectToOnboarding(request));
 
   const outcome = await reissueTokens(refreshToken);
 

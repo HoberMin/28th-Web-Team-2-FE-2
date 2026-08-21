@@ -146,6 +146,17 @@ describe("auth proxy", () => {
     expect(response.headers.get("location")).toBe("https://app.example.com/onboarding");
   });
 
+  it("refreshToken이 없어도 페이지 요청은 /onboarding으로 이동한다", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await proxy(sessionRequest({ accessToken: "invalid" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://app.example.com/onboarding");
+  });
+
   it("API 요청에서 세션이 끝나면 리다이렉트하지 않는다", async () => {
     const fetchMock = vi.fn<typeof fetch>();
     fetchMock.mockResolvedValueOnce(Response.json({ message: "expired" }, { status: 401 }));
