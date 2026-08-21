@@ -70,8 +70,9 @@ function TrendIcon({ direction }: { direction: HomeTrendDirection }) {
 }
 
 /**
- * 야채 그림(40×40). 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
- * 해당 품목의 로컬 이미지로 표시한다.
+ * 야채 그림. 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
+ * 해당 품목의 로컬 이미지로 표시한다. **48×48** — 같은 화면 추천 가게 카드와 크기를
+ * 맞춰 달라는 사용자 요청(2026-08-21)으로 Figma 원본(40×40) 대신 48을 쓴다.
  */
 export interface SectionLowestVegetablesProps {
   items: HomeLowestVegetable[];
@@ -96,7 +97,7 @@ export function SectionLowestVegetables({ items, collapsedCount }: SectionLowest
       trendState={item.trend}
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
-      visual={<HomeVegetableImage name={item.name} size={40} />}
+      visual={<HomeVegetableImage name={item.name} size={48} />}
       storeIcon={<FigmaIcon name="map-pin-fill" width={16} currentColor />}
       trendIcon={<TrendIcon direction={item.trend} />}
     />
