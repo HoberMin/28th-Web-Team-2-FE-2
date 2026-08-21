@@ -3,7 +3,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { getFavoriteStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
+import { getFavoriteStores } from "@/app/_lib/api/server/stores";
 import { ROUTES } from "../../_lib/routes";
 import { mapItemToPriceView } from "../prices/_item-view";
 import { SavedEmpty } from "./_components/saved-empty";
@@ -134,9 +134,15 @@ async function StoreTab() {
 
   // 좌표를 넘기지 않는다 — 사용자 위치는 브라우저에만 있고, 서버에서 지어낼 값이 아니다.
   // 그래서 `distanceMeters`가 비고, 행의 거리 자리도 비운다(`mapFavoriteStoreToView`).
+  //
+  // ⚠️ `getFavoriteStoresWithTemporaryFallback`을 쓰지 않는다 — 단골 목록이 빈 건 "이
+  // 사용자가 아직 단골을 안 눌렀다"는 정상 상태인데, 그 래퍼는 빈 응답을 "DB에 실데이터가
+  // 없다"로 보고 더미 가게 3곳을 `isLiked: true`로 채워 넣는다. 그래서 아무도 찜하지 않은
+  // 사용자에게도 "찜 3개"가 보였다(2026-08-21 버그 리포트로 발견). 아래 `stores.length === 0`
+  // 분기가 이미 진짜 빈 상태를 처리하므로 폴백이 필요 없다.
   let stores;
   try {
-    const { stores: page } = await getFavoriteStoresWithTemporaryFallback({ token, page: 0, size: 50 });
+    const page = await getFavoriteStores({ token, page: 0, size: 50 });
     stores = page.stores.map(mapFavoriteStoreToView);
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
