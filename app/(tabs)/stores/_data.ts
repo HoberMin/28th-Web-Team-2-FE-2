@@ -57,3 +57,23 @@ export function formatStoreDistance(distanceMeters: number | undefined): string 
   if (distanceMeters < 1000) return `${Math.round(distanceMeters)}m`;
   return `${(distanceMeters / 1000).toFixed(1)}km`;
 }
+
+/**
+ * 도보 시간. `StoreDetailResponse.walkTimeMinutes`가 백엔드에서 계산해 주면 그 값을 쓰고,
+ * (2026-08-21 라이브 확인 — 스펙엔 있지만 아직 항상 `null`이다) 없으면 거리에서 추정한다.
+ * 67m/분(≈4km/h) 도보 페이스는 Figma 목업 수치(670m·도보 10분)에서 역산한 값이다.
+ */
+const WALK_METERS_PER_MINUTE = 67;
+
+export function formatWalkTime(
+  walkTimeMinutes: number | null | undefined,
+  distanceMeters: number | undefined,
+): string {
+  if (typeof walkTimeMinutes === "number" && walkTimeMinutes > 0) return `도보 ${walkTimeMinutes}분`;
+  // `>= 0`이 맞다 — 가게 바로 앞(distanceMeters=0)도 유효한 거리다. `> 0`으로 걸러내면
+  // "0m · " 뒤에 도보 시간 없이 구분점만 남는다(HeaderStoreDetail은 항상 점을 그린다).
+  if (typeof distanceMeters === "number" && distanceMeters >= 0) {
+    return `도보 ${Math.max(1, Math.round(distanceMeters / WALK_METERS_PER_MINUTE))}분`;
+  }
+  return "";
+}
