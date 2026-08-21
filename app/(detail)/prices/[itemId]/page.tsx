@@ -5,6 +5,10 @@ import type { Metadata } from "next";
 import { getPriceVegetableImage, getVegetableIdByName } from "@/app/(tabs)/prices/_images";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
+import {
+  getPublicPriceSeriesWithFallback,
+  getRegionItemReportsWithFallback,
+} from "@/app/_lib/api/server/item-prices-fallback";
 import { getItemDetailWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
@@ -89,7 +93,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const latestReport = reports[0];
   const online = vegetable ? getOnlinePrices(vegetable.id) : undefined;
   const averageWeightNote = vegetable?.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
-  const detailReports: PriceDetailReport[] =
+  const dummyDetailReports: PriceDetailReport[] =
     vegetable && baseline
       ? reports.map((report) => ({
           id: report.id,
@@ -111,6 +115,24 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const publicPrice = detail.todayPublicPrice ?? null;
   const publicPriceDiff = detail.priceGap ?? 0;
   const publicPriceDiffPercent = detail.priceDiffRate ?? 0;
+
+  // 동네 제보 목록과 가격 추이는 2026-08-21에 Spring 엔드포인트가 생겼다. 다만 DB 적재가
+  // 아직이라 정상 200으로 빈 배열이 오는 구간이 있어, 비면 위 46종 더미를 그대로 쓴다
+  // (`item-prices-fallback`). 적재가 끝나면 그 파일의 폴백 분기만 걷어내면 된다.
+  const [{ reports: detailReports }, { series: publicPriceSeries }] = await Promise.all([
+    getRegionItemReportsWithFallback({
+      regionId,
+      itemId,
+      basePrice: publicPrice,
+      unit,
+      dummyReports: dummyDetailReports,
+    }),
+    getPublicPriceSeriesWithFallback({
+      itemId,
+      regionId,
+      dummySeries: baseline?.series ?? null,
+    }),
+  ]);
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -156,7 +178,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
           <NeighborhoodPrices reports={detailReports} />
           <div className="h-2 bg-border-secondary" />
-          {baseline ? <PublicPriceChart series={baseline.series} /> : null}
+          {publicPriceSeries ? <PublicPriceChart series={publicPriceSeries} /> : null}
           <div className="h-2 bg-border-secondary" />
 
           <section id="online-prices" className="scroll-mt-12 px-4 py-8">
