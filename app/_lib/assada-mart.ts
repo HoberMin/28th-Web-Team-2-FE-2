@@ -7,7 +7,7 @@ export const ASSADA_MART_CENTER = {
 } as const;
 
 export const ASSADA_MART_IMAGE_PATH = "/marketgo-images/assada-mart-banner.png";
-export const ASSADA_MART_STORE_ID = 999;
+export const ASSADA_MART_STORE_ID = 384;
 
 export const ASSADA_MART_STORE: StoreRequest = {
   id: String(ASSADA_MART_STORE_ID),
