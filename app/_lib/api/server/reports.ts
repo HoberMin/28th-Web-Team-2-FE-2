@@ -8,6 +8,11 @@ import {
   type CreateReportResponse,
   type RegionLowestPrices,
 } from "../schemas/reports";
+import {
+  regionItemReportPageEnvelopeSchema,
+  type RegionItemReportPage,
+  type RegionItemReportSort,
+} from "../schemas/region-item-reports";
 import { springFetch } from "../spring";
 import { CACHE_TAGS, REVALIDATE_IMMEDIATELY } from "../tags";
 
@@ -53,6 +58,34 @@ export async function getRegionLowestPrices(params: {
     path: `/api/v1/regions/${encodeURIComponent(params.regionId)}/reports/lowest-prices`,
     query: { limit: params.limit },
     schema: regionLowestPricesEnvelopeSchema,
+    cache: { revalidate: 300, tags: [CACHE_TAGS.stores] },
+  });
+  return envelope.data;
+}
+
+export interface GetRegionItemReportsParams {
+  /** 법정동 코드 — 앞자리 0 유실 방지를 위해 문자열이다. */
+  regionId: string;
+  itemId: number;
+  sort?: RegionItemReportSort;
+  page?: number;
+  size?: number;
+}
+
+/**
+ * 동네 품목 제보 목록 (F03-1 「동네 제보가」 + 더보기 시트).
+ *
+ * 동네·품목 단위 집계라 개인화 필드가 없어 공유 캐시를 쓴다. 제보 생성이 `stores` 태그를
+ * 무효화하므로 새 제보가 바로 반영된다. 제보가 없으면 `reports: []`로 정상 200이 온다.
+ */
+export async function getRegionItemReports(
+  params: GetRegionItemReportsParams,
+): Promise<RegionItemReportPage> {
+  const { regionId, itemId, ...query } = params;
+  const envelope = await springFetch({
+    path: `/api/v1/regions/${encodeURIComponent(regionId)}/items/${itemId}/reports`,
+    query: { ...query },
+    schema: regionItemReportPageEnvelopeSchema,
     cache: { revalidate: 300, tags: [CACHE_TAGS.stores] },
   });
   return envelope.data;
