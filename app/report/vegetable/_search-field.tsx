@@ -53,7 +53,8 @@ export function VegetableSearchField({ carryQuery }: VegetableSearchFieldProps) 
         value={query}
         placeholder="제보할 야채를 검색해 보세요"
         // UI QA 2026-08-20 #41: 이 화면의 안내문구는 content/disabled가 아니라 content/primary다.
-        inputClassName="placeholder:text-content-primary"
+        // inputClassName으로 덮으면 기본 클래스와 충돌해 안 먹는다 → 전용 prop (text-field.tsx 참고).
+        placeholderTone="primary"
         trailing={
           query ? (
             <button
