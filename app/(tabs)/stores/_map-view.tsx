@@ -330,6 +330,7 @@ export function StoresMapView({ region, initialCenter, initialNearbyState }: Sto
         <div className="absolute inset-x-0 bottom-0 z-30">
           <StoreSheet
             store={selectedStore}
+            center={viewport.center}
             onClose={closeSelectedStore}
             fallbackFocusRef={mapRootRef}
           />
