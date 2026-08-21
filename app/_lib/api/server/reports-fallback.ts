@@ -4,6 +4,15 @@ import { regionLowestPricesSchema, type RegionLowestPrices } from "../schemas/re
 import { getRegionLowestPrices } from "./reports";
 import { DEFAULT_DISTRICT, VEGETABLES, getBaselineDummy } from "../../vegetables";
 import { getFallbackNearbyStores } from "../../nearby-stores";
+import { hasDedicatedVegetableIcon } from "../../vegetable-images";
+
+/**
+ * 전용 벡터가 있는 품목을 앞으로 오게 정렬한 카탈로그 — 홈 화면 더미 생성기가 이 순서로
+ * 앞에서부터 골라야 아이콘이 안 맞는 품목(예: 생강 → 당근 아이콘)이 먼저 뽑히지 않는다.
+ */
+const VEGETABLES_ICON_FIRST = [...VEGETABLES].sort(
+  (left, right) => Number(hasDedicatedVegetableIcon(right.id)) - Number(hasDedicatedVegetableIcon(left.id)),
+);
 
 /**
  * 백엔드 `/api/v1/regions/{id}/reports/lowest-prices`가 아직 배포되지 않았거나(에러) DB에
@@ -16,7 +25,7 @@ import { getFallbackNearbyStores } from "../../nearby-stores";
 
 function buildTemporaryRegionLowestPrices(limit: number): RegionLowestPrices {
   const dummies = getFallbackNearbyStores(DEFAULT_DISTRICT);
-  const sample = VEGETABLES.slice(0, limit);
+  const sample = VEGETABLES_ICON_FIRST.slice(0, limit);
   const items = sample.map((vegetable, index) => {
     const baseline = getBaselineDummy(vegetable.id);
     const diff = -Math.round(baseline.current * 0.08);
