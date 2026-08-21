@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MarkerStoreMap } from "@/app/_components/marker-store-map";
-import { ASSADA_MART_STORE } from "@/app/_lib/assada-mart";
+import { ASSADA_MART_IMAGE_PATH, ASSADA_MART_STORE } from "@/app/_lib/assada-mart";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import {
@@ -256,9 +256,9 @@ export function ReportPlaceMap({
                     address={place.roadAddressName || place.addressName}
                     href={hrefFor(place)}
                     thumbnail={
-                      place.imageUrl ? (
+                      place.imageUrl || place.id === ASSADA_MART_STORE.id ? (
                         <Image
-                          src={place.imageUrl}
+                          src={place.imageUrl || ASSADA_MART_IMAGE_PATH}
                           alt=""
                           width={56}
                           height={56}

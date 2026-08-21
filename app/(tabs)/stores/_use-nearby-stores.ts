@@ -6,6 +6,7 @@ import {
   STORES_QUERY_DEBOUNCE_MS,
   StoresClientError,
 } from "@/app/_lib/api/client/stores";
+import { ASSADA_MART_STORE_ID } from "@/app/_lib/assada-mart";
 import {
   mapAssadaMartToMapStore,
   mapNearbyStoreToMapStore,
@@ -72,7 +73,7 @@ export function useNearbyStores({
             stores: [
               mapAssadaMartToMapStore({ lat, lng }, radius),
               ...result.stores
-                .filter((store) => store.storeId !== 999)
+                .filter((store) => store.storeId !== ASSADA_MART_STORE_ID)
                 .map((store) => mapNearbyStoreToMapStore(store, { lat, lng }, radius)),
             ],
             status: "success",

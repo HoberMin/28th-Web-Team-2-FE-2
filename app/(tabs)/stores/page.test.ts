@@ -45,7 +45,7 @@ describe("loadInitialNearbyStores", () => {
       key: "36.8358|127.1324|2000||false",
       status: "success",
       stores: [
-        { id: "999", name: "아!싸다 마트" },
+        { id: "384", name: "아싸다 마트" },
         { id: "101", name: "장보고 마트", isLiked: true },
       ],
     });
@@ -71,7 +71,7 @@ describe("loadInitialNearbyStores", () => {
 
     expect(result.status).toBe("error");
     expect(result.error).toBe("주변 가게를 불러오지 못했어요.");
-    expect(result.stores).toMatchObject([{ id: "999", name: "아!싸다 마트" }]);
+    expect(result.stores).toMatchObject([{ id: "384", name: "아싸다 마트" }]);
   });
 
   it("예상하지 못한 오류는 route error boundary로 다시 던진다", async () => {
@@ -95,7 +95,7 @@ describe("StoresPage", () => {
     expect(getNearbyStoresMock).not.toHaveBeenCalled();
   });
 
-  it("선택 지역과 무관하게 아!싸다 마트 중심으로 최초 조회한다", async () => {
+  it("선택 지역과 무관하게 아싸다 마트 중심으로 최초 조회한다", async () => {
     getVerifiedSelectedRegionMock.mockResolvedValue({
       regionId: "4413310500",
       regionName: "충청남도 천안시 서북구 성성동",

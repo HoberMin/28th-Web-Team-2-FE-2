@@ -1,5 +1,5 @@
 import type { NearbyStore } from "@/app/_lib/api/schemas/stores";
-import { ASSADA_MART_CENTER } from "@/app/_lib/assada-mart";
+import { ASSADA_MART_CENTER, ASSADA_MART_STORE_ID } from "@/app/_lib/assada-mart";
 
 export interface MapCenter {
   lat: number;
@@ -56,8 +56,8 @@ export function mapNearbyStoreToMapStore(
 export function mapAssadaMartToMapStore(center: MapCenter, radius: number): MapStore {
   return mapNearbyStoreToMapStore(
     {
-      storeId: 999,
-      storeName: "아!싸다 마트",
+      storeId: ASSADA_MART_STORE_ID,
+      storeName: "아싸다 마트",
       latitude: ASSADA_MART_CENTER.lat,
       longitude: ASSADA_MART_CENTER.lng,
       addressName: "서울 마포구 공덕동 242-90",

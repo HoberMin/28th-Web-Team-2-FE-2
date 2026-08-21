@@ -6,9 +6,12 @@ export const ASSADA_MART_CENTER = {
   lng: 126.955084,
 } as const;
 
+export const ASSADA_MART_IMAGE_PATH = "/marketgo-images/assada-mart-banner.png";
+export const ASSADA_MART_STORE_ID = 384;
+
 export const ASSADA_MART_STORE: StoreRequest = {
-  id: "999",
-  placeName: "아!싸다 마트",
+  id: String(ASSADA_MART_STORE_ID),
+  placeName: "아싸다 마트",
   addressName: "서울 마포구 공덕동 242-90",
   roadAddressName: "서울 마포구 만리재옛길 19",
   x: ASSADA_MART_CENTER.lng,
