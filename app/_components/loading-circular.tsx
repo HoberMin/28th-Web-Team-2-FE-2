@@ -6,6 +6,12 @@ import { cn } from "../_lib/cn";
 //
 // Figma MCP Plugin API에서 animate=false는 원본 SVG로, animate=true는 이미지 해시의 원본 GIF
 // (150×150, GIF89a)로 export했다. 따라서 형상·두께·시작 각도·재생 속도를 추정하지 않는다.
+//
+// ⚠️ 단, **색을 문맥에서 받아야 하는 자리**(`currentColor`)에서는 GIF를 쓸 수 없다.
+//    브라우저가 mask-image의 애니메이션 GIF를 첫 프레임에서 멈추기 때문에 회전이 죽는다.
+//    그래서 currentColor일 때는 **정적 SVG를 마스크로 쓰고 CSS로 돌린다** — 이때만 재생 속도가
+//    Figma 원본이 아니라 우리 값(1초 등속)이다. 색을 얻는 대가로 감수한 유일한 추정이다.
+//    (2026-08-21 디자인 QA: "스피너에 JDS 그린 계열을 넣어주세요, 지금 잘 안 보여요")
 
 export interface LoadingCircularProps {
   /** Figma의 animate 축. true면 회전한다. */
@@ -26,9 +32,11 @@ export function LoadingCircular({
   currentColor = false,
   className,
 }: LoadingCircularProps) {
-  const src = animate
-    ? "/figma/design-library/loading/circular-animated.gif"
-    : "/figma/design-library/loading/circular-static.svg";
+  // currentColor는 마스크로 그리는데 GIF 마스크는 움직이지 않는다 → 정적 SVG + CSS 회전.
+  const src =
+    animate && !currentColor
+      ? "/figma/design-library/loading/circular-animated.gif"
+      : "/figma/design-library/loading/circular-static.svg";
 
   return (
     <span
@@ -39,7 +47,12 @@ export function LoadingCircular({
       {currentColor ? (
         <span
           aria-hidden="true"
-          className="size-4.5 bg-current"
+          className={cn(
+            "size-4.5 bg-current",
+            // 모션 민감 사용자에게는 회전을 멈춘다(WCAG 2.3.3). 멈춰도 원호는 보이므로
+            // "불러오는 중"이라는 정보 자체는 label이 계속 전달한다.
+            animate && "animate-spin motion-reduce:animate-none",
+          )}
           style={{
             WebkitMaskImage: `url("${src}")`,
             maskImage: `url("${src}")`,
