@@ -137,6 +137,8 @@ export interface MartPrice {
   channelNote?: string;
   /** 기준일 "YYYY-MM-DD" */
   asOf: string;
+  /** 실제 관측한 값인지(컬리만 true) — false면 공공시세 비례 추정치다. */
+  measured: boolean;
 }
 
 /** 사용자 제보 실제가 — 동네(동) 정밀도를 메우는 크라우드소싱 데이터. */
