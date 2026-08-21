@@ -9,7 +9,8 @@ export function privateJson(body: unknown, status = 200): Response {
 }
 
 /**
- * @param fallbackMessage 호출부 맥락에 맞는 기본 실패 문구.
+ * @param fallbackMessage 호출부 맥락에 맞는 기본 실패 문구. `notFound`는 항상 "가게를 찾을 수
+ *   없어요"로 고정한다 — 어느 가게 관련 조회든 404의 의미가 같기 때문이다.
  */
 export function storesApiErrorResponse(
   error: unknown,
@@ -24,6 +25,9 @@ export function storesApiErrorResponse(
 
     if (error.kind === "unauthorized") {
       return privateJson({ message: "로그인이 필요해요." }, 401);
+    }
+    if (error.kind === "notFound") {
+      return privateJson({ message: "가게를 찾을 수 없어요." }, 404);
     }
     if (error.kind === "badRequest") {
       return privateJson({ message: "가게 조회 조건을 확인해 주세요." }, 400);
