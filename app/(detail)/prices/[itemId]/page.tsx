@@ -210,12 +210,28 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                   return (
                     <li key={price.mall} className="border-b border-border-secondary py-4 last:border-b-0">
                       <div className="flex items-center justify-between">
+                        {/*
+                          Figma `row/online-price`(1271:23074) 실측 — 좌측은 gap-[8px] hug다.
+                          고정 폭 `w-[102px]`가 박혀 있었는데(2026-08-21 제거) 시안에 없는 값이고
+                          「GS SHOP」처럼 긴 이름이 102px에서 잘렸다.
+                          부가정보 구분자도 시안은 `·` 글자가 아니라 **2px 원형 도트**다
+                          (같은 화면의 시트 행은 이미 도트를 쓰고 있어 한 화면 안에서 갈려 있었다).
+                        */}
                         <div className="flex min-w-0 items-center gap-2">
                           <MallLogo mall={price.mall} />
-                          <div className="w-[102px] min-w-0 shrink-0">
+                          <div className="min-w-0">
                             <p className="truncate text-body-16-medium text-content-primary">{price.mall}</p>
-                            <p className="truncate text-caption-12-medium text-content-disabled">
-                              {price.channel}{price.channelNote ? ` · ${price.channelNote}` : ""}
+                            <p className="flex min-w-0 items-center gap-1 text-caption-12-medium text-content-disabled">
+                              <span className="truncate">{price.channel}</span>
+                              {price.channelNote ? (
+                                <>
+                                  <span
+                                    aria-hidden="true"
+                                    className="size-0.5 shrink-0 rounded-full bg-current"
+                                  />
+                                  <span className="truncate">{price.channelNote}</span>
+                                </>
+                              ) : null}
                             </p>
                           </div>
                         </div>
