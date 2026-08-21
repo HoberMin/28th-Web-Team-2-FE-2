@@ -109,7 +109,10 @@ describe("GET /api/stores/nearby", () => {
     });
   });
 
-  it("DB가 비어 upstream이 200과 빈 목록을 주면 더미 가게로 채운다", async () => {
+  it("upstream이 200과 빈 목록을 주면 더미로 채우지 않고 그대로 빈 목록을 돌려준다", async () => {
+    // 더미 storeId(1,2,3…)가 라이브 실제 storeId와 겹쳐 "목록엔 더미가 보이는데 눌러서
+    // 들어가면 다른 진짜 가게가 뜬다"는 버그(2026-08-21 리포트)의 원인이었다 — 진짜 빈
+    // 결과는 화면의 "검색 결과가 없어요" 빈 상태가 처리하므로 여기서 채울 필요가 없다.
     apiMocks.getAccessToken.mockResolvedValue(undefined);
     apiMocks.getNearbyStores.mockResolvedValue({ totalCount: 0, stores: [] });
 
@@ -119,7 +122,7 @@ describe("GET /api/stores/nearby", () => {
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as { totalCount: number; stores: unknown[] };
-    expect(body.totalCount).toBeGreaterThan(0);
-    expect(body.stores.length).toBeGreaterThan(0);
+    expect(body.totalCount).toBe(0);
+    expect(body.stores).toHaveLength(0);
   });
 });
