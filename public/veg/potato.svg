@@ -1,4 +1,5 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="33.6368" height="25.7877" viewBox="0 0 33.6368 25.7877" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(6.5876 9.78615) rotate(44 16.8184 12.89385)">
 <g id="Group 2085673345">
 <g id="Ellipse 14887">
 <path d="M33.6368 12.8621C33.6368 22.4909 25.8819 25.6566 18.6444 25.7809C10.7185 25.917 0.303246 24.0607 0.00282622 14.4064C-0.195291 8.03963 10.0625 0.626669 18.1886 0.77592C28.614 0.967401 33.6368 5.96344 33.6368 12.8621Z" fill="url(#paint0_linear_0_61)"/>
@@ -48,4 +49,5 @@
 <stop offset="1" stop-color="#D4A751"/>
 </linearGradient>
 </defs>
+</g>
 </svg>
