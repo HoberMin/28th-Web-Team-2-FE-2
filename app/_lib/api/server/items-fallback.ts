@@ -11,9 +11,11 @@ import {
 import {
   getItemDetail,
   getItems,
+  getPublicPriceTrend,
   type GetItemDetailParams,
   type GetItemsParams,
 } from "./items";
+import { compareWithOneMonthAgo } from "../../monthly-price-comparison";
 import { getDailyTrend } from "../../trend";
 import { matchesVegetableName } from "../../search";
 import {
@@ -262,37 +264,70 @@ export function isTemporaryDataError(error: unknown): boolean {
  */
 export async function getItemsWithTemporaryFallback(
   params: GetItemsParams,
+  options: { includeMonthlyComparison?: boolean } = {},
 ): Promise<{ page: ItemPage; isTemporary: boolean }> {
+  const decorate = (result: { page: ItemPage; isTemporary: boolean }) =>
+    options.includeMonthlyComparison ? addMonthlyComparisons(result, params.regionId) : result;
+
   try {
     const page = await getItems(params);
     if (page.items.length === 0) {
       console.warn("[items] temporary data fallback (empty upstream result)", {
         regionId: params.regionId,
       });
-      return { page: buildTemporaryItemPage(params), isTemporary: true };
+      return decorate({ page: buildTemporaryItemPage(params), isTemporary: true });
     }
 
     // 목록은 실데이터인데 가격 필드만 비어 있는 경우(품목 마스터는 있고 시세 적재가 안 됨) —
     // 실 itemId·이름·이미지는 그대로 두고 가격만 이름 매칭 더미로 채운다.
     const hasMissingPrice = page.items.some((item) => item.price === null);
-    if (!hasMissingPrice) return { page, isTemporary: false };
+    if (!hasMissingPrice) return decorate({ page, isTemporary: false });
     console.warn("[items] temporary price fallback (upstream price fields empty)", {
       regionId: params.regionId,
     });
-    return {
+    return decorate({
       page: { ...page, items: page.items.map(withTemporaryPriceIfMissing) },
       isTemporary: true,
-    };
+    });
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
     console.warn("[items] temporary data fallback", {
       endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
     });
-    return {
+    return decorate({
       page: buildTemporaryItemPage(params),
       isTemporary: true,
-    };
+    });
   }
+}
+
+async function addMonthlyComparisons(
+  result: { page: ItemPage; isTemporary: boolean },
+  regionId: string,
+): Promise<{ page: ItemPage; isTemporary: boolean }> {
+  const items = await Promise.all(
+    result.page.items.map(async (item) => {
+      if (item.isTemporary) {
+        const vegetable = findDummyVegetableByName(item.itemName);
+        const points = vegetable ? getBaselineDummy(vegetable.id).series.year : [];
+        const comparison = compareWithOneMonthAgo(points, item.price);
+        return comparison
+          ? { ...item, monthlyPriceGap: comparison.diff, monthlyPriceDiffRate: comparison.percent }
+          : item;
+      }
+
+      try {
+        const trend = await getPublicPriceTrend({ itemId: item.itemId, regionId, period: "YEAR" });
+        const comparison = compareWithOneMonthAgo(trend.points, item.price);
+        return comparison
+          ? { ...item, monthlyPriceGap: comparison.diff, monthlyPriceDiffRate: comparison.percent }
+          : item;
+      } catch {
+        return item;
+      }
+    }),
+  );
+  return { ...result, page: { ...result.page, items } };
 }
 
 /**

@@ -41,8 +41,10 @@ function trendState(priceGap: number | null): TrendState {
 }
 
 export function mapItemToPriceView(item: Item): PriceItemView {
-  const trend = trendState(item.priceGap);
-  const hasTrend = trend !== "flat" && item.priceDiffRate !== null;
+  const comparisonGap = item.monthlyPriceGap ?? item.priceGap;
+  const comparisonRate = item.monthlyPriceDiffRate ?? item.priceDiffRate;
+  const trend = trendState(comparisonGap);
+  const hasTrend = trend !== "flat" && comparisonRate !== null;
 
   return {
     itemId: item.itemId,
@@ -51,9 +53,9 @@ export function mapItemToPriceView(item: Item): PriceItemView {
     price: item.price === null ? "가격 없음" : formatWon(item.price),
     unit: item.defaultUnit ? `/${item.defaultUnit}` : "",
     trendState: hasTrend ? trend : "flat",
-    trendAmount: hasTrend && item.priceGap !== null ? formatWon(Math.abs(item.priceGap)) : "",
+    trendAmount: hasTrend && comparisonGap !== null ? formatWon(Math.abs(comparisonGap)) : "",
     trendPercent: hasTrend
-      ? `(${trend === "up" ? "+" : "-"}${Math.abs(item.priceDiffRate ?? 0)}%)`
+      ? `(${trend === "up" ? "+" : "-"}${Math.abs(comparisonRate ?? 0)}%)`
       : "",
     isLiked: item.isLiked,
     isTemporary: item.isTemporary,

@@ -7,6 +7,7 @@ import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
 import { resolveStoreOpenStatus } from "@/app/_lib/store-open-status";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ButtonCircle } from "../../_components/button-circle";
+import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import { HeaderStoreDetail } from "../../_components/header-store-detail";
 import { RowRecentReport } from "../../_components/row-recent-report";
 import { SectionRecentReport } from "../../_components/section-recent-report";
@@ -186,18 +187,25 @@ export function StoreSheet({ store, center, onClose, fallbackFocusRef }: StoreSh
           onAction={() => router.push(detailHref)}
         >
           {reports && reports.reports.length > 0 ? (
-            <SectionRecentReport state="populated">
-              {reports.reports.map((report) => (
-                <RowRecentReport
-                  key={report.reportId}
-                  visual={<HomeVegetableImage name={report.itemName} size={40} />}
-                  name={report.itemName}
-                  reportDate={resolveRecentReportDateVariant(report.reportedDate, fetchedAt ?? 0)}
-                  price={`${report.price.toLocaleString("ko-KR")}원`}
-                  unit={report.unit ? `/${report.unit}` : ""}
-                />
-              ))}
-            </SectionRecentReport>
+            <div>
+              {reports.isTemporary ? (
+                <div className="mb-2 flex justify-end">
+                  <TemporaryDataBadge />
+                </div>
+              ) : null}
+              <SectionRecentReport state="populated">
+                {reports.reports.map((report) => (
+                  <RowRecentReport
+                    key={report.reportId}
+                    visual={<HomeVegetableImage name={report.itemName} size={40} />}
+                    name={report.itemName}
+                    reportDate={resolveRecentReportDateVariant(report.reportedDate, fetchedAt ?? 0)}
+                    price={`${report.price.toLocaleString("ko-KR")}원`}
+                    unit={report.unit ? `/${report.unit}` : ""}
+                  />
+                ))}
+              </SectionRecentReport>
+            </div>
           ) : (
             <SectionRecentReport state="empty" />
           )}

@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { SheetHandle } from "@/app/_components/sheet-handle";
+import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import { PRICE_DETAIL_HEADER_HEIGHT } from "./_detail-header";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
@@ -209,7 +210,7 @@ export function NeighborhoodPrices({ reports, isTemporary }: NeighborhoodPricesP
   );
 }
 
-export function OnlinePriceNotice() {
+export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boolean }) {
   const [open, setOpen] = useState(false);
   const descriptionId = useId();
 
@@ -226,9 +227,12 @@ export function OnlinePriceNotice() {
              `information-circle.svg`는 16px PNG를 SVG로 감싼 파일이라 20px로 늘리면 뭉갠다
              — 아이콘 일괄 교체 때 같이 받는다.
         */}
-        <p className="text-body-14-medium text-content-disabled">
-          온라인 사이트마다 배송 조건이 달라요
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-body-14-medium text-content-disabled">
+            온라인 사이트마다 배송 조건이 달라요
+          </p>
+          {isTemporary ? <TemporaryDataBadge /> : null}
+        </div>
         <button
           type="button"
           aria-label="온라인 가격 비교 안내 보기"

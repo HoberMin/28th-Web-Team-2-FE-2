@@ -63,7 +63,7 @@ export async function GET(request: Request): Promise<Response> {
       regionId,
       favoriteOnly: false,
       token,
-    });
+    }, { includeMonthlyComparison: true });
     return privateJson(page);
   } catch (error) {
     return itemsApiErrorResponse(error);

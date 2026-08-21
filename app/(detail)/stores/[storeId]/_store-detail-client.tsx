@@ -7,6 +7,7 @@ import { useEffect, useOptimistic, useState, useTransition } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import IconPictureFill from "@karrotmarket/react-monochrome-icon/IconPictureFill";
 import { BadgeReporterRank } from "@/app/_components/badge-reporter-rank";
+import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import { ImageProfileReporter } from "@/app/_components/image-profile-reporter";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
@@ -24,6 +25,7 @@ interface StoreDetailClientProps {
   /** `GET /stores/{id}/reports`의 summary. 배지 숫자가 이 값이다. */
   cheapCount: number;
   expensiveCount: number;
+  reportsAreTemporary?: boolean;
   /** `GET /stores/{id}`의 `favoriteCount`. 응답에 없으면 하트 아래 숫자를 그리지 않는다. */
   favoriteCount?: number;
 }
@@ -398,7 +400,7 @@ function PriceSheet({
   );
 }
 
-function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
+function StorePrices({ prices, isTemporary }: { prices: StoreDetailPrice[]; isTemporary?: boolean }) {
   const [kind, setKind] = useState<StoreDetailPrice["kind"]>("cheap");
   const [sheetOpen, setSheetOpen] = useState(false);
   const filtered = prices.filter((item) => item.kind === kind);
@@ -412,7 +414,10 @@ function StorePrices({ prices }: { prices: StoreDetailPrice[] }) {
       <section className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between">
           {/* 제목 body/16-**semibold**(429:17659) · 우측 caption/12-**medium** w-[112px](429:17660) */}
-          <h2 className="text-body-16-semibold text-content-primary">가게에 제보된 야채</h2>
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="text-body-16-semibold text-content-primary">가게에 제보된 야채</h2>
+            {isTemporary ? <TemporaryDataBadge /> : null}
+          </div>
           <p className="w-28 text-right text-caption-12-medium text-content-secondary">최근 30일간 · 최신 순</p>
         </div>
         {/*
@@ -474,6 +479,7 @@ export function StoreDetailClient({
   cheapCount,
   expensiveCount,
   favoriteCount,
+  reportsAreTemporary,
 }: StoreDetailClientProps) {
   const router = useRouter();
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
@@ -527,7 +533,7 @@ export function StoreDetailClient({
             expensiveCount={expensiveCount}
           />
           <div className="h-2 bg-border-secondary" />
-          <StorePrices prices={prices} />
+        <StorePrices prices={prices} isTemporary={reportsAreTemporary} />
           <div className="h-2 bg-border-secondary" />
         </main>
         {/*

@@ -48,8 +48,8 @@ export async function getReportVegetables(params: {
   token: string | undefined;
   category?: VegetableGroup;
   keyword?: string;
-}): Promise<ReportVegetableOption[]> {
-  const { page } = await getItemsWithTemporaryFallback({
+}): Promise<{ vegetables: ReportVegetableOption[]; isTemporary: boolean }> {
+  const { page, isTemporary } = await getItemsWithTemporaryFallback({
     regionId: params.regionId,
     token: params.token,
     category: params.keyword ? undefined : mapGroupToApi(params.category),
@@ -57,7 +57,7 @@ export async function getReportVegetables(params: {
     sort: "NAME_ASC",
     size: REPORT_VEGETABLE_PAGE_SIZE,
   });
-  return page.items.map(toReportVegetableOption);
+  return { vegetables: page.items.map(toReportVegetableOption), isTemporary };
 }
 
 /** URL의 `group` 쿼리값을 코드 정본 7종으로 좁힌다(시세 탭과 같은 검증 함수 재사용). */
@@ -77,10 +77,10 @@ export async function getReportVegetable(params: {
   itemId: number;
   regionId: string;
   token: string | undefined;
-}): Promise<ReportVegetableOption | undefined> {
+}): Promise<{ vegetable: ReportVegetableOption | undefined; isTemporary: boolean }> {
   try {
-    const { detail } = await getItemDetailWithTemporaryFallback(params);
-    return toReportVegetableOption(detail);
+    const { detail, isTemporary } = await getItemDetailWithTemporaryFallback(params);
+    return { vegetable: toReportVegetableOption(detail), isTemporary };
   } catch (error) {
     if (
       error instanceof ApiError &&
@@ -89,7 +89,7 @@ export async function getReportVegetable(params: {
         error.kind === "unauthorized" ||
         error.kind === "forbidden")
     ) {
-      return undefined;
+      return { vegetable: undefined, isTemporary: false };
     }
     throw error;
   }

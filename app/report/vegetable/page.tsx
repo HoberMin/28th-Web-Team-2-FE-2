@@ -145,7 +145,7 @@ async function SecondStep({
   }
 
   const token = await getAccessToken();
-  const vegetables = await getReportVegetables({
+  const { vegetables, isTemporary } = await getReportVegetables({
     regionId,
     token,
     category: normalizeReportGroup(group),
@@ -158,6 +158,7 @@ async function SecondStep({
       initialQuery={q}
       selectedId={selectedId}
       vegetables={vegetables}
+      isTemporary={isTemporary}
     />
   );
 }

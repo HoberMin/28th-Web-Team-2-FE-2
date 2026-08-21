@@ -91,7 +91,7 @@ export default async function PricesPage({
     category,
     favoriteOnly: false,
     token,
-  });
+  }, { includeMonthlyComparison: true });
   const counts = mapCategoryCounts(itemPage.categoryCounts);
   const catalogTotalCount = itemPage.categoryCounts
     ? Object.values(counts).reduce((total, count) => total + count, 0)

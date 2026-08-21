@@ -28,16 +28,21 @@ export async function GET(request: Request, { params }: RouteContext): Promise<R
   const token = await getAccessToken();
 
   try {
-    const { reports } = await getStoreReportsWithTemporaryFallback({
+    const result = await getStoreReportsWithTemporaryFallback({
       storeId,
       filter: "ALL",
       page: 0,
       size,
       token,
     });
+    const { reports } = result;
     // 더미 폴백(`buildTemporaryStoreReports`)은 요청 size와 무관하게 8개를 통째로 돌려주므로
     // "최근 N개"를 지키려면 여기서 다시 자른다.
-    return privateJson({ ...reports, reports: reports.reports.slice(0, size) });
+    return privateJson({
+      ...reports,
+      isTemporary: result.isTemporary,
+      reports: reports.reports.slice(0, size),
+    });
   } catch (error) {
     return storesApiErrorResponse(error, "최근 제보를 불러오지 못했어요.");
   }

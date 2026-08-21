@@ -51,6 +51,10 @@ export const itemSchema = z.object({
   priceGap: z.number().nullable(),
   /** 직전 대비 변동률. */
   priceDiffRate: z.number().nullable(),
+  /** 프론트 BFF가 YEAR 시계열에서 계산한 한 달 전 대비 변동액. */
+  monthlyPriceGap: z.number().nullable().optional(),
+  /** 프론트 BFF가 YEAR 시계열에서 계산한 한 달 전 대비 변동률. */
+  monthlyPriceDiffRate: z.number().nullable().optional(),
   /**
    * 로그인 사용자의 찜 여부 — **이 필드 때문에 응답을 공유 캐시에 넣으면 안 된다.**
    * 비회원 응답에도 이 필드가 오는지는 미확정이라(BE 요청 3번) 없거나 null이면 false로 본다.

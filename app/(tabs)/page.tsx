@@ -83,7 +83,7 @@ export default async function HomePage() {
       : Promise.resolve(null),
     region
       ? sectionData("동네 최저가", async () => {
-          const { prices } = await getRegionLowestPrices({
+          const prices = await getRegionLowestPrices({
             regionId: region.regionId,
             limit: 10,
           });
@@ -110,7 +110,7 @@ export default async function HomePage() {
           items={lowestVegetables}
           collapsedCount={HOME_LOWEST_COLLAPSED_COUNT}
         />
-        <SectionNews items={newsItems} />
+        <SectionNews items={newsItems} isTemporary />
       </div>
     </div>
   );

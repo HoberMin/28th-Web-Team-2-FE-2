@@ -1,4 +1,5 @@
 import { CardNews } from "../../_components/card-news";
+import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import type { HomeNewsItem } from "./_data";
 import { SectionEmpty } from "./section-empty";
 
@@ -37,6 +38,7 @@ import { SectionEmpty } from "./section-empty";
 
 export interface SectionNewsProps {
   items: HomeNewsItem[];
+  isTemporary?: boolean;
 }
 
 /**
@@ -59,12 +61,15 @@ function NewsThumbnail({ src }: { src: string }) {
   );
 }
 
-export function SectionNews({ items }: SectionNewsProps) {
+export function SectionNews({ items, isTemporary = false }: SectionNewsProps) {
   return (
     <section aria-labelledby="home-news-title" className="flex w-full flex-col items-start gap-6">
-      <h2 id="home-news-title" className="w-full text-title-18-bold text-content-primary">
-        최근 시세 뉴스
-      </h2>
+      <div className="flex w-full items-center justify-between gap-2">
+        <h2 id="home-news-title" className="min-w-0 text-title-18-bold text-content-primary">
+          최근 시세 뉴스
+        </h2>
+        {isTemporary ? <TemporaryDataBadge /> : null}
+      </div>
 
       {items.length > 0 ? (
         // self-stretch가 필요하다: 섹션이 `items-start`라 자식이 늘어나지 않는데, 이 목록은

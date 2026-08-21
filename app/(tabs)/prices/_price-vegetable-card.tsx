@@ -19,9 +19,9 @@ const TREND_ICON_NAME: Record<TrendState, string> = {
 };
 
 const TREND_LABEL: Record<TrendState, string> = {
-  down: "어제보다 내림",
-  up: "어제보다 오름",
-  flat: "어제와 같음",
+  down: "한 달 전보다 내림",
+  up: "한 달 전보다 오름",
+  flat: "한 달 전과 같음",
 };
 
 export interface PriceVegetableCardProps {

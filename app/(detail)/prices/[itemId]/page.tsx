@@ -261,7 +261,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                 </div>
               ) : null}
             </div>
-            <OnlinePriceNotice />
+            <OnlinePriceNotice isTemporary={online !== undefined} />
             <div className="mt-2 flex flex-col gap-2">
               <ul>
                 {online?.prices.map((price) => {

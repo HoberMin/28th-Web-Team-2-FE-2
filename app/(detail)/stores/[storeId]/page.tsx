@@ -75,14 +75,17 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
   let cheapCount = 0;
   let expensiveCount = 0;
   let prices: ReturnType<typeof mapStoreReportToPrice>[] = [];
+  let reportsAreTemporary = false;
   try {
-    const { reports } = await getStoreReportsWithTemporaryFallback({
+    const result = await getStoreReportsWithTemporaryFallback({
       storeId,
       filter: "ALL",
       page: 0,
       size: 50,
       token,
     });
+    const { reports } = result;
+    reportsAreTemporary = result.isTemporary;
     cheapCount = reports.summary.cheapCount;
     expensiveCount = reports.summary.expensiveCount;
     // 기준 시각을 한 번 고정해 넘긴다 — 행마다 다른 "오늘"이 나오지 않도록.
@@ -102,6 +105,7 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
       favoriteCount={detail?.favoriteCount ?? undefined}
       cheapCount={cheapCount}
       expensiveCount={expensiveCount}
+      reportsAreTemporary={reportsAreTemporary}
     />
   );
 }

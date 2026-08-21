@@ -191,6 +191,7 @@ export type StoreReport = z.infer<typeof storeReportSchema>;
 
 export const storeReportsSchema = z.object({
   storeId: z.number().int().safe(),
+  isTemporary: z.boolean().optional(),
   summary: z
     .object({
       cheapCount: z.number().int().nullish().transform((value) => value ?? 0),

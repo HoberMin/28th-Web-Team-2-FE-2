@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "동네 야채 시세",
+  title: "장보고 | 동네 야채 시세",
   description: "우리 동네 야채 시세를 확인하고 실제 구매가를 제보하는 UT 프로토타입.",
 };
 

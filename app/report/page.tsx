@@ -45,10 +45,11 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
   // 보여준다(FieldSelect가 "선택해 주세요"로 남는다). regionId가 진짜 필요한 지점은
   // 제출(Server Action)이고, 거기서 막힌다.
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
-  const vegetable =
+  const vegetableResult =
     itemId !== undefined && regionId
       ? await getReportVegetable({ itemId, regionId, token })
-      : undefined;
+      : { vegetable: undefined, isTemporary: false };
+  const vegetable = vegetableResult.vegetable;
 
   // 품목·장소 화면으로 나갈 때 현재 선택을 함께 넘긴다.
   const carry = new URLSearchParams();
