@@ -1,7 +1,7 @@
 import { TabBar } from "../../_components/tab-bar";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
+import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { getFavoriteStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
 import { ROUTES } from "../../_lib/routes";
@@ -104,7 +104,11 @@ async function VegetableTab() {
     );
   }
 
-  const { page: itemPage } = await getItemsWithTemporaryFallback({
+  // ⚠️ `*WithTemporaryFallback` 래퍼를 쓰지 않는다 — 그건 "빈 응답 = DB에 실데이터가 아직
+  // 없다"로 보고 46종 더미로 채우는데, 여기서는 `favoriteOnly: true`라 빈 응답이 곧
+  // "이 사용자가 찜한 야채가 없다"는 **정상 상태**다. 폴백을 쓰면 아무것도 안 찜한 사용자
+  // 에게 찜 안 한 야채 46종이 그대로 보인다(2026-08-21 버그 리포트로 발견).
+  const itemPage = await getItems({
     regionId,
     page: 0,
     size: 100,
