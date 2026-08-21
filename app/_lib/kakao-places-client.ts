@@ -6,7 +6,7 @@ import type {
 } from "./kakao-map";
 
 const KEYWORDS = ["청과", "채소가게", "과일가게", "마트"];
-const RADIUS_METERS = 2_000;
+const RADIUS_METERS = 500;
 const RESULT_LIMIT = 8;
 
 export class KakaoPlacesClientError extends Error {

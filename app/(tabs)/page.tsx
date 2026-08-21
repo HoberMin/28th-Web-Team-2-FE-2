@@ -7,8 +7,8 @@ import { SectionNews } from "./_home/section-news";
 import { SectionRecommendedStore } from "./_home/section-recommended-store";
 import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
-import { getNewsWithTemporaryFallback } from "@/app/_lib/api/server/news-fallback";
-import { getRegionLowestPricesWithTemporaryFallback } from "@/app/_lib/api/server/reports-fallback";
+import { getTemporaryNewsArticles } from "@/app/_lib/api/server/news-fallback";
+import { getRegionLowestPrices } from "@/app/_lib/api/server/reports";
 import { getMe } from "@/app/_lib/api/server/users";
 import { getSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { getRecommendedStores } from "@/app/_lib/api/server/stores";
@@ -36,11 +36,8 @@ import { getRecommendedStores } from "@/app/_lib/api/server/stores";
 //
 // ── 상태 3종 ──────────────────────────────────────────────────────────────────
 //  · 빈 상태: 구현했다(각 섹션이 처리 — `_home/section-empty.tsx`). **Figma 시안 없는 임시 구현이다.**
-//    뉴스는 아래 임시 폴백이 못 잡는 에러(kind가 temporary 목록 밖)일 때만 빈 상태로 떨어진다.
-//  · 세 섹션 모두 실 API다:
-//      추천 가게 `GET /stores/recommendation` · 최저가 `GET /regions/{regionId}/reports/lowest-prices`
-//      · 뉴스 `GET /news`. 셋 다 각자의 `*-fallback.ts`(2026-08-21 뉴스 추가)로 감싸져 있어
-//      네트워크·5xx·빈 목록이면 더미로 폴백하고, 그 밖의 에러만 그 섹션을 빈 상태로 떨어뜨린다.
+//  · 추천 가게와 최저가는 실 API의 결과를 사용한다. 최근 시세 뉴스는 백엔드 API를 호출하지 않고
+//    임시 뉴스만 표시한다.
 //  · 위치 칩의 동네 이름도 상수가 아니라 선택 지역 쿠키에서 온다. 동네를 아직 안 골랐으면
 //    최저가·추천 가게는 조회 자체가 불가능하므로(둘 다 regionId 필수) 빈 상태를 보여 준다.
 
@@ -75,7 +72,7 @@ export default async function HomePage() {
   const { region, token } = await getHomeRegion();
 
   const [newsItems, recommendation, lowestPrices] = await Promise.all([
-    loadHomeNewsItems(async () => (await getNewsWithTemporaryFallback()).articles),
+    loadHomeNewsItems(async () => getTemporaryNewsArticles()),
     // ⚠️ `getRecommendedStoresWithTemporaryFallback`을 쓰지 않는다 — 그 더미의 storeId
     // (`storeIdForIndex` = 1,2,3…)가 라이브 실제 storeId와 겹친다. 카드는 더미 가게 이름을
     // 보여주지만 눌러서 `/stores/{storeId}`로 들어가면 그 id의 **진짜 다른 가게**가 뜬다 —
@@ -86,7 +83,7 @@ export default async function HomePage() {
       : Promise.resolve(null),
     region
       ? sectionData("동네 최저가", async () => {
-          const { prices } = await getRegionLowestPricesWithTemporaryFallback({
+          const { prices } = await getRegionLowestPrices({
             regionId: region.regionId,
             limit: 10,
           });

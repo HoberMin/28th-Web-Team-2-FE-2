@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MarkerStoreMap } from "@/app/_components/marker-store-map";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
@@ -18,13 +18,13 @@ import { ROUTES } from "@/app/_lib/routes";
 import { formatDistance } from "@/app/_lib/store-locations";
 import { RowStoreOption } from "../_components/row-store-option";
 
-const MARKER_POSITIONS = [
-  { left: "26.54%", top: "42.55%" },
-  { left: "79.36%", top: "30.83%" },
-  { left: "14.49%", top: "12.34%" },
-] as const;
-
 type PlacesStatus = "idle" | "loading" | "success" | "failed";
+
+interface MarkerPosition {
+  place: StoreRequest;
+  left: number;
+  top: number;
+}
 
 interface ReportPlaceMapProps {
   center: { lat: number; lng: number } | null;
@@ -53,6 +53,25 @@ export function ReportPlaceMap({
   const [mapStatus, setMapStatus] = useState<MapLoadStatus>("idle");
   const [placesStatus, setPlacesStatus] = useState<PlacesStatus>("idle");
   const [places, setPlaces] = useState<StoreRequest[]>([]);
+  const [markerPositions, setMarkerPositions] = useState<MarkerPosition[]>([]);
+  const placesRef = useRef<StoreRequest[]>([]);
+  const cleanupSearchRef = useRef<(() => void) | null>(null);
+
+  const repositionMarkers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const projection = map.getProjection();
+    const nextPositions = placesRef.current.flatMap((place) => {
+      if (place.x === undefined || place.y === undefined) return [];
+      const point = projection.containerPointFromCoords({
+        getLat: () => place.y as number,
+        getLng: () => place.x as number,
+      });
+      return [{ place, left: point.x, top: point.y }];
+    });
+    setMarkerPositions(nextPositions);
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -73,18 +92,42 @@ export function ReportPlaceMap({
         }
 
         const mapCenter = new kakao.maps.LatLng(center.lat, center.lng);
-        mapRef.current = new kakao.maps.Map(container, { center: mapCenter, level });
+        const map = new kakao.maps.Map(container, { center: mapCenter, level });
+        mapRef.current = map;
         setMapStatus("ready");
 
-        try {
-          const nextPlaces = await searchNearbyStorePlacesWithSdk({ kakao, center });
-          if (cancelled) return;
-          setPlaces(nextPlaces);
-          setPlacesStatus("success");
-        } catch (error) {
-          if (!(error instanceof KakaoPlacesClientError)) throw error;
-          if (!cancelled) setPlacesStatus("failed");
-        }
+        let searchTimer: ReturnType<typeof setTimeout> | undefined;
+        const searchPlaces = () => {
+          if (searchTimer) clearTimeout(searchTimer);
+          repositionMarkers();
+          searchTimer = setTimeout(async () => {
+            if (cancelled) return;
+            setPlacesStatus("loading");
+            try {
+              const currentCenter = map.getCenter();
+              const nextPlaces = await searchNearbyStorePlacesWithSdk({
+                kakao,
+                center: { lat: currentCenter.getLat(), lng: currentCenter.getLng() },
+              });
+              if (cancelled) return;
+              placesRef.current = nextPlaces;
+              setPlaces(nextPlaces);
+              setPlacesStatus("success");
+            } catch (error) {
+              if (!(error instanceof KakaoPlacesClientError)) throw error;
+              if (!cancelled) setPlacesStatus("failed");
+            }
+          }, 250);
+        };
+
+        kakao.maps.event.addListener(map, "idle", searchPlaces);
+        searchPlaces();
+
+        const cleanupSearch = () => {
+          if (searchTimer) clearTimeout(searchTimer);
+          kakao.maps.event.removeListener(map, "idle", searchPlaces);
+        };
+        cleanupSearchRef.current = cleanupSearch;
       })
       .catch(() => {
         if (cancelled) return;
@@ -94,10 +137,19 @@ export function ReportPlaceMap({
 
     return () => {
       cancelled = true;
+      cleanupSearchRef.current?.();
+      cleanupSearchRef.current = null;
+      placesRef.current = [];
+      setMarkerPositions([]);
       mapRef.current = null;
       container.replaceChildren();
     };
-  }, [center, level]);
+  }, [center, level, repositionMarkers]);
+
+  useEffect(() => {
+    placesRef.current = places;
+    repositionMarkers();
+  }, [places, repositionMarkers]);
 
   function hrefFor(store: StoreRequest): string {
     const params = new URLSearchParams();
@@ -131,15 +183,14 @@ export function ReportPlaceMap({
         ) : null}
       </div>
 
-      {places.map((place, index) => {
-        const position = MARKER_POSITIONS[index % MARKER_POSITIONS.length];
+      {markerPositions.map(({ place, left, top }) => {
         return (
           <Link
             key={place.id}
             href={hrefFor(place)}
             aria-label={`${place.placeName} 선택`}
             className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
-            style={{ left: position.left, top: position.top }}
+            style={{ left, top }}
           >
             <MarkerStoreMap
               label={place.placeName}

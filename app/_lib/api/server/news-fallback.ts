@@ -28,6 +28,10 @@ const TEMPORARY_NEWS: NewsArticle[] = [
   }),
 ];
 
+export function getTemporaryNewsArticles(): NewsArticle[] {
+  return TEMPORARY_NEWS;
+}
+
 export function isTemporaryNewsDataError(error: unknown): boolean {
   if (!error || typeof error !== "object" || !("kind" in error)) return false;
   const kind = Reflect.get(error, "kind");
