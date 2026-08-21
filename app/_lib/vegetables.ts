@@ -345,8 +345,7 @@ const FALLBACK_MALL_PROFILE: { mall: OnlineMall; channel: OnlineChannelKind; mul
   { mall: "11번가", channel: "오픈마켓", mult: 1.35, note: "배송비 별도" },
 ];
 
-function buildFallbackOnlineEntries(veg: Vegetable): MallEntry[] {
-  const base = BASE_PRICE[veg.id] ?? 3000;
+function buildFallbackOnlineEntries(veg: Vegetable, base: number): MallEntry[] {
   return FALLBACK_MALL_PROFILE.map(({ mall, channel, mult, note }) => ({
     mall,
     price: round10(base * mult),
@@ -420,15 +419,34 @@ export interface OnlinePriceSet {
  * `buildFallbackOnlineEntries`로 채워 **전 품목 × 4채널**에 섹션이 뜨게 한다
  * (백로그 F03 #11 — 품목마다 있다 없다 하면 규격이 안 잡힌다).
  * 온라인은 여전히 보조 기준이라 화면 위계는 올리지 않는다.
+ *
+ * `anchorPrice`(라이브 오늘 공공시세, 있으면)를 넘기면 **추정(`measured` 아닌)** 항목들을
+ * 거기에 비례해서 다시 계산한다 — 그대로 두면 `ONLINE_PRICES`에 박힌 고정값이 라이브
+ * 공공시세와 완전히 동떨어져 보인다(예: 감자 공공시세가 1,300원인데 "예시" 온라인가가
+ * 7월 말 시세 기준 4,990~5,400원으로 박혀 있으면 앞뒤가 안 맞는다 — 사용자 지적,
+ * 2026-08-21). 배율은 `BASE_PRICE` 대비로 역산해서 채널별 위계(컬리 프리미엄·GS SHOP
+ * 저가 등)는 그대로 지킨다. **실측(`measured: true`)은 건드리지 않는다** — 실제로 관측한
+ * 값이라 "그때 그 가격"이 의미가 있고, 지금 시세로 다시 계산하면 오히려 거짓이 된다.
  */
-export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined {
+export function getOnlinePrices(
+  vegetableId: string,
+  anchorPrice?: number | null,
+): OnlinePriceSet | undefined {
   const veg = getVegetable(vegetableId);
   if (!veg) return undefined;
-  const authored = ONLINE_PRICES[vegetableId] ?? [];
+  const calibratedBase = BASE_PRICE[vegetableId] ?? 3000;
+  const authored = (ONLINE_PRICES[vegetableId] ?? []).map((entry) =>
+    entry.measured || typeof anchorPrice !== "number" || anchorPrice <= 0
+      ? entry
+      : { ...entry, price: round10(entry.price * (anchorPrice / calibratedBase)) },
+  );
   const authoredMalls = new Set(authored.map((entry) => entry.mall));
+  const fallbackBase = typeof anchorPrice === "number" && anchorPrice > 0 ? anchorPrice : calibratedBase;
   const entries = [
     ...authored,
-    ...buildFallbackOnlineEntries(veg).filter((entry) => !authoredMalls.has(entry.mall)),
+    ...buildFallbackOnlineEntries(veg, fallbackBase).filter(
+      (entry) => !authoredMalls.has(entry.mall),
+    ),
   ];
   if (entries.length === 0) return undefined;
 
@@ -442,6 +460,7 @@ export function getOnlinePrices(vegetableId: string): OnlinePriceSet | undefined
       channel: e.channel,
       channelNote: e.channelNote,
       asOf: todayIso(),
+      measured: e.measured ?? false,
     }))
     .sort((a, b) => a.price - b.price);
 
