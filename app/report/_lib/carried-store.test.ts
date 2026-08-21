@@ -2,21 +2,18 @@ import { describe, expect, it } from "vitest";
 import { parseCarriedStore } from "./carried-store";
 
 describe("제보 장소 URL 복원", () => {
-  it("가게 상세에서 넘어온 기존 매장을 복원한다", () => {
+  it("가게 상세에서 넘어온 기존 매장 ID만 복원한다", () => {
     expect(
       parseCarriedStore(
         JSON.stringify({
           kind: "existing",
           storeId: 7,
-          placeName: "농협하나로마트",
-          addressName: "서울특별시 광진구",
+          placeName: "조작된 표시 이름",
         }),
       ),
     ).toEqual({
       source: "existing",
       storeId: 7,
-      placeName: "농협하나로마트",
-      addressName: "서울특별시 광진구",
     });
   });
 

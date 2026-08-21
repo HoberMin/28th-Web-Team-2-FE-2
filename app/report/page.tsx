@@ -7,6 +7,7 @@ import { ROUTES } from "@/app/_lib/routes";
 import { ReportHeader } from "./_components/report-header";
 import { getReportVegetable } from "./_data";
 import { parseCarriedStore } from "./_lib/carried-store";
+import { getExistingReportStoreSelection } from "./_lib/existing-report-store";
 import { ReportForm } from "./_report-form";
 
 // ── 실측 출처 (검산용) ─────────────────────────────────────────────────────────
@@ -40,12 +41,16 @@ export default async function ReportPage({ searchParams }: ReportPageProps) {
   const { item, store, price, amount, unit } = await searchParams;
   const parsedItemId = item ? Number(item) : NaN;
   const itemId = Number.isSafeInteger(parsedItemId) ? parsedItemId : undefined;
-  const selectedStore = parseCarriedStore(store);
+  const carriedStore = parseCarriedStore(store);
 
   // itemId가 있어도 regionId가 없으면 조회할 수 없다 — 이 화면은 그런 경우에도 폼 자체는
   // 보여준다(FieldSelect가 "선택해 주세요"로 남는다). regionId가 진짜 필요한 지점은
   // 제출(Server Action)이고, 거기서 막힌다.
   const [token, regionId] = await Promise.all([getAccessToken(), getSelectedRegionId()]);
+  const selectedStore =
+    carriedStore?.source === "existing"
+      ? await getExistingReportStoreSelection({ storeId: carriedStore.storeId, token })
+      : carriedStore;
   const vegetableResult =
     itemId !== undefined && regionId
       ? await getReportVegetable({ itemId, regionId, token })

@@ -586,11 +586,7 @@ export function StoreDetailClient({
             )}
           </button>
           <Link
-            href={buildExistingStoreReportHref({
-              storeId,
-              placeName: profile.name ?? "가게",
-              addressName: profile.address ?? "",
-            })}
+            href={buildExistingStoreReportHref({ storeId })}
             className="flex flex-1 items-center justify-center rounded-lg bg-action-primary-default px-7 py-3 text-body-16-semibold text-content-inverse active:bg-action-primary-pressed"
           >
             가게에 제보하기

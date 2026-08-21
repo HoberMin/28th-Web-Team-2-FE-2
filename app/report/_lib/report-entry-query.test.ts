@@ -9,19 +9,13 @@ describe("제보 진입 URL", () => {
     expect(buildItemReportHref(37)).toBe("/report?item=37");
   });
 
-  it("가게 상세의 기존 매장 ID와 표시 정보를 전달한다", () => {
-    const href = buildExistingStoreReportHref({
-      storeId: 7,
-      placeName: "농협하나로마트",
-      addressName: "서울특별시 광진구",
-    });
+  it("가게 상세의 기존 매장 ID만 전달한다", () => {
+    const href = buildExistingStoreReportHref({ storeId: 7 });
     const url = new URL(href, "https://marketgo.test");
 
     expect(JSON.parse(url.searchParams.get("store") ?? "null")).toEqual({
       kind: "existing",
       storeId: 7,
-      placeName: "농협하나로마트",
-      addressName: "서울특별시 광진구",
     });
   });
 });

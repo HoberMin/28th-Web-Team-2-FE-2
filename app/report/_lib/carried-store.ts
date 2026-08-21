@@ -7,16 +7,12 @@ import {
 const existingCarriedStoreSchema = z.object({
   kind: z.literal("existing"),
   storeId: z.number().int().positive(),
-  placeName: z.string().min(1).max(100),
-  addressName: z.string().max(255),
 });
 
 export type ParsedCarriedStore =
   | {
       source: "existing";
       storeId: number;
-      placeName: string;
-      addressName: string;
     }
   | {
       source: "search";
@@ -38,8 +34,6 @@ export function parseCarriedStore(raw: string | undefined): ParsedCarriedStore |
       return {
         source: "existing",
         storeId: existing.data.storeId,
-        placeName: existing.data.placeName,
-        addressName: existing.data.addressName,
       };
     }
 
