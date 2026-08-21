@@ -16,7 +16,9 @@ import { cn } from "../_lib/cn";
 //   순위        body/16-semibold · content/secondary · w-[20px] h-[24px] text-center → w-5 h-6
 //   leading gap flex gap-[8px] items-center → gap-2
 //   야채 묶음   flex gap-[12px] items-center → gap-3
-//   야채 그림   40×40 → size-10 슬롯
+//   야채 그림   40×40 → size-10 슬롯. **단, 홈 화면 한정으로 48×48(size-12)을 쓴다** — 같은
+//     화면의 추천 가게 카드(48×48)와 크기를 맞춰 달라는 사용자 요청(2026-08-21)에 따른 의도적
+//     이탈이다. 이 컴포넌트가 홈에서만 쓰이므로 슬롯 자체를 48로 바꿨다.
 //   info        flex-col gap-[2px] w-[140px] → gap-0.5 w-35
 //     이름      body/16-semibold · content/primary · 한 줄 말줄임
 //     가게 줄   flex gap-[2px] items-start → gap-0.5 / 가게 아이콘 16×16 슬롯
@@ -40,7 +42,7 @@ import { cn } from "../_lib/cn";
 export interface ListLowestVegetableProps {
   /** 순위 숫자. Figma는 20px 폭에 가운데 정렬된 한 자리 숫자를 보여준다. */
   rank: number;
-  /** 야채 그림 슬롯(40×40). */
+  /** 야채 그림 슬롯. Figma 원본은 40×40이나 홈 화면에서 48×48로 쓴다(위 주석 참고). */
   visual: ReactNode;
   /** 야채 이름. */
   name: string;
@@ -90,7 +92,7 @@ export function ListLowestVegetable({
         <div className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center overflow-hidden"
+            className="flex size-12 shrink-0 items-center justify-center overflow-hidden"
           >
             {visual}
           </span>
