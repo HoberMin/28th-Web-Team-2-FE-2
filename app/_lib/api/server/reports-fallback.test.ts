@@ -4,6 +4,7 @@ const { getRegionLowestPricesMock } = vi.hoisted(() => ({ getRegionLowestPricesM
 vi.mock("./reports", () => ({ getRegionLowestPrices: getRegionLowestPricesMock }));
 
 import { getRegionLowestPricesWithTemporaryFallback } from "./reports-fallback";
+import { getBaselineDummy, VEGETABLES } from "../../vegetables";
 
 describe("getRegionLowestPricesWithTemporaryFallback", () => {
   beforeEach(() => {
@@ -34,6 +35,23 @@ describe("getRegionLowestPricesWithTemporaryFallback", () => {
 
     for (const item of prices.items) {
       expect(item.itemName).not.toBe("생강");
+    }
+  });
+
+  it("임시 priceDiffRate를 퍼센트 수치로 만든다", async () => {
+    getRegionLowestPricesMock.mockResolvedValue({ regionName: null, items: [] });
+
+    const { prices } = await getRegionLowestPricesWithTemporaryFallback({
+      regionId: "1121510100",
+      limit: 10,
+    });
+
+    for (const item of prices.items) {
+      const vegetable = VEGETABLES.find(({ name }) => name === item.itemName);
+      expect(vegetable).toBeDefined();
+      const baseline = getBaselineDummy(vegetable!.id);
+      const expectedRate = ((item.price - baseline.current) / baseline.current) * 100;
+      expect(item.priceDiffRate).toBeCloseTo(expectedRate, 2);
     }
   });
 });

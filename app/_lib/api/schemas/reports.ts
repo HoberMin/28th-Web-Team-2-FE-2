@@ -81,6 +81,7 @@ export const regionLowestPriceItemSchema = z.object({
   storeName: z.string().nullish(),
   price: z.number().int(),
   unit: z.string().nullish(),
+  /** 공공 시세 대비 변동률. -10은 -10%이며, 비율인 -0.10이 아니다. */
   priceDiffRate: z.number().nullish(),
 });
 export type RegionLowestPriceItem = z.infer<typeof regionLowestPriceItemSchema>;

@@ -20,6 +20,7 @@ const VEGETABLES_ICON_FIRST = [...VEGETABLES].sort(
  * 어댑터다. 실제 API가 안정되면 이 파일을 삭제하고 `getRegionLowestPrices`를 직접 호출하면
  * 된다. 임시 응답도 `regionLowestPricesSchema`로 검증해 라이브 계약과 어긋나지 않게 한다.
  *
+ * `priceDiffRate`는 퍼센트다. -8은 -8%를 뜻하며, 비율인 -0.08을 넣지 않는다.
  * TODO(✍️): 스펙 확정 시 교체 — Spring reports API가 안정화되면 호출부의 fallback 분기를 제거한다.
  */
 
@@ -40,7 +41,7 @@ function buildTemporaryRegionLowestPrices(limit: number): RegionLowestPrices {
       storeName: store?.name ?? null,
       price: baseline.current + diff,
       unit: vegetable.unit,
-      priceDiffRate: baseline.current === 0 ? 0 : diff / baseline.current,
+      priceDiffRate: baseline.current === 0 ? 0 : (diff / baseline.current) * 100,
     };
   });
 

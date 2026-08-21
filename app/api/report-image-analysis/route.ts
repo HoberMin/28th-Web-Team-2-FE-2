@@ -38,6 +38,12 @@ export async function POST(request: Request): Promise<Response> {
     if (error.kind === "unauthorized") {
       return Response.json({ message: "로그인이 필요해요." }, { status: 401 });
     }
+    if (error.kind === "notFound") {
+      return Response.json(
+        { message: "선택한 품목을 찾지 못했어요. 품목을 다시 선택해 주세요." },
+        { status: 404 },
+      );
+    }
     // 인식은 부가 기능이라 실패해도 사용자가 직접 입력하면 된다 — 화면이 조용히 넘어갈 수
     // 있도록 상태만 정확히 돌려준다.
     const status = error.kind === "network" ? 503 : 502;

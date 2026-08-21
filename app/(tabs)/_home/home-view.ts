@@ -26,15 +26,17 @@ function trendDirection(rate: number | null | undefined): HomeTrendDirection {
 
 /**
  * 등락 금액(원)은 응답에 없다 — `lowest-prices`가 주는 건 `price`(현재가)와
- * `priceDiffRate`(공공 시세 대비 비율)뿐이다. 대신 이 둘로 **역산**한다: 비율의 정의가
- * `rate = (price - publicPrice) / publicPrice`이므로 `publicPrice = price / (1 + rate)`이고,
+ * `priceDiffRate`(공공 시세 대비 퍼센트 수치)뿐이다. 대신 이 둘로 **역산**한다: 퍼센트 수치를
+ * 비율로 바꾼 `decimalRate = rate / 100`의 정의가 `decimalRate = (price - publicPrice) / publicPrice`이므로
+ * `publicPrice = price / (1 + decimalRate)`이고,
  * 차액은 `price - publicPrice`다. 지어낸 값이 아니라 이미 받은 두 수치의 수학적 재구성이다
  * (Figma `list/lowest-vegetable`도 금액+비율을 같이 보여준다 — 253:1437 실측, 사용자 신고로 발견).
  * `rate`가 -100%(공공가 0원)에 가까우면 나눗셈이 불안정해지므로 그 구간은 비운다.
  */
 function computeTrendAmountWon(price: number, rate: number | null | undefined): string {
   if (typeof rate !== "number" || !Number.isFinite(rate) || rate === 0) return "";
-  const divisor = 1 + rate;
+  const decimalRate = rate / 100;
+  const divisor = 1 + decimalRate;
   if (Math.abs(divisor) < 0.01) return "";
   const publicPrice = price / divisor;
   return formatWon(Math.round(Math.abs(price - publicPrice)));

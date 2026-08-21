@@ -9,6 +9,7 @@ import {
   validateUploadImage,
 } from "@/app/_lib/api/schemas/images";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
+import { imageAnalysisSchema } from "@/app/_lib/api/schemas/image-analysis";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ROUTES } from "@/app/_lib/routes";
 import { submitReportAction, uploadReportPhotoAction } from "./_actions";
@@ -48,7 +49,7 @@ import { getExactReportUnit } from "./_lib/report-unit";
 //    로드될 때까지 모달을 띄우고, 로드가 끝나면 미리보기로 넘어간다** — 발명한 타이머가 아니라
 //    실제 비동기 작업을 모달이 덮는 방식이다. X는 취소(사진 버림)로 뒀다.
 //  · **인식 성공 시 품목·가격을 자동 입력한다는 안내문구가 dropzone에 있지만 그 동작 정의가 없다.**
-//    자동 입력은 하지 않는다(값을 발명하지 않는다).
+//    백엔드가 실제로 반환한 품목·가격·수량 후보만 자동 입력하고, 사용자가 수정할 수 있게 한다.
 //  · 인식 **실패** 상태가 없다. 파일 로드가 실패하면 모달을 닫고 사진을 버린다.
 //  · 단위는 품목 API의 `defaultUnit`을 그대로 표시·제출한다. Spring이 이 문자열과 정확히
 //    일치하는 값만 저장하므로 `1kg`을 `kg`으로 줄이거나 임의 단위로 바꾸지 않는다.
@@ -90,9 +91,18 @@ export interface ReportFormProps {
   initialAmount?: string;
 }
 
-type PhotoState = { file: File; url: string; scanning: boolean } | null;
+type PhotoState = {
+  file: File;
+  url: string;
+  scanning: boolean;
+  uploadedImageUrl?: string;
+} | null;
 
-const MIN_SCAN_DURATION_MS = 1000;
+type DetectedItem = {
+  itemId: number;
+  name: string;
+  unit: string;
+};
 
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
@@ -122,6 +132,13 @@ function buildPlaceQuery(carryQuery: string, price: string, amount: string): str
   return qs ? `?${qs}` : "";
 }
 
+function buildItemQuery(carryQuery: string, itemId: number | undefined): string {
+  const params = new URLSearchParams(carryQuery.startsWith("?") ? carryQuery.slice(1) : carryQuery);
+  if (itemId !== undefined) params.set("item", String(itemId));
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 /** 사진 로드 실패 안내. Figma에 실패 시안이 없어 문구만 둔다(동작 공백은 메워야 한다). */
 const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
 
@@ -137,15 +154,19 @@ export function ReportForm({
 }: ReportFormProps) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
-  const scanStartedAtRef = useRef<number | null>(null);
-  const scanTimerRef = useRef<number | null>(null);
+  const photoGenerationRef = useRef(0);
   const [photo, setPhoto] = useState<PhotoState>(null);
   const [photoError, setPhotoError] = useState("");
   const [price, setPrice] = useState(() => formatPriceInput(initialPrice ?? ""));
   const [amount, setAmount] = useState(() => digitsOnly(initialAmount ?? ""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const reportUnit = getExactReportUnit(unitType);
+  const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
+  const selectedItemId = itemId ?? detectedItem?.itemId;
+  const selectedVegetableName = vegetableName ?? detectedItem?.name;
+  const selectedUnitType = unitType ?? detectedItem?.unit;
+  const reportUnit = getExactReportUnit(selectedUnitType);
+  const reportCarryQuery = buildItemQuery(carryQuery, selectedItemId);
 
   // 품목·장소 선택은 별도 라우트로 이동하므로 컴포넌트가 다시 마운트된다. 사진 원본은
   // IndexedDB에 잠시 보관해 돌아왔을 때 미리보기와 제출용 File을 함께 복원한다.
@@ -153,7 +174,12 @@ export function ReportForm({
     let active = true;
     void loadReportPhoto().then((file) => {
       if (!active || !file) return;
-      setPhoto({ file, url: URL.createObjectURL(file), scanning: false });
+      setPhoto({
+        file: file.file,
+        url: URL.createObjectURL(file.file),
+        scanning: false,
+        uploadedImageUrl: file.uploadedImageUrl,
+      });
     });
     return () => {
       active = false;
@@ -168,19 +194,13 @@ export function ReportForm({
     };
   }, [photo?.url]);
 
-  useEffect(() => {
-    return () => {
-      if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
-    };
-  }, []);
-
   // Figma에 검증 규칙 정의가 없다(위 ⚠️). `shared/pages.md` F04-1이 "필수는 품목·가격·양"이라고
   // 적어 두었지만 **판매 장소도 포함시켰다** — "어디서 본 가격인가"가 이 플로우의 존재 이유이고,
   // 장소 없는 제보는 시세 비교에 쓸 수 없다. 규칙을 발명하면서 일부만 발명하는 게 더 위험하다.
   // (pages.md의 "필수 3종"이 정본이면 이 줄에서 placeName만 빼면 된다)
   const canSubmit =
-    Boolean(itemId) &&
-    Boolean(vegetableName) &&
+    Boolean(selectedItemId) &&
+    Boolean(selectedVegetableName) &&
     Boolean(store) &&
     Boolean(placeName) &&
     Boolean(reportUnit) &&
@@ -198,32 +218,77 @@ export function ReportForm({
       setPhotoError(uploadImageValidationMessage(validationError));
       return;
     }
-    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
-    scanStartedAtRef.current = performance.now();
+    const generation = ++photoGenerationRef.current;
+    if (!itemId) setDetectedItem(null);
     setPhoto({ file, url: URL.createObjectURL(file), scanning: true });
-    void saveReportPhoto(file);
+    void analyzePhoto(file, generation);
   }
 
-  function finishScan() {
-    const startedAt = scanStartedAtRef.current ?? performance.now();
-    const remaining = Math.max(0, MIN_SCAN_DURATION_MS - (performance.now() - startedAt));
-    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
-    scanTimerRef.current = window.setTimeout(() => {
+  async function analyzePhoto(file: File, generation: number) {
+    try {
+      await saveReportPhoto(file);
+      const form = new FormData();
+      form.append("image", file);
+      const uploaded = await uploadReportPhotoAction(form);
+      if (generation !== photoGenerationRef.current) return;
+      if (uploaded.status !== "success") {
+        setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+        if (uploaded.status === "unauthorized") setSubmitError(uploaded.message);
+        else setPhotoError(uploaded.message);
+        return;
+      }
+
+      await saveReportPhoto(file, uploaded.imageUrl);
+      setPhoto((prev) =>
+        prev && generation === photoGenerationRef.current
+          ? { ...prev, uploadedImageUrl: uploaded.imageUrl }
+          : prev,
+      );
+
+      const response = await fetch("/api/report-image-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: uploaded.imageUrl, itemId: itemId ?? null }),
+      });
+      if (generation !== photoGenerationRef.current) return;
+      if (!response.ok) {
+        const messageByStatus: Record<number, string> = {
+          400: "사진 정보를 확인해 주세요. 직접 입력할 수 있어요.",
+          401: "로그인이 필요해요.",
+          404: "선택한 품목을 찾지 못했어요. 품목을 다시 선택해 주세요.",
+        };
+        throw new Error(messageByStatus[response.status] ?? "사진을 분석하지 못했어요. 값을 직접 입력해 주세요.");
+      }
+      const parsed = imageAnalysisSchema.safeParse(await response.json());
+      if (!parsed.success) throw new Error("사진을 분석하지 못했어요. 값을 직접 입력해 주세요.");
+      if (!itemId && parsed.data.item) {
+        setDetectedItem({
+          itemId: parsed.data.item.itemId,
+          name: parsed.data.item.name,
+          unit: parsed.data.item.unit,
+        });
+      }
+      if (parsed.data.price?.value !== null && parsed.data.price?.value !== undefined) {
+        setPrice(formatPriceInput(String(parsed.data.price.value)));
+      }
+      if (parsed.data.amount?.value !== null && parsed.data.amount?.value !== undefined) {
+        setAmount(String(parsed.data.amount.value));
+      }
       setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
-      scanStartedAtRef.current = null;
-      scanTimerRef.current = null;
-    }, remaining);
-  }
-
-  function cancelScanTimer() {
-    if (scanTimerRef.current !== null) window.clearTimeout(scanTimerRef.current);
-    scanTimerRef.current = null;
-    scanStartedAtRef.current = null;
+    } catch (error) {
+      if (generation !== photoGenerationRef.current) return;
+      setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+      setPhotoError(
+        error instanceof Error
+          ? error.message
+          : "사진을 분석하지 못했어요. 값을 직접 입력해 주세요.",
+      );
+    }
   }
 
   async function handleSubmit() {
-    // canSubmit이 이미 itemId·store 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
-    if (!canSubmit || isSubmitting || !itemId || !store || !reportUnit) return;
+    // canSubmit이 이미 품목·store 존재를 보장하지만, 타입을 좁히려면 다시 확인해야 한다.
+    if (!canSubmit || isSubmitting || !selectedItemId || !store || !reportUnit) return;
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -233,13 +298,15 @@ export function ReportForm({
       // 선택한 사진이 있는데 업로드가 실패하면 사진을 모르게 빼지 않는다.
       // 사진을 유지한 채 확인을 다시 누르면 재시도하고, 사용자가 사진을 삭제했을 때만
       // 사진 없는 제보를 보낸다.
-      let photoUrl: string | undefined;
-      if (photo?.file) {
+      let photoUrl: string | undefined = photo?.uploadedImageUrl;
+      if (photo?.file && !photoUrl) {
         const form = new FormData();
         form.append("image", photo.file);
         const uploaded = await uploadReportPhotoAction(form);
         if (uploaded.status === "success") {
           photoUrl = uploaded.imageUrl;
+          await saveReportPhoto(photo.file, photoUrl);
+          setPhoto((prev) => (prev ? { ...prev, uploadedImageUrl: photoUrl } : prev));
         } else if (uploaded.status === "unauthorized") {
           setSubmitError(uploaded.message);
           return;
@@ -250,7 +317,7 @@ export function ReportForm({
       }
 
       const result = await submitReportAction({
-        itemId,
+        itemId: selectedItemId,
         store,
         price: Number(digitsOnly(price)),
         amount: Number(amount),
@@ -271,10 +338,9 @@ export function ReportForm({
   }
 
   function handleCancelScan() {
-    cancelScanTimer();
-    setPhoto(null);
+    photoGenerationRef.current += 1;
+    setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
     setPhotoError("");
-    void clearReportPhoto();
   }
 
   return (
@@ -302,7 +368,7 @@ export function ReportForm({
                       aria-label="사진 삭제"
                       className="flex size-6 items-center justify-center rounded-full bg-surface-inverse"
                       onClick={() => {
-                        cancelScanTimer();
+                        photoGenerationRef.current += 1;
                         setPhoto(null);
                         setPhotoError("");
                         void clearReportPhoto();
@@ -324,9 +390,8 @@ export function ReportForm({
                     height={124}
                     unoptimized
                     className="size-full object-cover"
-                    onLoad={finishScan}
                     onError={() => {
-                      cancelScanTimer();
+                      photoGenerationRef.current += 1;
                       setPhoto(null);
                       void clearReportPhoto();
                       setPhotoError(PHOTO_ERROR);
@@ -367,11 +432,13 @@ export function ReportForm({
 
             <FieldBlock label="제보 품목">
               <FieldSelect
-                value={vegetableName ?? "품목을 선택해 주세요"}
-                actionLabel={vegetableName ? "다시 선택" : "선택"}
-                href={`${ROUTES.reportVegetable}${carryQuery}`}
+                value={selectedVegetableName ?? "품목을 선택해 주세요"}
+                actionLabel={selectedVegetableName ? "다시 선택" : "선택"}
+                href={`${ROUTES.reportVegetable}${reportCarryQuery}`}
                 ariaLabel={
-                  vegetableName ? `제보 품목 ${vegetableName}, 다시 선택` : "제보 품목 선택"
+                  selectedVegetableName
+                    ? `제보 품목 ${selectedVegetableName}, 다시 선택`
+                    : "제보 품목 선택"
                 }
               />
             </FieldBlock>
@@ -411,7 +478,7 @@ export function ReportForm({
               <FieldSelect
                 value={placeName ?? "장소를 선택해 주세요"}
                 actionLabel={placeName ? "위치 변경" : "선택"}
-                href={`${ROUTES.reportPlace}${buildPlaceQuery(carryQuery, price, amount)}`}
+                href={`${ROUTES.reportPlace}${buildPlaceQuery(reportCarryQuery, price, amount)}`}
                 ariaLabel={placeName ? `판매 장소 ${placeName}, 위치 변경` : "판매 장소 선택"}
               />
             </FieldBlock>
@@ -435,7 +502,7 @@ export function ReportForm({
           leading={false}
           trailing={false}
           className="w-full"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || isSubmitting || Boolean(photo?.scanning)}
           state={isSubmitting ? "loading" : "normal"}
           onClick={handleSubmit}
         >

@@ -12,9 +12,15 @@ interface StoredPhoto {
   type: string;
   lastModified: number;
   savedAt: number;
+  uploadedImageUrl?: string;
 }
 
-let memoryFallback: File | null = null;
+export interface ReportPhotoDraft {
+  file: File;
+  uploadedImageUrl?: string;
+}
+
+let memoryFallback: ReportPhotoDraft | null = null;
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -46,8 +52,8 @@ function closeAfter<T>(database: IDBDatabase, request: IDBRequest<T>): Promise<T
 }
 
 /** 품목 선택 화면으로 이동해도 원본 File을 잃지 않도록 브라우저에 잠시 보관한다. */
-export async function saveReportPhoto(file: File): Promise<void> {
-  memoryFallback = file;
+export async function saveReportPhoto(file: File, uploadedImageUrl?: string): Promise<void> {
+  memoryFallback = { file, uploadedImageUrl };
   try {
     const database = await openDatabase();
     const transaction = database.transaction(STORE_NAME, "readwrite");
@@ -57,6 +63,7 @@ export async function saveReportPhoto(file: File): Promise<void> {
       type: file.type,
       lastModified: file.lastModified,
       savedAt: Date.now(),
+      uploadedImageUrl,
     };
     await closeAfter(database, transaction.objectStore(STORE_NAME).put(value, PHOTO_KEY));
   } catch {
@@ -64,7 +71,7 @@ export async function saveReportPhoto(file: File): Promise<void> {
   }
 }
 
-export async function loadReportPhoto(): Promise<File | null> {
+export async function loadReportPhoto(): Promise<ReportPhotoDraft | null> {
   try {
     const database = await openDatabase();
     const transaction = database.transaction(STORE_NAME, "readonly");
@@ -81,8 +88,8 @@ export async function loadReportPhoto(): Promise<File | null> {
       type: stored.type,
       lastModified: stored.lastModified,
     });
-    memoryFallback = file;
-    return file;
+    memoryFallback = { file, uploadedImageUrl: stored.uploadedImageUrl };
+    return memoryFallback;
   } catch {
     return memoryFallback;
   }
