@@ -20,6 +20,7 @@ import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region
  * 같은 기록을 남겨 둔다 — 이 레포는 정의되지 않은 지점의 판단을 한곳에 모으는 관행이 있다)
  */
 const FIXED_REPORT_TYPE = "PURCHASE";
+const FIXED_REPORT_REGION_ID = "1144010200";
 
 export type SubmitReportResult =
   | { status: "success" }
@@ -139,7 +140,7 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
   }
 
   const body = createReportRequestSchema.safeParse({
-    regionId: selectedRegion.regionId,
+    regionId: FIXED_REPORT_REGION_ID,
     reportType: FIXED_REPORT_TYPE,
     price: input.price,
     unit: input.unit,
@@ -159,7 +160,7 @@ export async function submitReportAction(input: SubmitReportInput): Promise<Subm
     return { status: "invalid", message: "판매 장소를 선택해 주세요." };
   }
 
-  // 쿠키의 프론트 선택 지역과 Spring 계정의 현재 관심 지역을 제보 직전에 맞춘다.
+  // 제보는 공덕동 기준으로만 집계하므로 계정의 현재 관심 지역도 공덕동으로 맞춘다.
   // 인증이 만료된 경우만 즉시 막고, 관심 지역 추가 상한등 부가 동기화 실패는
   // 제보 API가 regionId를 직접 받는 현재 계약을 신뢰해 요청을 계속한다.
   try {
