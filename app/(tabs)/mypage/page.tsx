@@ -4,7 +4,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { getFavoriteStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
+import { getFavoriteStores } from "@/app/_lib/api/server/stores";
 import { getMyReports, getMyWeeklyReports } from "@/app/_lib/api/server/my-reports";
 import { getMe } from "@/app/_lib/api/server/users";
 import { ROUTES } from "@/app/_lib/routes";
@@ -84,8 +84,12 @@ export default async function MyPage() {
       console.error("마이페이지 프로필 조회 실패", { kind: error.kind, status: error.status });
       return null;
     }),
+    // ⚠️ `*WithTemporaryFallback`을 쓰지 않는다 — 단골 0개·찜 0개는 이 사용자에게 실제로
+    // 유효한 상태인데, 그 래퍼는 빈 응답을 "DB에 실데이터가 없다"로 보고 더미로 채워서
+    // 아무것도 안 찜한 사용자에게도 "단골 가게 3개"·"찜한 야채 46개"가 보였다
+    // (`(tabs)/saved/page.tsx`와 같은 버그, 2026-08-21 리포트로 발견).
     countOrNull(async () => {
-      const { stores: page } = await getFavoriteStoresWithTemporaryFallback({ token, page: 0, size: 1 });
+      const page = await getFavoriteStores({ token, page: 0, size: 1 });
       return page.totalElements ?? page.stores.length;
     }),
     // 찜한 야채는 지역 시세와 함께 오는 목록이라 동네가 정해져 있어야 조회된다.
