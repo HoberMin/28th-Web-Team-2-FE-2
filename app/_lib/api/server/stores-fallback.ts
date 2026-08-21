@@ -196,7 +196,15 @@ function buildTemporaryStoreReports(storeId: number): StoreReports {
       unit: vegetable.unit,
       reportedDate: baseline.asOf,
       publicPriceDiff: diff,
-      priceDiffRate: baseline.current === 0 ? 0 : diff / baseline.current,
+      // ⚠️ **퍼센트**다 (-10 = -10%). 예전엔 비율(-0.1)을 넣었는데 화면 포맷터
+      //    (`stores/[storeId]/_data.ts` formatTrend)는 이 값을 퍼센트로 읽어서,
+      //    2,490→2,241(-10%) 제보가 화면에 **"-0.1%"** 로 나오고 있었다(2026-08-21 수정).
+      priceDiffRate: baseline.current === 0 ? 0 : (diff / baseline.current) * 100,
+      // 제보자 정보는 아직 계약이 없다 — 더미도 채우지 않는다. 화면이 "제보자 정보 없음"을
+      // 그려서 지금 무엇이 비어 있는지가 화면에 드러나게 둔다.
+      reporterNickname: null,
+      reporterRank: null,
+      reporterProfileColor: null,
       priceClassification: cheap ? ("CHEAP" as const) : ("EXPENSIVE" as const),
     };
   });
