@@ -99,6 +99,7 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
       storeId={storeId}
       profile={profile}
       prices={prices.filter((price) => price !== null)}
+      favoriteCount={detail?.favoriteCount ?? undefined}
       cheapCount={cheapCount}
       expensiveCount={expensiveCount}
     />

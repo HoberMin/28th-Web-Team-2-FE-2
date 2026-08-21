@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import { ImageStorePlaceholder } from "@/app/_components/image-store-placeholder";
 import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
@@ -21,6 +21,8 @@ interface StoreDetailClientProps {
   /** `GET /stores/{id}/reports`의 summary. 배지 숫자가 이 값이다. */
   cheapCount: number;
   expensiveCount: number;
+  /** `GET /stores/{id}`의 `favoriteCount`. 응답에 없으면 하트 아래 숫자를 그리지 않는다. */
+  favoriteCount?: number;
 }
 
 function StoreHero({ imageUrl, storeName }: { imageUrl?: string; storeName: string }) {
@@ -366,25 +368,42 @@ export function StoreDetailClient({
   prices,
   cheapCount,
   expensiveCount,
+  favoriteCount,
 }: StoreDetailClientProps) {
   const router = useRouter();
-  const [favorite, setFavorite] = useState(profile.liked);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  // 단골 토글은 낙관적으로 먼저 뒤집고 실패하면 되돌린다.
+  /**
+   * 단골 상태·수는 **서버가 준 값이 기준**이고 토글 중에만 낙관적으로 앞서 나간다.
+   * `useState` 초기값으로 복사하지 않는 이유: 토글 성공 뒤 `router.refresh()`가 새 값을
+   * 실어 오는데, 복사본은 그걸 받을 수단이 없어 추정치가 화면에 남는다(단골 **수**는 남이
+   * 함께 누르는 공유 값이라 어긋나면 그대로 굳는다). 실패하면 transition이 끝나면서
+   * 서버 값으로 자동 복귀한다 — 되돌리기 산술을 따로 두지 않는다.
+   *
+   * 토글은 로그인 사용자만 할 수 있고 그 경로의 상세 조회는 `no-store`라
+   * (`server/stores.ts#getStoreDetail`) refresh가 실제로 최신 수를 가져온다.
+   */
+  const [favoriteView, applyFavorite] = useOptimistic(
+    { liked: profile.liked, count: favoriteCount },
+    (current, liked: boolean) => ({
+      liked,
+      count: current.count === undefined ? undefined : Math.max(0, current.count + (liked ? 1 : -1)),
+    }),
+  );
+  const favorite = favoriteView.liked;
+
   function handleToggleFavorite() {
     const next = !favorite;
-    setFavorite(next);
     setFavoriteError(null);
 
     startTransition(async () => {
+      applyFavorite(next);
       const result = await updateStoreFavorite(storeId, next);
       if (result.status === "success") {
         router.refresh();
         return;
       }
-      setFavorite(!next);
       setFavoriteError(result.message);
     });
   }
@@ -411,7 +430,9 @@ export function StoreDetailClient({
           안쪽 폭이 358이라 둘 사이 간격은 6px다(v2 구현은 gap-4=16px였다).
           ⚠️ Figma가 이 프레임에 px-[20px]를 선언해 두었는데 안쪽 폭 358은 px-16이라야 나온다
              (390-32=358 ≠ 390-40=350) — 원본 자체가 어긋나 있어 px-4를 유지했다.
-          ⚠️ 하트 아래 숫자("999+")는 **지웠다** — 단골 수를 주는 필드가 응답에 없다.
+          하트 아래 숫자는 `favoriteCount`다(`caption/12-semibold`). 시안의 "999+"는 상한 표기라
+          1000 이상은 그렇게 줄인다. 2026-08-21에 `GET /stores/{id}`가 이 필드를 주기 시작해
+          되살렸다 — 그전에는 값이 없어 "단골"/"단골 등록" 문구를 대신 넣어 뒀다.
         */}
         <footer className="absolute right-0 bottom-0 left-0 z-20 flex h-18.25 items-center gap-1.5 border-t border-border-primary bg-surface-primary px-4 pb-[env(safe-area-inset-bottom)]">
           {favoriteError ? (
@@ -421,7 +442,15 @@ export function StoreDetailClient({
           ) : null}
           <button
             type="button"
-            aria-label={favorite ? "단골 해제" : "단골로 등록"}
+            aria-label={
+              // 버튼 안 텍스트(단골 수)는 aria-label에 덮이므로 라벨에 직접 넣는다 —
+              // 숫자가 시각 사용자에게만 보이는 정보가 되지 않게.
+              favoriteView.count === undefined
+                ? favorite
+                  ? "단골 해제"
+                  : "단골로 등록"
+                : `단골 ${favoriteView.count.toLocaleString("ko-KR")}명, ${favorite ? "단골 해제" : "단골로 등록"}`
+            }
             aria-pressed={favorite}
             onClick={handleToggleFavorite}
             className="flex w-13 shrink-0 flex-col items-center justify-center text-content-primary"
@@ -432,7 +461,13 @@ export function StoreDetailClient({
               currentColor
               className={favorite ? "text-content-accent-favorite" : undefined}
             />
-            <span className="text-body-14-medium">{favorite ? "단골" : "단골 등록"}</span>
+            {favoriteView.count === undefined ? (
+              <span className="text-body-14-medium">{favorite ? "단골" : "단골 등록"}</span>
+            ) : (
+              <span aria-hidden="true" className="text-caption-12-semibold">
+                {favoriteView.count > 999 ? "999+" : favoriteView.count.toLocaleString("ko-KR")}
+              </span>
+            )}
           </button>
           <Link
             href={`${ROUTES.report}?store=${storeId}`}
