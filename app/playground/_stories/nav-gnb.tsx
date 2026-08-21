@@ -30,7 +30,8 @@ const ITEMS = [
   {
     href: "#gnb-me",
     label: "내 정보",
-    icon: <FigmaIcon name="person-fill" width={24} currentColor />,
+    // 실화면(app/(tabs)/_tab-nav.tsx)과 동일 — Figma 인셋을 재현하려 20으로 낮췄다.
+    icon: <FigmaIcon name="person-fill" width={20} currentColor />,
   },
 ];
 
