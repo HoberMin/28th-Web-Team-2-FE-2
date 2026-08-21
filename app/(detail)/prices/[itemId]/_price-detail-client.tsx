@@ -88,9 +88,15 @@ export function PriceSectionNav() {
   };
 
   return (
+    // Figma `tab-section`(1116:11888) 실측 2026-08-21:
+    //   bar   h-[44px] · bg surface/primary · border-b border/secondary · **그림자 없음**
+    //   row   gap-[20px] · left 15.65(≈px-4) · 아래 정렬
+    //   item  py-[4px]
+    //     selected  border-b-**2** border/tertiary · body/16-**bold**   · content/primary
+    //     default   border-b-**1** border/secondary · body/16-medium   · content/disabled
     <nav
       aria-label="시세 상세 섹션"
-      className="sticky top-0 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4 shadow-[0_2px_3px_rgba(0,0,0,0.04)]"
+      className="sticky top-0 z-10 flex h-11 items-end gap-5 border-b border-border-secondary bg-surface-primary px-4"
     >
       {DETAIL_SECTIONS.map(({ id, label }) => (
         <a
@@ -98,7 +104,17 @@ export function PriceSectionNav() {
           href={`#${id}`}
           aria-current={active === id ? "location" : undefined}
           onClick={(event) => moveToSection(event, id)}
-          className={`flex h-full items-center border-b-2 pt-1 text-body-16-medium focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary ${active === id ? "border-border-tertiary text-body-16-bold text-content-primary" : "border-transparent text-content-disabled"}`}
+          // ⚠️ 선택/비선택 클래스는 **완전히 상호배타**로 둔다. 공통 부분에 `text-body-16-medium`을
+          //    두고 선택 분기에서 `text-body-16-bold`를 덧붙이면, cn/문자열 연결은 tailwind-merge가
+          //    아니라 단순 이어붙이기라 승자가 `@theme` 선언 순서(bold가 medium보다 먼저 선언 →
+          //    medium이 뒤에 emit → medium이 이김)로 정해진다. 실제로 이 자리가 그래서
+          //    UI QA 2026-08-20 #29("selected 텍스트가 디자인보다 얇음")를 고쳤는데도
+          //    화면에서는 계속 medium으로 보였다. (2026-08-21 재수정)
+          className={`flex h-full items-center pt-1 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary ${
+            active === id
+              ? "border-b-2 border-border-tertiary text-body-16-bold text-content-primary"
+              : "border-b border-border-secondary text-body-16-medium text-content-disabled"
+          }`}
         >
           {label}
         </a>
