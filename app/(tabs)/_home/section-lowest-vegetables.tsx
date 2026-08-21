@@ -70,9 +70,15 @@ function TrendIcon({ direction }: { direction: HomeTrendDirection }) {
 }
 
 /**
- * 야채 그림. 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
- * 해당 품목의 로컬 이미지로 표시한다. **48×48** — 같은 화면 추천 가게 카드와 크기를
- * 맞춰 달라는 사용자 요청(2026-08-21)으로 Figma 원본(40×40) 대신 48을 쓴다.
+ * 야채 그림(40×40, Figma 원본). 품목별 SVG를 우선 사용하고, 아직 SVG가 없는 품목은
+ * 해당 품목의 로컬 이미지로 표시한다.
+ *
+ * (2026-08-21: 한때 추천 가게 카드와 맞추려 48×48로 키웠었는데, 마늘·양파·고구마 벡터가
+ * SVG 필터 이펙트(feTurbulence 노이즈·feGaussianBlur 이너섀도우)를 써서 확대 시 화질이
+ * 눈에 띄게 뭉개졌다 — QA 피드백으로 발견해 40×40으로 되돌렸다. 그 3종을 제외한 7종은
+ * 필터 없는 순수 벡터라 48에서도 문제없었지만, 한 목록 안에서 품목별로 크기를 다르게
+ * 주는 건 더 이상한 결과라 목록 전체를 되돌렸다. 추천 가게 카드(48×48)와는 다시 크기가
+ * 어긋나지만, Figma가 애초에 두 컴포넌트를 다른 규격(40 vs 48)으로 정의해 뒀던 것이다.)
  */
 export interface SectionLowestVegetablesProps {
   items: HomeLowestVegetable[];
@@ -110,7 +116,7 @@ export function SectionLowestVegetables({
       trendState={item.trend}
       trendAmount={formatTrendAmount(item)}
       trendPercent={formatTrendPercent(item)}
-      visual={<HomeVegetableImage name={item.name} size={48} />}
+      visual={<HomeVegetableImage name={item.name} size={40} />}
       storeIcon={<FigmaIcon name="map-pin-fill" width={16} currentColor />}
       trendIcon={<TrendIcon direction={item.trend} />}
     />
