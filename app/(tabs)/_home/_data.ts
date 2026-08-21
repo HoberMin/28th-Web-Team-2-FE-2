@@ -1,8 +1,9 @@
 // F01 홈 화면의 표시 모델 타입 + 표기 헬퍼.
 //
-// **더미 데이터는 없다** — 추천 가게는 `GET /api/v1/stores/recommendation`,
-// 최저가 목록은 `GET /api/v1/regions/{regionId}/reports/lowest-prices`,
-// 뉴스는 `GET /api/v1/news`가 채운다. DTO→표시 모델 변환은 `home-view.ts`가 한다.
+// 추천 가게는 `GET /api/v1/stores/recommendation`, 최저가 목록은
+// `GET /api/v1/regions/{regionId}/reports/lowest-prices`, 뉴스는 `GET /api/v1/news`가 채운다.
+// 셋 다 실패·빈 응답이면 각자의 `*-fallback.ts`가 더미로 대신 채운다 — 여기 타입 자체는
+// 더미 유무와 무관하다. DTO→표시 모델 변환은 `home-view.ts`가 한다.
 //
 // 여기 남은 것은 (1) 화면 컴포넌트가 받는 타입과 (2) 방향에서 부호를 파생시키는 포맷 함수뿐이다.
 // 타입을 화면 폴더에 두는 이유: 뉴스 카드처럼 Figma 규격과 API DTO의 모양이 달라서
