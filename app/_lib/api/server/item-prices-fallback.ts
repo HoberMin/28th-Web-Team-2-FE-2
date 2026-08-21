@@ -8,7 +8,7 @@ import { getPublicPriceTrend } from "./items";
 import { isTemporaryDataError } from "./items-fallback";
 import { getRegionItemReports } from "./reports";
 
-/** 시세 상세의 동네 제보 섹션은 데이터 적재 전 응답에 한해 더미로 폴백한다. */
+/** 시세 상세의 동네 제보 섹션은 백엔드 응답만 사용한다. */
 
 const PERIOD_TO_SPRING: Record<PricePeriod, PublicPricePeriod> = {
   week: "WEEK",
@@ -55,12 +55,11 @@ function toDetailReport(
   };
 }
 
-export async function getRegionItemReportsWithFallback(params: {
+export async function getRegionItemReportsFromBackend(params: {
   regionId: string;
   itemId: number;
   basePrice: number | null;
   unit: string;
-  dummyReports: PriceDetailReport[];
 }): Promise<{ reports: PriceDetailReport[]; isTemporary: boolean }> {
   try {
     const page = await getRegionItemReports({
@@ -69,25 +68,17 @@ export async function getRegionItemReportsWithFallback(params: {
       sort: "LATEST",
       size: 50,
     });
-    if (page.reports.length > 0) {
-      return {
-        reports: page.reports.map((report) =>
-          toDetailReport(report, params.basePrice, params.unit),
-        ),
-        isTemporary: false,
-      };
-    }
+    return {
+      reports: page.reports.map((report) =>
+        toDetailReport(report, params.basePrice, params.unit),
+      ),
+      isTemporary: false,
+    };
   } catch (error) {
     if (!isTemporaryDataError(error)) throw error;
   }
 
-  if (params.dummyReports.length > 0) {
-    console.warn("[region-item-reports] temporary data fallback", {
-      regionId: params.regionId,
-      itemId: params.itemId,
-    });
-  }
-  return { reports: params.dummyReports, isTemporary: params.dummyReports.length > 0 };
+  return { reports: [], isTemporary: false };
 }
 
 export { PUBLIC_PRICE_PERIODS };

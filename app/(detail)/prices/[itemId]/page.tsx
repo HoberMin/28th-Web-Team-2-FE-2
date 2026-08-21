@@ -7,7 +7,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import {
   getPublicPriceSeries,
-  getRegionItemReportsWithFallback,
+  getRegionItemReportsFromBackend,
 } from "@/app/_lib/api/server/item-prices-fallback";
 import { getItemDetailWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
@@ -17,8 +17,6 @@ import { getBaselinePrice } from "@/app/_lib/kamis";
 import { ROUTES } from "@/app/_lib/routes";
 import type { OnlineMall, PricePoint } from "@/app/_lib/types";
 import {
-  DEFAULT_DISTRICT,
-  getNeighborhoodSeedReports,
   getOnlinePrices,
   VEGETABLES,
 } from "@/app/_lib/vegetables";
@@ -27,7 +25,6 @@ import {
   OnlinePriceNotice,
   PriceSectionNav,
   PublicPriceChart,
-  type PriceDetailReport,
 } from "./_price-detail-client";
 import { PriceDetailBackButton } from "./_back-button";
 import { PriceDetailHeader, PRICE_DETAIL_SCROLL_ID } from "./_detail-header";
@@ -85,37 +82,9 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const vegetable = vegetableId ? VEGETABLES.find((candidate) => candidate.id === vegetableId) : undefined;
 
   const baseline = vegetable ? await getBaselinePrice(vegetable.id) : null;
-  const reports = vegetable
-    ? getNeighborhoodSeedReports(DEFAULT_DISTRICT)
-        .filter((report) => report.vegetableId === vegetable.id)
-        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-    : [];
-  // 더미 보정에 쓸 기준가 — 실 공공시세가 있으면 그걸, 없으면 그래프와 같은 baseline
-  // (=BASE_PRICE)을 쓴다. 온라인가·동네 제보가 더미 둘 다 이 값 하나에 비례시켜서 서로
-  // 어긋나지 않게 한다(사용자 지적, 2026-08-21 — "그 더미도 공공시세와 온라인 최저가를
-  // 보고 그럴듯하게").
   const anchorPrice = detail.todayPublicPrice ?? baseline?.current ?? undefined;
   const online = vegetable ? getOnlinePrices(vegetable.id, anchorPrice) : undefined;
   const averageWeightNote = vegetable?.id === "cucumber" ? "오이 1개는 평균 200g이에요" : null;
-  const dummyDetailReports: PriceDetailReport[] =
-    vegetable && baseline
-      ? reports.map((report) => {
-          const base = anchorPrice ?? baseline.current;
-          const scale = baseline.current > 0 ? base / baseline.current : 1;
-          const price = round10(report.pricePerKg * scale);
-          const diff = price - base;
-          return {
-            id: report.id,
-            reportedAt: Date.parse(report.createdAt),
-            place: report.place ?? report.district,
-            age: formatAge(report.createdAt, baseline.asOf),
-            price,
-            unit: vegetable.unit,
-            diff,
-            diffPercent: base === 0 ? 0 : (diff / base) * 100,
-          };
-        })
-      : [];
 
   const unit = detail.defaultUnit ?? vegetable?.unit ?? "";
   // 백엔드 itemImageUrl은 안 쓴다 — 시세 탭 전체가 프런트에 모아 둔 46종 사진을 쓰기로
@@ -128,15 +97,14 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
   // 동네 제보 목록과 가격 추이는 Spring 엔드포인트에서 조회한다.
   const [
-    { reports: detailReports, isTemporary: reportsAreTemporary },
+    { reports: detailReports },
     publicPriceSeries,
   ] = await Promise.all([
-    getRegionItemReportsWithFallback({
+    getRegionItemReportsFromBackend({
       regionId,
       itemId,
       basePrice: publicPrice,
       unit,
-      dummyReports: dummyDetailReports,
     }),
     getPublicPriceSeries({
       itemId,
@@ -168,16 +136,9 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
   const summaryPublicPriceDiff = estimatedPublicPriceTrend?.diff ?? publicPriceDiff;
   const summaryPublicPriceDiffPercent = estimatedPublicPriceTrend?.diffPercent ?? publicPriceDiffPercent;
 
-  // "최근 동네 제보가"도 같은 문제였다 — 요약 카드(`detail.latestLocalReportPrice`)는 실API만
-  // 보는데, 바로 아래 "온라인가 비교" 섹션의 같은 라벨은 **더 예전 방식의 별개 더미**
-  // (`getNeighborhoodSeedReports`)를 직접 봐서 둘이 서로 다른 값을 보여줄 수 있었다. 이제
-  // 막 완성된 `detailReports`(실제 있으면 실제, 없으면 더미 — 위 fallback)로 두 자리를 통일한다.
   const latestDetailReport = detailReports[0];
   const summaryLatestReportPrice = detail.latestLocalReportPrice ?? latestDetailReport?.price;
-  // `reportsAreTemporary`까지 같이 본다 — 요약 API만 null이고 제보 목록 API는 실제로 뭔가를
-  // 찾은 드문 경우(두 실API끼리의 불일치)까지 "(예시)"로 잘못 표시하지 않기 위해서다.
-  const summaryLatestReportIsEstimated =
-    detail.latestLocalReportPrice == null && latestDetailReport !== undefined && reportsAreTemporary;
+  const summaryLatestReportIsEstimated = false;
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
@@ -218,7 +179,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
           <div className="h-2 bg-border-secondary" />
           <PriceSectionNav />
 
-          <NeighborhoodPrices reports={detailReports} isTemporary={reportsAreTemporary} />
+          <NeighborhoodPrices reports={detailReports} />
           <div className="h-2 bg-border-secondary" />
           <PublicPriceChart series={publicPriceSeries} />
           <div className="h-2 bg-border-secondary" />
@@ -435,20 +396,6 @@ function MallLogo({ mall }: { mall: OnlineMall }) {
       className="size-12 shrink-0 rounded-full"
     />
   );
-}
-
-function formatAge(createdAt: string, asOf: string): string {
-  const days = Math.max(
-    0,
-    Math.floor((Date.parse(`${asOf}T00:00:00Z`) - Date.parse(`${createdAt.slice(0, 10)}T00:00:00Z`)) / 86_400_000),
-  );
-  if (days === 0) return "오늘";
-  if (days === 1) return "어제";
-  return `${days}일 전`;
-}
-
-function round10(n: number): number {
-  return Math.round(n / 10) * 10;
 }
 
 /** 시계열의 마지막 두 포인트로 "어제 대비"를 구한다 — 요약 카드가 더미 그래프와 같은 값을 쓰게. */
