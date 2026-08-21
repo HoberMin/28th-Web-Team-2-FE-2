@@ -3,7 +3,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { SheetHandle } from "@/app/_components/sheet-handle";
-import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
 import { PRICE_DETAIL_HEADER_HEIGHT } from "./_detail-header";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { formatWon } from "@/app/_lib/format";
@@ -30,18 +29,6 @@ interface NeighborhoodPricesProps {
    * 2026-08-21). 섹션 단위로 같은 배지를 하나 더 둔다.
    */
   isTemporary?: boolean;
-}
-
-function TemporaryBadge() {
-  return (
-    <span
-      role="status"
-      data-data-source="temporary"
-      className="inline-flex shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
-    >
-      예시 데이터
-    </span>
-  );
 }
 
 type ReportSort = "cheap" | "recent";
@@ -163,11 +150,6 @@ export function NeighborhoodPrices({ reports, isTemporary }: NeighborhoodPricesP
 
   return (
     <section id="neighborhood-prices" className="scroll-mt-23.25 px-4 py-8">
-      {isTemporary ? (
-        <div className="mb-2 flex justify-end">
-          <TemporaryBadge />
-        </div>
-      ) : null}
       <div
         role="group"
         aria-label="동네 제보가 정렬"
@@ -218,10 +200,7 @@ export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boole
     <div className="mt-6">
       <div className="flex items-center gap-1">
         {/*
-          UI QA 2026-08-20 #31 "comment-section-notice의 텍스트와 아이콘이 디자인과 다름".
-          08-20에는 이 항목을 **댓글 섹션 이야기로 잘못 읽었다** — Figma의 `comment-section`은
-          댓글이 아니라 온라인가 비교 섹션의 프레임 이름이다(이름이 안 갱신된 자리, 디자인팀 확인 항목).
-          실측 1116:11932 — 문구는 body/14-**medium** · content/**disabled**,
+          온라인 가격 비교 안내 문구는 body/14-**medium** · content/**disabled**,
           아이콘은 `icon/information-circle-2` 20px.
           아이콘은 원본 `information-circle-2.svg`를 20px로 사용한다.
         */}
@@ -229,7 +208,6 @@ export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boole
           <p className="text-body-14-medium text-content-disabled">
             온라인 사이트마다 배송 조건이 달라요
           </p>
-          {isTemporary ? <TemporaryDataBadge /> : null}
         </div>
         <button
           type="button"
@@ -410,11 +388,6 @@ export function PublicPriceChart({ series, isTemporary }: PublicPriceChartProps)
 
   return (
     <section id="public-price" className="scroll-mt-23.25 px-4 py-8">
-      {isTemporary ? (
-        <div className="mb-2 flex justify-end">
-          <TemporaryBadge />
-        </div>
-      ) : null}
       <div
         role="group"
         aria-label="공공 시세 조회 기간"

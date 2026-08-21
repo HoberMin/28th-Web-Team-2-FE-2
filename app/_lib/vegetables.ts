@@ -349,7 +349,7 @@ function buildFallbackOnlineEntries(veg: Vegetable, base: number): MallEntry[] {
   return FALLBACK_MALL_PROFILE.map(({ mall, channel, mult, note }) => ({
     mall,
     price: round10(base * mult),
-    productName: `${veg.name} ${veg.unit} (예시)`,
+    productName: `${veg.name} ${veg.unit}`,
     channel,
     channelNote: note,
     measured: false,

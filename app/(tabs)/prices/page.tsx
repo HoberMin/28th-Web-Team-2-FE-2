@@ -148,13 +148,6 @@ export default async function PricesPage({
           />
         )}
       </div>
-      <p
-        role="note"
-        data-data-source="temporary"
-        className="mt-8 px-4 text-center text-caption-12-regular text-content-secondary"
-      >
-        ‘예시’ 표시가 있는 품목은 API 가격이 없어 임시 가격을 표시하고 있어요.
-      </p>
     </div>
   );
 }

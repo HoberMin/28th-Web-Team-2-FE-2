@@ -68,8 +68,5 @@ export function mapRecommendedStoreToView(store: RecommendedStore): HomeRecommen
     summaryLabel: "공공 시세보다 저렴한 야채",
     summaryValue: `${store.cheapItemCount}가지`,
     vegetables: shown,
-    // Figma 디자인 목업과 동일하게 고정 — 사용자 요청(2026-08-21)으로 실 데이터의
-    // remainingItemCount 합산 대신 스크린샷/데모용 고정값 5를 쓴다.
-    moreCount: 5,
   };
 }

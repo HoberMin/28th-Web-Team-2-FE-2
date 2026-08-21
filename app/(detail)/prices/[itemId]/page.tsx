@@ -197,15 +197,6 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
               <p className="truncate text-body-16-semibold text-content-primary">
                 {detail.itemName} {unit}
               </p>
-              {isTemporary ? (
-                <span
-                  role="status"
-                  data-data-source="temporary"
-                  className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
-                >
-                  예시 데이터
-                </span>
-              ) : null}
             </>
           }
         />
@@ -249,7 +240,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
                   <span className="text-body-14-medium text-content-secondary">
                     {summaryLatestReportPrice === undefined
                       ? "제보 없음"
-                      : `${formatWon(summaryLatestReportPrice)}${summaryLatestReportIsEstimated ? " (예시)" : ""}`}
+                      : formatWon(summaryLatestReportPrice)}
                   </span>
                   <span className="text-caption-12-regular text-content-disabled">/{unit}</span>
                 </p>
@@ -391,7 +382,7 @@ function PriceSummary({
           <strong className="text-title-18-semibold text-content-primary">
             {latestReportPrice === undefined
               ? "제보 없음"
-              : `${formatWon(latestReportPrice)}${latestReportPriceIsEstimated ? " (예시)" : ""}`}
+              : formatWon(latestReportPrice)}
           </strong>
         </div>
         <div className="mt-2 flex flex-col gap-0.5">
@@ -400,7 +391,7 @@ function PriceSummary({
             <span className="text-body-14-medium text-content-secondary">
               {publicPrice === null
                 ? "시세 정보 없음"
-                : `${formatWon(publicPrice)}${publicPriceIsEstimated ? " (예시)" : ""}`}
+                : formatWon(publicPrice)}
             </span>
           </p>
           {/*
@@ -416,7 +407,7 @@ function PriceSummary({
             <span className="text-body-14-medium text-content-secondary">
               {onlineLowestPrice === undefined
                 ? "가격 정보 없음"
-                : `${formatWon(onlineLowestPrice)}${onlineLowestPriceIsEstimated ? " (예시)" : ""}`}
+                : formatWon(onlineLowestPrice)}
             </span>
           </p>
           {/* 364:7188 `price-trend-row` — 위 두 행과 달리 **py-[2px]** 이 붙어 있다. */}

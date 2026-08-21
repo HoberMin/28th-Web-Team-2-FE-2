@@ -21,7 +21,7 @@ export interface HomeRecommendedStore {
   /** 야채 이름들. Figma 개발 주석: 최대 5개까지만 보여주고 나머지는 more 뱃지로. */
   vegetables: string[];
   /** 5개를 넘어 화면에 못 담은 나머지 개수. */
-  moreCount: number;
+  moreCount?: number;
 }
 
 /**

@@ -128,15 +128,7 @@ export function SectionLowestVegetables({
         <h2 className="min-w-0 truncate text-title-18-bold text-content-primary">
           우리 동네 최저가 야채
         </h2>
-        {isTemporary ? (
-          <span
-            role="status"
-            data-data-source="temporary"
-            className="shrink-0 rounded-full bg-surface-accent-orange-subtle px-2 py-0.5 text-caption-12-medium text-content-accent-badge"
-          >
-            예시 데이터
-          </span>
-        ) : (
+        {!isTemporary && (
           <p className="shrink-0 text-right text-caption-12-medium text-content-secondary">
             최근 7일간 · 이웃 제보
           </p>
