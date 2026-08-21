@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MarkerStoreMap } from "@/app/_components/marker-store-map";
+import { ASSADA_MART_STORE } from "@/app/_lib/assada-mart";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import {
@@ -83,7 +84,7 @@ export function ReportPlaceMap({
     let cancelled = false;
     setMapStatus("loading");
     setPlacesStatus("loading");
-    setPlaces([]);
+    setPlaces([ASSADA_MART_STORE]);
 
     void loadKakaoSdk(process.env.NEXT_PUBLIC_KAKAO_JS_KEY)
       .then(async (kakao) => {
