@@ -136,7 +136,7 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-surface-secondary">
-      {/* relative: 헤더가 본문 위에 겹쳐 뜬다(스크롤 전에는 배경이 투명해 요약 카드가 비친다). */}
+      {/* relative: 헤더가 본문 위에 겹쳐 뜬다(스크롤 전에는 헤더 자체가 감춰져 있다). */}
       <div className="relative flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
         <PriceDetailHeader
           backButton={<PriceDetailBackButton />}
@@ -157,10 +157,13 @@ export default async function PriceDetailPage({ params }: PriceDetailPageProps) 
             </>
           }
         />
-        {/* pt-12.25: 겹쳐 뜨는 헤더 높이만큼 본문을 내려 첫 콘텐츠가 가리지 않게 한다. */}
+        {/*
+          상단 패딩을 두지 않는다 — Figma [660:14777]은 상태바 바로 아래에서 썸네일이 시작한다.
+          헤더는 스크롤을 시작해야 나타나고, 그때는 본문 위에 겹쳐 뜬다(absolute).
+        */}
         <main
           id={PRICE_DETAIL_SCROLL_ID}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-12.25"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
         >
           <h1 className="sr-only">{detail.itemName} 야채 시세 상세</h1>
           <PriceSummary
