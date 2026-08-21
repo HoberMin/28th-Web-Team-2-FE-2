@@ -99,15 +99,23 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
                 찜함: icon/heart-fill (채움) · content/**secondary**(회색)
               그전에는 두 상태 모두 heart-fill이라 "안 눌러도 채워져 있고"(#18),
               눌렀을 때는 ButtonCircle의 `state="pressed"`가 content/brand/light를 입혀
-              "초록으로 채워졌다"(#19). state를 normal로 고정하고 색을 직접 정한다.
+              "초록으로 채워졌다"(#19).
               Figma `header/store-detail`(392:12144) 실측도 미찜을 heart-stroke-regular로 둔다.
+
+              ⚠️ 2026-08-21 재수정 — 08-20에는 `className`으로 배경·그림자·색을 덮었는데,
+                 `cn`이 tailwind-merge가 아니라 승자가 `@theme` 순서로 정해지고, 특히
+                 ButtonCircle의 `active:text-content-brand-light`가 항상 늦게 적용돼
+                 **누르는 동안(iOS는 다음 터치까지) 초록으로 되돌아갔다.**
+                 → 클래스 덮어쓰기 대신 `surface`·`elevated`·`inheritColor` prop으로
+                   충돌하는 클래스를 아예 emit하지 않게 바꿨다.
             */}
             <ButtonCircle
               variant={isFavorite ? "fill" : "stroke"}
               size={36}
-              className={`bg-surface-secondary shadow-none ${
-                isFavorite ? "text-content-secondary" : "text-content-primary"
-              }`}
+              surface="secondary"
+              elevated={false}
+              inheritColor
+              className={isFavorite ? "text-content-secondary" : "text-content-primary"}
               aria-label={isFavorite ? "찜한 가게 해제" : "가게 찜하기"}
               aria-pressed={isFavorite}
               icon={
@@ -122,7 +130,8 @@ export function StoreSheet({ store, onClose, fallbackFocusRef }: StoreSheetProps
             <ButtonCircle
               variant="fill"
               size={36}
-              className="bg-surface-secondary shadow-none"
+              surface="secondary"
+              elevated={false}
               aria-label="가게 정보 닫기"
               icon={<FigmaIcon name="close-header-20" width={20} />}
               onClick={onClose}
