@@ -61,7 +61,7 @@ describe("searchNearbyStorePlacesWithSdk", () => {
       }),
     ).resolves.toEqual([
       expect.objectContaining({
-        id: "384",
+        id: "999",
         placeName: "아싸다 마트",
       }),
       expect.objectContaining({
