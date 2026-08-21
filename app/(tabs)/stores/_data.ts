@@ -77,3 +77,33 @@ export function formatWalkTime(
   }
   return "";
 }
+
+export type RecentReportDateVariant = "today" | "yesterday";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * `row/recent-report`의 배지는 today·yesterday 두 값만 있다(Figma에 "N일 전" variant가 없다).
+ * 2일 이상 지난 제보를 "어제"로 잘못 붙이지 않으려고, 판정 안 되면 배지를 아예 생략한다
+ * (`undefined` → 호출부가 `reportDate` prop을 넘기지 않는다).
+ */
+export function resolveRecentReportDateVariant(
+  reportedDate: string | null | undefined,
+  now: number,
+): RecentReportDateVariant | undefined {
+  if (!reportedDate) return undefined;
+  const parsedDate = Date.parse(`${reportedDate}T00:00:00+09:00`);
+  if (Number.isNaN(parsedDate)) return undefined;
+
+  const todayStart = Date.parse(
+    `${new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)}T00:00:00+09:00`,
+  );
+  const days = Math.round((todayStart - parsedDate) / DAY_MS);
+
+  // `<= 0`은 가게 상세의 `formatReportAge`와 같은 처리다 — 미래 날짜·타임존 오차로
+  // parsedDate가 todayStart를 살짝 앞서는 경우까지 "오늘"로 본다. 여기서만 0으로 좁히면
+  // 같은 데이터가 지도 시트에서는 배지 없음, 가게 상세에서는 "오늘"로 서로 달라진다.
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  return undefined;
+}
