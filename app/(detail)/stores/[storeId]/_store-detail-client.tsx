@@ -77,7 +77,12 @@ function StoreInformation({
             */}
             {profile.address ? (
               <div className="flex w-full items-start gap-1">
-                <FigmaIcon name="map-pin-fill" width={22} className="shrink-0" />
+                <FigmaIcon
+                  name="map-pin-fill"
+                  width={22}
+                  currentColor
+                  className="shrink-0 text-content-disabled"
+                />
                 <p className="min-w-0 flex-1 text-body-14-regular text-content-primary">
                   {profile.address}
                 </p>
