@@ -33,3 +33,22 @@ export function isTemporaryNewsDataError(error: unknown): boolean {
   const kind = Reflect.get(error, "kind");
   return kind === "network" || kind === "upstream" || kind === "server" || kind === "parse" || kind === "notFound";
 }
+
+/**
+ * 응답이 비어 있어도(정상 200) 에러여도(네트워크·5xx 등) 같은 더미로 폴백한다 — 이유는
+ * `stores-fallback.ts`/`reports-fallback.ts`와 동일.
+ */
+export async function getNewsWithTemporaryFallback(): Promise<{ articles: NewsArticle[]; isTemporary: boolean }> {
+  try {
+    const articles = await getNews();
+    if (articles.length > 0) return { articles, isTemporary: false };
+    console.warn("[news] temporary data fallback (empty upstream result)");
+    return { articles: TEMPORARY_NEWS, isTemporary: true };
+  } catch (error) {
+    if (!isTemporaryNewsDataError(error)) throw error;
+    console.warn("[news] temporary data fallback", {
+      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
+    });
+    return { articles: TEMPORARY_NEWS, isTemporary: true };
+  }
+}
