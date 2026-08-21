@@ -5,20 +5,24 @@ import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItemsWithTemporaryFallback } from "@/app/_lib/api/server/items-fallback";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { getFavoriteStoresWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
+import { getMyReports, getMyWeeklyReports } from "@/app/_lib/api/server/my-reports";
 import { getMe } from "@/app/_lib/api/server/users";
 import { ROUTES } from "@/app/_lib/routes";
 import { LogoutButton } from "./_components/logout-button";
 import { MyPageMenuRow } from "./_components/mypage-menu-row";
+import { MyReportList } from "./_components/my-report-list";
 import { NicknameEditor } from "./_components/nickname-editor";
+import { WeeklyReportStrip } from "./_components/weekly-report-strip";
 
 // F05 마이페이지 — **Figma 시안이 아직 없다**(`shared/pages.md` §시안 없음).
 //
 // 시안을 기다리는 대신 **Swagger에 실제로 있는 것만으로** 화면을 만들었다(2026-08-20 사용자
-// 확정). 그래서 기획서(`농산물-문서/마이페이지/F05.md`)의 항목 중 계약이 없는 둘은 **넣지
-// 않았다** — 더미로 채우지 않는다:
-//   · 「이번 주 제보」 주간 캘린더 — 사용자별 제보 일자를 주는 엔드포인트가 없다
-//   · 「내 제보」 목록 N건       — 내 제보 조회/수정/삭제 API가 없다 (POST만 있다)
-// 두 항목은 BE 계약이 생기는 시점에 추가한다.
+// 확정). 계약이 없어 빼 뒀던 두 항목은 2026-08-21 BE 엔드포인트가 생겨 붙였다:
+//   · 「이번 주 제보」 → GET /api/v1/users/me/reports/weekly
+//   · 「내 제보」      → GET /api/v1/users/me/reports (+ DELETE)
+// 시안은 여전히 없어서 두 섹션 다 **기존 컴포넌트를 재사용**한다
+// (`row/recent-report`·`list/recent-report`·`badge/report-date` 토큰 조합).
+// 수정(PATCH)은 값 입력 폼이 필요해 아직 화면이 없다 — API 레이어만 준비돼 있다.
 //
 // 쓰는 API는 셋 다 개인화라 전부 no-store다:
 //   GET /api/v1/users/me                 → 닉네임 · 현재 동네
@@ -100,6 +104,23 @@ export default async function MyPage() {
       : Promise.resolve(null),
   ]);
 
+  // 제보 섹션은 실패해도 화면을 세우지 않는다 — 위 프로필·메뉴는 이미 떠 있다.
+  // 카운트와 같은 방침(`countOrNull`)이고, 못 불러오면 그 섹션만 통째로 빠진다.
+  const [weekly, myReports] = await Promise.all([
+    getMyWeeklyReports(token).catch((error: unknown) => {
+      if (!(error instanceof ApiError)) throw error;
+      console.error("주간 제보 조회 실패", { kind: error.kind, status: error.status });
+      return null;
+    }),
+    getMyReports({ token, page: 0, size: 20 }).catch((error: unknown) => {
+      if (!(error instanceof ApiError)) throw error;
+      console.error("내 제보 조회 실패", { kind: error.kind, status: error.status });
+      return null;
+    }),
+  ]);
+  // 오늘/어제 배지 기준일을 서버에서 한 번 고정한다 — 행마다 다른 "오늘"이 나오지 않게.
+  const today = new Date().toISOString().slice(0, 10);
+
   return (
     <div className="flex flex-col px-4 pt-4 pb-20">
       <NicknameEditor
@@ -124,6 +145,35 @@ export default async function MyPage() {
           value={countLabel(vegetableCount, "개", "없음")}
         />
       </nav>
+
+      {weekly ? (
+        <WeeklyReportStrip
+          totalReportedDays={weekly.totalReportedDays}
+          dailyReports={weekly.dailyReports}
+        />
+      ) : null}
+
+      {myReports ? (
+        <section aria-labelledby="my-reports-heading" className="pt-6">
+          <div className="flex items-baseline justify-between">
+            <h2 id="my-reports-heading" className="text-body-16-semibold text-content-primary">
+              내 제보
+            </h2>
+            <p className="text-body-14-medium text-content-secondary">
+              {myReports.totalCount === 0 ? "없음" : `${myReports.totalCount}건`}
+            </p>
+          </div>
+          {myReports.reports.length === 0 ? (
+            <p className="pt-3 text-body-14-regular text-content-secondary">
+              아직 올린 제보가 없어요. 동네 가격을 제보하면 여기에 쌓여요.
+            </p>
+          ) : (
+            <div className="pt-2">
+              <MyReportList reports={myReports.reports} today={today} />
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <LogoutButton />
     </div>
