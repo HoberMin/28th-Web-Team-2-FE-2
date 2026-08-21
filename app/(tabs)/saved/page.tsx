@@ -3,7 +3,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
-import { getFavoriteStores } from "@/app/_lib/api/server/stores";
+import { getFavoriteStores, getStoreDetail } from "@/app/_lib/api/server/stores";
 import { ROUTES } from "../../_lib/routes";
 import { mapItemToPriceView } from "../prices/_item-view";
 import { SavedEmpty } from "./_components/saved-empty";
@@ -42,7 +42,8 @@ import { mapFavoriteStoreToView } from "./_saved-store-view";
 //    **전부 채워진 하트**로 구현했다.
 //
 // 에셋: 야채 사진·하트·등락 아이콘은 Figma MCP로 export한 `public/figma/design-library/`
-// 원본을 그대로 쓴다. **가게 사진만 예외로 API의 `storeImageUrl`**이고, 없으면 회색 자리를 둔다.
+// 원본을 그대로 쓴다. 가게 사진은 API의 `storeImageUrl`을 우선 쓰고, 없으면 상세 조회로
+// 메타데이터 기반 이미지를 보충한다.
 //
 // ⚠️ 남은 폭 이슈(보고 대상): 공통 컴포넌트 `GridVegetableItem`은 내부 사진·정보 폭이 110px로
 //    고정이라(F02와 공유하는 파일이라 이번 작업에서 수정하지 않았다) 390px보다 넓은 화면에서는
@@ -143,7 +144,29 @@ async function StoreTab() {
   let stores;
   try {
     const page = await getFavoriteStores({ token, page: 0, size: 50 });
-    stores = page.stores.map(mapFavoriteStoreToView);
+    stores = await Promise.all(
+      page.stores.map(async (store) => {
+        const view = mapFavoriteStoreToView(store);
+        if (view.imageUrl) return view;
+
+        const detail = await getStoreDetail({ storeId: store.storeId, token }).catch((error: unknown) => {
+          if (error instanceof ApiError) {
+            console.error("단골 가게 이미지 조회 실패", {
+              kind: error.kind,
+              status: error.status,
+              storeId: store.storeId,
+            });
+            return null;
+          }
+          throw error;
+        });
+
+        return {
+          ...view,
+          imageUrl: detail?.storeImageUrl?.trim() || undefined,
+        };
+      }),
+    );
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
     console.error("단골 가게 조회 실패", { kind: error.kind, status: error.status });

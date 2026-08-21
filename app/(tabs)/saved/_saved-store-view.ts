@@ -4,7 +4,10 @@
 // 이유는 마이페이지(F05)가 같은 API를 쓰기 때문이다 — 거리 표기가 화면마다 갈리면 안 된다.
 
 import type { FavoriteStore } from "@/app/_lib/api/schemas/stores";
-import { resolveStoreOpenStatus } from "@/app/_lib/store-open-status";
+import {
+  DEFAULT_STORE_BUSINESS_HOURS,
+  DEFAULT_STORE_OPEN_LABEL,
+} from "@/app/_lib/store-business-hours";
 import type { SavedStoreOpenState } from "./_components/row-saved-store";
 
 export interface SavedStoreView {
@@ -31,15 +34,13 @@ export function formatDistance(distanceMeters: number | null | undefined): strin
 }
 
 export function mapFavoriteStoreToView(store: FavoriteStore): SavedStoreView {
-  const known = resolveStoreOpenStatus(store.openStatus);
-
   return {
     id: String(store.storeId),
     name: store.storeName,
     distance: formatDistance(store.distanceMeters),
-    openState: known?.state ?? "closed",
-    openLabel: known?.label ?? "영업정보 없음",
-    hours: store.todayBusinessHours?.trim() || "영업시간 정보 없음",
+    openState: "open",
+    openLabel: DEFAULT_STORE_OPEN_LABEL,
+    hours: DEFAULT_STORE_BUSINESS_HOURS,
     imageUrl: store.storeImageUrl?.trim() || undefined,
   };
 }
