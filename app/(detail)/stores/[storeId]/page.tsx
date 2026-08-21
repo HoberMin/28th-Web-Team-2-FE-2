@@ -4,6 +4,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getStoreDetail } from "@/app/_lib/api/server/stores";
 import { getStoreReportsWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
+import { resolveStoreOpenStatus } from "@/app/_lib/store-open-status";
 import {
   mapStoreReportToPrice,
   parseStoreDetailProfile,
@@ -61,7 +62,9 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
         phone: queryProfile.phone,
         // 요일별 목록이라 첫 줄만 요약으로 쓴다. 펼침 UI가 생기면 배열째 넘긴다.
         hours: detail.businessHours[0] ?? queryProfile.hours,
-        openLabel: detail.openStatus ?? queryProfile.openLabel,
+        // `openStatus`는 `"OPEN"`·`"UNKNOWN"` 같은 원시값이라 그대로 그리면 안 된다
+        // (실제로 라이브가 `"UNKNOWN"`을 내려 화면에 영문이 노출됐다).
+        openLabel: resolveStoreOpenStatus(detail.openStatus)?.label ?? queryProfile.openLabel,
         imageUrl: detail.storeImageUrl ?? queryProfile.imageUrl,
         liked: detail.isLiked,
       }
