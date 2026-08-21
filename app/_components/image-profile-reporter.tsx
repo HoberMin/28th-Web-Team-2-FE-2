@@ -41,7 +41,7 @@ export function ImageProfileReporter({
   return (
     <span
       aria-hidden="true"
-      className={cn("relative block shrink-0 overflow-hidden", SIZE_CLASS[size], className)}
+      className={cn("relative block shrink-0 overflow-hidden rounded-full", SIZE_CLASS[size], className)}
     >
       <Image src={PROFILE_ASSET[color]} alt="" fill unoptimized sizes={`${size}px`} />
     </span>

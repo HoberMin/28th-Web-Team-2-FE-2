@@ -153,8 +153,9 @@ export function NeighborhoodPrices({ reports, isTemporary }: NeighborhoodPricesP
       <div
         role="group"
         aria-label="동네 제보가 정렬"
-        className="flex w-full gap-1 rounded-md bg-surface-secondary p-0.5"
+        className="relative flex w-full gap-1 overflow-hidden rounded-md bg-surface-secondary p-0.5"
       >
+        <SegmentIndicator index={sort === "cheap" ? 0 : 1} count={2} />
         <SortButton selected={sort === "cheap"} onClick={() => setSort("cheap")}>
           저렴한 순
         </SortButton>
@@ -217,7 +218,12 @@ export function OnlinePriceNotice({ isTemporary = false }: { isTemporary?: boole
           onClick={() => setOpen((value) => !value)}
           className="flex size-6 items-center justify-center rounded-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
         >
-          <FigmaIcon name="information-circle-2" width={20} />
+          <FigmaIcon
+            name="information-circle-2"
+            width={20}
+            currentColor
+            className="text-content-disabled"
+          />
         </button>
       </div>
       {open ? (
@@ -357,14 +363,29 @@ function SortButton({
       //   선택   bg content/selected(#354153) · border 같은 색 · content/inverse · body/14-semibold
       //   미선택 bg surface/secondary        · border border/secondary · content/secondary · body/14-medium
       // 전에는 선택을 "흰 배경 + 진한 글씨"로 반전시켜 두어 선택/미선택 대비가 뒤바뀌어 있었다.
-      className={`min-h-10 flex-1 rounded-md border p-2 ${
+      className={`relative z-10 min-h-10 flex-1 rounded-md border border-transparent bg-transparent p-2 transition-colors duration-200 ${
         selected
-          ? "border-content-selected bg-content-selected text-body-14-semibold text-content-inverse"
-          : "border-border-secondary bg-surface-secondary text-body-14-medium text-content-secondary"
+          ? "text-body-14-semibold text-content-inverse"
+          : "text-body-14-medium text-content-secondary"
       }`}
     >
       {children}
     </button>
+  );
+}
+
+function SegmentIndicator({ index, count }: { index: number; count: number }) {
+  const gap = 4;
+  const inset = 4;
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute top-0.5 bottom-0.5 left-1 rounded-md bg-content-selected transition-transform duration-200 ease-out"
+      style={{
+        width: `calc((100% - ${inset * 2 + gap * (count - 1)}px) / ${count})`,
+        transform: `translateX(calc(${index * 100}% + ${index * gap}px))`,
+      }}
+    />
   );
 }
 
@@ -391,8 +412,12 @@ export function PublicPriceChart({ series }: PublicPriceChartProps) {
       <div
         role="group"
         aria-label="공공 시세 조회 기간"
-        className="flex w-full gap-1 rounded-md bg-surface-secondary p-0.5"
+        className="relative flex w-full gap-1 overflow-hidden rounded-md bg-surface-secondary p-0.5"
       >
+        <SegmentIndicator
+          index={(Object.keys(PERIOD_LABEL) as PricePeriod[]).indexOf(period)}
+          count={Object.keys(PERIOD_LABEL).length}
+        />
         {(Object.keys(PERIOD_LABEL) as PricePeriod[]).map((value) => (
           <SortButton key={value} selected={period === value} onClick={() => setPeriod(value)}>
             {PERIOD_LABEL[value]}

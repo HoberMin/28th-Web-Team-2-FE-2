@@ -109,6 +109,7 @@ export function SectionLowestVegetables({
     <ListLowestVegetable
       key={item.id}
       rank={index + 1}
+      itemId={item.itemId}
       name={item.name}
       storeName={item.storeName}
       price={item.price}

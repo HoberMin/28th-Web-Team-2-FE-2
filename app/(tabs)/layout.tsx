@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { TabNav } from "./_tab-nav";
 import { OnboardingGate } from "./_onboarding-gate";
+import { TabsChrome } from "./_tabs-chrome";
 
 // GNB가 유지되는 5개 탭의 공통 껍데기 (Figma `화면GUI` 298:3420 — 모든 탭 프레임 하단에
 // nav/gnb가 고정으로 붙어 있다).
@@ -29,20 +29,7 @@ export default function TabsLayout({ children }: { children: ReactNode }) {
     <div className="flex h-dvh overflow-hidden justify-center bg-surface-secondary">
       <div className="relative flex h-full min-h-0 w-full max-w-97.5 flex-col overflow-hidden bg-surface-primary">
         <OnboardingGate />
-        <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">{children}</main>
-        {/*
-          하단 safe area는 이 층이 소유한다. 루트 layout이 `viewportFit: "cover"`를 켜서
-          뷰포트가 home indicator 영역까지 확장되므로, 화면 최하단 요소인 GNB가 그만큼을
-          직접 흡수하지 않으면 라벨이 인디케이터 아래로 들어간다.
-          `NavGnb`는 공용 컴포넌트(Figma 원본 pb 20)라 건드리지 않고 바깥에서 더한다.
-          시트·화면 콘텐츠는 `<main>` 안이라 바닥에 닿지 않으므로 여기서 처리하면 안 된다.
-        */}
-        <div
-          className="shrink-0 bg-surface-primary"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          <TabNav />
-        </div>
+        <TabsChrome>{children}</TabsChrome>
       </div>
     </div>
   );

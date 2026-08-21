@@ -47,6 +47,7 @@ export function mapRegionLowestPriceToView(item: RegionLowestPriceItem): HomeLow
 
   return {
     id: String(item.reportId),
+    itemId: String(item.itemId),
     name: item.itemName,
     storeName: item.storeName ?? "가게 정보 없음",
     price: formatWon(item.price),

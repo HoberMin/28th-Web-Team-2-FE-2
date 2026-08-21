@@ -19,9 +19,9 @@ import { ROUTES } from "../../_lib/routes";
 //   · Status Bar(298:3478)는 iOS 목업이라 구현 대상이 아니다. 그래서 Figma의 top-64도 옮기지 않고
 //     헤더를 스크롤 영역 맨 위에 둔다.
 //
-// 아이콘은 디자이너가 Figma Plugin API로 export해 준 원본 SVG를 그대로 쓴다
-// (`public/figma/design-library/icons/`). 둘 다 색이 SVG 안에 박혀 있어 currentColor로 바꾸지 않는다:
-//   map-pin-fill  fill #ff850a (orange/500)
+// 아이콘은 디자이너가 Figma Plugin API로 export해 준 원본 SVG를 사용한다
+// (`public/figma/design-library/icons/`). 위치 핀은 화면 기준의 비활성 회색을 적용한다:
+//   map-pin-fill  content/disabled
 //   search        stroke #262f3c (= content/primary)
 //
 // 대비: 지역명 content/primary on 흰 배경 13.51:1 → 통과.
@@ -42,7 +42,12 @@ export function HomeHeader({ region }: HomeHeaderProps) {
         지역 변경 흐름이 생기면 button/Link로 감싸면 된다(내부 구조는 그대로).
       */}
       <div className="flex h-12 items-center gap-0.5 p-2">
-        <FigmaIcon name="map-pin-fill" width={24} className="shrink-0" />
+        <FigmaIcon
+          name="map-pin-fill"
+          width={24}
+          currentColor
+          className="shrink-0 text-content-disabled"
+        />
         <p className="whitespace-nowrap text-title-18-semibold text-content-primary">{region}</p>
       </div>
 

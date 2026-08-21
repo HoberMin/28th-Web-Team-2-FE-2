@@ -5,7 +5,7 @@ import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getItems } from "@/app/_lib/api/server/items";
 import { getSelectedRegionId } from "@/app/_lib/api/server/selected-region";
 import { getFavoriteStores } from "@/app/_lib/api/server/stores";
-import { getMyReports, getMyWeeklyReports } from "@/app/_lib/api/server/my-reports";
+import { getMyReports } from "@/app/_lib/api/server/my-reports";
 import { getMe } from "@/app/_lib/api/server/users";
 import type { UserRank } from "@/app/_lib/api/schemas/users";
 import { ROUTES } from "@/app/_lib/routes";
@@ -13,7 +13,6 @@ import { LogoutButton } from "./_components/logout-button";
 import { MyPageMenuRow } from "./_components/mypage-menu-row";
 import { MyReportList } from "./_components/my-report-list";
 import { NicknameEditor } from "./_components/nickname-editor";
-import { WeeklyReportStrip } from "./_components/weekly-report-strip";
 
 // F05 마이페이지 — **Figma 시안이 아직 없다**(`shared/pages.md` §시안 없음).
 //
@@ -116,18 +115,11 @@ export default async function MyPage() {
 
   // 제보 섹션은 실패해도 화면을 세우지 않는다 — 위 프로필·메뉴는 이미 떠 있다.
   // 카운트와 같은 방침(`countOrNull`)이고, 못 불러오면 그 섹션만 통째로 빠진다.
-  const [weekly, myReports] = await Promise.all([
-    getMyWeeklyReports(token).catch((error: unknown) => {
-      if (!(error instanceof ApiError)) throw error;
-      console.error("주간 제보 조회 실패", { kind: error.kind, status: error.status });
-      return null;
-    }),
-    getMyReports({ token, page: 0, size: 20 }).catch((error: unknown) => {
+  const myReports = await getMyReports({ token, page: 0, size: 20 }).catch((error: unknown) => {
       if (!(error instanceof ApiError)) throw error;
       console.error("내 제보 조회 실패", { kind: error.kind, status: error.status });
       return null;
-    }),
-  ]);
+    });
   // 오늘/어제 배지 기준일을 서버에서 한 번 고정한다 — 행마다 다른 "오늘"이 나오지 않게.
   const today = new Date().toISOString().slice(0, 10);
 
@@ -156,13 +148,6 @@ export default async function MyPage() {
           value={countLabel(vegetableCount, "개", "없음")}
         />
       </nav>
-
-      {weekly ? (
-        <WeeklyReportStrip
-          totalReportedDays={weekly.totalReportedDays}
-          dailyReports={weekly.dailyReports}
-        />
-      ) : null}
 
       {myReports ? (
         <section aria-labelledby="my-reports-heading" className="pt-6">

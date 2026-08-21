@@ -33,6 +33,8 @@ export type HomeTrendDirection = "down" | "up" | "flat";
 /** 우리 동네 최저가 야채 한 줄(list/lowest-vegetable). */
 export interface HomeLowestVegetable {
   id: string;
+  /** 야채 시세 상세 화면으로 이동할 Spring itemId(문자열). */
+  itemId: string;
   name: string;
   storeName: string;
   /** 예: "24,900원" */

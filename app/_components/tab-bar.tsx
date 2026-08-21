@@ -55,8 +55,24 @@ export function TabBar({ items, activeHref, ariaLabel, className }: TabBarProps)
   return (
     <nav
       aria-label={ariaLabel}
-      className={cn("flex w-full items-center justify-between", className)}
+      className={cn("relative flex w-full items-center justify-between", className)}
     >
+      {(() => {
+        const selectedIndex = Math.max(
+          0,
+          items.findIndex(({ href }) => href === activeHref),
+        );
+        return (
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 h-0.5 origin-left bg-border-tertiary transition-transform duration-200 ease-out"
+            style={{
+              width: `${100 / Math.max(items.length, 1)}%`,
+              transform: `translateX(${selectedIndex * 100}%)`,
+            }}
+          />
+        );
+      })()}
       {items.map(({ href, label }) => {
         const selected = href === activeHref;
 
@@ -68,10 +84,10 @@ export function TabBar({ items, activeHref, ariaLabel, className }: TabBarProps)
             className={cn(
               // UI QA 2026-08-20 #29: selected 라벨이 디자인보다 얇았다 → body/16-**bold**.
               // default는 그대로 body/16-semibold다.
-              "flex flex-1 items-center justify-center border-b-2 border-solid p-2 text-center whitespace-nowrap",
+              "relative z-10 flex flex-1 items-center justify-center border-b-2 border-solid border-transparent p-2 text-center whitespace-nowrap transition-colors duration-200",
               selected
-                ? "border-border-tertiary text-body-16-bold text-content-primary"
-                : "border-border-primary text-body-16-semibold text-content-disabled",
+                ? "text-body-16-bold text-content-primary"
+                : "text-body-16-semibold text-content-disabled",
             )}
           >
             {label}

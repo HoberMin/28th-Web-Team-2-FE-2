@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ROUTES } from "../_lib/routes";
 import { VegetablePrice } from "./vegetable-price";
 import { VegetableTrend, type VegetableTrendState } from "./vegetable-trend";
 import { cn } from "../_lib/cn";
@@ -42,6 +44,8 @@ import { cn } from "../_lib/cn";
 export interface ListLowestVegetableProps {
   /** 순위 숫자. Figma는 20px 폭에 가운데 정렬된 한 자리 숫자를 보여준다. */
   rank: number;
+  /** 야채 시세 상세로 이동할 itemId. */
+  itemId?: string;
   /** 야채 그림 슬롯(40×40). */
   visual: ReactNode;
   /** 야채 이름. */
@@ -71,6 +75,7 @@ export interface ListLowestVegetableProps {
 
 export function ListLowestVegetable({
   rank,
+  itemId,
   visual,
   name,
   storeIcon,
@@ -83,7 +88,7 @@ export function ListLowestVegetable({
   trendState = "down",
   className,
 }: ListLowestVegetableProps) {
-  return (
+  const content = (
     <div className={cn("flex w-full items-center justify-between py-2.5", className)}>
       <div className="flex min-w-0 items-center gap-2">
         <p className="h-6 w-5 shrink-0 text-center text-body-16-semibold text-content-secondary">
@@ -124,5 +129,17 @@ export function ListLowestVegetable({
         />
       </div>
     </div>
+  );
+
+  return itemId ? (
+    <Link
+      href={ROUTES.priceDetail(itemId)}
+      aria-label={`${name} 야채 시세 상세 보기`}
+      className="block w-full rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-content-primary"
+    >
+      {content}
+    </Link>
+  ) : (
+    content
   );
 }

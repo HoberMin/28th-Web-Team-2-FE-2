@@ -22,6 +22,7 @@ import {
 import { StoreSheet } from "./_store-sheet";
 import type { NearbyStoresState } from "./_nearby-state";
 import { useNearbyStores } from "./_use-nearby-stores";
+import { useHideTabsGnb } from "../_tabs-chrome";
 
 // F03 동네가게 — 검색 헤더 아래 지도. (Figma `화면GUI` 298:3605 · 3617 · 3630 · 3643,
 // `F03_가게_기본_축소` 774:10912)
@@ -170,6 +171,7 @@ export function StoresMapView({ region, initialCenter, initialNearbyState }: Sto
   // 새 중심·검색·찜 필터 응답에서 선택 가게가 사라지면 시트도 같이 닫혀야 앞뒤가 맞는다.
   // 따로 닫는 effect를 두지 않고 현재 응답에서 파생한다.
   const selectedStore = stores.find((store) => store.id === selectedId) ?? null;
+  useHideTabsGnb(selectedStore !== null);
 
   // 하트 필터가 켜졌을 때만 보이는 모든 마커를 favorite(하트 + 이름)으로 표시한다.
   // 필터가 꺼진 기본 지도에서는 찜 여부를 마커에 드러내지 않고, 선택한 가게만 name으로 바꾼다.
