@@ -102,7 +102,7 @@ describe("GET /api/stores/nearby", () => {
     expect(apiMocks.getNearbyStores).toHaveBeenCalledWith({
       latitude: 37.5088,
       longitude: 127.0632,
-      radius: 500,
+      radius: 2000,
       onlyLiked: false,
       keyword: undefined,
       token: undefined,

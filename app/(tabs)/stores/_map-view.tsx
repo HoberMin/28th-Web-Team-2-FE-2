@@ -70,7 +70,7 @@ function createFallbackViewport(center: MapCenter, stores: readonly MapStore[]):
       y: (FALLBACK_MAP_SIZE.height * store.y) / 100,
     };
   }
-  return { level: 4, center, points };
+  return { level: 5, center, points };
 }
 
 // ── 아이콘 (Figma 원본 SVG · `public/figma/design-library/icons/`) ──────────

@@ -42,14 +42,14 @@ describe("loadInitialNearbyStores", () => {
     });
 
     await expect(loadInitialNearbyStores(seongseongCenter)).resolves.toMatchObject({
-      key: "36.8358|127.1324|500||false",
+      key: "36.8358|127.1324|2000||false",
       status: "success",
       stores: [{ id: "101", name: "장보고 마트", isLiked: true }],
     });
     expect(getNearbyStoresMock).toHaveBeenCalledWith({
       latitude: seongseongCenter.lat,
       longitude: seongseongCenter.lng,
-      radius: 500,
+      radius: 2000,
       onlyLiked: false,
       token: "access-token",
     });
