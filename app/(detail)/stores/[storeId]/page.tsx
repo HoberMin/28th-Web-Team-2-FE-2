@@ -4,7 +4,10 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { getStoreDetail } from "@/app/_lib/api/server/stores";
 import { getStoreReportsWithTemporaryFallback } from "@/app/_lib/api/server/stores-fallback";
-import { resolveStoreOpenStatus } from "@/app/_lib/store-open-status";
+import {
+  DEFAULT_STORE_BUSINESS_HOURS,
+  DEFAULT_STORE_OPEN_LABEL,
+} from "@/app/_lib/store-business-hours";
 import {
   mapStoreReportToPrice,
   parseStoreDetailProfile,
@@ -61,14 +64,18 @@ export default async function StoreDetailPage({ params, searchParams }: StoreDet
         // 전화번호는 상세 응답에 없다 — 직전 화면이 넘긴 값을 계속 쓴다.
         phone: queryProfile.phone,
         // 요일별 목록이라 첫 줄만 요약으로 쓴다. 펼침 UI가 생기면 배열째 넘긴다.
-        hours: detail.businessHours[0] ?? queryProfile.hours,
+        hours: DEFAULT_STORE_BUSINESS_HOURS,
         // `openStatus`는 `"OPEN"`·`"UNKNOWN"` 같은 원시값이라 그대로 그리면 안 된다
         // (실제로 라이브가 `"UNKNOWN"`을 내려 화면에 영문이 노출됐다).
-        openLabel: resolveStoreOpenStatus(detail.openStatus)?.label ?? queryProfile.openLabel,
+        openLabel: DEFAULT_STORE_OPEN_LABEL,
         imageUrl: detail.storeImageUrl ?? queryProfile.imageUrl,
         liked: detail.isLiked,
       }
-    : queryProfile;
+    : {
+        ...queryProfile,
+        hours: DEFAULT_STORE_BUSINESS_HOURS,
+        openLabel: DEFAULT_STORE_OPEN_LABEL,
+      };
 
   // 제보 목록이 실패해도 가게 프로필은 보여 준다 — 상세로 들어온 사용자가 빈 화면을 보는
   // 것보다 낫다. 목록 자리만 "아직 제보가 없어요"로 떨어진다.

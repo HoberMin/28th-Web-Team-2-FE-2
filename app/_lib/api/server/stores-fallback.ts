@@ -3,7 +3,6 @@ import "server-only";
 import {
   favoriteStoresSchema,
   nearbyStoresSchema,
-  storeReportsSchema,
   storeRecommendationSchema,
   type FavoriteStores,
   type NearbyStores,
@@ -17,7 +16,7 @@ import {
   getStoreReports,
   type GetNearbyStoresParams,
 } from "./stores";
-import { DEFAULT_DISTRICT, VEGETABLES, getBaselineDummy } from "../../vegetables";
+import { DEFAULT_DISTRICT, VEGETABLES } from "../../vegetables";
 import { getFallbackNearbyStores, type NearbyStore as DummyNearbyStore } from "../../nearby-stores";
 import { hasDedicatedVegetableIcon } from "../../vegetable-images";
 
@@ -179,66 +178,15 @@ export async function getFavoriteStoresWithTemporaryFallback(
   }
 }
 
-// ── 가게별 가격 제보 (F03-3 가게 상세 「저렴해요」·「비싸요」) ───────────────────────
-
-function buildTemporaryStoreReports(storeId: number): StoreReports {
-  const sample = VEGETABLES_ICON_FIRST.slice(0, 8);
-  const reports = sample.map((vegetable, index) => {
-    const baseline = getBaselineDummy(vegetable.id);
-    const cheap = index % 2 === 0;
-    const diff = cheap ? -Math.round(baseline.current * 0.1) : Math.round(baseline.current * 0.1);
-    return {
-      reportId: index + 1,
-      itemId: index + 1,
-      itemName: vegetable.name,
-      itemImageUrl: null,
-      price: baseline.current + diff,
-      unit: vegetable.unit,
-      reportedDate: baseline.asOf,
-      publicPriceDiff: diff,
-      // ⚠️ **퍼센트**다 (-10 = -10%). 예전엔 비율(-0.1)을 넣었는데 화면 포맷터
-      //    (`stores/[storeId]/_data.ts` formatTrend)는 이 값을 퍼센트로 읽어서,
-      //    2,490→2,241(-10%) 제보가 화면에 **"-0.1%"** 로 나오고 있었다(2026-08-21 수정).
-      priceDiffRate: baseline.current === 0 ? 0 : (diff / baseline.current) * 100,
-      // 제보자 정보는 아직 계약이 없다 — 더미도 채우지 않는다. 화면이 "제보자 정보 없음"을
-      // 그려서 지금 무엇이 비어 있는지가 화면에 드러나게 둔다.
-      reporterNickname: null,
-      reporterRank: null,
-      reporterProfileColor: null,
-      priceClassification: cheap ? ("CHEAP" as const) : ("EXPENSIVE" as const),
-    };
-  });
-
-  return storeReportsSchema.parse({
-    storeId,
-    summary: {
-      cheapCount: reports.filter((report) => report.priceClassification === "CHEAP").length,
-      expensiveCount: reports.filter((report) => report.priceClassification === "EXPENSIVE").length,
-    },
-    reports,
-    page: 0,
-    size: reports.length,
-    hasNext: false,
-  });
-}
-
 export async function getStoreReportsWithTemporaryFallback(
   params: Parameters<typeof getStoreReports>[0],
 ): Promise<{ reports: StoreReports; isTemporary: boolean }> {
   try {
     const reports = await getStoreReports(params);
-    if (reports.reports.length > 0) return { reports, isTemporary: false };
-    console.warn("[stores] store-reports temporary data fallback (empty upstream result)", {
-      storeId: params.storeId,
-    });
-    return { reports: buildTemporaryStoreReports(params.storeId), isTemporary: true };
+    return { reports, isTemporary: false };
   } catch (error) {
     if (!isTemporaryStoresDataError(error)) throw error;
-    console.warn("[stores] store-reports temporary data fallback", {
-      storeId: params.storeId,
-      endpoint: error && typeof error === "object" ? Reflect.get(error, "endpoint") : undefined,
-    });
-    return { reports: buildTemporaryStoreReports(params.storeId), isTemporary: true };
+    throw error;
   }
 }
 

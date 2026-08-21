@@ -18,6 +18,8 @@ export const storeRequestSchema = z.object({
   placeName: z.string().max(100),
   addressName: z.string().max(255),
   placeUrl: z.string().max(500).optional(),
+  /** 카카오 장소 페이지의 Open Graph 대표 이미지. */
+  imageUrl: z.string().url().max(500).optional(),
   categoryName: z.string().max(255).optional(),
   roadAddressName: z.string().max(255).optional(),
   phone: z.string().max(30).optional(),

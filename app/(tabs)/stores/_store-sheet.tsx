@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type Re
 import { useRouter } from "next/navigation";
 import { HomeVegetableImage } from "@/app/(tabs)/_home/home-vegetable-image";
 import { updateStoreFavorite } from "@/app/_lib/api/actions/store-favorite";
-import { resolveStoreOpenStatus } from "@/app/_lib/store-open-status";
+import {
+  DEFAULT_STORE_BUSINESS_HOURS,
+  DEFAULT_STORE_OPEN_LABEL,
+} from "@/app/_lib/store-business-hours";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import { ButtonCircle } from "../../_components/button-circle";
 import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
@@ -175,8 +178,8 @@ export function StoreSheet({ store, center, onClose, fallbackFocusRef }: StoreSh
           header={
             <HeaderStoreDetail
               name={detail?.storeName || store.name}
-              openState={resolveStoreOpenStatus(detail?.openStatus)?.label ?? "영업정보 없음"}
-              openHours={detail?.businessHours[0] ?? "영업시간 정보 없음"}
+              openState={DEFAULT_STORE_OPEN_LABEL}
+              openHours={DEFAULT_STORE_BUSINESS_HOURS}
               distance={formatStoreDistance(detail?.distance ?? store.distanceMeters) ?? "거리 정보 없음"}
               walkTime={formatWalkTime(detail?.walkTimeMinutes, detail?.distance ?? store.distanceMeters)}
               affordableCount={detail?.cheapItemCount ?? 0}

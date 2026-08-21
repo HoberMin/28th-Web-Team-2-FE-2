@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MarkerStoreMap } from "@/app/_components/marker-store-map";
 import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
@@ -113,8 +114,31 @@ export function ReportPlaceMap({
                 center: { lat: currentCenter.getLat(), lng: currentCenter.getLng() },
               });
               if (cancelled) return;
-              placesRef.current = nextPlaces;
-              setPlaces(nextPlaces);
+              const placesWithImages = await Promise.all(
+                nextPlaces.map(async (place) => {
+                  if (!place.placeUrl) return place;
+                  try {
+                    const response = await fetch(
+                      `/api/places/metadata?url=${encodeURIComponent(place.placeUrl)}`,
+                      { cache: "no-store" },
+                    );
+                    if (!response.ok) return place;
+                    const metadata: unknown = await response.json();
+                    const imageUrl =
+                      typeof metadata === "object" && metadata !== null && "imageUrl" in metadata
+                        ? Reflect.get(metadata, "imageUrl")
+                        : undefined;
+                    return typeof imageUrl === "string" && imageUrl.length > 0
+                      ? { ...place, imageUrl }
+                      : place;
+                  } catch {
+                    return place;
+                  }
+                }),
+              );
+              if (cancelled) return;
+              placesRef.current = placesWithImages;
+              setPlaces(placesWithImages);
               setPlacesStatus("success");
             } catch (error) {
               if (!(error instanceof KakaoPlacesClientError)) throw error;
@@ -231,12 +255,23 @@ export function ReportPlaceMap({
                     address={place.roadAddressName || place.addressName}
                     href={hrefFor(place)}
                     thumbnail={
-                      <FigmaImage
-                        name="store-thumbnail.png"
-                        width={56}
-                        height={56}
-                        className="size-full object-cover"
-                      />
+                      place.imageUrl ? (
+                        <Image
+                          src={place.imageUrl}
+                          alt=""
+                          width={56}
+                          height={56}
+                          unoptimized
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <FigmaImage
+                          name="store-thumbnail.png"
+                          width={56}
+                          height={56}
+                          className="size-full object-cover"
+                        />
+                      )
                     }
                   />
                 </li>

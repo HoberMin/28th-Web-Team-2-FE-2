@@ -91,26 +91,21 @@ describe("getNearbyStoresWithTemporaryFallback", () => {
   });
 });
 
-describe("더미 품목은 전용 벡터 아이콘이 있는 품목만 쓴다", () => {
+describe("가게 제보 응답", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  // 생강처럼 전용 SVG가 없는 품목은 홈 화면에서 당근 등 다른 벡터로 대체돼 눈에 띄게
-  // 어긋나 보인다(사용자 신고). 더미 생성기가 전용 아이콘이 있는 품목만 고르는지 검증한다.
-
-  it("가게 상세 더미 제보 목록에 전용 아이콘 없는 품목(생강)이 없다", async () => {
+  it("백엔드 제보가 없으면 빈 목록을 그대로 반환한다", async () => {
     getStoreReportsMock.mockResolvedValue({ storeId: 1, summary: { cheapCount: 0, expensiveCount: 0 }, reports: [], page: 0, size: 0, hasNext: false });
 
-    const { reports } = await getStoreReportsWithTemporaryFallback({
+    const result = await getStoreReportsWithTemporaryFallback({
       storeId: 1,
       token: undefined,
     });
 
-    expect(reports.reports.length).toBeGreaterThan(0);
-    for (const report of reports.reports) {
-      expect(report.itemName).not.toBe("생강");
-    }
+    expect(result.reports.reports).toEqual([]);
+    expect(result.isTemporary).toBe(false);
   });
 
   it("추천 가게 더미의 대표 저렴 상품에 전용 아이콘 없는 품목(생강)이 없다", async () => {
