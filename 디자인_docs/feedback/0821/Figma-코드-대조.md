@@ -74,8 +74,8 @@ Figma 실측 (구현 시 그대로 쓸 값):
 |---|---|---|---|---|
 | 1 | [category-list](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=831-35271) (F04-2) | **8종** — 뿌리채소 · 잎채소 · 열매채소 · 고추류 · 마늘·파·생강 · 버섯류 · **깨·견과류** · 과일류 | 7종 (깨·견과류 없음). 참깨·땅콩은 마늘·파·생강에 묶여 있다 | Spring `ItemCategory` enum에 대응 값이 없다 → **BE 요청** |
 | 2 | [filter/chip](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=318-15508) (F02) 첫 카테고리 라벨 | 「**감자·뿌리** 5」 | 「뿌리채소」 | 같은 Figma 안에서 F02와 F04-2가 서로 다르다. 3·4·5번째 칩은 「잎채소 12」로 복제돼 있어 나머지를 알 수 없다 → **디자인팀 확정 필요** (피드백 8번) |
-| 3 | sheet/sort 정렬 종류 (F02) | 가나다순 · 시세보다 저렴한 순 · 최근 제보순 | 이름순 · 가격 낮은순 · 가격 높은순 | 서버가 3종만 지원 → **BE 요청** |
-| 4 | [sheet/store-detail](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=392-12890) (F03 가게선택) | 영업시간 · 도보시간 · 저렴한 야채 수 · 오늘 제보 수 | 해당 줄 없음 | 주변 가게 API 응답에 없다 → **BE 요청** |
+| 3 | sheet/sort 정렬 종류 (F02) | 가나다순 · 시세보다 저렴한 순 · 최근 제보순 | 이름순 · 가격 낮은순 · 가격 높은순 | `sort` enum이 `NAME_ASC`·`PRICE_ASC`·`PRICE_DESC`뿐. 가나다순은 되고 **나머지 2종이 없다** → **BE 요청** |
+| 4 | [sheet/store-detail](https://www.figma.com/design/WfW1Nkx1oiOWBHNwrw48IL/Design-Library?node-id=392-12890) (F03 가게선택) | 영업상태 · 오늘 영업시간 · 거리 · 도보시간 · 저렴한 야채 N · 오늘 제보된 품목 N · 최근 제보 2개 · 「가게 상세 보기」 | 가게명 · 주소 · 전화 · 하트만 | **정정(08-21)** — `GET /stores/{storeId}`에 `openStatus`·`businessHours`·`walkTimeMinutes`·`cheapItemCount`가 이미 있고 최근 제보는 `/stores/{storeId}/reports`로 얻는다. BE에 없는 건 **「오늘 제보된 품목」 수뿐**. 나머지는 **프런트 작업** |
 | 5 | `icon/information-circle-2` 20px (F03 야채시세 상세) | 벡터 20px | 레포의 `information-circle.svg`는 **16px PNG를 SVG로 감싼 파일** — 20px로 늘리면 뭉갠다 | 원본 미수령 → **아이콘 일괄 교체 때** |
 | 6 | 아이콘·이미지 원본 7건 | — | `image/onboarding`·`image/logo` 화질 / 야채 아이콘이 프레임 아닌 그림만 export / `icon/heart` / `icon/sparkle` 미수령 / `icon/person-fill` 여백 부족 | **오늘 저녁 일괄** |
 
@@ -83,7 +83,9 @@ Figma 실측 (구현 시 그대로 쓸 값):
 
 ## 후속 액션
 
-**BE 요청 (4)** — 깨·견과류 카테고리 · 정렬 3종 · 주변 가게 4개 필드 · (결정되면) 단위 선택
+**BE 요청 (4)** — 깨·견과류 카테고리 · 정렬 2종 · 「오늘 제보된 품목」 수 · 제보 unit 제약 확인
+
+**프런트 미작업 (BE는 이미 있는데 안 붙음)** — 가게 시트의 영업상태·영업시간·도보시간·저렴한 야채 수·최근 제보 2개 / 온라인가 비교 목록(`GET /items/{itemId}/online-prices`가 있는데 화면은 더미 `_lib/vegetables`를 쓴다 — 서버 fetch 함수 `api/server/items.ts`는 이미 만들어져 있고 호출부만 안 바뀌었다)
 **디자인팀 전달 (18항목)** — `디자인_docs/feedback/0821/화면리뷰.md`
 **아이콘 일괄 (7)** — 오늘 저녁
 **결정 필요 (2)** — 양 단위 편집 화면을 살릴지 / 마이페이지 시안을 그릴지
