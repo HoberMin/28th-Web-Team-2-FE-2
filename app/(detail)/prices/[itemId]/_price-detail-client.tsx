@@ -370,8 +370,6 @@ function SortButton({
 
 interface PublicPriceChartProps {
   series: Record<PricePeriod, PricePoint[]>;
-  /** `NeighborhoodPricesProps.isTemporary`와 같은 이유 — 그래프만 개별적으로 더미로 채워진 경우. */
-  isTemporary?: boolean;
 }
 
 const PERIOD_LABEL: Record<PricePeriod, string> = {
@@ -380,11 +378,13 @@ const PERIOD_LABEL: Record<PricePeriod, string> = {
   year: "1년",
 };
 
-export function PublicPriceChart({ series, isTemporary }: PublicPriceChartProps) {
+export function PublicPriceChart({ series }: PublicPriceChartProps) {
   const [period, setPeriod] = useState<PricePeriod>("week");
   const points = series[period];
-  const average = points.reduce((sum, point) => sum + point.price, 0) / Math.max(points.length, 1);
-  const chart = buildChart(points);
+  const average = points.length
+    ? points.reduce((sum, point) => sum + point.price, 0) / points.length
+    : null;
+  const chart = points.length ? buildChart(points) : null;
 
   return (
     <section id="public-price" className="scroll-mt-23.25 px-4 py-8">
@@ -401,51 +401,73 @@ export function PublicPriceChart({ series, isTemporary }: PublicPriceChartProps)
       </div>
 
       <div className="mt-7 flex flex-col gap-4">
-        <div className="relative h-46 w-full overflow-hidden" aria-label={`${PERIOD_LABEL[period]} 공공 시세 그래프`}>
-          <svg
-            viewBox="0 0 358 184"
-            role="img"
-            aria-label={`${PERIOD_LABEL[period]} 공공 시세 변화`}
-            className="size-full overflow-visible"
+        {chart ? (
+          <div
+            className="relative h-46 w-full overflow-hidden"
+            aria-label={`${PERIOD_LABEL[period]} 공공 시세 그래프`}
           >
-            {[0, 89, 178, 267, 356].map((x) => (
-              <line key={x} x1={x} y1="5" x2={x} y2="162" stroke="var(--color-border-secondary)" strokeWidth="1" />
-            ))}
-            {chart.path ? (
-              <path d={chart.path} fill="none" stroke="var(--color-content-brand-light)" strokeWidth="1.5" />
-            ) : null}
+            <svg
+              viewBox="0 0 358 184"
+              role="img"
+              aria-label={`${PERIOD_LABEL[period]} 공공 시세 변화`}
+              className="size-full overflow-visible"
+            >
+              {[0, 89, 178, 267, 356].map((x) => (
+                <line
+                  key={x}
+                  x1={x}
+                  y1="5"
+                  x2={x}
+                  y2="162"
+                  stroke="var(--color-border-secondary)"
+                  strokeWidth="1"
+                />
+              ))}
+              {chart.path ? (
+                <path d={chart.path} fill="none" stroke="var(--color-content-brand-light)" strokeWidth="1.5" />
+              ) : null}
+              {chart.latest ? (
+                <>
+                  <circle cx={chart.latest.x} cy={chart.latest.y} r="12" fill="var(--color-green-100)" />
+                  <circle cx={chart.latest.x} cy={chart.latest.y} r="5" fill="var(--color-content-brand-light)" />
+                </>
+              ) : null}
+            </svg>
+
             {chart.latest ? (
-              <>
-                <circle cx={chart.latest.x} cy={chart.latest.y} r="12" fill="var(--color-green-100)" />
-                <circle cx={chart.latest.x} cy={chart.latest.y} r="5" fill="var(--color-content-brand-light)" />
-              </>
+              <div
+                className="absolute -translate-x-1/2 -translate-y-full rounded-sm bg-surface-inverse px-3 py-1.5 text-center text-content-inverse after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-t-6 after:border-x-transparent after:border-t-surface-inverse"
+                style={{
+                  left: `${(chart.latest.x / 358) * 100}%`,
+                  top: `${Math.max(chart.latest.y - 10, TOOLTIP_MIN_TOP)}px`,
+                }}
+              >
+                <p className="text-caption-12-regular">오늘</p>
+                <p className="text-caption-12-medium">{formatWon(chart.latest.price)}</p>
+              </div>
             ) : null}
-          </svg>
 
-          {chart.latest ? (
-            <div
-              className="absolute -translate-x-1/2 -translate-y-full rounded-sm bg-surface-inverse px-3 py-1.5 text-center text-content-inverse after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-6 after:border-t-6 after:border-x-transparent after:border-t-surface-inverse"
-              style={{ left: `${(chart.latest.x / 358) * 100}%`, top: `${Math.max(chart.latest.y - 10, TOOLTIP_MIN_TOP)}px` }}
-            >
-              <p className="text-caption-12-regular">오늘</p>
-              <p className="text-caption-12-medium">{formatWon(chart.latest.price)}</p>
-            </div>
-          ) : null}
-
-          {chart.labels.map((label, index) => (
-            <span
-              key={`${label.date}-${label.x}`}
-              className={`absolute top-41.75 text-caption-12-regular text-content-secondary ${index === 0 ? "" : "-translate-x-1/2"}`}
-              style={{ left: `${(label.x / 358) * 100}%` }}
-            >
-              {label.label}
-            </span>
-          ))}
-        </div>
+            {chart.labels.map((label, index) => (
+              <span
+                key={`${label.date}-${label.x}`}
+                className={`absolute top-41.75 text-caption-12-regular text-content-secondary ${index === 0 ? "" : "-translate-x-1/2"}`}
+                style={{ left: `${(label.x / 358) * 100}%` }}
+              >
+                {label.label}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="flex h-46 items-center justify-center text-body-14-regular text-content-secondary">
+            해당 기간의 공공 시세 정보가 없어요.
+          </p>
+        )}
 
         <div className="flex items-center justify-between rounded-md border border-border-secondary p-3">
           <span className="text-body-14-medium text-content-secondary">{PERIOD_LABEL[period]} 평균가</span>
-          <strong className="text-body-16-semibold text-content-primary">{formatWon(average)}</strong>
+          <strong className="text-body-16-semibold text-content-primary">
+            {average === null ? "정보 없음" : formatWon(average)}
+          </strong>
         </div>
       </div>
     </section>
