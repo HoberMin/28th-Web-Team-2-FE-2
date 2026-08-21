@@ -7,6 +7,7 @@ import { FigmaIcon, FigmaImage } from "@/app/_lib/figma-asset";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import {
   loadKakaoSdk,
+  type KakaoGlobal,
   type KakaoMap,
   type MapLoadStatus,
 } from "@/app/_lib/kakao-map";
@@ -50,6 +51,7 @@ export function ReportPlaceMap({
 }: ReportPlaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
+  const kakaoRef = useRef<KakaoGlobal | null>(null);
   const [mapStatus, setMapStatus] = useState<MapLoadStatus>("idle");
   const [placesStatus, setPlacesStatus] = useState<PlacesStatus>("idle");
   const [places, setPlaces] = useState<StoreRequest[]>([]);
@@ -59,15 +61,15 @@ export function ReportPlaceMap({
 
   const repositionMarkers = useCallback(() => {
     const map = mapRef.current;
-    if (!map) return;
+    const kakao = kakaoRef.current;
+    if (!map || !kakao) return;
 
     const projection = map.getProjection();
     const nextPositions = placesRef.current.flatMap((place) => {
       if (place.x === undefined || place.y === undefined) return [];
-      const point = projection.containerPointFromCoords({
-        getLat: () => place.y as number,
-        getLng: () => place.x as number,
-      });
+      const point = projection.containerPointFromCoords(
+        new kakao.maps.LatLng(place.y as number, place.x as number),
+      );
       return [{ place, left: point.x, top: point.y }];
     });
     setMarkerPositions(nextPositions);
@@ -93,6 +95,7 @@ export function ReportPlaceMap({
 
         const mapCenter = new kakao.maps.LatLng(center.lat, center.lng);
         const map = new kakao.maps.Map(container, { center: mapCenter, level });
+        kakaoRef.current = kakao;
         mapRef.current = map;
         setMapStatus("ready");
 
@@ -141,6 +144,7 @@ export function ReportPlaceMap({
       cleanupSearchRef.current = null;
       placesRef.current = [];
       setMarkerPositions([]);
+      kakaoRef.current = null;
       mapRef.current = null;
       container.replaceChildren();
     };
