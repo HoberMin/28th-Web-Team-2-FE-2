@@ -1,4 +1,5 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32.0002" viewBox="0 0 32 32.0002" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(8 8)">
 <g id="Group 2085673345">
 <path id="Vector 140333" d="M15.5245 4.28301C15.7258 3.62019 10.5348 1.56719 6.39978 3.78211C10.4237 3.55811 11.6326 5.03833 15.5245 4.28301Z" fill="url(#paint0_linear_0_127)"/>
 <path id="Vector 140334" d="M15.8167 4.28275C15.6154 3.61993 20.8064 1.56693 24.9414 3.78185C20.9174 3.55785 19.7086 5.03807 15.8167 4.28275Z" fill="url(#paint1_linear_0_127)"/>
@@ -46,4 +47,5 @@
 <stop offset="1" stop-color="#489953"/>
 </linearGradient>
 </defs>
+</g>
 </svg>
