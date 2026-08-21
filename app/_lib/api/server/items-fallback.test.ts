@@ -97,6 +97,33 @@ describe("getItemsWithTemporaryFallback", () => {
     expect(patched.price).not.toBeNull();
   });
 
+  it("괄호/하이픈 표기 차이가 있어도 정규화해서 매칭한다 (\"고춧가루-국산\" ↔ 더미 \"고춧가루(국산)\")", async () => {
+    getItemsMock.mockResolvedValue({
+      baseDate: null,
+      totalCount: 1,
+      categoryCounts: {},
+      items: [
+        {
+          itemId: 42,
+          itemName: "고춧가루-국산",
+          itemImageUrl: null,
+          defaultUnit: "1kg",
+          price: null,
+          priceGap: null,
+          priceDiffRate: null,
+          isLiked: false,
+        },
+      ],
+      page: 0,
+      size: 18,
+      hasNext: false,
+    });
+
+    const result = await getItemsWithTemporaryFallback({ regionId: "1121510100", token: undefined });
+
+    expect(result.page.items[0].price).not.toBeNull();
+  });
+
   it("일시적 업스트림 에러도 더미로 폴백한다", async () => {
     getItemsMock.mockRejectedValue(ApiError.fromStatus(502, "GET /api/v1/items"));
 

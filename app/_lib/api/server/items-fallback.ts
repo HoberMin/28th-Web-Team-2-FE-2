@@ -63,11 +63,24 @@ function itemIdForIndex(index: number): number {
 }
 
 /**
+ * 표기 구두점 차이를 무시하고 비교하기 위한 정규화. 더미 카탈로그는 "고춧가루(국산)"처럼
+ * 괄호를 쓰는데 실제 Spring 응답은 "고춧가루-국산"처럼 하이픈을 써서 정확 일치가 깨지는
+ * 사례가 실제로 있었다(사용자 신고로 발견) — 괄호·하이픈·공백을 지우고 비교한다.
+ */
+function normalizeVegetableName(name: string): string {
+  return name.replace(/[()（）\-\s]/g, "");
+}
+
+/**
  * 실제 Spring 응답의 itemName으로 46종 더미 카탈로그 항목을 찾는다(itemId 순번이 아니라
  * 이름으로 맞춘다 — 실제 itemId가 더미 카탈로그의 1~46 순번과 정렬된다는 보장이 없다).
+ * 정확히 일치하는 게 없으면 구두점을 무시한 정규화 비교로 한 번 더 찾는다.
  */
 function findDummyVegetableByName(itemName: string) {
-  return VEGETABLES.find((vegetable) => vegetable.name === itemName);
+  const exact = VEGETABLES.find((vegetable) => vegetable.name === itemName);
+  if (exact) return exact;
+  const normalized = normalizeVegetableName(itemName);
+  return VEGETABLES.find((vegetable) => normalizeVegetableName(vegetable.name) === normalized);
 }
 
 function temporaryPriceFields(vegetableId: string) {
