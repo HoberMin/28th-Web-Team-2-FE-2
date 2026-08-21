@@ -53,7 +53,11 @@ export function LowestVegetableList({ rows, collapsedCount, listId }: LowestVege
           size="medium"
           leading={false}
           trailing={false}
-          className="h-11 w-full rounded-md"
+          // radius는 className이 아니라 prop으로 넘긴다 — `rounded-md`를 className에 얹으면
+          // SIZE의 `rounded-lg`와 같은 속성이 겹쳐 `@theme` 선언 순서 때문에 lg가 이긴다
+          // (2026-08-21 교정: 08-20의 radius 수정이 이 이유로 화면에 안 나타났다).
+          radius="md"
+          className="h-11 w-full"
           aria-expanded={expanded}
           aria-controls={listId}
           onClick={() => setExpanded((prev) => !prev)}
