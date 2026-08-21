@@ -56,10 +56,12 @@ export interface StoreDetailPrice {
   price: string;
   /** 예: "/1kg" */
   unit: string;
-  /** 예: "▼ 1,000원(-7.4%)". 공공 시세 대비 차이가 없으면 빈 문자열. */
-  trend: string;
+  /** 공공 시세와 같으면 `null`. */
+  trend: StoreDetailPriceTrend | null;
   kind: "cheap" | "expensive";
-  /** 응답의 `itemImageUrl`. 없으면 화면이 품목명으로 Figma 벡터를 찾는다. */
+  /** BE가 제보자 정보를 주지 않으면 `null`. */
+  reporter: StoreDetailReporter | null;
+  /** 응답의 `itemImageUrl`. 없으면 화면이 Figma `image/vegetable-placeholder`를 그린다. */
   imageUrl?: string;
 }
 
