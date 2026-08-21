@@ -8,6 +8,13 @@ import {
   type ItemPage,
   type ItemSort,
 } from "../schemas/items";
+import {
+  onlinePricesSchema,
+  publicPriceTrendSchema,
+  type OnlinePrices,
+  type PublicPricePeriod,
+  type PublicPriceTrend,
+} from "../schemas/item-prices";
 import { springFetch } from "../spring";
 import { CACHE_TAGS } from "../tags";
 
@@ -89,5 +96,42 @@ export async function setItemFavorite(params: {
     method: params.liked ? "PUT" : "DELETE",
     token: params.token,
     cache: "no-store",
+  });
+}
+
+export interface GetPublicPriceTrendParams {
+  itemId: number;
+  regionId: string;
+  period?: PublicPricePeriod;
+}
+
+/**
+ * 기간별 공공가격 추이 — 시세 상세의 주간 가격 그래프.
+ *
+ * 개인화 필드가 없어 토큰을 받지 않는다. 공공가격은 하루 단위로 갱신되므로 길게 캐시한다.
+ * 적재 전이면 `points: []`로 정상 200이 온다(에러가 아니다) — 폴백은 `items-fallback`이 판단한다.
+ */
+export function getPublicPriceTrend({
+  itemId,
+  ...query
+}: GetPublicPriceTrendParams): Promise<PublicPriceTrend> {
+  return springFetch({
+    path: `/api/v1/items/${itemId}/public-prices`,
+    query: { ...query },
+    schema: publicPriceTrendSchema,
+    cache: { revalidate: 3_600, tags: [CACHE_TAGS.items] },
+  });
+}
+
+/**
+ * 채널별 온라인 최저가 — 시세 상세의 쇼핑몰 비교.
+ *
+ * `regionId`를 받지 않는다(전국 공통). 수집 전이면 `onlinePrices: []`로 정상 200이 온다.
+ */
+export function getOnlinePrices(itemId: number): Promise<OnlinePrices> {
+  return springFetch({
+    path: `/api/v1/items/${itemId}/online-prices`,
+    schema: onlinePricesSchema,
+    cache: { revalidate: 3_600, tags: [CACHE_TAGS.items] },
   });
 }
