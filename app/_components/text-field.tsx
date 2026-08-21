@@ -46,9 +46,31 @@ export interface TextFieldProps extends ComponentPropsWithoutRef<"input"> {
    * 디자인이 다른 화면만 여기로 조정한다 — 공통 기본값을 화면 하나 때문에 바꾸지 않기 위해서다.
    */
   inputClassName?: string;
+  /**
+   * 안내문구 색. Figma `field/text` normal은 content/disabled지만 F04-2 야채 카테고리만
+   * content/primary다.
+   *
+   * ⚠️ 이걸 `inputClassName="placeholder:text-content-primary"`로 덮어쓰면 **안 먹는다.**
+   *    기본값 `placeholder:text-content-disabled`와 같은 속성이 두 개 붙는데, cn은
+   *    tailwind-merge가 아니라 단순 join이라 승자가 `@theme` 선언 순서로 정해지고
+   *    content/disabled가 content/primary보다 뒤에 선언돼 있어 항상 disabled가 이긴다.
+   *    (UI QA 2026-08-20 #41이 그래서 코드에는 있는데 화면에는 안 반영됐다 — 2026-08-21 교정)
+   */
+  placeholderTone?: "disabled" | "primary";
 }
 
-export function TextField({ trailing, className, inputClassName, ...rest }: TextFieldProps) {
+const PLACEHOLDER_TONE: Record<"disabled" | "primary", string> = {
+  disabled: "placeholder:text-content-disabled",
+  primary: "placeholder:text-content-primary",
+};
+
+export function TextField({
+  trailing,
+  className,
+  inputClassName,
+  placeholderTone = "disabled",
+  ...rest
+}: TextFieldProps) {
   return (
     <div
       className={cn(
@@ -61,7 +83,8 @@ export function TextField({ trailing, className, inputClassName, ...rest }: Text
     >
       <input
         className={cn(
-          "min-w-0 flex-1 bg-transparent text-body-16-medium text-content-primary outline-none placeholder:text-content-disabled",
+          "min-w-0 flex-1 bg-transparent text-body-16-medium text-content-primary outline-none",
+          PLACEHOLDER_TONE[placeholderTone],
           inputClassName,
         )}
         {...rest}
