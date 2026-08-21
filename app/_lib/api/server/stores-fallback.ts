@@ -146,7 +146,8 @@ function buildTemporaryFavoriteStores(): FavoriteStores {
     storeName: dummy.name,
     storeImageUrl: null,
     distanceMeters: dummy.distanceM,
-    openStatus: "영업중",
+    // 코드값 자리다 — 표시 문구("영업중")를 넣으면 라벨 매핑이 미지 값으로 떨어진다.
+    openStatus: "OPEN",
     todayBusinessHours: "09:00 - 22:00",
     isLiked: true,
   }));
