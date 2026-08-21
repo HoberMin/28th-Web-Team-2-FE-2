@@ -1,4 +1,28 @@
 /**
+ * 전용 벡터 SVG가 실제로 있는 10종(Figma에서 받은 것) — 아래 매핑에서 형태가 가까운
+ * 다른 품목에 재사용되는 나머지 36종과 구분한다. 생강처럼 재사용 벡터(당근)가 눈에 띄게
+ * 안 맞는다는 신고가 있어, 홈 화면처럼 **품목을 골라서 보여주는 더미 생성기**는 이 목록에서만
+ * 고르게 한다(`reports-fallback.ts`·`stores-fallback.ts`) — 실데이터가 이 밖의 품목으로 오면
+ * 여전히 재사용 벡터를 쓴다(그건 이 목록의 책임 밖).
+ */
+export const DEDICATED_VEGETABLE_ICON_IDS: readonly string[] = Object.freeze([
+  "potato",
+  "sweet-potato",
+  "garlic",
+  "onion",
+  "carrot",
+  "tomato",
+  "bell-pepper",
+  "cucumber",
+  "red-pepper",
+  "broccoli",
+]);
+
+export function hasDedicatedVegetableIcon(id: string): boolean {
+  return DEDICATED_VEGETABLE_ICON_IDS.includes(id);
+}
+
+/**
  * Figma에서 받은 채소 벡터 10종만 화면 채소 이미지로 사용한다.
  *
  * 품목은 46종이지만 현재 에셋이 10종뿐이므로 비슷한 품목끼리 같은 벡터를 재사용한다.
