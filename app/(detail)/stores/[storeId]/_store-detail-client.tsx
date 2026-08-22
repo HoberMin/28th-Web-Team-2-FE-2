@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
-import IconClockFill from "@karrotmarket/react-monochrome-icon/IconClockFill";
 import IconPictureFill from "@karrotmarket/react-monochrome-icon/IconPictureFill";
 import { BadgeReporterRank } from "@/app/_components/badge-reporter-rank";
 import { TemporaryDataBadge } from "@/app/_components/temporary-data-badge";
@@ -107,9 +106,16 @@ function StoreInformation({
                 onClick={() => setHoursOpen((current) => !current)}
                 className="flex w-full items-start gap-1 text-left"
               >
-                <IconClockFill
-                  aria-hidden="true"
-                  className="size-5.5 shrink-0 text-content-disabled"
+                {/*
+                  QA-V3 #2: karrot 모노크롬 아이콘을 대신 쓰고 있었는데 글리프가 22×22 박스를
+                  꽉 채워 **바로 위 map-pin-fill보다 커 보였다**. 둘 다 Figma 원본(24 아트보드)
+                  에셋으로 통일해 같은 22에서 실제로 같은 크기로 보이게 한다.
+                */}
+                <FigmaIcon
+                  name="clock-filled"
+                  width={22}
+                  currentColor
+                  className="shrink-0 text-content-disabled"
                 />
                 <div className="min-w-0 flex-1">
                   {/* store-profile-hours-summary(429:17643) — gap-[4px] items-center */}
@@ -197,9 +203,9 @@ function StoreInformation({
  * 없을 때는 Figma `image/vegetable-placeholder`(`Photo=placeholer` variant, 1096:21559):
  * `surface/secondary` 바탕 + 가운데 사진 아이콘 32.
  *
- * ⚠️ 아이콘은 Figma 원본(`material-symbols:photo-rounded`)을 아직 못 받았다 — 같은 파일이
- *    `icon/clock-filled` 자리에 쓰고 있는 karrot 모노크롬 아이콘으로 대신한다.
- *    아이콘 일괄 교체 때 원본으로 바꾼다.
+ * ⚠️ 아이콘은 Figma 원본(`material-symbols:photo-rounded`)을 아직 못 받았다 — karrot 모노크롬
+ *    아이콘으로 대신한다. 아이콘 일괄 교체 때 원본으로 바꾼다.
+ *    (`icon/clock-filled`은 2026-08-22 QA-V3에서 Figma 원본 에셋으로 옮겼다 — 여기만 남았다)
  */
 function ReportPhoto({ item }: { item: StoreDetailPrice }) {
   if (item.imageUrl) {
