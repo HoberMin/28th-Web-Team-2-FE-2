@@ -11,6 +11,10 @@ import {
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
 import { imageAnalysisSchema } from "@/app/_lib/api/schemas/image-analysis";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
+import {
+  PHOTO_MESSAGE,
+  photoAnalysisMessage,
+} from "@/app/_lib/report-photo-messages";
 import { ROUTES } from "@/app/_lib/routes";
 import { submitReportAction, uploadReportPhotoAction } from "./_actions";
 import {
@@ -148,9 +152,6 @@ function buildItemQuery(carryQuery: string, itemId: number | undefined): string 
   return qs ? `?${qs}` : "";
 }
 
-/** 사진 로드 실패 안내. Figma에 실패 시안이 없어 문구만 둔다(동작 공백은 메워야 한다). */
-const PHOTO_ERROR = "사진을 불러오지 못했어요. 다시 선택해 주세요.";
-
 export function ReportForm({
   itemId,
   vegetableName,
@@ -236,15 +237,29 @@ export function ReportForm({
     void analyzePhoto(file, generation);
   }
 
+  /**
+   * 사진 업로드 → 인식. **원본 오류 메시지를 화면에 내보내지 않는다** — 예전엔 catch에서
+   * `error.message`를 그대로 렌더해, Server Action이 예기치 못한 오류를 던지면 Next의 영문
+   * 안내문이 빨간 글씨로 통째로 떴다. 원문은 콘솔에만 남기고 문구는 `PHOTO_MESSAGE`만 쓴다.
+   *
+   * 어느 단계에서 끊겼는지(`stage`)를 들고 있는 이유: 업로드가 실패했으면 확인을 다시 눌러
+   * 재시도하는 게 맞고("사진을 올리지 못했어요"), 인식이 실패했으면 값을 직접 입력하면
+   * 되기 때문에("직접 입력해 주세요") 안내가 달라진다.
+   */
   async function analyzePhoto(file: File, generation: number) {
+    const isStale = () => generation !== photoGenerationRef.current;
+    const stopScanning = () =>
+      setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+    let stage: "upload" | "analyze" = "upload";
+
     try {
       await saveReportPhoto(file);
       const form = new FormData();
       form.append("image", file);
       const uploaded = await uploadReportPhotoAction(form);
-      if (generation !== photoGenerationRef.current) return;
+      if (isStale()) return;
       if (uploaded.status !== "success") {
-        setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+        stopScanning();
         if (uploaded.status === "unauthorized") setSubmitError(uploaded.message);
         else setPhotoError(uploaded.message);
         return;
@@ -257,22 +272,28 @@ export function ReportForm({
           : prev,
       );
 
+      // 여기부터는 사진이 이미 올라갔다 — 실패해도 제보는 그대로 보낼 수 있다.
+      stage = "analyze";
       const response = await fetch("/api/report-image-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageUrl: uploaded.imageUrl, itemId: itemId ?? null }),
       });
-      if (generation !== photoGenerationRef.current) return;
+      if (isStale()) return;
       if (!response.ok) {
-        const messageByStatus: Record<number, string> = {
-          400: "사진 정보를 확인해 주세요. 직접 입력할 수 있어요.",
-          401: "로그인이 필요해요.",
-          404: "선택한 품목을 찾지 못했어요. 품목을 다시 선택해 주세요.",
-        };
-        throw new Error(messageByStatus[response.status] ?? "사진을 분석하지 못했어요. 값을 직접 입력해 주세요.");
+        stopScanning();
+        setPhotoError(photoAnalysisMessage(response.status));
+        return;
       }
+
       const parsed = imageAnalysisSchema.safeParse(await response.json());
-      if (!parsed.success) throw new Error("사진을 분석하지 못했어요. 값을 직접 입력해 주세요.");
+      if (isStale()) return;
+      if (!parsed.success) {
+        console.error("[report] 사진 인식 응답이 예상과 다릅니다", parsed.error);
+        stopScanning();
+        setPhotoError(PHOTO_MESSAGE.analyze);
+        return;
+      }
       if (!itemId && parsed.data.item) {
         setDetectedItem({
           itemId: parsed.data.item.itemId,
@@ -287,15 +308,14 @@ export function ReportForm({
       if (parsed.data.amount?.value !== null && parsed.data.amount?.value !== undefined) {
         setAmount(String(parsed.data.amount.value));
       }
-      setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+      stopScanning();
     } catch (error) {
-      if (generation !== photoGenerationRef.current) return;
-      setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
-      setPhotoError(
-        error instanceof Error
-          ? error.message
-          : "사진을 분석하지 못했어요. 값을 직접 입력해 주세요.",
-      );
+      // 던져진 오류(Server Action 내부 예외·네트워크 단절)는 문구를 만들 근거가 없다.
+      // 원문은 콘솔에만 남기고, 끊긴 단계에 맞는 한국어 안내로 바꿔 보여준다.
+      console.error("[report] 사진 처리 실패", { stage, error });
+      if (isStale()) return;
+      stopScanning();
+      setPhotoError(stage === "upload" ? PHOTO_MESSAGE.upload : PHOTO_MESSAGE.analyze);
     }
   }
 
@@ -352,7 +372,9 @@ export function ReportForm({
         return;
       }
       setSubmitError(result.message);
-    } catch {
+    } catch (error) {
+      // 원문을 화면에 옮기지 않는다(위 analyzePhoto와 같은 이유) — 콘솔에만 남긴다.
+      console.error("[report] 제보 제출 실패", error);
       setSubmitError("제보를 등록하지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
@@ -416,7 +438,7 @@ export function ReportForm({
                       photoGenerationRef.current += 1;
                       setPhoto(null);
                       void clearReportPhoto();
-                      setPhotoError(PHOTO_ERROR);
+                      setPhotoError(PHOTO_MESSAGE.load);
                     }}
                   />
                 </PhotoPreview>
