@@ -2,8 +2,11 @@ import { RowStoreVegetables } from "../../_components/row-store-vegetables";
 import { FigmaImage } from "@/app/_lib/figma-asset";
 import type { Story } from "./types";
 
-// Figma `row/store-vegetables` node 185-2042, sync 2026-08-08. 신규 컴포넌트. Variant 없음.
+// Figma `row/store-vegetables` node 185-2042, sync 2026-08-08 · **재sync 2026-08-22(QA-V3)**.
+// 신규 컴포넌트. Variant 없음.
 // Figma 샘플은 야채 5개 + "+7" 배지지만 개수는 고정이 아니라 바꿀 수 있게 만들었다.
+// 08-22 변경: 루트 정렬이 `justify-between` → **gap 6px 좌측 정렬**. 아래 "남은 게 없을 때"
+// 스토리(3개)가 그 차이를 보는 자리다 — 예전엔 3개가 줄 전체로 흩어졌다.
 //
 function VegetableImage() {
   return (
@@ -32,7 +35,8 @@ function RowStoreVegetablesStory() {
         <p className="text-body-14-semibold text-content-primary">남은 게 없을 때</p>
         <RowStoreVegetables items={toItems(NAMES.slice(0, 3))} />
         <p className="text-caption-12-regular text-content-secondary">
-          더 보여 줄 야채가 없으면 끝의 +N 배지를 그리지 않아요.
+          더 보여 줄 야채가 없으면 끝의 +N 배지를 그리지 않아요. 개수가 적어도 6px 간격으로
+          왼쪽에 붙어요(Figma 08-22 수정본).
         </p>
       </div>
     </div>
