@@ -14,7 +14,7 @@ import {
   PHOTO_MESSAGE,
 } from "@/app/_lib/report-photo-messages";
 import { ROUTES } from "@/app/_lib/routes";
-import { uploadReportPhotoAction } from "./_actions";
+import { submitReportAction, uploadReportPhotoAction } from "./_actions";
 import {
   FieldInput,
   FieldSelect,
@@ -339,9 +339,21 @@ export function ReportForm({
         }
       }
 
-      // 데모에서는 제보 생성 API를 호출하지 않고 제출 성공 화면으로 이동한다.
-      await clearReportPhoto();
-      router.push(ROUTES.reportDone);
+      const result = await submitReportAction({
+        itemId: selectedItemId,
+        store,
+        storeId,
+        price: Number(digitsOnly(price)),
+        amount: Number(amount),
+        unit: reportUnit,
+        photoUrl,
+      });
+      if (result.status === "success") {
+        await clearReportPhoto();
+        router.push(ROUTES.reportDone);
+        return;
+      }
+      setSubmitError(result.message);
     } catch (error) {
       // 원문을 화면에 옮기지 않는다(위 analyzePhoto와 같은 이유) — 콘솔에만 남긴다.
       console.error("[report] 제보 제출 실패", error);
