@@ -8,14 +8,20 @@ import { cn } from "../_lib/cn";
 // 자리에 다 못 담으면 끝에 `badge/more`로 남은 개수를 알린다.
 //
 // get_design_context 실측:
-//   루트   flex h-[86px] items-start justify-between w-[320px]
-//          → items-start justify-between. 86px는 `min-h-21.5`로만 두고 고정하지 않는다
+//   루트   flex gap-[6px] h-[86px] items-start w-[320px]
+//          → items-start + **gap-1.5(6px) 좌측 정렬**. 86px는 `min-h-21.5`로만 두고 고정하지 않는다
 //            (야채 이름이 2줄이면 48+4+34 = 86px이 자연스럽게 나오고, 1줄뿐인 행도 같은 높이로
 //             정렬돼야 목록에서 줄이 흔들리지 않는다). 320px는 Figma 프레임 폭이라 w-full로 따라간다.
 //   자식   item/vegetable(185-1520) 5개 + badge/more(185-1912) 1개 — 둘 다 이미 구현돼 있어 재사용한다.
 //          Figma 샘플이 5개일 뿐 개수는 고정이 아니라 `items` 배열로 받는다.
 //
 // 야채 그림은 ItemVegetable의 `visual` 슬롯으로 그대로 넘긴다. Figma 샘플 양파는 public에 export했다.
+//
+// ⚠️ **2026-08-22 QA-V3 재실측: 루트가 `justify-between` → `gap-[6px]`로 바뀌었다**
+//    (Design Library `row/store-vegetables` 185:2042 · 디자이너가 컴포넌트를 수정했다고 알려온 건이다).
+//    5개+badge/more가 꽉 찬 샘플에서는 두 방식의 결과가 거의 같아(318px 안에 48×6 + 6×5 = 318)
+//    차이가 안 보이지만, **야채가 5개 미만이면** justify-between은 줄 전체로 흩뿌리고
+//    gap은 왼쪽으로 붙인다 — 홈 추천 가게 카드가 그 경우를 실제로 만든다.
 
 export interface RowStoreVegetablesItem {
   /** 야채 그림 슬롯(48×48). */
@@ -32,7 +38,7 @@ export interface RowStoreVegetablesProps {
 
 export function RowStoreVegetables({ items, moreCount, className }: RowStoreVegetablesProps) {
   return (
-    <div className={cn("flex min-h-21.5 w-full items-start justify-between", className)}>
+    <div className={cn("flex min-h-21.5 w-full items-start gap-1.5", className)}>
       {items.map((item) => (
         <ItemVegetable key={item.name} visual={item.visual} name={item.name} />
       ))}
