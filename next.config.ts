@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    serverActions: {
+      // 업로드 파일은 5MB까지 허용하고 multipart 오버헤드를 위해 요청 본문은 6MB로 둔다.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     // 야채·카트 자산이 SVG(Figma export) — next/image가 SVG를 서빙하려면 필요.
     // 보안 하드닝: 스크립트 실행 차단(script-src 'none')·sandbox·다운로드 처리로
