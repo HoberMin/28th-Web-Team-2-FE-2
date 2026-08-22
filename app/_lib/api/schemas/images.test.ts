@@ -7,15 +7,18 @@ import {
 } from "./images";
 
 describe("image upload schema", () => {
-  it.each(["image/jpeg", "image/png"])("5MB 이하 %s 파일을 허용한다", (type) => {
+  it.each(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"])(
+    "5MB 이하 %s 파일을 허용한다",
+    (type) => {
     expect(validateUploadImage({ size: MAX_UPLOAD_IMAGE_BYTES, type })).toBeNull();
-  });
+    },
+  );
 
   it.each([
     [{ size: 0, type: "image/jpeg" }, "empty"],
     [{ size: MAX_UPLOAD_IMAGE_BYTES + 1, type: "image/jpeg" }, "tooLarge"],
-    [{ size: 1, type: "image/webp" }, "unsupportedType"],
-    [{ size: 1, type: "image/heic" }, "unsupportedType"],
+    [{ size: 1, type: "text/plain" }, "unsupportedType"],
+    [{ size: 1, type: "" }, "unsupportedType"],
   ] as const)("스펙에 맞지 않는 파일을 거부한다: %s", (file, expected) => {
     expect(validateUploadImage(file)).toBe(expected);
     expect(uploadImageValidationMessage(expected)).not.toHaveLength(0);

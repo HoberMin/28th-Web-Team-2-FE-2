@@ -449,7 +449,7 @@ export function ReportForm({
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/jpeg,image/png"
+                accept="image/*"
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
