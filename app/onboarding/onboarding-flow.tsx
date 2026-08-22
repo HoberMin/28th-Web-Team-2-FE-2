@@ -177,16 +177,7 @@ export function OnboardingFlow({
     );
   }
 
-  const defaultRegion =
-    !forceRegionSelection && onboarding.regionId && onboarding.regionName
-      ? {
-          regionId: onboarding.regionId,
-          regionName: onboarding.regionName,
-          ...(onboarding.latitude !== null && onboarding.longitude !== null
-            ? { latitude: onboarding.latitude, longitude: onboarding.longitude }
-            : {}),
-        }
-      : null;
-
-  return <RegionStep defaultValue={defaultRegion} onComplete={handleRegionComplete} />;
+  // 지역 단계는 저장된 선택값을 초기값으로 쓰지 않는다 — 검색·목록을 없애고 현재 위치 탐색
+  // 하나로 정리했기 때문에(2026-08-22), 이 화면에 온 사용자는 항상 위치부터 다시 확인한다.
+  return <RegionStep onComplete={handleRegionComplete} />;
 }
