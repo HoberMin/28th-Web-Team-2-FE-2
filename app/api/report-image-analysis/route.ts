@@ -2,6 +2,7 @@ import { ApiError } from "@/app/_lib/api/api-error";
 import { getAccessToken } from "@/app/_lib/api/auth/session";
 import { imageAnalysisRequestSchema } from "@/app/_lib/api/schemas/image-analysis";
 import { analyzeReportImage } from "@/app/_lib/api/server/image-analysis";
+import { photoAnalysisMessage } from "@/app/_lib/report-photo-messages";
 
 // 매 요청이 다른 이미지라 캐싱 대상이 아니고, `cookies()`를 쓰므로 동적이다.
 export const dynamic = "force-dynamic";
@@ -32,24 +33,19 @@ export async function POST(request: Request): Promise<Response> {
       status: error.status,
       endpoint: error.endpoint,
     });
-    if (error.kind === "badRequest") {
-      return Response.json({ message: "사진에서 값을 읽지 못했어요." }, { status: 400 });
-    }
-    if (error.kind === "unauthorized") {
-      return Response.json({ message: "로그인이 필요해요." }, { status: 401 });
-    }
-    if (error.kind === "notFound") {
-      return Response.json(
-        { message: "선택한 품목을 찾지 못했어요. 품목을 다시 선택해 주세요." },
-        { status: 404 },
-      );
-    }
     // 인식은 부가 기능이라 실패해도 사용자가 직접 입력하면 된다 — 화면이 조용히 넘어갈 수
-    // 있도록 상태만 정확히 돌려준다.
-    const status = error.kind === "network" ? 503 : 502;
-    return Response.json(
-      { message: "사진을 분석하지 못했어요. 값을 직접 입력해 주세요." },
-      { status },
-    );
+    // 있도록 상태를 정확히 돌려준다. 문구는 폼과 같은 함수로 만든다
+    // (`app/_lib/report-photo-messages.ts`) — 지금 폼은 body의 `message`를 읽지 않고 status로
+    // 직접 계산하지만, 읽기로 바뀌어도 안내가 갈리지 않게 하려는 것이다.
+    const status = statusFor(error.kind);
+    return Response.json({ message: photoAnalysisMessage(status) }, { status });
   }
+}
+
+/** ApiError.kind → 이 BFF가 클라이언트에 돌려줄 status. 분기는 status로만 한다. */
+function statusFor(kind: ApiError["kind"]): number {
+  if (kind === "badRequest") return 400;
+  if (kind === "unauthorized") return 401;
+  if (kind === "notFound") return 404;
+  return kind === "network" ? 503 : 502;
 }
