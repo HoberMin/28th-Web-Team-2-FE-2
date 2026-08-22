@@ -119,20 +119,23 @@ export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
         }}
       >
         {/*
-          grid 1칸에 mirror와 input을 겹쳐 둔다 — 칸 폭을 보이지 않는 mirror가 정하므로
-          입력칸이 내용 길이만큼만 차지하고, 뒤따르는 단위가 숫자에 붙는다.
+          보이지 않는 mirror 텍스트가 칸 폭을 정하고, 입력은 그 위에 **absolute로 겹친다.**
+          단위가 숫자 바로 뒤에 붙는 건 이 폭 계산이 정확해야 성립한다.
+
+          ⚠️ 08-21에는 grid 1칸에 둘을 겹쳐 뒀는데 **"원"이 여전히 멀리 떨어졌다**(08-22 재신고).
+             `min-w-0`은 min-content만 0으로 만들고 grid 열은 `max-content`로도 커지는데,
+             `<input>`의 max-content는 `size` 기본값(≈20자 ≈ 170px)이라 "300" 같은 짧은 값에서
+             열이 170px까지 벌어졌다. 입력을 absolute로 빼면 폭 계산에 아예 참여하지 않는다.
           (`field-sizing: content`는 아직 브라우저 편차가 커서 쓰지 않았다)
         */}
-        <span className="grid max-w-full min-w-0 overflow-hidden">
-          <span
-            aria-hidden="true"
-            className="invisible col-start-1 row-start-1 whitespace-pre text-body-16-semibold"
-          >
-            {text || placeholder}
+        <span className="relative max-w-full min-w-0 overflow-hidden">
+          <span aria-hidden="true" className="invisible block whitespace-pre text-body-16-semibold">
+            {/* 값도 안내문구도 없으면 높이가 0이 되므로 공백 한 칸으로 줄 높이를 지킨다. */}
+            {text || placeholder || "\u00a0"}
           </span>
           <input
             ref={inputRef}
-            className="col-start-1 row-start-1 w-full min-w-0 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
+            className="absolute inset-0 w-full min-w-0 bg-transparent text-body-16-semibold text-content-primary outline-none placeholder:font-medium placeholder:text-content-disabled"
             {...rest}
           />
         </span>
