@@ -14,6 +14,7 @@ import {
   PHOTO_MESSAGE,
 } from "@/app/_lib/report-photo-messages";
 import { ROUTES } from "@/app/_lib/routes";
+import { uploadReportPhotoAction } from "./_actions";
 import {
   FieldInput,
   FieldSelect,
@@ -55,19 +56,21 @@ import { clearReportPhoto, loadReportPhoto, saveReportPhoto } from "./_lib/photo
 //  · 단위는 `kg`·`g`·`개`·`포기` 중 사용자가 선택해 제보한다.
 //  · CTA "확인"의 이동 대상이 명시돼 있지 않다 → F04-4 제보 완료로 보냈다(플로우상 유일한 전진 경로).
 //
-// ── 2026-08-19: 제보 폼 동작 판단 ─────────────────────────────────────────────
+// ── 2026-08-19: 실 Spring 연동으로 코드가 새로 내린 판단 ────────────────────────
 //  · **reportType을 "PURCHASE"로 고정한다.** Figma 어디에도 "구매/목격"을 고르는 토글이 없다.
 //    유일하게 UI가 있는 흐름(사진 찍어 가격 입력)이 "실제로 산 가격 확인"에 가깝다고 보고
 //    골랐다 — 토글이 생기면 `_actions.ts`의 `FIXED_REPORT_TYPE` 하나만 바꾸면 된다.
-//  · **사진은 백엔드에 업로드하지 않는다.** 원본은 품목·장소 화면을 다녀와도 잃지 않도록
-//    `_lib/photo-draft.ts`의 IndexedDB에만 임시 보관한다. OCR과 제보 생성도 호출하지 않고,
-//    확인 버튼은 성공 화면으로 이동하는 데모 동작만 수행한다.
+//  · **사진 업로드가 붙었다**(2026-08-20, `POST /api/v1/images`). 제출은 2단계다 —
+//    사진을 먼저 올려 `imageUrl`을 받고, 그 URL을 제보 생성의 `photoUrl`로 넘긴다.
+//    사진 원본은 품목·장소 화면을 다녀와도 잃지 않도록 `_lib/photo-draft.ts`의 IndexedDB에
+//    계속 임시 보관한다. 업로드가 실패하면 원본을 유지해 재시도하고,
+//    사용자가 사진을 지웠을 때만 사진 없는 제보를 보낸다.
 //  · **F04-2 카테고리 매핑**(한글 7종 ↔ Spring `ItemCategory`)은 `_data.ts`가 `(tabs)/prices`의
 //    기존 `PRICE_GROUPS` 매핑을 재사용한다 — 판단 근거는 그 파일 머리말 참고.
 //
-// 상태 3종: 로딩은 화면 전환 직전의 짧은 상태로만 유지하고, 제보 생성 API는 호출하지 않는다.
+// 상태 3종(2026-08-19 갱신): 이제 성립한다 — 제출 API가 붙었다.
 //   로딩 = 제출 버튼 `state="loading"` (아래 handleSubmit)
-//   에러 = 사진 미리보기·로컬 임시 저장 실패만 CTA 위에 안내
+//   에러 = 401(로그인 필요)·409(중복 제보)·400(입력값)·기타를 구분해 CTA 위에 안내(아래 submitError)
 //   빈  = 이 화면 자체엔 없음(F04-2·F04-3 목록 화면의 몫)
 
 export interface ReportFormProps {
@@ -97,6 +100,7 @@ type PhotoState = {
   file: File;
   url: string;
   scanning: boolean;
+  uploadedImageUrl?: string;
 } | null;
 
 /**
@@ -196,6 +200,7 @@ export function ReportForm({
         file: file.file,
         url: URL.createObjectURL(file.file),
         scanning: false,
+        uploadedImageUrl: file.uploadedImageUrl,
       });
     });
     return () => {
@@ -242,26 +247,57 @@ export function ReportForm({
   }
 
   /**
-   * 사진을 브라우저에 임시 저장하고 데모용 인식 모달을 닫는다.
-   * 제보 화면은 백엔드 업로드·OCR을 호출하지 않고, 품목·가격·양을 사용자가 직접 입력한다.
+   * 사진 업로드 → 인식. **원본 오류 메시지를 화면에 내보내지 않는다** — 예전엔 catch에서
+   * `error.message`를 그대로 렌더해, Server Action이 예기치 못한 오류를 던지면 Next의 영문
+   * 안내문이 빨간 글씨로 통째로 떴다. 원문은 콘솔에만 남기고 문구는 `PHOTO_MESSAGE`만 쓴다.
+   *
+   * 어느 단계에서 끊겼는지(`stage`)를 들고 있는 이유: 업로드가 실패했으면 확인을 다시 눌러
+   * 재시도하는 게 맞고("사진을 올리지 못했어요"), 인식이 실패했으면 값을 직접 입력하면
+   * 되기 때문에("직접 입력해 주세요") 안내가 달라진다.
    */
   async function analyzePhoto(file: File, generation: number) {
     const isStale = () => generation !== photoGenerationRef.current;
     const stopScanning = () =>
       setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
+    let stage: "upload" | "analyze" = "upload";
 
     try {
       await saveReportPhoto(file);
+      const form = new FormData();
+      form.append("image", file);
+      const uploaded = await uploadReportPhotoAction(form);
       if (isStale()) return;
-      // OCR은 임시로 제거하고, 로컬 저장이 끝나면 인식이 성공한 것처럼 로딩만 종료한다.
+      if (uploaded.status !== "success") {
+        stopScanning();
+        if (uploaded.status === "unauthorized") setSubmitError(uploaded.message);
+        else setPhotoError({ message: uploaded.message, retryUpload: true });
+        return;
+      }
+
+      await saveReportPhoto(file, uploaded.imageUrl);
+      setPhoto((prev) =>
+        prev && generation === photoGenerationRef.current
+          ? { ...prev, uploadedImageUrl: uploaded.imageUrl }
+          : prev,
+      );
+
+      // 여기부터는 사진이 이미 올라갔다 — 실패해도 제보는 그대로 보낼 수 있다.
+      stage = "analyze";
+      // OCR은 임시로 제거하고, 업로드가 끝나면 인식이 성공한 것처럼 로딩만 종료한다.
       // 품목·가격·수량은 사용자가 직접 입력한다.
+      if (isStale()) return;
       stopScanning();
     } catch (error) {
-      // 원문은 콘솔에만 남기고 화면에는 사용자가 다시 선택할 수 있는 문구만 보여준다.
-      console.error("[report] 사진 임시 저장 실패", error);
+      // 던져진 오류(Server Action 내부 예외·네트워크 단절)는 문구를 만들 근거가 없다.
+      // 원문은 콘솔에만 남기고, 끊긴 단계에 맞는 한국어 안내로 바꿔 보여준다.
+      console.error("[report] 사진 처리 실패", { stage, error });
       if (isStale()) return;
       stopScanning();
-      setPhotoError({ message: PHOTO_MESSAGE.load, retryUpload: true });
+      setPhotoError(
+        stage === "upload"
+          ? { message: PHOTO_MESSAGE.upload, retryUpload: true }
+          : { message: PHOTO_MESSAGE.analyze, retryUpload: false },
+      );
     }
   }
 
@@ -281,7 +317,29 @@ export function ReportForm({
     setSubmitError("");
     setPhotoError(null);
     try {
-      // 데모에서는 사진 업로드와 제보 생성 API를 모두 호출하지 않고 성공 화면으로 이동한다.
+      // 사진이 있으면 먼저 올려 URL을 받는다(`POST /api/v1/images` → 그 다음 제보 생성).
+      // 선택한 사진이 있는데 업로드가 실패하면 사진을 모르게 빼지 않는다.
+      // 사진을 유지한 채 확인을 다시 누르면 재시도하고, 사용자가 사진을 삭제했을 때만
+      // 사진 없는 제보를 보낸다.
+      let photoUrl: string | undefined = photo?.uploadedImageUrl;
+      if (photo?.file && !photoUrl) {
+        const form = new FormData();
+        form.append("image", photo.file);
+        const uploaded = await uploadReportPhotoAction(form);
+        if (uploaded.status === "success") {
+          photoUrl = uploaded.imageUrl;
+          await saveReportPhoto(photo.file, photoUrl);
+          setPhoto((prev) => (prev ? { ...prev, uploadedImageUrl: photoUrl } : prev));
+        } else if (uploaded.status === "unauthorized") {
+          setSubmitError(uploaded.message);
+          return;
+        } else {
+          setPhotoError({ message: uploaded.message, retryUpload: true });
+          return;
+        }
+      }
+
+      // 데모에서는 제보 생성 API를 호출하지 않고 제출 성공 화면으로 이동한다.
       await clearReportPhoto();
       router.push(ROUTES.reportDone);
     } catch (error) {
