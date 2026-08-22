@@ -32,15 +32,17 @@ function StepShell({ children }: { children: ReactNode }) {
   );
 }
 
+// 문구는 화면 위쪽에 두고 가운데 정렬한다(2026-08-22 사용자 요청). 상단 여백 pt-10은
+// 닉네임 단계와 같은 값이라 두 화면을 넘어갈 때 제목 위치가 흔들리지 않는다.
 function DetectingView() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4">
-      <LoadingCircular animate className="size-8 text-content-brand-medium" currentColor />
-      <p className="text-center text-title-24-semibold text-content-primary" role="status">
+    <div className="flex flex-1 flex-col items-center px-4 pt-10 text-center">
+      <p className="text-title-24-semibold text-content-primary" role="status">
         지금 계신 동네를
         <br />
         탐색 중이에요
       </p>
+      <LoadingCircular animate className="mt-6 size-8 text-content-brand-medium" currentColor />
     </div>
   );
 }
@@ -75,7 +77,7 @@ export function RegionStep({ onComplete }: RegionStepProps) {
 
   return (
     <StepShell>
-      <div className="flex flex-1 flex-col justify-center px-4">
+      <div className="flex flex-1 flex-col px-4 pt-10 text-center">
         <h1 className="text-title-24-semibold text-content-primary">
           위치를 확인했어요.
           <br />
