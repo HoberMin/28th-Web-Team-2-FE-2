@@ -136,8 +136,18 @@ export function FieldInput({ className, suffix, ...rest }: FieldInputProps) {
             {...rest}
           />
         </span>
+        {/*
+          QA-V3 #3 (2026-08-22): 08-21에 단위를 숫자 뒤로 당겨붙였는데 디자이너가
+          `field/price` state=typing(1332:30211)을 근거로 **"숫자와 약간의 gap"**을 요청했다 —
+          그 노드는 캐럿(1px indicator) 바로 뒤에 "원"이 오는 구조라 실제 화면에서는
+          숫자와 단위 사이에 캐럿 한 칸만큼 틈이 생긴다. 우리 입력칸은 캐럿이 mirror 폭
+          안쪽에 있어 그 틈이 0이 되므로 **2px을 명시적으로 준다.**
+          (Figma에 gap 값 자체는 없다 — 캐럿 폭에서 온 2px 추정이라 값이 다르면 알려달라)
+        */}
         {showSuffix ? (
-          <span className="shrink-0 text-body-16-semibold text-content-primary">{suffix}</span>
+          <span className="ml-0.5 shrink-0 text-body-16-semibold text-content-primary">
+            {suffix}
+          </span>
         ) : null}
       </span>
     </div>
