@@ -105,6 +105,17 @@ type PhotoState = {
   uploadedImageUrl?: string;
 } | null;
 
+/**
+ * 사진 실패 안내. `retryUpload`가 CTA 라벨을 가른다 — 업로드가 남았으면 "사진 다시 올리기",
+ * 인식만 실패했으면 사진은 이미 올라갔으니 "확인"(그대로 제출 가능)이다.
+ * 예전엔 실패 종류를 구분하지 않아 인식 실패인데 버튼이 "사진 다시 올리기"라고 말하면서
+ * 누르면 실제로는 제보가 제출됐다 — 라벨과 동작이 어긋났다.
+ */
+type PhotoError = {
+  message: string;
+  retryUpload: boolean;
+};
+
 type DetectedItem = {
   itemId: number;
   name: string;
@@ -168,7 +179,7 @@ export function ReportForm({
   const fileRef = useRef<HTMLInputElement>(null);
   const photoGenerationRef = useRef(0);
   const [photo, setPhoto] = useState<PhotoState>(null);
-  const [photoError, setPhotoError] = useState("");
+  const [photoError, setPhotoError] = useState<PhotoError | null>(null);
   const [price, setPrice] = useState(() => formatPriceInput(initialPrice ?? ""));
   const [amount, setAmount] = useState(() => digitsOnly(initialAmount ?? ""));
   const [reportUnit, setReportUnit] = useState<ReportUnit | undefined>(() =>
@@ -225,10 +236,10 @@ export function ReportForm({
     // 같은 파일을 다시 고를 수 있어야 하므로 input 값을 비운다.
     event.target.value = "";
     if (!file) return;
-    setPhotoError("");
+    setPhotoError(null);
     const validationError = validateUploadImage(file);
     if (validationError) {
-      setPhotoError(uploadImageValidationMessage(validationError));
+      setPhotoError({ message: uploadImageValidationMessage(validationError), retryUpload: true });
       return;
     }
     const generation = ++photoGenerationRef.current;
@@ -261,7 +272,7 @@ export function ReportForm({
       if (uploaded.status !== "success") {
         stopScanning();
         if (uploaded.status === "unauthorized") setSubmitError(uploaded.message);
-        else setPhotoError(uploaded.message);
+        else setPhotoError({ message: uploaded.message, retryUpload: true });
         return;
       }
 
@@ -282,7 +293,7 @@ export function ReportForm({
       if (isStale()) return;
       if (!response.ok) {
         stopScanning();
-        setPhotoError(photoAnalysisMessage(response.status));
+        setPhotoError({ message: photoAnalysisMessage(response.status), retryUpload: false });
         return;
       }
 
@@ -291,7 +302,7 @@ export function ReportForm({
       if (!parsed.success) {
         console.error("[report] 사진 인식 응답이 예상과 다릅니다", parsed.error);
         stopScanning();
-        setPhotoError(PHOTO_MESSAGE.analyze);
+        setPhotoError({ message: PHOTO_MESSAGE.analyze, retryUpload: false });
         return;
       }
       if (!itemId && parsed.data.item) {
@@ -315,7 +326,11 @@ export function ReportForm({
       console.error("[report] 사진 처리 실패", { stage, error });
       if (isStale()) return;
       stopScanning();
-      setPhotoError(stage === "upload" ? PHOTO_MESSAGE.upload : PHOTO_MESSAGE.analyze);
+      setPhotoError(
+        stage === "upload"
+          ? { message: PHOTO_MESSAGE.upload, retryUpload: true }
+          : { message: PHOTO_MESSAGE.analyze, retryUpload: false },
+      );
     }
   }
 
@@ -333,7 +348,7 @@ export function ReportForm({
 
     setIsSubmitting(true);
     setSubmitError("");
-    setPhotoError("");
+    setPhotoError(null);
     try {
       // 사진이 있으면 먼저 올려 URL을 받는다(`POST /api/v1/images` → 그 다음 제보 생성).
       // 선택한 사진이 있는데 업로드가 실패하면 사진을 모르게 빼지 않는다.
@@ -352,7 +367,7 @@ export function ReportForm({
           setSubmitError(uploaded.message);
           return;
         } else {
-          setPhotoError(uploaded.message);
+          setPhotoError({ message: uploaded.message, retryUpload: true });
           return;
         }
       }
@@ -384,7 +399,7 @@ export function ReportForm({
   function handleCancelScan() {
     photoGenerationRef.current += 1;
     setPhoto((prev) => (prev ? { ...prev, scanning: false } : prev));
-    setPhotoError("");
+    setPhotoError(null);
   }
 
   return (
@@ -414,7 +429,7 @@ export function ReportForm({
                       onClick={() => {
                         photoGenerationRef.current += 1;
                         setPhoto(null);
-                        setPhotoError("");
+                        setPhotoError(null);
                         void clearReportPhoto();
                       }}
                     >
@@ -438,7 +453,7 @@ export function ReportForm({
                       photoGenerationRef.current += 1;
                       setPhoto(null);
                       void clearReportPhoto();
-                      setPhotoError(PHOTO_MESSAGE.load);
+                      setPhotoError({ message: PHOTO_MESSAGE.load, retryUpload: true });
                     }}
                   />
                 </PhotoPreview>
@@ -461,7 +476,7 @@ export function ReportForm({
               )}
               {photoError ? (
                 <p className="text-caption-12-medium text-content-error" role="alert">
-                  {photoError}
+                  {photoError.message}
                 </p>
               ) : null}
               <input
@@ -551,7 +566,7 @@ export function ReportForm({
           state={isSubmitting ? "loading" : "normal"}
           onClick={handleSubmit}
         >
-          {photo && photoError ? "사진 다시 올리기" : "확인"}
+          {photo && photoError?.retryUpload ? "사진 다시 올리기" : "확인"}
         </Button>
       </ReportCtaFooter>
 
