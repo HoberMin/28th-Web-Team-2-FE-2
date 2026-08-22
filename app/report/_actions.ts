@@ -13,6 +13,7 @@ import { ensureCurrentUserRegion } from "@/app/_lib/api/server/regions";
 import { createReport } from "@/app/_lib/api/server/reports";
 import { getVerifiedSelectedRegion } from "@/app/_lib/api/server/selected-region";
 import { FIXED_REGION_ID } from "@/app/_lib/api/fixed-region";
+import { PHOTO_MESSAGE } from "@/app/_lib/report-photo-messages";
 
 /**
  * Figma에 "구매/목격" 토글이 없다(제보 폼 어디에도 이 값을 고르는 UI가 없음). 유일하게 UI가
@@ -91,19 +92,16 @@ export async function uploadReportPhotoAction(formData: FormData): Promise<Uploa
       await clearTokens();
       return { status: "unauthorized", message: "로그인이 만료됐어요. 다시 로그인해 주세요." };
     }
+    // 형식 오류(400)만 따로 안내한다 — 같은 파일로 재시도하면 같은 400이라, "다시 시도"는
+    // 사용자를 루프에 넣는다. 저장소 장애(503)와 그 밖의 실패는 할 일이 같아(재시도 또는
+    // 사진 삭제) 문구를 하나로 합쳤다.
     if (error.kind === "badRequest") {
-      return { status: "invalid", message: "사진 형식을 확인해 주세요." };
+      return { status: "invalid", message: PHOTO_MESSAGE.invalidFormat };
     }
     if (error.status === 503) {
-      return {
-        status: "unavailable",
-        message: "이미지 저장소가 점검 중이에요. 다시 시도하거나 사진을 삭제한 뒤 제보해 주세요.",
-      };
+      return { status: "unavailable", message: PHOTO_MESSAGE.upload };
     }
-    return {
-      status: "error",
-      message: "사진을 올리지 못했어요. 다시 시도하거나 사진을 삭제해 주세요.",
-    };
+    return { status: "error", message: PHOTO_MESSAGE.upload };
   }
 }
 
