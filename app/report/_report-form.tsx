@@ -9,9 +9,11 @@ import {
   validateUploadImage,
 } from "@/app/_lib/api/schemas/images";
 import type { StoreRequest } from "@/app/_lib/api/schemas/reports";
+import { imageAnalysisSchema } from "@/app/_lib/api/schemas/image-analysis";
 import { FigmaIcon } from "@/app/_lib/figma-asset";
 import {
   PHOTO_MESSAGE,
+  photoAnalysisMessage,
 } from "@/app/_lib/report-photo-messages";
 import { ROUTES } from "@/app/_lib/routes";
 import { submitReportAction, uploadReportPhotoAction } from "./_actions";
@@ -283,9 +285,43 @@ export function ReportForm({
 
       // 여기부터는 사진이 이미 올라갔다 — 실패해도 제보는 그대로 보낼 수 있다.
       stage = "analyze";
-      // OCR은 임시로 제거하고, 업로드가 끝나면 인식이 성공한 것처럼 로딩만 종료한다.
-      // 품목·가격·수량은 사용자가 직접 입력한다.
+      const response = await fetch("/api/report-image-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: uploaded.imageUrl, itemId: itemId ?? null }),
+      });
       if (isStale()) return;
+      if (!response.ok) {
+        stopScanning();
+        setPhotoError({ message: photoAnalysisMessage(response.status), retryUpload: false });
+        return;
+      }
+
+      const parsed = imageAnalysisSchema.safeParse(await response.json());
+      if (isStale()) return;
+      if (!parsed.success) {
+        console.error("[report] 사진 인식 응답이 예상과 다릅니다", parsed.error);
+        stopScanning();
+        setPhotoError({ message: PHOTO_MESSAGE.analyze, retryUpload: false });
+        return;
+      }
+      if (!itemId && parsed.data.item) {
+        setDetectedItem({
+          itemId: parsed.data.item.itemId,
+          name: parsed.data.item.name,
+          unit: parsed.data.item.unit,
+        });
+        setReportUnit(normalizeReportUnit(parsed.data.item.unit));
+      }
+      if (parsed.data.price?.value !== null && parsed.data.price?.value !== undefined) {
+        setPrice(formatPriceInput(String(parsed.data.price.value)));
+      }
+      if (parsed.data.amount?.value !== null && parsed.data.amount?.value !== undefined) {
+        // amount state는 digitsOnly()로만 갱신되는 정수 계약이다 — 소수를 그대로 넣으면
+        // 판매 장소 화면을 왕복할 때(buildPlaceQuery→쿼리→복귀 후 digitsOnly) 소수점이
+        // 자릿수로 흡수돼 값이 부풀거나(1.5→15) 깎인다(0.5→5). 반올림해 계약을 맞춘다.
+        setAmount(String(Math.round(parsed.data.amount.value)));
+      }
       stopScanning();
     } catch (error) {
       // 던져진 오류(Server Action 내부 예외·네트워크 단절)는 문구를 만들 근거가 없다.
